@@ -1,75 +1,83 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Prof. Name</title>
-    <link>https://pascalmichaillat.org/hugo-website/</link>
-    <description>Recent content on Prof. Name</description>
+    <title>Franz Louis Cesista</title>
+    <link>https://leloykun.github.io/</link>
+    <description>Recent content on Franz Louis Cesista</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language>
-    <lastBuildDate>Thu, 07 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://pascalmichaillat.org/hugo-website/index.xml" rel="self" type="application/rss+xml" />
+    <language>en</language><atom:link href="https://leloykun.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Dataset Title</title>
-      <link>https://pascalmichaillat.org/hugo-website/data/data1/</link>
-      <pubDate>Thu, 07 Sep 2023 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/data/data1/</guid>
-      <description>This dataset contains things.</description>
-    </item>
-    
-    <item>
-      <title>Course Title 1</title>
-      <link>https://pascalmichaillat.org/hugo-website/courses/course1/</link>
-      <pubDate>Thu, 10 Mar 2022 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/courses/course1/</guid>
-      <description>This graduate course presents things.</description>
-    </item>
-    
-    <item>
-      <title>Course Title 2</title>
-      <link>https://pascalmichaillat.org/hugo-website/courses/course2/</link>
-      <pubDate>Wed, 16 Jun 2021 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/courses/course2/</guid>
-      <description>This undergraduate course presents many new things.</description>
-    </item>
-    
-    <item>
-      <title>Paper Title 2</title>
-      <link>https://pascalmichaillat.org/hugo-website/papers/paper2/</link>
-      <pubDate>Tue, 01 Dec 2015 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/papers/paper2/</guid>
-      <description>This paper shows other things. Published in Journal Name, 2015.</description>
-    </item>
-    
-    <item>
-      <title>Paper Title 1</title>
-      <link>https://pascalmichaillat.org/hugo-website/papers/paper1/</link>
-      <pubDate>Fri, 01 Jun 2012 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/papers/paper1/</guid>
-      <description>This paper shows things. Published in Journal Name, 2012.</description>
-    </item>
-    
-    
-    <item>
-      <title>Location</title>
-      <link>https://pascalmichaillat.org/hugo-website/location/</link>
+      <title>Flash Hyperbolic Attention Minimal [WIP]</title>
+      <link>https://leloykun.github.io/portfolio/1-flash-hyperbolic-attention-minimal/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://pascalmichaillat.org/hugo-website/location/</guid>
-      <description>Mailing and office addresses at the University of Place.</description>
+      <guid>https://leloykun.github.io/portfolio/1-flash-hyperbolic-attention-minimal/</guid>
+      <description>A minimal implementation of Flash Attention 1 &amp;amp; 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the various variations of Hyperbolic Attention in CUDA.</description>
     </item>
     
     <item>
-      <title>Office Hours</title>
-      <link>https://pascalmichaillat.org/hugo-website/officehours/</link>
+      <title>Llama.cpp</title>
+      <link>https://leloykun.github.io/portfolio/2-llama.cpp/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://pascalmichaillat.org/hugo-website/officehours/</guid>
-      <description>Schedule and location for office hours.</description>
+      <guid>https://leloykun.github.io/portfolio/2-llama.cpp/</guid>
+      <description>A C&#43;&#43; implementation of Meta&amp;#39;s Llama2 generative large-language model. I also optimized the original C implementation by Karpathy by adding parallelization on the multi-head attention layer.</description>
     </item>
+    
+    <item>
+      <title>Expedock AutoML</title>
+      <link>https://leloykun.github.io/portfolio/3-expedock-automl/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/portfolio/3-expedock-automl/</guid>
+      <description>Expedock&amp;#39;s AutoML Library -- fit a model, run batch inference, and get explanations in one line of code each.</description>
+    </item>
+    
+    <item>
+      <title>Ateneo&#39;s Competitive Programming Varsity&#39;s Code Library</title>
+      <link>https://leloykun.github.io/portfolio/4-progvar-library/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/portfolio/4-progvar-library/</guid>
+      <description>A collection of algorithms, data structures and other useful information for competitive programming. Used and maintained by members of the Ateneo de Manila University Programming Varsity.</description>
+    </item>
+    
+    <item>
+      <title>Codeball 2018</title>
+      <link>https://leloykun.github.io/portfolio/5-codeball/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/portfolio/5-codeball/</guid>
+      <description>A rule-based AI built to beat other AIs in a Rocket-League-esque 3D soccer game. It managed to get to the finals of the Russian AI Cup 2018</description>
+    </item>
+    
+    <item>
+      <title>Codewars 2017</title>
+      <link>https://leloykun.github.io/portfolio/6-codewars/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/portfolio/6-codewars/</guid>
+      <description>A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017.</description>
+    </item>
+    
+    <item>
+      <title>Booking Demand Prediction for Grab SEA</title>
+      <link>https://leloykun.github.io/portfolio/7-grab-booking-demand-prediction/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/portfolio/7-grab-booking-demand-prediction/</guid>
+      <description>Booking demand prediction for Grab&amp;#39;s Southeast Asia operations. The project involves spatio-temporal forecasting, anomaly detection, and econometric modeling.</description>
+    </item>
+    
+    <item>
+      <title>[Under Review]</title>
+      <link>https://leloykun.github.io/papers/rasg/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/papers/rasg/</guid>
+      <description>This paper is still under review. It describes a SOTA method for Document Information Extraction tasks (i.e. Key-Information Extraction &amp;amp; Line Items Recognition). The method can augment open-source LLMs by up to 1473% and commercial LLMs by up to 304% on public benchmarks and beating strong, finetuned multi-modal baselines.</description>
+    </item>
+    
     
   </channel>
 </rss>

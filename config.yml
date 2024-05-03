@@ -1,5 +1,5 @@
-baseURL: "https://pascalmichaillat.org/hugo-website/" 
-title: Prof. Name
+baseURL: "https://leloykun.github.io" 
+title: Franz Louis Cesista
 paginate: 20
 theme: PaperMod
 
@@ -14,22 +14,24 @@ menu:
         - name: Papers
           url: papers/
           weight: 1
-        - name: Courses
-          url: courses/
+        - name: Porfolio
+          url: portfolio/
           weight: 2
-        - name: Data
-          url: data/
-          weight: 3 
+        # - name: Courses
+        #   url: courses/
+        #   weight: 2
+        # - name: Data
+        #   url: data/
+        #   weight: 3 
         - name: Newsletter
-          url: https://pmichaillat.substack.com
+          url: https://ponder.substack.com
           weight: 4
 
 params:
-    description: "I am a Professor of Subject at the University of Place. My research covers various topics.
-consequat."
-    author: Name
+    description: "Mathematician | Machine Learning (AI) Research Scientist"
+    author: Franz Louis Cesista
     # googleAnalyticsID: "G-XXXXX"
-    DateFormat: "January 2006"
+    DateFormat: "January 2024"
     defaultTheme: light
     hideFooter: false
     disableThemeToggle: true
@@ -49,46 +51,42 @@ consequat."
     comments: false
     math: true
     profileMode:
-          enabled: true
-          title: Prof. Namely Name
-          subtitle: "I am a Professor of Subject at the University of Place. I work on various topics. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo."
-          imageUrl: "picture.jpeg"
-          imageWidth: 160
-          imageHeight: 160
-          imageTitle: Prof. Name
-          buttons:
+        enabled: true
+        title: <span style="color:#011F5B">Franz Louis Cesista</span>
+        subtitle:
+            Building something 👨‍🍳🚀 • Former <span style="color:#011F5B">**Machine Learning (AI) Research Scientist, Full-Stack Software Engineer, & Data Engineer**</span> at [Expedock Software Inc.](https://expedock.com) • <span style="color:#011F5B">**2x IOI & 2x ICPC World Finalist**<span> • Mathematics at the [Ateneo de Manila University](https://www.ateneo.edu/)<br><br>
+
+            Multi-Modal Machine Learning • Document Information Extraction • Structured Generation • Non-Euclidean Geometry • Geometric Deep Learning
+        imageUrl: "picture.png"
+        imageWidth: 160
+        imageHeight: 160
+        imageTitle: Franz Louis Cesista
+        buttons:
+            - name: CV
+              url: cv.pdf
             - name: Papers
               url: papers/
-            - name: Courses
-              url: courses/
-            - name: Data
-              url: data/
+            - name: Porfolio
+              url: portfolio/
+            # - name: Courses
+            #   url: courses/
+            # - name: Data
+            #   url: data/
             - name: Newsletter
-              url: https://pmichaillat.substack.com
-            - name: Tags
-              url: tags/
-            - name: Archive
-              url: archive/
+              url: https://ponder.substack.com
+            # - name: Tags
+            #   url: tags/
+            # - name: Archive
+            #   url: archive/
     socialIcons:
-        - name: CV
-          url: cv.pdf
         - name: Email
-          url: mailto:pascal.michaillat@gmail.com
-        - name: Location
-          url: location/
-        - name: Office Hours
-          url: officehours/
-        - name: Google Scholar
-          url: https://scholar.google.com/citations?user=cL23w-4AAAAJ
-        - name: YouTube
-          url: https://www.youtube.com/@pmichaillat
+          url: mailto:franzlouiscesista@gmail.com
         - name: GitHub
-          url: https://github.com/pmichaillat
-        - name: Substack
-          url: https://pmichaillat.substack.com
+          url: https://github.com/leloykun
+        - name: LinkedIn
+          url: https://www.linkedin.com/in/franzcesista/
         - name: Twitter
-          url: https://twitter.com/pmichaillat
-
+          url: https://twitter.com/leloykun
     assets:
         disableHLJS: true
         disableScrollBarStyle: true
@@ -96,7 +94,7 @@ consequat."
         hiddenInList: false
         hiddenInSingle: true
     label:
-      text: "Prof. Name"
+      text: "Franz Louis Cesista"
       icon: favicon.ico
       iconHeight: 18
 

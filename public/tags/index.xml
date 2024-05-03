@@ -1,81 +1,161 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Tags on Prof. Name</title>
-    <link>https://pascalmichaillat.org/hugo-website/tags/</link>
-    <description>Recent content in Tags on Prof. Name</description>
+    <title>Tags on Franz Louis Cesista</title>
+    <link>https://leloykun.github.io/tags/</link>
+    <description>Recent content in Tags on Franz Louis Cesista</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language>
-    <lastBuildDate>Thu, 07 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://pascalmichaillat.org/hugo-website/tags/index.xml" rel="self" type="application/rss+xml" />
+    <language>en</language><atom:link href="https://leloykun.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Keyword 10</title>
-      <link>https://pascalmichaillat.org/hugo-website/tags/keyword-10/</link>
-      <pubDate>Thu, 07 Sep 2023 00:00:00 +0000</pubDate>
+      <title>3D Physics Simulation</title>
+      <link>https://leloykun.github.io/tags/3d-physics-simulation/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://pascalmichaillat.org/hugo-website/tags/keyword-10/</guid>
+      <guid>https://leloykun.github.io/tags/3d-physics-simulation/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Keyword 5</title>
-      <link>https://pascalmichaillat.org/hugo-website/tags/keyword-5/</link>
-      <pubDate>Thu, 07 Sep 2023 00:00:00 +0000</pubDate>
+      <title>Anomaly Detection</title>
+      <link>https://leloykun.github.io/tags/anomaly-detection/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://pascalmichaillat.org/hugo-website/tags/keyword-5/</guid>
+      <guid>https://leloykun.github.io/tags/anomaly-detection/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Keyword 6</title>
-      <link>https://pascalmichaillat.org/hugo-website/tags/keyword-6/</link>
-      <pubDate>Thu, 07 Sep 2023 00:00:00 +0000</pubDate>
+      <title>Artificial Intelligence</title>
+      <link>https://leloykun.github.io/tags/artificial-intelligence/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://pascalmichaillat.org/hugo-website/tags/keyword-6/</guid>
+      <guid>https://leloykun.github.io/tags/artificial-intelligence/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Keyword 7</title>
-      <link>https://pascalmichaillat.org/hugo-website/tags/keyword-7/</link>
-      <pubDate>Thu, 07 Sep 2023 00:00:00 +0000</pubDate>
+      <title>C&#43;&#43;</title>
+      <link>https://leloykun.github.io/tags/c&#43;&#43;/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://pascalmichaillat.org/hugo-website/tags/keyword-7/</guid>
+      <guid>https://leloykun.github.io/tags/c&#43;&#43;/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Keyword 1</title>
-      <link>https://pascalmichaillat.org/hugo-website/tags/keyword-1/</link>
-      <pubDate>Thu, 10 Mar 2022 00:00:00 +0000</pubDate>
+      <title>Competitive Programming</title>
+      <link>https://leloykun.github.io/tags/competitive-programming/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://pascalmichaillat.org/hugo-website/tags/keyword-1/</guid>
+      <guid>https://leloykun.github.io/tags/competitive-programming/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Keyword 2</title>
-      <link>https://pascalmichaillat.org/hugo-website/tags/keyword-2/</link>
-      <pubDate>Thu, 10 Mar 2022 00:00:00 +0000</pubDate>
+      <title>CUDA</title>
+      <link>https://leloykun.github.io/tags/cuda/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://pascalmichaillat.org/hugo-website/tags/keyword-2/</guid>
+      <guid>https://leloykun.github.io/tags/cuda/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Keyword 3</title>
-      <link>https://pascalmichaillat.org/hugo-website/tags/keyword-3/</link>
-      <pubDate>Thu, 10 Mar 2022 00:00:00 +0000</pubDate>
+      <title>Econometrics</title>
+      <link>https://leloykun.github.io/tags/econometrics/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://pascalmichaillat.org/hugo-website/tags/keyword-3/</guid>
+      <guid>https://leloykun.github.io/tags/econometrics/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Keyword 4</title>
-      <link>https://pascalmichaillat.org/hugo-website/tags/keyword-4/</link>
-      <pubDate>Wed, 16 Jun 2021 00:00:00 +0000</pubDate>
+      <title>Flash Attention</title>
+      <link>https://leloykun.github.io/tags/flash-attention/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://pascalmichaillat.org/hugo-website/tags/keyword-4/</guid>
+      <guid>https://leloykun.github.io/tags/flash-attention/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Game AI</title>
+      <link>https://leloykun.github.io/tags/game-ai/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/game-ai/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Hyperbolic Geometry</title>
+      <link>https://leloykun.github.io/tags/hyperbolic-geometry/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/hyperbolic-geometry/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Machine Learning</title>
+      <link>https://leloykun.github.io/tags/machine-learning/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/machine-learning/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ML Interpretability</title>
+      <link>https://leloykun.github.io/tags/ml-interpretability/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/ml-interpretability/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Non-Euclidean Geometry</title>
+      <link>https://leloykun.github.io/tags/non-euclidean-geometry/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/non-euclidean-geometry/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Python</title>
+      <link>https://leloykun.github.io/tags/python/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/python/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>PyTorch</title>
+      <link>https://leloykun.github.io/tags/pytorch/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/pytorch/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Rule-Based AI</title>
+      <link>https://leloykun.github.io/tags/rule-based-ai/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/rule-based-ai/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Spatio-Temporal Forecasting</title>
+      <link>https://leloykun.github.io/tags/spatio-temporal-forecasting/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/spatio-temporal-forecasting/</guid>
       <description></description>
     </item>
     

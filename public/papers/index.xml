@@ -1,28 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Papers on Prof. Name</title>
-    <link>https://pascalmichaillat.org/hugo-website/papers/</link>
-    <description>Recent content in Papers on Prof. Name</description>
+    <title>Papers [Under Construction] on Franz Louis Cesista</title>
+    <link>https://leloykun.github.io/papers/</link>
+    <description>Recent content in Papers [Under Construction] on Franz Louis Cesista</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language>
-    <lastBuildDate>Tue, 01 Dec 2015 00:00:00 +0000</lastBuildDate><atom:link href="https://pascalmichaillat.org/hugo-website/papers/index.xml" rel="self" type="application/rss+xml" />
+    <language>en</language><atom:link href="https://leloykun.github.io/papers/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Paper Title 2</title>
-      <link>https://pascalmichaillat.org/hugo-website/papers/paper2/</link>
-      <pubDate>Tue, 01 Dec 2015 00:00:00 +0000</pubDate>
+      <title>[Under Review]</title>
+      <link>https://leloykun.github.io/papers/rasg/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://pascalmichaillat.org/hugo-website/papers/paper2/</guid>
-      <description>This paper shows other things. Published in Journal Name, 2015.</description>
-    </item>
-    
-    <item>
-      <title>Paper Title 1</title>
-      <link>https://pascalmichaillat.org/hugo-website/papers/paper1/</link>
-      <pubDate>Fri, 01 Jun 2012 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/papers/paper1/</guid>
-      <description>This paper shows things. Published in Journal Name, 2012.</description>
+      <guid>https://leloykun.github.io/papers/rasg/</guid>
+      <description>This paper is still under review. It describes a SOTA method for Document Information Extraction tasks (i.e. Key-Information Extraction &amp;amp; Line Items Recognition). The method can augment open-source LLMs by up to 1473% and commercial LLMs by up to 304% on public benchmarks and beating strong, finetuned multi-modal baselines.</description>
     </item>
     
   </channel>

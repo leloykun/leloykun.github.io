@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Machine Learning on Franz Louis Cesista</title>
+    <link>https://leloykun.github.io/tags/machine-learning/</link>
+    <description>Recent content in Machine Learning on Franz Louis Cesista</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language><atom:link href="https://leloykun.github.io/tags/machine-learning/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Flash Hyperbolic Attention Minimal [WIP]</title>
+      <link>https://leloykun.github.io/portfolio/1-flash-hyperbolic-attention-minimal/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/portfolio/1-flash-hyperbolic-attention-minimal/</guid>
+      <description>A minimal implementation of Flash Attention 1 &amp;amp; 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the various variations of Hyperbolic Attention in CUDA.</description>
+    </item>
+    
+    <item>
+      <title>Llama.cpp</title>
+      <link>https://leloykun.github.io/portfolio/2-llama.cpp/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/portfolio/2-llama.cpp/</guid>
+      <description>A C&#43;&#43; implementation of Meta&amp;#39;s Llama2 generative large-language model. I also optimized the original C implementation by Karpathy by adding parallelization on the multi-head attention layer.</description>
+    </item>
+    
+    <item>
+      <title>Expedock AutoML</title>
+      <link>https://leloykun.github.io/portfolio/3-expedock-automl/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/portfolio/3-expedock-automl/</guid>
+      <description>Expedock&amp;#39;s AutoML Library -- fit a model, run batch inference, and get explanations in one line of code each.</description>
+    </item>
+    
+    <item>
+      <title>Codewars 2017</title>
+      <link>https://leloykun.github.io/portfolio/6-codewars/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/portfolio/6-codewars/</guid>
+      <description>A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017.</description>
+    </item>
+    
+    <item>
+      <title>Booking Demand Prediction for Grab SEA</title>
+      <link>https://leloykun.github.io/portfolio/7-grab-booking-demand-prediction/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/portfolio/7-grab-booking-demand-prediction/</guid>
+      <description>Booking demand prediction for Grab&amp;#39;s Southeast Asia operations. The project involves spatio-temporal forecasting, anomaly detection, and econometric modeling.</description>
+    </item>
+    
+  </channel>
+</rss>
