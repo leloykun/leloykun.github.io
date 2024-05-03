@@ -1,4 +1,4 @@
 ---
-title: "Open Source [Under Construction]"
-description: "Open source work by Franz Louis Cesista"
+title: "Portfolio [WIP]"
+description: "A collection of my personal projects and works."
 ---
