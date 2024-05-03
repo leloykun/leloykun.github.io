@@ -51,7 +51,7 @@ params:
     comments: false
     math: true
     images:
-        - cover.jpg
+        - cover.png
     profileMode:
         enabled: true
         title: <span style="color:#011F5B">Franz Louis Cesista</span>
