@@ -50,6 +50,8 @@ params:
     UseHugoToc: true
     comments: false
     math: true
+    images:
+        - cover.jpg
     profileMode:
         enabled: true
         title: <span style="color:#011F5B">Franz Louis Cesista</span>
@@ -87,6 +89,8 @@ params:
           url: https://www.linkedin.com/in/franzcesista/
         - name: Twitter
           url: https://twitter.com/leloykun
+    social:
+        twitter: leloykun
     assets:
         disableHLJS: true
         disableScrollBarStyle: true
