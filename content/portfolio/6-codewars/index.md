@@ -1,7 +1,7 @@
 ---
 title: "Codewars 2017"
 # date: 2023-07-25
-tags: ["Machine Learning", "Spatio-Temporal Forecasting", "Anomaly Detection", "Econometrics"]
+tags: ["Artificial Intelligence", "Particle Swarm AI", "Game AI", "Python", "K-Means Clustering", "BFS", "Potential Flows", "Fluid Dynamics"]
 author: "Franz Louis Cesista"
 description: "A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017."
 summary: "A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017."
