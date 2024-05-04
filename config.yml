@@ -15,7 +15,7 @@ menu:
           url: papers/
           weight: 1
         - name: Personal Projects
-          url: portfolio/
+          url: personal-projects/
           weight: 2
         # - name: Courses
         #   url: courses/
@@ -68,8 +68,8 @@ params:
               url: cv.pdf
             - name: Papers
               url: papers/
-            - name: Porfolio
-              url: portfolio/
+            - name: Personal Projects
+              url: personal-projects/
             # - name: Courses
             #   url: courses/
             # - name: Data

@@ -12,10 +12,10 @@
     <language>en</language><atom:link href="https://leloykun.github.io/tags/ml-interpretability/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Expedock AutoML</title>
-      <link>https://leloykun.github.io/portfolio/3-expedock-automl/</link>
+      <link>https://leloykun.github.io/personal-projects/3-expedock-automl/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://leloykun.github.io/portfolio/3-expedock-automl/</guid>
+      <guid>https://leloykun.github.io/personal-projects/3-expedock-automl/</guid>
       <description>Expedock&amp;#39;s AutoML Library -- fit a model, run batch inference, and get explanations in one line of code each.</description>
     </item>
     
