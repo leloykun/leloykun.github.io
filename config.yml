@@ -14,7 +14,7 @@ menu:
         - name: Papers
           url: papers/
           weight: 1
-        - name: Porfolio
+        - name: Personal Projects
           url: portfolio/
           weight: 2
         # - name: Courses
@@ -23,7 +23,7 @@ menu:
         # - name: Data
         #   url: data/
         #   weight: 3 
-        - name: Newsletter
+        - name: Ponder
           url: https://ponder.substack.com
           weight: 4
 
@@ -74,7 +74,7 @@ params:
             #   url: courses/
             # - name: Data
             #   url: data/
-            - name: Newsletter
+            - name: Ponder
               url: https://ponder.substack.com
             # - name: Tags
             #   url: tags/
