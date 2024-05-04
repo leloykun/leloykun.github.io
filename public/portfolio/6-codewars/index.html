@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>Codewars 2017 | Franz Louis Cesista</title>
 <meta name="keywords" content="Artificial Intelligence, Particle Swarm AI, Game AI, Python, K-Means Clustering, BFS, Potential Flows, Fluid Dynamics">
-<meta name="description" content="A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017.">
+<meta name="description" content="My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.">
 <meta name="author" content="Franz Louis Cesista">
 <link rel="canonical" href="https://leloykun.github.io/portfolio/6-codewars/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.f1e4501a2ac2bf9fff5dc0c77f152affb825b371cb176acfcf9201015d59b4d4.css" integrity="sha256-8eRQGirCv5//XcDHfxUq/7gls3HLF2rPz5IBAV1ZtNQ=" rel="preload stylesheet" as="style">
@@ -28,7 +28,7 @@
 
     </style>
 </noscript><meta property="og:title" content="Codewars 2017" />
-<meta property="og:description" content="A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017." />
+<meta property="og:description" content="My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://leloykun.github.io/portfolio/6-codewars/" />
 <meta property="og:image" content="https://leloykun.github.io/potential_flow.png" /><meta property="article:section" content="portfolio" />
@@ -38,7 +38,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://leloykun.github.io/potential_flow.png" />
 <meta name="twitter:title" content="Codewars 2017"/>
-<meta name="twitter:description" content="A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017."/>
+<meta name="twitter:description" content="My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game."/>
 
 
 <script type="application/ld+json">
@@ -67,12 +67,12 @@
   "@type": "BlogPosting",
   "headline": "Codewars 2017",
   "name": "Codewars 2017",
-  "description": "A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017.",
+  "description": "My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.",
   "keywords": [
     "Artificial Intelligence", "Particle Swarm AI", "Game AI", "Python", "K-Means Clustering", "BFS", "Potential Flows", "Fluid Dynamics"
   ],
-  "articleBody": " Game Mechanics CodeWars is a Command-and-Conquer-esque game where we and our enemy have hundreds of units of different types. The unit types are kind-of like rock-paper-and-scissor: a unit type can easily beat some types while weak to other types. Each enemy kill is worth 1 point and our goal is to either (a) kill all enemy units or (b) get a higher score than our opponent when the timer runs out.\nIn the later stages, fog-of-war gets activated and Facilities appear on the map. Capturing them gives us 50 points and holding them long enough gives us new units that’d spawn near the Facilities. We could also launch nukes from time to time.\nFinally, we are only allowed to do at most 60 actions per second.\nTechniques Used in My Strategy 1. K-Means Clustering The 60 actions-per-second rule makes it infeasible to manage our forces with precise granularity. And thus, we need to divide them into “army groups” that behave as if they’re a single unit. Most of our opponents do this too, but they don’t (and can’t) tell us which units belong to which groups. And so, we have to guess the groupings with K-means clustering.\n2. State-Space Breadth-First Search After grouping our units, we then do a state-space search using BFS to find the optimal initial positions before launching our offensives. Note: we only use BFS to rearrange our army groups, not to find the perfect attack paths for them.\n3. Potential Flows Finally, even with the groupings, it’s impossible to make a strategy that takes into account all possible permutations of allied \u0026 enemy positions. Thus, we need to rely on heuristics. One such heuristic is by modelling the stuff in the game map as particles that produce potential fields. All of our army groups (and stronger enemy groups) are negatively charged - thus, they repel each other. While our targets (facilities \u0026 weaker enemy groups) attract each other. We calculate this potential field for each group. And viola, we now have a direction field for our units.\n",
-  "wordCount" : "341",
+  "articleBody": " My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.\nGame Mechanics CodeWars is a Command-and-Conquer-esque game where we and our enemy have hundreds of units of different types. The unit types are kind-of like rock-paper-and-scissor: a unit type can easily beat some types while weak to other types. Each enemy kill is worth 1 point and our goal is to either (a) kill all enemy units or (b) get a higher score than our opponent when the timer runs out.\nIn the later stages, fog-of-war gets activated and Facilities appear on the map. Capturing them gives us 50 points and holding them long enough gives us new units that’d spawn near the Facilities. We could also launch nukes from time to time.\nFinally, we are only allowed to do at most 60 actions per second.\nTechniques Used in My Strategy 1. K-Means Clustering The 60 actions-per-second rule makes it infeasible to manage our forces with precise granularity. And thus, we need to divide them into “army groups” that behave as if they’re a single unit. Most of our opponents do this too, but they don’t (and can’t) tell us which units belong to which groups. And so, we have to guess the groupings with K-means clustering.\n2. State-Space Breadth-First Search After grouping our units, we then do a state-space search using BFS to find the optimal initial positions before launching our offensives. Note: we only use BFS to rearrange our army groups, not to find the perfect attack paths for them.\n3. Potential Flows Finally, even with the groupings, it’s impossible to make a strategy that takes into account all possible permutations of allied \u0026 enemy positions. Thus, we need to rely on heuristics. One such heuristic is by modelling the stuff in the game map as particles that produce potential fields. All of our army groups (and stronger enemy groups) are negatively charged - thus, they repel each other. While our targets (facilities \u0026 weaker enemy groups) attract each other. We calculate this potential field for each group. And viola, we now have a direction field for our units.\n",
+  "wordCount" : "373",
   "inLanguage": "en",
   "image":"https://leloykun.github.io/potential_flow.png","datePublished": "0001-01-01T00:00:00Z",
   "dateModified": "0001-01-01T00:00:00Z",
@@ -179,6 +179,7 @@
   </header> 
   <div class="post-content"><p><img loading="lazy" src="screenshot_nuke.png" alt="Game Screenshot"  />
 </p>
+<p>My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.</p>
 <h2 id="game-mechanics">Game Mechanics</h2>
 <p>CodeWars is a Command-and-Conquer-esque game where we and our enemy have hundreds of units of different types. The unit types are kind-of like rock-paper-and-scissor: a unit type can easily beat some types while weak to other types. Each enemy kill is worth 1 point and our goal is to either (a) kill all enemy units or (b) get a higher score than our opponent when the timer runs out.</p>
 <p>In the later stages, fog-of-war gets activated and Facilities appear on the map. Capturing them gives us 50 points and holding them long enough gives us new units that&rsquo;d spawn near the Facilities. We could also launch nukes from time to time.</p>

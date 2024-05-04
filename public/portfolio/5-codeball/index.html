@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>Codeball 2018 | Franz Louis Cesista</title>
 <meta name="keywords" content="Artificial Intelligence, Rule-Based AI, Game AI, Python, 3D Physics Simulation">
-<meta name="description" content="A rule-based AI built to beat other AIs in a Rocket-League-esque 3D soccer game. It managed to get to the finals of the Russian AI Cup 2018">
+<meta name="description" content="My entry for the World Finals of the Russian AI Cup 2018 - Codeball. A 3D physics-aware orchestrator of a pair of bots in a Rocket League-esque soccer game.">
 <meta name="author" content="Franz Louis Cesista">
 <link rel="canonical" href="https://leloykun.github.io/portfolio/5-codeball/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.f1e4501a2ac2bf9fff5dc0c77f152affb825b371cb176acfcf9201015d59b4d4.css" integrity="sha256-8eRQGirCv5//XcDHfxUq/7gls3HLF2rPz5IBAV1ZtNQ=" rel="preload stylesheet" as="style">
@@ -28,7 +28,7 @@
 
     </style>
 </noscript><meta property="og:title" content="Codeball 2018" />
-<meta property="og:description" content="A rule-based AI built to beat other AIs in a Rocket-League-esque 3D soccer game. It managed to get to the finals of the Russian AI Cup 2018" />
+<meta property="og:description" content="My entry for the World Finals of the Russian AI Cup 2018 - Codeball. A 3D physics-aware orchestrator of a pair of bots in a Rocket League-esque soccer game." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://leloykun.github.io/portfolio/5-codeball/" />
 <meta property="og:image" content="https://leloykun.github.io/codeball.png" /><meta property="article:section" content="portfolio" />
@@ -38,7 +38,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://leloykun.github.io/codeball.png" />
 <meta name="twitter:title" content="Codeball 2018"/>
-<meta name="twitter:description" content="A rule-based AI built to beat other AIs in a Rocket-League-esque 3D soccer game. It managed to get to the finals of the Russian AI Cup 2018"/>
+<meta name="twitter:description" content="My entry for the World Finals of the Russian AI Cup 2018 - Codeball. A 3D physics-aware orchestrator of a pair of bots in a Rocket League-esque soccer game."/>
 
 
 <script type="application/ld+json">
@@ -67,12 +67,12 @@
   "@type": "BlogPosting",
   "headline": "Codeball 2018",
   "name": "Codeball 2018",
-  "description": "A rule-based AI built to beat other AIs in a Rocket-League-esque 3D soccer game. It managed to get to the finals of the Russian AI Cup 2018",
+  "description": "My entry for the World Finals of the Russian AI Cup 2018 - Codeball. A 3D physics-aware orchestrator of a pair of bots in a Rocket League-esque soccer game.",
   "keywords": [
     "Artificial Intelligence", "Rule-Based AI", "Game AI", "Python", "3D Physics Simulation"
   ],
-  "articleBody": " A rule-based AI built to beat other AIs in a Rocket-League-esque 3D soccer game. It managed to get to the finals of the Russian AI Cup 2018\n",
-  "wordCount" : "27",
+  "articleBody": " My entry for the World Finals of the Russian AI Cup 2018 - Codeball. Codeball is a Rocket League-esque 3D soccer game where we have to program an AI to control a pair of bots to beat enemy AI-controlled pair of bots.\nStrategy Physics Simulation My strategy employs a 3D physics engine to (1) track and predict the ball’s and the bots’ positions and directions, and (2) calculate the best location, angle, and speed to intercept the ball, block an enemy bot, or score a goal.\nBot Behavior The AI uses a rudimentary finite state machine to shuffle the bots between these behaviors:\nAttacker: The bot focuses on scoring goals. It attempt to score a goal whenever it has the opportunity. It will try to steal the ball and if it can score a goal, it will try to do so. Goalkeeper: The bot stays near the goal and tries to block the ball from entering the goal. Aggressive Defender: The bot actively tries to block or steal the ball from enemy bots. But if the ball is near the goal, it will switch to the Goalkeeper state. Blocker: The bot focuses on blocking enemy bots from scoring goals. Follower: The bot follows the ball or an enemy bot–usually as a follow up to an aggressive attack, a defensive block, or just to distract enemy bots. ",
+  "wordCount" : "226",
   "inLanguage": "en",
   "image":"https://leloykun.github.io/codeball.png","datePublished": "0001-01-01T00:00:00Z",
   "dateModified": "0001-01-01T00:00:00Z",
@@ -179,7 +179,19 @@
   </header> 
   <div class="post-content"><p><img loading="lazy" src="codeball.png" alt="Codeball"  />
 </p>
-<p>A rule-based AI built to beat other AIs in a Rocket-League-esque 3D soccer game. It managed to get to the finals of the Russian AI Cup 2018</p>
+<p>My entry for the World Finals of the Russian AI Cup 2018 - Codeball. Codeball is a Rocket League-esque 3D soccer game where we have to program an AI to control a pair of bots to beat enemy AI-controlled pair of bots.</p>
+<h2 id="strategy">Strategy</h2>
+<h3 id="physics-simulation">Physics Simulation</h3>
+<p>My strategy employs a 3D physics engine to (1) track and predict the ball&rsquo;s and the bots&rsquo; positions and directions, and (2) calculate the best location, angle, and speed to intercept the ball, block an enemy bot, or score a goal.</p>
+<h3 id="bot-behavior">Bot Behavior</h3>
+<p>The AI uses a rudimentary finite state machine to shuffle the bots between these behaviors:</p>
+<ol>
+<li><strong>Attacker</strong>: The bot focuses on scoring goals. It attempt to score a goal whenever it has the opportunity. It will try to steal the ball and if it can score a goal, it will try to do so.</li>
+<li><strong>Goalkeeper</strong>: The bot stays near the goal and tries to block the ball from entering the goal.</li>
+<li><strong>Aggressive Defender</strong>: The bot actively tries to block or steal the ball from enemy bots. But if the ball is near the goal, it will switch to the Goalkeeper state.</li>
+<li><strong>Blocker</strong>: The bot focuses on blocking enemy bots from scoring goals.</li>
+<li><strong>Follower</strong>: The bot follows the ball or an enemy bot&ndash;usually as a follow up to an aggressive attack, a defensive block, or just to distract enemy bots.</li>
+</ol>
 
   </div>
 

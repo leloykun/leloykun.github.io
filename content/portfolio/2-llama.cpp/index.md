@@ -20,5 +20,4 @@ weight: 2
 
 ---
 
-A C++ implementation of Meta's Llama2 generative large-language model. I also optimized the original C implementation by Karpathy by adding parallelization on
-the multi-head attention layer.
+A C++ implementation of Meta's Llama2 generative large-language model. I also optimized the original C implementation by Andrej Karpathy by parallelizing the multi-head attention layer, among other things.

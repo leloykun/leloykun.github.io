@@ -16,4 +16,4 @@ cover:
 
 ![grab-aiforsea-header.PNG](grab-aiforsea-header.PNG)
 
-Booking demand prediction for Grab's Southeast Asia operations. The project involves spatio-temporal forecasting, anomaly detection, and econometric modeling.
+Booking demand prediction for Grab's Southeast Asia operations. The project involved spatio-temporal forecasting, hyperlocal forecasting, anomaly detection, and econometric modeling.
