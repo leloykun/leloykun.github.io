@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>Codewars 2017 | Franz Louis Cesista</title>
-<meta name="keywords" content="Machine Learning, Spatio-Temporal Forecasting, Anomaly Detection, Econometrics">
+<meta name="keywords" content="Artificial Intelligence, Particle Swarm AI, Game AI, Python, K-Means Clustering, BFS, Potential Flows, Fluid Dynamics">
 <meta name="description" content="A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017.">
 <meta name="author" content="Franz Louis Cesista">
 <link rel="canonical" href="https://leloykun.github.io/portfolio/6-codewars/">
@@ -30,13 +30,13 @@
 </noscript><meta property="og:title" content="Codewars 2017" />
 <meta property="og:description" content="A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://leloykun.github.io/portfolio/6-codewars/" /><meta property="og:image" content="https://leloykun.github.io/cover.png"/><meta property="article:section" content="portfolio" />
+<meta property="og:url" content="https://leloykun.github.io/portfolio/6-codewars/" />
+<meta property="og:image" content="https://leloykun.github.io/potential_flow.png" /><meta property="article:section" content="portfolio" />
 
 
 
-<meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="https://leloykun.github.io/cover.png"/>
-
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://leloykun.github.io/potential_flow.png" />
 <meta name="twitter:title" content="Codewars 2017"/>
 <meta name="twitter:description" content="A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017."/>
 
@@ -69,12 +69,12 @@
   "name": "Codewars 2017",
   "description": "A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017.",
   "keywords": [
-    "Machine Learning", "Spatio-Temporal Forecasting", "Anomaly Detection", "Econometrics"
+    "Artificial Intelligence", "Particle Swarm AI", "Game AI", "Python", "K-Means Clustering", "BFS", "Potential Flows", "Fluid Dynamics"
   ],
   "articleBody": " Game Mechanics CodeWars is a Command-and-Conquer-esque game where we and our enemy have hundreds of units of different types. The unit types are kind-of like rock-paper-and-scissor: a unit type can easily beat some types while weak to other types. Each enemy kill is worth 1 point and our goal is to either (a) kill all enemy units or (b) get a higher score than our opponent when the timer runs out.\nIn the later stages, fog-of-war gets activated and Facilities appear on the map. Capturing them gives us 50 points and holding them long enough gives us new units that’d spawn near the Facilities. We could also launch nukes from time to time.\nFinally, we are only allowed to do at most 60 actions per second.\nTechniques Used in My Strategy 1. K-Means Clustering The 60 actions-per-second rule makes it infeasible to manage our forces with precise granularity. And thus, we need to divide them into “army groups” that behave as if they’re a single unit. Most of our opponents do this too, but they don’t (and can’t) tell us which units belong to which groups. And so, we have to guess the groupings with K-means clustering.\n2. State-Space Breadth-First Search After grouping our units, we then do a state-space search using BFS to find the optimal initial positions before launching our offensives. Note: we only use BFS to rearrange our army groups, not to find the perfect attack paths for them.\n3. Potential Flows Finally, even with the groupings, it’s impossible to make a strategy that takes into account all possible permutations of allied \u0026 enemy positions. Thus, we need to rely on heuristics. One such heuristic is by modelling the stuff in the game map as particles that produce potential fields. All of our army groups (and stronger enemy groups) are negatively charged - thus, they repel each other. While our targets (facilities \u0026 weaker enemy groups) attract each other. We calculate this potential field for each group. And viola, we now have a direction field for our units.\n",
   "wordCount" : "341",
   "inLanguage": "en",
-  "datePublished": "0001-01-01T00:00:00Z",
+  "image":"https://leloykun.github.io/potential_flow.png","datePublished": "0001-01-01T00:00:00Z",
   "dateModified": "0001-01-01T00:00:00Z",
   "author":{
     "@type": "Person",
@@ -197,10 +197,14 @@
 
   <footer class="post-footer">
     <ul class="post-tags">
-      <li><a href="https://leloykun.github.io/tags/machine-learning/">Machine Learning</a></li>
-      <li><a href="https://leloykun.github.io/tags/spatio-temporal-forecasting/">Spatio-Temporal Forecasting</a></li>
-      <li><a href="https://leloykun.github.io/tags/anomaly-detection/">Anomaly Detection</a></li>
-      <li><a href="https://leloykun.github.io/tags/econometrics/">Econometrics</a></li>
+      <li><a href="https://leloykun.github.io/tags/artificial-intelligence/">Artificial Intelligence</a></li>
+      <li><a href="https://leloykun.github.io/tags/particle-swarm-ai/">Particle Swarm AI</a></li>
+      <li><a href="https://leloykun.github.io/tags/game-ai/">Game AI</a></li>
+      <li><a href="https://leloykun.github.io/tags/python/">Python</a></li>
+      <li><a href="https://leloykun.github.io/tags/k-means-clustering/">K-Means Clustering</a></li>
+      <li><a href="https://leloykun.github.io/tags/bfs/">BFS</a></li>
+      <li><a href="https://leloykun.github.io/tags/potential-flows/">Potential Flows</a></li>
+      <li><a href="https://leloykun.github.io/tags/fluid-dynamics/">Fluid Dynamics</a></li>
     </ul>
   </footer>
 </article>

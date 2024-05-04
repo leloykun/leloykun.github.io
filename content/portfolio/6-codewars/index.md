@@ -6,8 +6,9 @@ author: "Franz Louis Cesista"
 description: "A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017."
 summary: "A particle swarm-based AI built to beat other AIs in a Command-and-Conquer-esque game. It managed to get to the finals of the Russian AI Cup 2017."
 cover:
-    URL: "potential_flow.png"
+    image: "potential_flow.png"
     alt: "Code Wars 2017"
+    relative: false
 editPost:
     URL: "https://github.com/leloykun/codewars-2017"
     Text: "Github Repository"

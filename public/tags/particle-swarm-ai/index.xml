@@ -1,24 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Game AI on Franz Louis Cesista</title>
-    <link>https://leloykun.github.io/tags/game-ai/</link>
-    <description>Recent content in Game AI on Franz Louis Cesista</description>
+    <title>Particle Swarm AI on Franz Louis Cesista</title>
+    <link>https://leloykun.github.io/tags/particle-swarm-ai/</link>
+    <description>Recent content in Particle Swarm AI on Franz Louis Cesista</description>
     <image>
       <url>https://leloykun.github.io/cover.png</url>
       <link>https://leloykun.github.io/cover.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language><atom:link href="https://leloykun.github.io/tags/game-ai/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Codeball 2018</title>
-      <link>https://leloykun.github.io/portfolio/5-codeball/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://leloykun.github.io/portfolio/5-codeball/</guid>
-      <description>A rule-based AI built to beat other AIs in a Rocket-League-esque 3D soccer game. It managed to get to the finals of the Russian AI Cup 2018</description>
-    </item>
-    
+    <language>en</language><atom:link href="https://leloykun.github.io/tags/particle-swarm-ai/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Codewars 2017</title>
       <link>https://leloykun.github.io/portfolio/6-codewars/</link>

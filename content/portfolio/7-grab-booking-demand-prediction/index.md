@@ -10,7 +10,7 @@ editPost:
     Text: "Github Repository"
 weight: 7
 cover:
-    URL: "grab-aiforsea-header.PNG"
+    image: "grab-aiforsea-header.PNG"
     alt: "Grab AI for SEA"
 ---
 
