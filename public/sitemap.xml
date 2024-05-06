@@ -2,23 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://leloykun.github.io/personal-projects/1-flash-hyperbolic-attention-minimal/</loc>
+    <loc>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</loc>
   </url><url>
-    <loc>https://leloykun.github.io/personal-projects/2-llama.cpp/</loc>
+    <loc>https://leloykun.github.io/personal-projects/llama.cpp/</loc>
   </url><url>
-    <loc>https://leloykun.github.io/personal-projects/3-expedock-automl/</loc>
+    <loc>https://leloykun.github.io/personal-projects/expedock-assistant/</loc>
   </url><url>
-    <loc>https://leloykun.github.io/personal-projects/4-progvar-library/</loc>
+    <loc>https://leloykun.github.io/personal-projects/expedock-automl/</loc>
   </url><url>
-    <loc>https://leloykun.github.io/personal-projects/5-codeball/</loc>
+    <loc>https://leloykun.github.io/personal-projects/progvar-library/</loc>
   </url><url>
-    <loc>https://leloykun.github.io/personal-projects/6-codewars/</loc>
+    <loc>https://leloykun.github.io/personal-projects/codeball/</loc>
   </url><url>
-    <loc>https://leloykun.github.io/personal-projects/7-grab-booking-demand-prediction/</loc>
+    <loc>https://leloykun.github.io/personal-projects/codewars/</loc>
+  </url><url>
+    <loc>https://leloykun.github.io/personal-projects/grab-booking-demand-prediction/</loc>
   </url><url>
     <loc>https://leloykun.github.io/papers/rasg/</loc>
   </url><url>
     <loc>https://leloykun.github.io/tags/3d-physics-simulation/</loc>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/ai-agent/</loc>
   </url><url>
     <loc>https://leloykun.github.io/tags/anomaly-detection/</loc>
   </url><url>
@@ -48,6 +52,8 @@
   </url><url>
     <loc>https://leloykun.github.io/tags/k-means-clustering/</loc>
   </url><url>
+    <loc>https://leloykun.github.io/tags/logistics/</loc>
+  </url><url>
     <loc>https://leloykun.github.io/tags/machine-learning/</loc>
   </url><url>
     <loc>https://leloykun.github.io/tags/ml-interpretability/</loc>
@@ -71,5 +77,7 @@
     <loc>https://leloykun.github.io/tags/spatio-temporal-forecasting/</loc>
   </url><url>
     <loc>https://leloykun.github.io/tags/</loc>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/tool-use/</loc>
   </url>
 </urlset>
