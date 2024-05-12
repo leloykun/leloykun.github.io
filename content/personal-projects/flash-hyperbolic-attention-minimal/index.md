@@ -1,5 +1,6 @@
 ---
 title: "Flash Hyperbolic Attention Minimal [WIP]"
+# no date until finished
 # date: 2024-04-16
 tags: ["Machine Learning", "C++", "CUDA", "PyTorch", "Non-Euclidean Geometry", "Flash Attention", "Hyperbolic Geometry"]
 author: "Franz Louis Cesista"

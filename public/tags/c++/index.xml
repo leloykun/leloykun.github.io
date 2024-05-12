@@ -9,7 +9,8 @@
       <link>https://leloykun.github.io/cover.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language><atom:link href="https://leloykun.github.io/tags/c++/index.xml" rel="self" type="application/rss+xml" />
+    <language>en</language>
+    <lastBuildDate>Tue, 25 Jul 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/c++/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Flash Hyperbolic Attention Minimal [WIP]</title>
       <link>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</link>
@@ -22,7 +23,7 @@
     <item>
       <title>Llama.cpp</title>
       <link>https://leloykun.github.io/personal-projects/llama.cpp/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 25 Jul 2023 00:00:00 +0000</pubDate>
       
       <guid>https://leloykun.github.io/personal-projects/llama.cpp/</guid>
       <description>A C&#43;&#43; implementation of Meta&amp;#39;s Llama2 generative large-language model. I also optimized the original C implementation by Karpathy by adding parallelization on the multi-head attention layer.</description>

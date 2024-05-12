@@ -1,6 +1,6 @@
 ---
 title: "Llama.cpp"
-# date: 2023-07-25
+date: 2023-07-25
 tags: ["Machine Learning", "C++"]
 author: "Franz Louis Cesista"
 description: "A C++ implementation of Meta's Llama2 generative large-language model. I also optimized the original C implementation by Karpathy by adding parallelization on

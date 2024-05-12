@@ -1,6 +1,6 @@
 ---
 title: "Expedock AutoML"
-# date: 2023-07-25
+date: 2022-07-25
 tags: ["Machine Learning", "ML Interpretability"]
 author: "Franz Louis Cesista"
 description: "Expedock's AutoML Library -- fit a model, run batch inference, and get explanations in one line of code each."

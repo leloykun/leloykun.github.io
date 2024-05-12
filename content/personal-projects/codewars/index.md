@@ -1,6 +1,6 @@
 ---
 title: "Codewars 2017"
-# date: 2023-07-25
+date: 2018-02-12
 tags: ["Artificial Intelligence", "Particle Swarm AI", "Game AI", "Python", "K-Means Clustering", "BFS", "Potential Flows", "Fluid Dynamics"]
 author: "Franz Louis Cesista"
 description: "My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game."

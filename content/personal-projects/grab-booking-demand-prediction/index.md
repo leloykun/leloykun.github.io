@@ -1,6 +1,6 @@
 ---
 title: "Booking Demand Prediction for Grab SEA"
-# date: 2023-07-25
+date: 2019-06-16
 tags: ["Machine Learning", "Spatio-Temporal Forecasting", "Anomaly Detection", "Econometrics"]
 author: "Franz Louis Cesista"
 description: "Booking demand prediction for Grab's Southeast Asia operations. The project involves spatio-temporal forecasting, anomaly detection, and econometric modeling."

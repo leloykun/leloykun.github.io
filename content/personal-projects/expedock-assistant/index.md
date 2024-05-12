@@ -1,6 +1,6 @@
 ---
 title: "Expedock Assistant: ChatGPT Applied to Logistics Data"
-# date: 2023-07-25
+date: 2023-01-31
 tags: ["Machine Learning", "Tool Use", "AI Agent", "Logistics"]
 author: "Franz Louis Cesista"
 description: "Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry."

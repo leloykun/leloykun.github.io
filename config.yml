@@ -11,12 +11,15 @@ taxonomies:
 
 menu:
     main:
+        - name: Services
+          url: services/
+          weight: 1
         - name: Papers
           url: papers/
-          weight: 1
+          weight: 2
         - name: Personal Projects
           url: personal-projects/
-          weight: 2
+          weight: 3
         # - name: Courses
         #   url: courses/
         #   weight: 2
@@ -31,7 +34,7 @@ params:
     description: "Mathematician | Machine Learning (AI) Research Scientist"
     author: Franz Louis Cesista
     # googleAnalyticsID: "G-XXXXX"
-    DateFormat: "January 2024"
+    DateFormat: "January 2, 2006"
     defaultTheme: light
     hideFooter: false
     disableThemeToggle: true

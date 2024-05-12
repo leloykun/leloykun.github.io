@@ -1,6 +1,6 @@
 ---
 title: "Codeball 2018"
-# date: 2023-07-25
+date: 2019-01-24
 tags: ["Artificial Intelligence", "Rule-Based AI", "Game AI", "Python", "3D Physics Simulation"]
 author: "Franz Louis Cesista"
 description: "My entry for the World Finals of the Russian AI Cup 2018 - Codeball. A 3D physics-aware orchestrator of a pair of bots in a Rocket League-esque soccer game."

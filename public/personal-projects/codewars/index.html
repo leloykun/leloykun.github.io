@@ -32,8 +32,8 @@
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://leloykun.github.io/personal-projects/codewars/" />
 <meta property="og:image" content="https://leloykun.github.io/potential_flow.png" /><meta property="article:section" content="personal-projects" />
-
-
+<meta property="article:published_time" content="2018-02-12T00:00:00+00:00" />
+<meta property="article:modified_time" content="2018-02-12T00:00:00+00:00" />
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://leloykun.github.io/potential_flow.png" />
@@ -74,8 +74,8 @@
   "articleBody": " My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.\nGame Mechanics CodeWars is a Command-and-Conquer-esque game where we and our enemy have hundreds of units of different types. The unit types are kind-of like rock-paper-and-scissor: a unit type can easily beat some types while weak to other types. Each enemy kill is worth 1 point and our goal is to either (a) kill all enemy units or (b) get a higher score than our opponent when the timer runs out.\nIn the later stages, fog-of-war gets activated and Facilities appear on the map. Capturing them gives us 50 points and holding them long enough gives us new units that’d spawn near the Facilities. We could also launch nukes from time to time.\nFinally, we are only allowed to do at most 60 actions per second.\nTechniques Used in My Strategy 1. K-Means Clustering The 60 actions-per-second rule makes it infeasible to manage our forces with precise granularity. And thus, we need to divide them into “army groups” that behave as if they’re a single unit. Most of our opponents do this too, but they don’t (and can’t) tell us which units belong to which groups. And so, we have to guess the groupings with K-means clustering.\n2. State-Space Breadth-First Search After grouping our units, we then do a state-space search using BFS to find the optimal initial positions before launching our offensives. Note: we only use BFS to rearrange our army groups, not to find the perfect attack paths for them.\n3. Potential Flows Finally, even with the groupings, it’s impossible to make a strategy that takes into account all possible permutations of allied \u0026 enemy positions. Thus, we need to rely on heuristics. One such heuristic is by modelling the stuff in the game map as particles that produce potential fields. All of our army groups (and stronger enemy groups) are negatively charged - thus, they repel each other. While our targets (facilities \u0026 weaker enemy groups) attract each other. We calculate this potential field for each group. And viola, we now have a direction field for our units.\n",
   "wordCount" : "373",
   "inLanguage": "en",
-  "image":"https://leloykun.github.io/potential_flow.png","datePublished": "0001-01-01T00:00:00Z",
-  "dateModified": "0001-01-01T00:00:00Z",
+  "image":"https://leloykun.github.io/potential_flow.png","datePublished": "2018-02-12T00:00:00Z",
+  "dateModified": "2018-02-12T00:00:00Z",
   "author":{
     "@type": "Person",
     "name": "Franz Louis Cesista"
@@ -141,6 +141,11 @@
         </div>
         <ul id="menu">
             <li>
+                <a href="https://leloykun.github.io/services/" title="Services">
+                    <span>Services</span>
+                </a>
+            </li>
+            <li>
                 <a href="https://leloykun.github.io/papers/" title="Papers">
                     <span>Papers</span>
                 </a>
@@ -173,7 +178,7 @@
     <h1 class="post-title">
       Codewars 2017
     </h1>
-    <div class="post-meta">Franz Louis Cesista&nbsp;&middot;&nbsp;<a href="https://github.com/leloykun/codewars-2017" rel="noopener noreferrer" target="_blank">Github Repository</a>
+    <div class="post-meta"><span title='2018-02-12 00:00:00 +0000 UTC'>February 12, 2018</span>&nbsp;&middot;&nbsp;Franz Louis Cesista&nbsp;&middot;&nbsp;<a href="https://github.com/leloykun/codewars-2017" rel="noopener noreferrer" target="_blank">Github Repository</a>
 
 </div>
   </header> 

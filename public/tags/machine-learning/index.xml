@@ -9,7 +9,8 @@
       <link>https://leloykun.github.io/cover.png</link>
     </image>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language><atom:link href="https://leloykun.github.io/tags/machine-learning/index.xml" rel="self" type="application/rss+xml" />
+    <language>en</language>
+    <lastBuildDate>Mon, 15 Apr 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/machine-learning/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Flash Hyperbolic Attention Minimal [WIP]</title>
       <link>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</link>
@@ -22,7 +23,7 @@
     <item>
       <title>Llama.cpp</title>
       <link>https://leloykun.github.io/personal-projects/llama.cpp/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 25 Jul 2023 00:00:00 +0000</pubDate>
       
       <guid>https://leloykun.github.io/personal-projects/llama.cpp/</guid>
       <description>A C&#43;&#43; implementation of Meta&amp;#39;s Llama2 generative large-language model. I also optimized the original C implementation by Karpathy by adding parallelization on the multi-head attention layer.</description>
@@ -31,7 +32,7 @@
     <item>
       <title>Expedock Assistant: ChatGPT Applied to Logistics Data</title>
       <link>https://leloykun.github.io/personal-projects/expedock-assistant/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 31 Jan 2023 00:00:00 +0000</pubDate>
       
       <guid>https://leloykun.github.io/personal-projects/expedock-assistant/</guid>
       <description>Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry.</description>
@@ -40,7 +41,7 @@
     <item>
       <title>Expedock AutoML</title>
       <link>https://leloykun.github.io/personal-projects/expedock-automl/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 25 Jul 2022 00:00:00 +0000</pubDate>
       
       <guid>https://leloykun.github.io/personal-projects/expedock-automl/</guid>
       <description>Expedock&amp;#39;s AutoML Library -- fit a model, run batch inference, and get explanations in one line of code each.</description>
@@ -49,10 +50,20 @@
     <item>
       <title>Booking Demand Prediction for Grab SEA</title>
       <link>https://leloykun.github.io/personal-projects/grab-booking-demand-prediction/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Sun, 16 Jun 2019 00:00:00 +0000</pubDate>
       
       <guid>https://leloykun.github.io/personal-projects/grab-booking-demand-prediction/</guid>
       <description>Booking demand prediction for Grab&amp;#39;s Southeast Asia operations. The project involves spatio-temporal forecasting, anomaly detection, and econometric modeling.</description>
+    </item>
+    
+    <item>
+      <title>Retrieval Augmented Structured Generation: Business Document Information Extraction As Tool Use [Under Review]</title>
+      <link>https://leloykun.github.io/papers/rasg/</link>
+      <pubDate>Mon, 15 Apr 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/papers/rasg/</guid>
+      <description>Business Document Information Extraction (BDIE) is the problem of transforming a blob of unstructured information (raw text, scanned documents, etc.) into a structured format that downstream systems can parse and use. It has two main tasks: Key-Information Extraction (KIE) and Line Items Recognition (LIR). And subtasks such as Optical Character Recognition (OCR) and Table Structure Recognition (TSR) are means to these ends. In this paper, we argue that BDIE is best modeled as a 	extit{Tool Use} problem, where the tools are these downstream systems. We then present Retrieval Augmented Structured Generation (RASG), a novel general framework for BDIE that achieves state of the art (SOTA) results on both KIE and LIR tasks on BDIE benchmarks.
+The contributions of this paper are threefold: (1) We show, with ablation benchmarks, that Large Language Models (LLMs) with RASG are already competitive with or surpasses current SOTA Large Multi-Modal Models (LMMMs) without RASG such as LayoutLMv3 and Roberta &#43; DeTR on BDIE benchmarks. (2) We propose a new metric class for Line Items Recognition, General Line Items Recognition Metric (GLIRM), that is more aligned with practical BDIE use cases compared to existing metrics, such as ANLS*, DocILE, and GriTS. (3) We provide a heuristic algorithm for backcalculating bounding boxes - that is, pairs of (x, y) coordinates containing relevant text of predicted line items and tables without the need for vision encoders. Finally, we claim that, while LMMMs might sometimes offer marginal performance benefits, LLMs &#43; RASG is oftentimes superior given real-world applications and constraints of BDIE.</description>
     </item>
     
   </channel>
