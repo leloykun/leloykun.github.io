@@ -2,6 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://leloykun.github.io/ponder/chatgpt-seasonal-depression/</loc>
+    <lastmod>2023-12-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/ponder/human-mind-universality/</loc>
+    <lastmod>2023-12-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/ponder/4rules4rulers/</loc>
+    <lastmod>2022-06-19T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/ponder/vaccine-search-as-comp-prob/</loc>
+    <lastmod>2021-02-06T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/</loc>
+    <lastmod>2020-10-24T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/ponder/how-to-master-machine-learning/</loc>
+    <lastmod>2020-09-12T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</loc>
   </url><url>
     <loc>https://leloykun.github.io/personal-projects/llama.cpp/</loc>
@@ -54,6 +72,18 @@
     <loc>https://leloykun.github.io/tags/</loc>
     <lastmod>2024-04-15T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://leloykun.github.io/tags/political-science/</loc>
+    <lastmod>2023-12-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/ponder/</loc>
+    <lastmod>2023-12-16T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/brain/</loc>
+    <lastmod>2023-12-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/philosophy/</loc>
+    <lastmod>2023-12-10T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://leloykun.github.io/tags/c&#43;&#43;/</loc>
     <lastmod>2023-07-25T00:00:00+00:00</lastmod>
   </url><url>
@@ -71,6 +101,15 @@
   </url><url>
     <loc>https://leloykun.github.io/tags/ml-interpretability/</loc>
     <lastmod>2022-07-25T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/computational-biology/</loc>
+    <lastmod>2021-02-06T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/covid-19/</loc>
+    <lastmod>2021-02-06T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/algorithmic-fairness/</loc>
+    <lastmod>2020-10-24T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/anomaly-detection/</loc>
     <lastmod>2019-06-16T00:00:00+00:00</lastmod>

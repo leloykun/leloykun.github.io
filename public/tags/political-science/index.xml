@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Political Science on Franz Louis Cesista</title>
+    <link>https://leloykun.github.io/tags/political-science/</link>
+    <description>Recent content in Political Science on Franz Louis Cesista</description>
+    <image>
+      <url>https://leloykun.github.io/cover.png</url>
+      <link>https://leloykun.github.io/cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 16 Dec 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/political-science/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>ChatGPT May Have Developed Seasonal Depression</title>
+      <link>https://leloykun.github.io/ponder/chatgpt-seasonal-depression/</link>
+      <pubDate>Sat, 16 Dec 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/ponder/chatgpt-seasonal-depression/</guid>
+      <description>Could ChatGPT&amp;#39;s shorter responses be an indication of something more bizarre going on?</description>
+    </item>
+    
+    <item>
+      <title>Four Rules for Rulers</title>
+      <link>https://leloykun.github.io/ponder/4rules4rulers/</link>
+      <pubDate>Sun, 19 Jun 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/ponder/4rules4rulers/</guid>
+      <description>On how to gain and maintain power.</description>
+    </item>
+    
+  </channel>
+</rss>

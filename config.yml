@@ -27,7 +27,7 @@ menu:
         #   url: data/
         #   weight: 3 
         - name: Ponder
-          url: https://ponder.substack.com
+          url: ponder/
           weight: 4
 
 params:
@@ -78,7 +78,7 @@ params:
             # - name: Data
             #   url: data/
             - name: Ponder
-              url: https://ponder.substack.com
+              url: ponder/
             # - name: Tags
             #   url: tags/
             # - name: Archive
@@ -92,6 +92,8 @@ params:
           url: https://www.linkedin.com/in/franzcesista/
         - name: Twitter
           url: https://twitter.com/leloykun
+        - name: Substack
+          url: https://ponder.substack.com
     social:
         twitter: leloykun
     assets:
