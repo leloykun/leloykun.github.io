@@ -23,4 +23,3 @@ Download: [Team Notebook](notebook.pdf)
 ---
 
 A collection of algorithms, data structures and other useful information for competitive programming. Used and maintained by members of the Ateneo de Manila University Programming Varsity.
-
