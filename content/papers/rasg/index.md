@@ -34,3 +34,16 @@ The contributions of this paper are threefold:
 3. We provide a heuristic algorithm for backcalculating bounding boxes of predicted line items and tables without the need for vision encoders.
 
 Finally, we claim that, while LMMs might sometimes offer marginal performance benefits, LLMs + RASG is oftentimes superior given real-world applications and constraints of BDIE.
+
+## Citation
+
+```bibtex
+@misc{cesista2024rasg,
+    title={Retrieval Augmented Structured Generation: Business Document Information Extraction As Tool Use},
+    author={Franz Louis Cesista, Rui Aguiar, Jason Kim, Paolo Acilo},
+    year={2024},
+    eprint={2405.20245},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+```
