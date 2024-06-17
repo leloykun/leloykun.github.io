@@ -10,12 +10,13 @@ summary: "[Preprint - Accepted @ IEEE 7th International Conference on Multimedia
 cover:
     image: "cover.png"
     alt: "Retrieval Augmented Structured Generation: Business Document Information Extraction As Tool Use [Preprint - Accepted @ IEEE MIPR 2024]"
-weight: 1
 ---
 
 ![cover](cover.png)
 
 Authors: [Franz Louis Cesista](mailto:franzlouiscesista@gmail.com), Rui Aguiar, Jason Kim, Paolo Acilo
+
+Arxiv: [Abstract](https://arxiv.org/abs/2405.20245)
 
 PDF: [Preprint - Accepted @ IEEE MIPR 2024](/rasg.pdf)
 

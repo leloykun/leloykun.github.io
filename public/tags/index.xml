@@ -10,11 +10,20 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 15 Apr 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 17 Jun 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Computer Vision</title>
+      <link>https://leloykun.github.io/tags/computer-vision/</link>
+      <pubDate>Mon, 17 Jun 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/computer-vision/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>Document Information Extraction</title>
       <link>https://leloykun.github.io/tags/document-information-extraction/</link>
-      <pubDate>Mon, 15 Apr 2024 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 17 Jun 2024 00:00:00 +0000</pubDate>
       
       <guid>https://leloykun.github.io/tags/document-information-extraction/</guid>
       <description></description>
@@ -23,9 +32,27 @@
     <item>
       <title>Machine Learning</title>
       <link>https://leloykun.github.io/tags/machine-learning/</link>
-      <pubDate>Mon, 15 Apr 2024 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 17 Jun 2024 00:00:00 +0000</pubDate>
       
       <guid>https://leloykun.github.io/tags/machine-learning/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Multimodal Machine Learning</title>
+      <link>https://leloykun.github.io/tags/multimodal-machine-learning/</link>
+      <pubDate>Mon, 17 Jun 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/multimodal-machine-learning/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Structured Generation</title>
+      <link>https://leloykun.github.io/tags/structured-generation/</link>
+      <pubDate>Mon, 17 Jun 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/tags/structured-generation/</guid>
       <description></description>
     </item>
     
@@ -35,15 +62,6 @@
       <pubDate>Mon, 15 Apr 2024 00:00:00 +0000</pubDate>
       
       <guid>https://leloykun.github.io/tags/retrieval-augmented-generation/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Structured Generation</title>
-      <link>https://leloykun.github.io/tags/structured-generation/</link>
-      <pubDate>Mon, 15 Apr 2024 00:00:00 +0000</pubDate>
-      
-      <guid>https://leloykun.github.io/tags/structured-generation/</guid>
       <description></description>
     </item>
     
