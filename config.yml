@@ -11,9 +11,9 @@ taxonomies:
 
 menu:
     main:
-        # - name: Services
-        #   url: services/
-        #   weight: 1
+        - name: CV
+          url: cv.pdf
+          weight: 1
         - name: Papers
           url: papers/
           weight: 2
