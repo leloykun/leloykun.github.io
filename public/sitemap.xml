@@ -20,6 +20,9 @@
     <loc>https://leloykun.github.io/ponder/how-to-master-machine-learning/</loc>
     <lastmod>2020-09-12T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://leloykun.github.io/personal-projects/mmsg/</loc>
+    <lastmod>2024-07-14T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</loc>
   </url><url>
     <loc>https://leloykun.github.io/personal-projects/llama.cpp/</loc>
@@ -42,16 +45,28 @@
     <loc>https://leloykun.github.io/personal-projects/grab-booking-demand-prediction/</loc>
     <lastmod>2019-06-16T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://leloykun.github.io/</loc>
+    <lastmod>2024-07-14T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/machine-learning/</loc>
+    <lastmod>2024-07-14T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/personal-projects/</loc>
+    <lastmod>2024-07-14T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/structured-generation/</loc>
+    <lastmod>2024-07-14T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/</loc>
+    <lastmod>2024-07-14T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/vision-language-models/</loc>
+    <lastmod>2024-07-14T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://leloykun.github.io/tags/computer-vision/</loc>
     <lastmod>2024-06-17T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/document-information-extraction/</loc>
-    <lastmod>2024-06-17T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://leloykun.github.io/</loc>
-    <lastmod>2024-06-17T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://leloykun.github.io/tags/machine-learning/</loc>
     <lastmod>2024-06-17T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/multimodal-machine-learning/</loc>
@@ -61,12 +76,6 @@
     <lastmod>2024-06-17T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/papers/</loc>
-    <lastmod>2024-06-17T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://leloykun.github.io/tags/structured-generation/</loc>
-    <lastmod>2024-06-17T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://leloykun.github.io/tags/</loc>
     <lastmod>2024-06-17T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/retrieval-augmented-generation/</loc>
@@ -94,9 +103,6 @@
     <lastmod>2023-12-10T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/c&#43;&#43;/</loc>
-    <lastmod>2023-07-25T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://leloykun.github.io/personal-projects/</loc>
     <lastmod>2023-07-25T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/ai-agent/</loc>
