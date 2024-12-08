@@ -59,9 +59,9 @@ params:
         enabled: true
         title: <span style="color:#011F5B">Franz Louis Cesista</span>
         subtitle:
-            Building something 👨‍🍳🚀 • Former <span style="color:#011F5B">**Machine Learning (AI) Research Scientist, Full-Stack Software Engineer, & Data Engineer**</span> at [Expedock Software Inc.](https://expedock.com) • <span style="color:#011F5B">**2x IOI & 2x ICPC World Finalist**</span> • Mathematics at the [Ateneo de Manila University](https://www.ateneo.edu/)<br><br>
+            Building things 👨‍🍳🚀 • Soon <span style="color:#011F5B">**Research Engineer**</span> at [will announce soon] • prev **Machine Learning (AI) Research Scientist, Full-Stack Software Engineer, & Data Engineer** at [Expedock Software Inc.](https://expedock.com) • <span style="color:#011F5B">**2x IOI & 2x ICPC World Finalist**</span> • Mathematics at the [Ateneo de Manila University](https://www.ateneo.edu/)<br><br>
 
-            Multimodal Machine Learning • Document Information Extraction • Structured Generation • Non-Euclidean Geometry • Geometric Deep Learning
+            Geometric Deep Learning • Multimodal Machine Learning • Information Retrieval • Structured Generation
         imageUrl: "picture.png"
         imageWidth: 160
         imageHeight: 160
