@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Codewars 2017 | Franz Louis Cesista</title>
+<meta name="keywords" content="Artificial Intelligence, Particle Swarm AI, Game AI, Python, K-Means Clustering, BFS, Potential Flows, Fluid Dynamics">
+<meta name="description" content="My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.">
+<meta name="author" content="Franz Louis Cesista">
+<link rel="canonical" href="https://leloykun.github.io/personal-projects/codewars/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.f1e4501a2ac2bf9fff5dc0c77f152affb825b371cb176acfcf9201015d59b4d4.css" integrity="sha256-8eRQGirCv5//XcDHfxUq/7gls3HLF2rPz5IBAV1ZtNQ=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://leloykun.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://leloykun.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://leloykun.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://leloykun.github.io/apple-touch-icon.png">
+
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://leloykun.github.io/personal-projects/codewars/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><meta property="og:title" content="Codewars 2017" />
+<meta property="og:description" content="My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://leloykun.github.io/personal-projects/codewars/" />
+<meta property="og:image" content="https://leloykun.github.io/potential_flow.png" /><meta property="article:section" content="personal-projects" />
+<meta property="article:published_time" content="2018-02-12T00:00:00+00:00" />
+<meta property="article:modified_time" content="2018-02-12T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://leloykun.github.io/potential_flow.png" />
+<meta name="twitter:title" content="Codewars 2017"/>
+<meta name="twitter:description" content="My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Personal Projects",
+      "item": "https://leloykun.github.io/personal-projects/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Codewars 2017",
+      "item": "https://leloykun.github.io/personal-projects/codewars/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Codewars 2017",
+  "name": "Codewars 2017",
+  "description": "My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.",
+  "keywords": [
+    "Artificial Intelligence", "Particle Swarm AI", "Game AI", "Python", "K-Means Clustering", "BFS", "Potential Flows", "Fluid Dynamics"
+  ],
+  "articleBody": " My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.\nGame Mechanics CodeWars is a Command-and-Conquer-esque game where we and our enemy have hundreds of units of different types. The unit types are kind-of like rock-paper-and-scissor: a unit type can easily beat some types while weak to other types. Each enemy kill is worth 1 point and our goal is to either (a) kill all enemy units or (b) get a higher score than our opponent when the timer runs out.\nIn the later stages, fog-of-war gets activated and Facilities appear on the map. Capturing them gives us 50 points and holding them long enough gives us new units that’d spawn near the Facilities. We could also launch nukes from time to time.\nFinally, we are only allowed to do at most 60 actions per second.\nTechniques Used in My Strategy 1. K-Means Clustering The 60 actions-per-second rule makes it infeasible to manage our forces with precise granularity. And thus, we need to divide them into “army groups” that behave as if they’re a single unit. Most of our opponents do this too, but they don’t (and can’t) tell us which units belong to which groups. And so, we have to guess the groupings with K-means clustering.\n2. State-Space Breadth-First Search After grouping our units, we then do a state-space search using BFS to find the optimal initial positions before launching our offensives. Note: we only use BFS to rearrange our army groups, not to find the perfect attack paths for them.\n3. Potential Flows Finally, even with the groupings, it’s impossible to make a strategy that takes into account all possible permutations of allied \u0026 enemy positions. Thus, we need to rely on heuristics. One such heuristic is by modelling the stuff in the game map as particles that produce potential fields. All of our army groups (and stronger enemy groups) are negatively charged - thus, they repel each other. While our targets (facilities \u0026 weaker enemy groups) attract each other. We calculate this potential field for each group. And viola, we now have a direction field for our units.\n",
+  "wordCount" : "373",
+  "inLanguage": "en",
+  "image":"https://leloykun.github.io/potential_flow.png","datePublished": "2018-02-12T00:00:00Z",
+  "dateModified": "2018-02-12T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "Franz Louis Cesista"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://leloykun.github.io/personal-projects/codewars/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Franz Louis Cesista",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://leloykun.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css" integrity="sha384-RZU/ijkSsFbcmivfdRBQDtwuwVqK7GMOw6IMvKyeWL2K5UAlyp6WonmB8m7Jd0Hn" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.js" integrity="sha384-pK1WpvzWVBQiP0/GjnvRxV4mOb0oxFuyRxJlk6vVw146n3egcN5C925NCP7a7BY8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          
+          
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: "\\begin{equation}", right: "\\end{equation}", display: true},
+            {left: "\\begin{equation*}", right: "\\end{equation*}", display: true},
+            {left: "\\begin{align}", right: "\\end{align}", display: true},
+            {left: "\\begin{align*}", right: "\\end{align*}", display: true},
+            {left: "\\begin{alignat}", right: "\\end{alignat}", display: true},
+            {left: "\\begin{gather}", right: "\\end{gather}", display: true},
+            {left: "\\begin{CD}", right: "\\end{CD}", display: true},
+          ],
+          
+          throwOnError : false
+        });
+    });
+</script>
+ 
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://leloykun.github.io/" accesskey="h" title="Franz Louis Cesista">
+             
+                <img src="https://leloykun.github.io/favicon.ico" alt="" aria-label="logo"
+                    height="18"
+                    width="18">Franz Louis Cesista</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://leloykun.github.io/cv.pdf" title="CV">
+                    <span>CV</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/papers/" title="Papers">
+                    <span>Papers</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/personal-projects/" title="Personal Projects">
+                    <span>Personal Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/ponder/" title="Ponder (Blog)">
+                    <span>Ponder (Blog)</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+    <main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      Codewars 2017
+    </h1>
+    <div class="post-meta"><span title='2018-02-12 00:00:00 +0000 UTC'>February 12, 2018</span>&nbsp;&middot;&nbsp;Franz Louis Cesista&nbsp;&middot;&nbsp;<a href="https://github.com/leloykun/codewars-2017" rel="noopener noreferrer" target="_blank">Github Repository</a>
+
+</div>
+  </header> 
+  <div class="post-content"><p><img loading="lazy" src="screenshot_nuke.png" alt="Game Screenshot"  />
+</p>
+<p>My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.</p>
+<h2 id="game-mechanics">Game Mechanics</h2>
+<p>CodeWars is a Command-and-Conquer-esque game where we and our enemy have hundreds of units of different types. The unit types are kind-of like rock-paper-and-scissor: a unit type can easily beat some types while weak to other types. Each enemy kill is worth 1 point and our goal is to either (a) kill all enemy units or (b) get a higher score than our opponent when the timer runs out.</p>
+<p>In the later stages, fog-of-war gets activated and Facilities appear on the map. Capturing them gives us 50 points and holding them long enough gives us new units that&rsquo;d spawn near the Facilities. We could also launch nukes from time to time.</p>
+<p>Finally, we are only allowed to do at most 60 actions per second.</p>
+<h2 id="techniques-used-in-my-strategy">Techniques Used in My Strategy</h2>
+<h3 id="1-k-means-clustering">1. K-Means Clustering</h3>
+<p>The 60 actions-per-second rule makes it infeasible to manage our forces with precise granularity. And thus, we need to divide them into &ldquo;army groups&rdquo; that behave as if they&rsquo;re a single unit. Most of our opponents do this too, but they don&rsquo;t (and can&rsquo;t) tell us which units belong to which groups. And so, we have to guess the groupings with K-means clustering.</p>
+<h3 id="2-state-space-breadth-first-search">2. State-Space Breadth-First Search</h3>
+<p>After grouping our units, we then do a state-space search using BFS to find the optimal initial positions before launching our offensives. Note: we only use BFS to rearrange our army groups, not to find the perfect attack paths for them.</p>
+<h3 id="3-potential-flows">3. Potential Flows</h3>
+<p><img loading="lazy" src="potential_flow.png" alt="Potential Flows"  />
+</p>
+<p>Finally, even with the groupings, it&rsquo;s impossible to make a strategy that takes into account all possible permutations of allied &amp; enemy positions. Thus, we need to rely on heuristics. One such heuristic is by modelling the stuff in the game map as particles that produce potential fields. All of our army groups (and stronger enemy groups) are negatively charged - thus, they repel each other. While our targets (facilities &amp; weaker enemy groups) attract each other. We calculate this potential field for each group. And viola, we now have a direction field for our units.</p>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://leloykun.github.io/tags/artificial-intelligence/">Artificial Intelligence</a></li>
+      <li><a href="https://leloykun.github.io/tags/particle-swarm-ai/">Particle Swarm AI</a></li>
+      <li><a href="https://leloykun.github.io/tags/game-ai/">Game AI</a></li>
+      <li><a href="https://leloykun.github.io/tags/python/">Python</a></li>
+      <li><a href="https://leloykun.github.io/tags/k-means-clustering/">K-Means Clustering</a></li>
+      <li><a href="https://leloykun.github.io/tags/bfs/">BFS</a></li>
+      <li><a href="https://leloykun.github.io/tags/potential-flows/">Potential Flows</a></li>
+      <li><a href="https://leloykun.github.io/tags/fluid-dynamics/">Fluid Dynamics</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    &copy; 2025 Franz Louis Cesista
+    <span>
+    &middot;  Powered by 
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/pmichaillat/hugo-website/" rel="noopener" target="_blank">a modified version</a>
+         of 
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+</html>

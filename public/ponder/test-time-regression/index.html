@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>(Linear) Attention as Test-Time Regression | Franz Louis Cesista</title>
+<meta name="keywords" content="Machine Learning, Linear Attention, Test-Time Regression">
+<meta name="description" content="A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference.">
+<meta name="author" content="Franz Louis Cesista">
+<link rel="canonical" href="https://leloykun.github.io/ponder/test-time-regression/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.f1e4501a2ac2bf9fff5dc0c77f152affb825b371cb176acfcf9201015d59b4d4.css" integrity="sha256-8eRQGirCv5//XcDHfxUq/7gls3HLF2rPz5IBAV1ZtNQ=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://leloykun.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://leloykun.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://leloykun.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://leloykun.github.io/apple-touch-icon.png">
+
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://leloykun.github.io/ponder/test-time-regression/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><meta property="og:title" content="(Linear) Attention as Test-Time Regression" />
+<meta property="og:description" content="A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://leloykun.github.io/ponder/test-time-regression/" />
+<meta property="og:image" content="https://leloykun.github.io/cover.jpg" /><meta property="article:section" content="ponder" />
+<meta property="article:published_time" content="2025-01-27T00:00:00+00:00" />
+<meta property="article:modified_time" content="2025-01-27T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://leloykun.github.io/cover.jpg" />
+<meta name="twitter:title" content="(Linear) Attention as Test-Time Regression"/>
+<meta name="twitter:description" content="A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Ponder",
+      "item": "https://leloykun.github.io/ponder/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "(Linear) Attention as Test-Time Regression",
+      "item": "https://leloykun.github.io/ponder/test-time-regression/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "(Linear) Attention as Test-Time Regression",
+  "name": "(Linear) Attention as Test-Time Regression",
+  "description": "A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference.",
+  "keywords": [
+    "Machine Learning", "Linear Attention", "Test-Time Regression"
+  ],
+  "articleBody": " Note: This was originally posted as a Twitter thread. I’ve reformatted it here for better readability.\nBy now, you’ve probably already heard of linear attention, in-context learning, test-time scaling, etc…\nHere, I’ll discuss:\nThe unifying framework that ties them all together; How to derive different linear attention variants from scratch; and How to parallelize training linear attention models Learning How to Learn In-Context First, what do we want from an ideal model?\nIn-Context Learning: We want it to learn from information it has ingested so far and use that information to make more accurate predictions moving forward.\nComputational Expressivity: We want it to have a complex-enough internal machinery so it can actually solve hard problems we encounter in real-life.\nEfficiency.\nOf course, there are other stuff we’d want. But these are the most important ones. And here, we’ll focus on the first one.\nTo teach the models to learn in context, let’s steal an idea from nature: Associative Recall\nMom’s cooking triggers memories of my childhood Live wires remind me of the time I got electrocuted That’s associative recall.\nA “cue” goes into the brain and a “response” comes out. And the brain learns this “cue”-“response” pairing automatically through experience.\nWe want our models to learn how to do this too. But in practice, we call the “cue” the “key” and the “response” the “value” (following the Attention is All You Need$^{[1]}$ paper).\nFrom here, we have a (major) architectural design decision to make: Either we let the model’s “state” grow with the context length… or we fix it at a certain size.\nThe former allows us to keep as much information as we can as we chug through the context, which in turn helps with the model’s expressivity.\nWhile the latter is much more efficient at the cost of expressivity. There’s an upper limit on how much information we can store in this state. And there’s also the question of how we’re gonna teach the model to learn which information are important enough to store and which to discard.\nFor the rest of the thread, I’ll focus on linear attention… I’ll just make another thread for the former case (stay tuned!).\nBut where do we actually get the keys and the values?\nAnother very common (\u0026 very old) architectural design decision is to map the input context into key-value pairs.\nInterestingly, this results in a two-layer optimization process:\nThe “outer model” optimizes the mapping from the input context into key-value pairs.\nWhile the “inner model” treats the outer model as a black box and simply optimizes its state to better predict the values from the keys.\nAnd with more modern optimizers, such as Shampoo/SOAP/PSGD, you can actually think of this as a three-layer optimization process because:\nThe optimizer is also trying to learn the geometry of the loss landscape by adjusting the gradient preconditioners. Deriving Linear Attention Mechanisms from First Principles If the “inner model” is optimizing something, which loss function is it trying to minimize?\nAgain, we need to make another design decision. But in general, we want to minimize the “distance” between:\n$$model(key) \\Leftrightarrow value$$\nQuestion is, how do we define this “distance”?\nIn practice, we’ve pretty much settled on two of the most basic distance metrics:\nThe negative dot product. Minimizing this is equivalent to maximizing the dot product or the “alignment” between $Mk$ and $v$. The (squared) Euclidean distance. Minimizing this is equivalent to doing (linear) regression between the keys and the values. From here, we can simply add the tricks we’ve learned so far from designing optimizers one-by-one to arrive at the different variants of linear attention.\nIf we pick the negative dot product loss and do online gradient descent, we’ll get Vanilla Linear Attention. If we add a data-independent weight decay, we’ll get Lightning Attention 2 that’s used in the MiniMax-O1 paper. If we make the weight decay data dependent instead, we’ll get Mamba 2 that was all the rave last year. Now, if we pick the Euclidean loss instead, we’ll get the Vanilla DeltaNet. If we add a data-dependent weight decay, we’ll get Gated DeltaNet. Then we fork from here: If we use non-linear key -\u003e value transforms, we’ll get TTT. But if we add a momentum term instead, we’ll get the newly released Titans. Let’s go back to my claim earlier: that linear attention mechanisms are more efficient. This is clearly true at inference time… but how about training?\nRemember: the primary reason pretty much everyone dropped RNNs in favor of (Vaswani) attention is that the latter is very easy to parallelize. Thus, we can scale it up better. And scale, often times, is all you need.\nSo, when can we parallelize training of linear attention mechanisms? As a rule of thumb, if you can recast your update rule as an associative operation over sequences, you can parallelize it!\nNote that there are faster ways to implement DeltaNet’s update rule (e.g. WY representations, etc.). We’ll discuss that next time!\nBut in practice, how do we actually calculate the running “sums” efficiently? Well, remember those leetcode job interview data structure questions you hate? Well… this is when they’re relevant…\nThe most naive way is to simply run a loop through the key-value pairs. This is the recurrent form, and this is what we should be doing at inference time. But we can do much better than this.\nOn the other extreme end is the fully parallel associative scan where we aggregate the running sums by powers of two. If you’ve implemented a Fenwick tree before, this is it.\nBut in practice, we use the chunk-wise parallel form where we:\nDivide the sequence into chunks. Use the parallel form within chunks. Use the recurrent form to propagate running sums across chunks. That’s it for now. Next time, I plan to talk about:\nHow to derive different attention mechanisms using tensor string diagrams. Circuit complexity of different attention mechanisms. LLM reasoning. Stay tuned!\nHow to Cite @misc{cesista2025linearattn, author = {Franz Louis Cesista}, title = {({L}inear) {A}ttention as {T}est-{T}ime {R}egression}, year = {2025}, url = {https://leloykun.github.io/ponder/test-time-regression/}, } References [1] Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., … \u0026 Polosukhin, I. (2017). Attention is all you need. URL https://arxiv.org/abs/1706.03762 [2] Gupta, V., Koren, T., \u0026 Singer, Y. (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568 [3] Wang, K., Shi, J., Fox., E. (2025). Test-time regression: a unifying framework for designing sequence models with associative memory. URL https://arxiv.org/abs/2501.12352 [4] Yang, S. (2025). What’s Next for Mamba? Towards More Expressive Recurrent Update Rules. URL https://sustcsonglin.github.io/assets/pdf/talk_250117.pdf ",
+  "wordCount" : "1093",
+  "inLanguage": "en",
+  "image":"https://leloykun.github.io/cover.jpg","datePublished": "2025-01-27T00:00:00Z",
+  "dateModified": "2025-01-27T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "Franz Louis Cesista"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://leloykun.github.io/ponder/test-time-regression/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Franz Louis Cesista",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://leloykun.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css" integrity="sha384-RZU/ijkSsFbcmivfdRBQDtwuwVqK7GMOw6IMvKyeWL2K5UAlyp6WonmB8m7Jd0Hn" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.js" integrity="sha384-pK1WpvzWVBQiP0/GjnvRxV4mOb0oxFuyRxJlk6vVw146n3egcN5C925NCP7a7BY8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          
+          
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: "\\begin{equation}", right: "\\end{equation}", display: true},
+            {left: "\\begin{equation*}", right: "\\end{equation*}", display: true},
+            {left: "\\begin{align}", right: "\\end{align}", display: true},
+            {left: "\\begin{align*}", right: "\\end{align*}", display: true},
+            {left: "\\begin{alignat}", right: "\\end{alignat}", display: true},
+            {left: "\\begin{gather}", right: "\\end{gather}", display: true},
+            {left: "\\begin{CD}", right: "\\end{CD}", display: true},
+          ],
+          
+          throwOnError : false
+        });
+    });
+</script>
+ 
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://leloykun.github.io/" accesskey="h" title="Franz Louis Cesista">
+             
+                <img src="https://leloykun.github.io/favicon.ico" alt="" aria-label="logo"
+                    height="18"
+                    width="18">Franz Louis Cesista</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://leloykun.github.io/cv.pdf" title="CV">
+                    <span>CV</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/papers/" title="Papers">
+                    <span>Papers</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/personal-projects/" title="Personal Projects">
+                    <span>Personal Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/ponder/" title="Ponder (Blog)">
+                    <span>Ponder (Blog)</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+    <main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      (Linear) Attention as Test-Time Regression
+    </h1>
+    <div class="post-meta"><span title='2025-01-27 00:00:00 +0000 UTC'>January 27, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista&nbsp;&middot;&nbsp;<a href="https://x.com/leloykun/status/1883634169902952655" rel="noopener noreferrer" target="_blank">Crossposted from X (formerly Twitter)</a>
+
+</div>
+  </header> 
+  <div class="post-content"><p><img loading="lazy" src="cover.jpg" alt="cover"  />
+</p>
+<blockquote>
+<p>Note: This was originally posted as a Twitter thread. I&rsquo;ve reformatted it here for better readability.</p>
+</blockquote>
+<p>By now, you&rsquo;ve probably already heard of linear attention, in-context learning, test-time scaling, etc&hellip;</p>
+<p>Here, I&rsquo;ll discuss:</p>
+<ol>
+<li>The unifying framework that ties them all together;</li>
+<li>How to derive different linear attention variants from scratch; and</li>
+<li>How to parallelize training linear attention models</li>
+</ol>
+<h2 id="learning-how-to-learn-in-context">Learning How to Learn In-Context</h2>
+<p>First, what do we want from an ideal model?</p>
+<ol>
+<li>
+<p><strong>In-Context Learning</strong>: We want it to learn from information it has ingested so far and use that information to make more accurate predictions moving forward.</p>
+</li>
+<li>
+<p><strong>Computational Expressivity</strong>: We want it to have a complex-enough internal machinery so it can actually solve hard problems we encounter in real-life.</p>
+</li>
+<li>
+<p><strong>Efficiency</strong>.</p>
+</li>
+</ol>
+<p>Of course, there are other stuff we&rsquo;d want. But these are the most important ones. And here, we&rsquo;ll focus on the first one.</p>
+<hr>
+<p>To teach the models to learn in context, let&rsquo;s steal an idea from nature: <strong>Associative Recall</strong></p>
+<ul>
+<li>Mom&rsquo;s cooking triggers memories of my childhood</li>
+<li>Live wires remind me of the time I got electrocuted</li>
+</ul>
+<p>That&rsquo;s associative recall.</p>
+<div align="center">
+    <img src="associative-recall.png" style="width:80%; height:80%" />
+</div>
+<p>A &ldquo;cue&rdquo; goes into the brain and a &ldquo;response&rdquo; comes out. And the brain learns this &ldquo;cue&rdquo;-&ldquo;response&rdquo; pairing automatically through experience.</p>
+<p>We want our models to learn how to do this too. But in practice, we call the &ldquo;cue&rdquo; the &ldquo;key&rdquo; and the &ldquo;response&rdquo; the &ldquo;value&rdquo; (following the Attention is All You Need$^{[1]}$ paper).</p>
+<hr>
+<p>From here, we have a (major) architectural design decision to make: Either we let the model&rsquo;s &ldquo;state&rdquo; grow with the context length&hellip; or we fix it at a certain size.</p>
+<p>The former allows us to keep as much information as we can as we chug through the context, which in turn helps with the model&rsquo;s expressivity.</p>
+<p>While the latter is much more efficient at the cost of expressivity. There&rsquo;s an upper limit on how much information we can store in this state. And there&rsquo;s also the question of how we&rsquo;re gonna teach the model to learn which information are important enough to store and which to discard.</p>
+<div align="center">
+    <img src="vaswani-vs-linear-attention.png" style="width:90%; height:90%;" />
+</div>
+<p>For the rest of the thread, I&rsquo;ll focus on linear attention&hellip; I&rsquo;ll just make another thread for the former case (stay tuned!).</p>
+<hr>
+<p>But where do we actually get the keys and the values?</p>
+<p>Another very common (&amp; very old) architectural design decision is to map the input context into key-value pairs.</p>
+<hr>
+<p>Interestingly, this results in a two-layer optimization process:</p>
+<ol>
+<li>
+<p>The &ldquo;outer model&rdquo; optimizes the mapping from the input context into key-value pairs.</p>
+</li>
+<li>
+<p>While the &ldquo;inner model&rdquo; treats the outer model as a black box and simply optimizes its state to better predict the values from the keys.</p>
+</li>
+</ol>
+<div align="center">
+    <img src="inner-opt.png" alt="Inner Optimization Process" />
+</div>
+<p>And with more modern optimizers, such as Shampoo/SOAP/PSGD, you can actually think of this as a three-layer optimization process because:</p>
+<ol>
+<li>The optimizer is also trying to learn the geometry of the loss landscape by adjusting the gradient preconditioners.</li>
+</ol>
+<h2 id="deriving-linear-attention-mechanisms-from-first-principles">Deriving Linear Attention Mechanisms from First Principles</h2>
+<p>If the &ldquo;inner model&rdquo; is optimizing something, which loss function is it trying to minimize?</p>
+<p>Again, we need to make another design decision. But in general, we want to minimize the &ldquo;distance&rdquo; between:</p>
+<p>$$model(key) \Leftrightarrow value$$</p>
+<p>Question is, how do we define this &ldquo;distance&rdquo;?</p>
+<div align="center">
+    <img src="linear-attn-loss-functions.png" alt="Linear Attention Loss Functions" />
+</div>
+<p>In practice, we&rsquo;ve pretty much settled on two of the most basic distance metrics:</p>
+<ol>
+<li>The <strong>negative dot product</strong>. Minimizing this is equivalent to maximizing the dot product or the &ldquo;alignment&rdquo; between $Mk$ and $v$.</li>
+<li>The <strong>(squared) Euclidean distance</strong>. Minimizing this is equivalent to doing (linear) regression between the keys and the values.</li>
+</ol>
+<hr>
+<div align="center">
+    <img src="linear-attention-derivations.png" alt="Deriving Linear Attention Mechanisms from the Loss Functions they Optimize" />
+</div>
+<p>From here, we can simply add the tricks we&rsquo;ve learned so far from designing optimizers one-by-one to arrive at the different variants of linear attention.</p>
+<ul>
+<li>If we pick the negative dot product loss and do online gradient descent, we&rsquo;ll get Vanilla Linear Attention.
+<ul>
+<li>If we add a data-independent weight decay, we&rsquo;ll get Lightning Attention 2 that&rsquo;s used in the MiniMax-O1 paper.</li>
+<li>If we make the weight decay data dependent instead, we&rsquo;ll get Mamba 2 that was all the rave last year.</li>
+</ul>
+</li>
+<li>Now, if we pick the Euclidean loss instead, we&rsquo;ll get the Vanilla DeltaNet.
+<ul>
+<li>If we add a data-dependent weight decay, we&rsquo;ll get Gated DeltaNet.</li>
+<li>Then we fork from here:
+<ul>
+<li>If we use non-linear key -&gt; value transforms, we&rsquo;ll get TTT.</li>
+<li>But if we add a momentum term instead, we&rsquo;ll get the newly released Titans.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>Let&rsquo;s go back to my claim earlier: that linear attention mechanisms are more efficient. This is clearly true at inference time&hellip; but how about training?</p>
+<p>Remember: the primary reason pretty much everyone dropped RNNs in favor of (Vaswani) attention is that the latter is very easy to parallelize. Thus, we can scale it up better. And scale, often times, is all you need.</p>
+<p>So, when can we parallelize training of linear attention mechanisms? As a rule of thumb, if you can recast your update rule as an associative operation over sequences, you can parallelize it!</p>
+<div align="center">
+    <img src="linear-attn-parallel-training.png" style="width:75%; height:75%;" />
+</div>
+<p>Note that there are faster ways to implement DeltaNet&rsquo;s update rule (e.g. WY representations, etc.). We&rsquo;ll discuss that next time!</p>
+<hr>
+<p>But in practice, how do we actually calculate the running &ldquo;sums&rdquo; efficiently? Well, remember those leetcode job interview data structure questions you hate? Well&hellip; this is when they&rsquo;re relevant&hellip;</p>
+<div align="center">
+    <img src="linear-attn-comp-forms.png" style="width:75%; height:75%;" />
+</div>
+<p>The most naive way is to simply run a loop through the key-value pairs. This is the recurrent form, and this is what we should be doing at inference time. But we can do much better than this.</p>
+<p>On the other extreme end is the fully parallel associative scan where we aggregate the running sums by powers of two. If you&rsquo;ve implemented a Fenwick tree before, this is it.</p>
+<p>But in practice, we use the chunk-wise parallel form where we:</p>
+<ol>
+<li>Divide the sequence into chunks.</li>
+<li>Use the parallel form within chunks.</li>
+<li>Use the recurrent form to propagate running sums across chunks.</li>
+</ol>
+<hr>
+<p>That&rsquo;s it for now. Next time, I plan to talk about:</p>
+<ol>
+<li>How to derive different attention mechanisms using tensor string diagrams.</li>
+<li>Circuit complexity of different attention mechanisms.</li>
+<li>LLM reasoning.</li>
+</ol>
+<p>Stay tuned!</p>
+<h2 id="how-to-cite">How to Cite</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bibtex" data-lang="bibtex"><span style="display:flex;"><span><span style="color:#0a0;text-decoration:underline">@misc</span>{cesista2025linearattn,
+</span></span><span style="display:flex;"><span>  <span style="color:#1e90ff">author</span> = <span style="color:#a50">{Franz Louis Cesista}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#1e90ff">title</span> = <span style="color:#a50">{({L}inear) {A}ttention as {T}est-{T}ime {R}egression}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#1e90ff">year</span> = <span style="color:#a50">{2025}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#1e90ff">url</span> = <span style="color:#a50">{https://leloykun.github.io/ponder/test-time-regression/}</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="references">References</h2>
+<p>[1] Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., &hellip; &amp; Polosukhin, I. (2017). Attention is all you need. URL <a href="https://arxiv.org/abs/1706.03762" target="_blank">https://arxiv.org/abs/1706.03762</a>
+</p>
+<p>[2] Gupta, V., Koren, T., &amp; Singer, Y. (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL <a href="https://arxiv.org/abs/1802.09568" target="_blank">https://arxiv.org/abs/1802.09568</a>
+</p>
+<p>[3] Wang, K., Shi, J., Fox., E. (2025). Test-time regression: a unifying framework for designing sequence models with associative memory. URL <a href="https://arxiv.org/abs/2501.12352" target="_blank">https://arxiv.org/abs/2501.12352</a>
+</p>
+<p>[4] Yang, S. (2025). What’s Next for Mamba? Towards More Expressive Recurrent Update Rules. URL <a href="https://sustcsonglin.github.io/assets/pdf/talk_250117.pdf" target="_blank">https://sustcsonglin.github.io/assets/pdf/talk_250117.pdf</a>
+</p>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://leloykun.github.io/tags/machine-learning/">Machine Learning</a></li>
+      <li><a href="https://leloykun.github.io/tags/linear-attention/">Linear Attention</a></li>
+      <li><a href="https://leloykun.github.io/tags/test-time-regression/">Test-Time Regression</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    &copy; 2025 Franz Louis Cesista
+    <span>
+    &middot;  Powered by 
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/pmichaillat/hugo-website/" rel="noopener" target="_blank">a modified version</a>
+         of 
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>C&#43;&#43; on Franz Louis Cesista</title>
+    <link>https://leloykun.github.io/tags/c&#43;&#43;/</link>
+    <description>Recent content in C&#43;&#43; on Franz Louis Cesista</description>
+    <image>
+      <url>https://leloykun.github.io/cover.png</url>
+      <link>https://leloykun.github.io/cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 25 Jul 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/c++/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Flash Hyperbolic Attention Minimal [WIP]</title>
+      <link>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</guid>
+      <description>A minimal implementation of Flash Attention 1 &amp;amp; 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the various variations of Hyperbolic Attention in CUDA.</description>
+    </item>
+    
+    <item>
+      <title>Llama.cpp</title>
+      <link>https://leloykun.github.io/personal-projects/llama.cpp/</link>
+      <pubDate>Tue, 25 Jul 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/llama.cpp/</guid>
+      <description>A C&#43;&#43; implementation of Meta&amp;#39;s Llama2 generative large-language model. I also optimized the original C implementation by Karpathy by adding parallelization on the multi-head attention layer.</description>
+    </item>
+    
+    <item>
+      <title>Ateneo&#39;s Competitive Programming Varsity&#39;s Code Library</title>
+      <link>https://leloykun.github.io/personal-projects/progvar-library/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/progvar-library/</guid>
+      <description>A collection of algorithms, data structures and other useful information for competitive programming. Used and maintained by members of the Ateneo de Manila University Programming Varsity.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Expedock Assistant: ChatGPT Applied to Logistics Data | Franz Louis Cesista</title>
+<meta name="keywords" content="Machine Learning, Tool Use, AI Agent, Logistics">
+<meta name="description" content="Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry.">
+<meta name="author" content="Franz Louis Cesista">
+<link rel="canonical" href="https://leloykun.github.io/personal-projects/expedock-assistant/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.f1e4501a2ac2bf9fff5dc0c77f152affb825b371cb176acfcf9201015d59b4d4.css" integrity="sha256-8eRQGirCv5//XcDHfxUq/7gls3HLF2rPz5IBAV1ZtNQ=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://leloykun.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://leloykun.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://leloykun.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://leloykun.github.io/apple-touch-icon.png">
+
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://leloykun.github.io/personal-projects/expedock-assistant/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><meta property="og:title" content="Expedock Assistant: ChatGPT Applied to Logistics Data" />
+<meta property="og:description" content="Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://leloykun.github.io/personal-projects/expedock-assistant/" />
+<meta property="og:image" content="https://leloykun.github.io/expedock_assistant.png" /><meta property="article:section" content="personal-projects" />
+<meta property="article:published_time" content="2023-01-31T00:00:00+00:00" />
+<meta property="article:modified_time" content="2023-01-31T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://leloykun.github.io/expedock_assistant.png" />
+<meta name="twitter:title" content="Expedock Assistant: ChatGPT Applied to Logistics Data"/>
+<meta name="twitter:description" content="Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Personal Projects",
+      "item": "https://leloykun.github.io/personal-projects/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Expedock Assistant: ChatGPT Applied to Logistics Data",
+      "item": "https://leloykun.github.io/personal-projects/expedock-assistant/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Expedock Assistant: ChatGPT Applied to Logistics Data",
+  "name": "Expedock Assistant: ChatGPT Applied to Logistics Data",
+  "description": "Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry.",
+  "keywords": [
+    "Machine Learning", "Tool Use", "AI Agent", "Logistics"
+  ],
+  "articleBody": "Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry. When using this tool, the vast knowledge base and conversational skills of ChatGPT can alleviate some of the complexities of the logistics industry.\nWatch the demo below to see how it works:\nMotivation Here at Expedock, we are aiming to build the data infrastructure of the logistics industry. We believe that the way that people will interact with data across all industries, including but not limited to the logistics one, will fundamentally shift in the coming years. Natural language interface and tooling is becoming exponentially more powerful and intuitive every year, and we believe that this will be one of the key ways people interface with their data in the future.\nIn this article, we also want to give you an overview of the data landscape in the logistics industry so you could understand why we do what we do in Expedock and why we encourage experiments such as this one.\nContext The data landscape in the logistics industry is maddeningly messy. There are millions of data formats, from unstructured or semi-structured data sources such as emails, scanned documents, database connections, excel files, and more. Worse: each company has its own processes and quirks that make interoperability a huge challenge.\nAs an example, there may be cases where a company submits a manually filled-in document to a port authority. The port authority manually transcribes the fields in the document to their system. The company then physically prints it and send it to a connecting business who does the exact same thing. This then repeats for dozens of parties involved in making a delivery happen. It’s so inefficient it’s bizarre how an industry as conscious about efficiency as logistics could still be stuck in this antiquated way to move data.\nThere are many reasons as to why this inefficiency occurs. One is that the nature of the industry is highly fragmented. There are a lot of participants (countries \u0026 companies) and each country has its own rules and regulations. Some of these rules are enforced strictly, some are not, and some are not even written. But the crux is that the margins in the industry are generally low, that every bit of advantage is valuable, and every bit of investment is expensive. Shifting to a more standardized data format could not only block them from offering a differentiated (but more inefficient) service, but it could also cause disruptions to their operations and customer service — which are the two things that you absolutely cannot get wrong when moving goods. These factors lead everyone to be stuck in a suboptimal equilibrium.\nWe can’t nudge our partners to change their data formats and processes due to the reasons above. So, we instead build tools to parse and structure whatever data we get from them from a multitude of formats and use that to build products that our customers can use to improve their operations, get new business, cut costs, and more.\nMaking Sense of Unstructured Data As mentioned above, not all of the data we receive is already structured. Much is unstructured, like emails, scanned documents, handwritten documents, etc. And so, one way to make them useful is to convert them into structured data first.\nThere are two extremes on how to do this:\nHire a bunch of people to manually convert the data into structured data. Doing only this takes a lot of time and money. But humans are generally accurate and reliable.\nBuild a machine learning model to convert the data into structured data. Doing only this is a lot cheaper and faster (which is what we want to be profitable). But ML models are generally only somewhat accurate \u0026 somewhat reliable.\nSo, we do a combination of both.\nWe have an internal job management system where we convert unusable unstructured data into more sane structured data with the help of a series of Multimodal Machine learning models and hired humans in the loop to verify the results. We then pipe the resulting data back to our customers and into our own data products, as illustrated above.\nThe Natural Extension: Natural Language Interface Let’s go back to the data pipeline above. Notice that all of the data processing steps are at least partially automated — except for the actual interface between the customer and their data. This currently requires expensive and time-consuming visualizations to be put together, with new use cases having to be manually programmed into a graph or webpage.\nSo, the next natural question is: can we automate customer interface with the supply chain data we process?\nThis is where Expedock Assistant comes in.\nWith Expedock Assistant, we can skip the process of building visualizations for not-so-common questions and just pipe the data into a Large Language Model (LLM) like OpenAI’s GPT-3 and let it answer questions for us.\nHow Expedock Assistant Works For the first iteration of this assistant, we are only piping shipment data to the chatbot. Every time a customer asks a question about a shipment, the chatbot does the following:\nFirst, it tries to find the most relevant shipment in the conversation based on the context. It does this with a combination of heuristics given the prompt and an API call to GPT-3.\nThen, it queries our database for the shipment’s data.\nFinally, it pipes the conversation context and the shipment data to GPT-3 to generate a response.\nThat’s it!\nThe Trade-offs When using Language Models There are, of course, trade-offs to this approach to automated data interface.\nSome of them include:\nGenerality vs. Accuracy: Expedock Assistant is only as good as GPT-3 and the heuristics we use to tame it. GPT-3 is a general-purpose language model which is very good at answering questions based on the given context. However, it sometimes “hallucinates” answers that are not true but still answers confidently with wrong information. To address this, we could fine-tune the model further or add other heuristics. However, it may overfit to answering only the kind of questions we fine-tune it on and become less general for other hard-to-answer questions.\nAccuracy vs. Cost: GPT-3 is one of the best language models out there. But it’s also expensive to use. When building a language interface, there is a tradeoff to be made in using a cheaper model or building one in-house, at the potential drawback of accuracy taking a hit. As open-source language models become more prevalent, the balance may shift here.\nSimplicity vs. Information Bandwidth: Chatbots are more intuitive to use than dashboards. However, they also limit the amount of information we can show. They also force users to articulate their questions properly. Dashboards or visualizations, on the other hand, can answer questions that users don’t even know they have. In engineering terms, chatbots and dashboards are like L3 and L1 cache, respectively, but with humans as processors.\nPossible Directions There are a couple directions we can go from here. One is that we could limit the scope of Expedock Assistant to only as a kind of concierge service we could use to point our customers to the right visualizations, or to answer questions that are not yet supported by our visualizations. Another direction is that we could expand the model to be able to build custom queries and data visualizations to answer any question our customers would have. We could even let it to search external data sources, such as the entire internet or large repositories of shipping data for relevant information.\n",
+  "wordCount" : "1274",
+  "inLanguage": "en",
+  "image":"https://leloykun.github.io/expedock_assistant.png","datePublished": "2023-01-31T00:00:00Z",
+  "dateModified": "2023-01-31T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "Franz Louis Cesista"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://leloykun.github.io/personal-projects/expedock-assistant/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Franz Louis Cesista",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://leloykun.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css" integrity="sha384-RZU/ijkSsFbcmivfdRBQDtwuwVqK7GMOw6IMvKyeWL2K5UAlyp6WonmB8m7Jd0Hn" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.js" integrity="sha384-pK1WpvzWVBQiP0/GjnvRxV4mOb0oxFuyRxJlk6vVw146n3egcN5C925NCP7a7BY8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          
+          
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: "\\begin{equation}", right: "\\end{equation}", display: true},
+            {left: "\\begin{equation*}", right: "\\end{equation*}", display: true},
+            {left: "\\begin{align}", right: "\\end{align}", display: true},
+            {left: "\\begin{align*}", right: "\\end{align*}", display: true},
+            {left: "\\begin{alignat}", right: "\\end{alignat}", display: true},
+            {left: "\\begin{gather}", right: "\\end{gather}", display: true},
+            {left: "\\begin{CD}", right: "\\end{CD}", display: true},
+          ],
+          
+          throwOnError : false
+        });
+    });
+</script>
+ 
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://leloykun.github.io/" accesskey="h" title="Franz Louis Cesista">
+             
+                <img src="https://leloykun.github.io/favicon.ico" alt="" aria-label="logo"
+                    height="18"
+                    width="18">Franz Louis Cesista</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://leloykun.github.io/cv.pdf" title="CV">
+                    <span>CV</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/papers/" title="Papers">
+                    <span>Papers</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/personal-projects/" title="Personal Projects">
+                    <span>Personal Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/ponder/" title="Ponder (Blog)">
+                    <span>Ponder (Blog)</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+    <main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      Expedock Assistant: ChatGPT Applied to Logistics Data
+    </h1>
+    <div class="post-meta"><span title='2023-01-31 00:00:00 +0000 UTC'>January 31, 2023</span>&nbsp;&middot;&nbsp;Franz Louis Cesista&nbsp;&middot;&nbsp;<a href="https://ponder.substack.com/p/expedock-assistant-demystifying-logistics" rel="noopener noreferrer" target="_blank">Blog Post cross-posted on Ponder</a>
+
+</div>
+  </header> 
+  <div class="post-content"><p>Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry. When using this tool, the vast knowledge base and conversational skills of ChatGPT can alleviate some of the complexities of the logistics industry.</p>
+<p>Watch the demo below to see how it works:</p>
+
+
+    
+    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+      <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen" loading="eager" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/IaL93hS-GXM?autoplay=0&controls=1&end=0&loop=0&mute=0&start=0" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video"
+      ></iframe>
+    </div>
+
+<h2 id="motivation">Motivation</h2>
+<p>Here at Expedock, we are aiming to build the data infrastructure of the logistics industry. We believe that the way that people will interact with data across all industries, including but not limited to the logistics one, will fundamentally shift in the coming years. Natural language interface and tooling is becoming exponentially more powerful and intuitive every year, and we believe that this will be one of the key ways people interface with their data in the future.</p>
+<p>In this article, we also want to give you an overview of the data landscape in the logistics industry so you could understand why we do what we do in Expedock and why we encourage experiments such as this one.</p>
+<h2 id="context">Context</h2>
+<p>The data landscape in the logistics industry is maddeningly messy. There are millions of data formats, from unstructured or semi-structured data sources such as emails, scanned documents, database connections, excel files, and more. Worse: each company has its own processes and quirks that make interoperability a huge challenge.</p>
+<p>As an example, there may be cases where a company submits a manually filled-in document to a port authority. The port authority manually transcribes the fields in the document to their system. The company then physically prints it and send it to a connecting business who does the exact same thing. This then repeats for dozens of parties involved in making a delivery happen. It’s so inefficient it’s bizarre how an industry as conscious about efficiency as logistics could still be stuck in this antiquated way to move data.</p>
+<p>There are many reasons as to why this inefficiency occurs. One is that the nature of the industry is highly fragmented. There are a lot of participants (countries &amp; companies) and each country has its own rules and regulations. Some of these rules are enforced strictly, some are not, and some are not even written. But the crux is that the margins in the industry are generally low, that every bit of advantage is valuable, and every bit of investment is expensive. Shifting to a more standardized data format could not only block them from offering a differentiated (but more inefficient) service, but it could also cause disruptions to their operations and customer service — which are the two things that you absolutely cannot get wrong when moving goods. These factors lead everyone to be stuck in a suboptimal equilibrium.</p>
+<p>We can’t nudge our partners to change their data formats and processes due to the reasons above. So, we instead build tools to parse and structure whatever data we get from them from a multitude of formats and use that to build products that our customers can use to improve their operations, get new business, cut costs, and more.</p>
+<h2 id="making-sense-of-unstructured-data">Making Sense of Unstructured Data</h2>
+<p><img loading="lazy" src="expedock_assistant_trunc.png" alt="Expedock Assistant"  />
+</p>
+<p>As mentioned above, not all of the data we receive is already structured. Much is unstructured, like emails, scanned documents, handwritten documents, etc. And so, one way to make them useful is to convert them into structured data first.</p>
+<p>There are two extremes on how to do this:</p>
+<ol>
+<li>
+<p>Hire a bunch of people to manually convert the data into structured data. Doing only this takes a lot of time and money. But humans are generally accurate and reliable.</p>
+</li>
+<li>
+<p>Build a machine learning model to convert the data into structured data. Doing only this is a lot cheaper and faster (which is what we want to be profitable). But ML models are generally only somewhat accurate &amp; somewhat reliable.</p>
+</li>
+</ol>
+<p>So, we do a combination of both.</p>
+<p>We have an internal job management system where we convert unusable unstructured data into more sane structured data with the help of a series of Multimodal Machine learning models and hired humans in the loop to verify the results. We then pipe the resulting data back to our customers and into our own data products, as illustrated above.</p>
+<h2 id="the-natural-extension-natural-language-interface">The Natural Extension: Natural Language Interface</h2>
+<p>Let’s go back to the data pipeline above. Notice that all of the data processing steps are at least partially automated — except for the actual interface between the customer and their data. This currently requires expensive and time-consuming visualizations to be put together, with new use cases having to be manually programmed into a graph or webpage.</p>
+<p>So, the next natural question is: can we automate customer interface with the supply chain data we process?</p>
+<p>This is where Expedock Assistant comes in.</p>
+<p><img loading="lazy" src="expedock_assistant.png" alt="Expedock Assistant"  />
+</p>
+<p>With Expedock Assistant, we can skip the process of building visualizations for not-so-common questions and just pipe the data into a Large Language Model (LLM) like OpenAI’s GPT-3 and let it answer questions for us.</p>
+<h2 id="how-expedock-assistant-works">How Expedock Assistant Works</h2>
+<p><img loading="lazy" src="expedock_assistant_how_it_works.png" alt="How It Works"  />
+</p>
+<p>For the first iteration of this assistant, we are only piping shipment data to the chatbot. Every time a customer asks a question about a shipment, the chatbot does the following:</p>
+<p>First, it tries to find the most relevant shipment in the conversation based on the context. It does this with a combination of heuristics given the prompt and an API call to GPT-3.</p>
+<p>Then, it queries our database for the shipment’s data.</p>
+<p>Finally, it pipes the conversation context and the shipment data to GPT-3 to generate a response.</p>
+<p>That’s it!</p>
+<h2 id="the-trade-offs-when-using-language-models">The Trade-offs When using Language Models</h2>
+<p>There are, of course, trade-offs to this approach to automated data interface.</p>
+<p>Some of them include:</p>
+<ol>
+<li>
+<p><strong>Generality vs. Accuracy</strong>: Expedock Assistant is only as good as GPT-3 and the heuristics we use to tame it. GPT-3 is a general-purpose language model which is very good at answering questions based on the given context. However, it sometimes “hallucinates” answers that are not true but still answers confidently with wrong information. To address this, we could fine-tune the model further or add other heuristics. However, it may overfit to answering only the kind of questions we fine-tune it on and become less general for other hard-to-answer questions.</p>
+</li>
+<li>
+<p><strong>Accuracy vs. Cost</strong>: GPT-3 is one of the best language models out there. But it’s also expensive to use. When building a language interface, there is a tradeoff to be made in using a cheaper model or building one in-house, at the potential drawback of accuracy taking a hit. As open-source language models become more prevalent, the balance may shift here.</p>
+</li>
+<li>
+<p><strong>Simplicity vs. Information Bandwidth</strong>: Chatbots are more intuitive to use than dashboards. However, they also limit the amount of information we can show. They also force users to articulate their questions properly. Dashboards or visualizations, on the other hand, can answer questions that users don’t even know they have. In engineering terms, chatbots and dashboards are like L3 and L1 cache, respectively, but with humans as processors.</p>
+</li>
+</ol>
+<h2 id="possible-directions">Possible Directions</h2>
+<p>There are a couple directions we can go from here. One is that we could limit the scope of Expedock Assistant to only as a kind of concierge service we could use to point our customers to the right visualizations, or to answer questions that are not yet supported by our visualizations. Another direction is that we could expand the model to be able to build custom queries and data visualizations to answer any question our customers would have. We could even let it to search external data sources, such as the entire internet or large repositories of shipping data for relevant information.</p>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://leloykun.github.io/tags/machine-learning/">Machine Learning</a></li>
+      <li><a href="https://leloykun.github.io/tags/tool-use/">Tool Use</a></li>
+      <li><a href="https://leloykun.github.io/tags/ai-agent/">AI Agent</a></li>
+      <li><a href="https://leloykun.github.io/tags/logistics/">Logistics</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    &copy; 2025 Franz Louis Cesista
+    <span>
+    &middot;  Powered by 
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/pmichaillat/hugo-website/" rel="noopener" target="_blank">a modified version</a>
+         of 
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+</html>

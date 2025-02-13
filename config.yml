@@ -1,5 +1,6 @@
-baseURL: "https://pascalmichaillat.org/hugo-website/" 
-title: Moritz-Maria von Igelfeld
+baseURL: "https://leloykun.github.io" 
+title: Franz Louis Cesista
+paginate: 20
 theme: PaperMod
 
 enableInlineShortcodes: true
@@ -10,27 +11,30 @@ taxonomies:
 
 menu:
     main:
-        - name: Books
-          url: books/
-          weight: 5 
+        - name: CV
+          url: cv.pdf
+          weight: 1
         - name: Papers
           url: papers/
           weight: 2
-        - name: Courses
-          url: courses/
+        - name: Personal Projects
+          url: personal-projects/
           weight: 3
-        - name: Data
-          url: data/
-          weight: 4 
-        - name: Blog
-          url: https://en.wikipedia.org/wiki/Moritz-Maria_von_Igelfeld_(character)
-          weight: 6
+        # - name: Courses
+        #   url: courses/
+        #   weight: 2
+        # - name: Data
+        #   url: data/
+        #   weight: 3 
+        - name: Ponder (Blog)
+          url: ponder/
+          weight: 4
 
 params:
-    description: "I am a Professor of Philology at the Institute of Romance Philology in Regensburg, Germany. My research focuses mostly on Portuguese irregular verbs."
-    author: Moritz-Maria von Igelfeld
+    description: "Mathematician | Machine Learning (AI) Research Scientist"
+    author: Franz Louis Cesista
     # googleAnalyticsID: "G-XXXXX"
-    DateFormat: "January 2006"
+    DateFormat: "January 2, 2006"
     defaultTheme: light
     hideFooter: false
     disableThemeToggle: true
@@ -50,60 +54,58 @@ params:
     UseHugoToc: true
     comments: false
     math: true
+    images:
+        - cover.png
     profileMode:
-          enabled: true
-          title: Professor Dr von Igelfeld
-          subtitle: "I am a Professor in the Institute of Romance Philology at the University of Regensburg, Germany. My research focuses on Portuguese irregular verbs. I was a doctoral student of Professor Dr Dieter Vogelsang in Munich, and later a second assistant of Professor Walter Schoeffler-Henschell at the University of Wiesbaden."
-          imageUrl: "picture.jpeg"
-          imageWidth: 160
-          imageHeight: 160
-          buttons:
+        enabled: true
+        title: <span style="color:#011F5B">Franz Louis Cesista</span>
+        subtitle:
+            Building things 👨‍🍳🚀 • Soon <span style="color:#011F5B">**Research Engineer**</span> at [will announce soon] • prev **Machine Learning (AI) Research Scientist, Full-Stack Software Engineer, & Data Engineer** at [Expedock Software Inc.](https://expedock.com) • <span style="color:#011F5B">**2x IOI & 2x ICPC World Finalist**</span> • Mathematics at the [Ateneo de Manila University](https://www.ateneo.edu/)<br><br>
+
+            Geometric Deep Learning • Multimodal Machine Learning • Information Retrieval • Structured Generation
+        imageUrl: "picture.png"
+        imageWidth: 160
+        imageHeight: 160
+        imageTitle: Franz Louis Cesista
+        buttons:
+            - name: CV
+              url: cv.pdf
             - name: Papers
               url: papers/
-            - name: Courses
-              url: courses/
-            - name: Data
-              url: data/
-            - name: Books
-              url: books/
-            - name: Tags
-              url: tags/
-            - name: Archive
-              url: archive/
-            - name: Blog
-              url: https://en.wikipedia.org/wiki/Moritz-Maria_von_Igelfeld_(character)
-
+            - name: Personal Projects
+              url: personal-projects/
+            # - name: Courses
+            #   url: courses/
+            # - name: Data
+            #   url: data/
+            - name: Ponder (Blog)
+              url: ponder/
+            # - name: Tags
+            #   url: tags/
+            # - name: Archive
+            #   url: archive/
     socialIcons:
-        - name: CV
-          url: cv.pdf
         - name: Email
-          url: mailto:moritz.maria.von.igelfeld@gmail.com
-        - name: Zoom
-          url: https://www.zoom.us/my/igelfeld
-        - name: Location
-          url: location/
-        - name: Office Hours
-          url: officehours/
-        - name: Google Scholar
-          url: https://scholar.google.com/citations?user=cL23w-4AAAAJ
+          url: mailto:franzlouiscesista@gmail.com
         - name: GitHub
-          url: https://github.com/pmichaillat
-        - name: Substack
-          url: https://pmichaillat.substack.com
-        - name: YouTube
-          url: https://www.youtube.com/@alexandermccallsmithoffici9000
+          url: https://github.com/leloykun
+        - name: LinkedIn
+          url: https://www.linkedin.com/in/franzcesista/
         - name: Twitter
-          url: https://twitter.com/McCallSmith
-
+          url: https://twitter.com/leloykun
+        - name: Substack
+          url: https://ponder.substack.com
+    social:
+        twitter: leloykun
     assets:
         disableScrollBarStyle: true
     cover:
         hiddenInList: false
         hiddenInSingle: true
     label:
-      text: "Moritz-Maria von Igelfeld"
-      icon: favicon.ico
-      iconHeight: 18
+        text: "Franz Louis Cesista"
+        icon: favicon.ico
+        iconHeight: 18
 
 markup:
     goldmark:

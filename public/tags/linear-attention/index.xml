@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Linear Attention on Franz Louis Cesista</title>
+    <link>https://leloykun.github.io/tags/linear-attention/</link>
+    <description>Recent content in Linear Attention on Franz Louis Cesista</description>
+    <image>
+      <url>https://leloykun.github.io/cover.png</url>
+      <link>https://leloykun.github.io/cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 27 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/linear-attention/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>(Linear) Attention as Test-Time Regression</title>
+      <link>https://leloykun.github.io/ponder/test-time-regression/</link>
+      <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/ponder/test-time-regression/</guid>
+      <description>A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference.</description>
+    </item>
+    
+  </channel>
+</rss>

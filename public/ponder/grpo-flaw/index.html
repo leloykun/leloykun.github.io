@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>GRPO&#39;s Main Flaw | Franz Louis Cesista</title>
+<meta name="keywords" content="Machine Learning">
+<meta name="description" content="GRPO may not be the best choice for training reasoning models. Here&#39;s why.">
+<meta name="author" content="Franz Louis Cesista">
+<link rel="canonical" href="https://leloykun.github.io/ponder/grpo-flaw/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.f1e4501a2ac2bf9fff5dc0c77f152affb825b371cb176acfcf9201015d59b4d4.css" integrity="sha256-8eRQGirCv5//XcDHfxUq/7gls3HLF2rPz5IBAV1ZtNQ=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://leloykun.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://leloykun.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://leloykun.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://leloykun.github.io/apple-touch-icon.png">
+
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://leloykun.github.io/ponder/grpo-flaw/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><meta property="og:title" content="GRPO&#39;s Main Flaw" />
+<meta property="og:description" content="GRPO may not be the best choice for training reasoning models. Here&#39;s why." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://leloykun.github.io/ponder/grpo-flaw/" />
+<meta property="og:image" content="https://leloykun.github.io/cover.png" /><meta property="article:section" content="ponder" />
+<meta property="article:published_time" content="2025-02-11T00:00:00+00:00" />
+<meta property="article:modified_time" content="2025-02-11T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://leloykun.github.io/cover.png" />
+<meta name="twitter:title" content="GRPO&#39;s Main Flaw"/>
+<meta name="twitter:description" content="GRPO may not be the best choice for training reasoning models. Here&#39;s why."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Ponder",
+      "item": "https://leloykun.github.io/ponder/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "GRPO's Main Flaw",
+      "item": "https://leloykun.github.io/ponder/grpo-flaw/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "GRPO's Main Flaw",
+  "name": "GRPO\u0027s Main Flaw",
+  "description": "GRPO may not be the best choice for training reasoning models. Here's why.",
+  "keywords": [
+    "Machine Learning"
+  ],
+  "articleBody": " I’ve been testing different critic-free RL algos on multi-task environments, and one thing I’ve noticed is that GRPO$^{[1]}$ seems to slightly underperform normalization-free variants. This tracks with the results in the LOOP$^{[2]}$ paper.\nWhy? Most likely because GRPO’s normalization term, in a sense, penalizes large magnitude rewards. But in multi-task envs, these rewards are highly informative!\nE.g.:\nIf your agent gets a very low (negative) reward, then it must be getting things consistently wrong–and this must be punished severely. And If it gets a very high reward, then it must be getting things consistently right–and this must be encouraged a lot more. Here’s a concrete example: Suppose we have 5+ sources of rewards per rollout and we sample 7 rollouts per iteration. And suppose,\nAt iteration 1, we get:\nRewards: [-1, -1, -1, 0, 1, 1, 1] Advantages: [-1.08, -1.08, -1.08, 0, 1.08, 1.08, 1.08] And at iteration 2, we get:\nRewards: [-5, -5, -5, 0, 5, 5, 5] Advantages: [-1.08, -1.08, -1.08, 0, 1.08, 1.08, 1.08] The reward distribution in the second iteration is clearly more informative than the first because the agents are either getting things consistently right or consistently wrong. Yet, we get the same advantages with GRPO! This is problematic.\nWhy haven’t Deepseek and the rest of the open-source community catch this yet?\nBecause it doesn’t matter for the way we currently train our reasoning LLMs anyway. We only have one source of rewards: the verifier at the end of the generation step.\nBut this is going to be a problem when you try to train an agent that need to complete multiple (verifiable) tasks per run (e.g. a browser agent). Be careful!\nYes, the goal of introducing a baseline is to reduce the variance of the gradient estimator to stabilize training. But this is the kind of variance we don’t want to get rid of!\nHow to cite @misc{cesista2025grpoflaw, author = {Franz Louis Cesista}, title = {GRPO's Main Flaw}, year = {2025}, url = {http://leloykun.github.io/ponder/grpo-flaw/}, } References [1] Shao, Z., Wang, P., Zhu, Q., Xu, R., Song, J., Bi, X., Zhang, H., Zhang, M., Li, Y.K., Wu, Y., \u0026 Guo, D. (2025). DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models. URL https://arxiv.org/abs/2402.03300 [2] Chen, K., Cusumano-Towner, M., Huval, B., Petrenko, A., Hamburger, J., Koltun, V., \u0026 Krähenbühl, P. (2025). Reinforcement Learning for Long-Horizon Interactive LLM Agents. URL https://arxiv.org/abs/2502.01600 ",
+  "wordCount" : "396",
+  "inLanguage": "en",
+  "image":"https://leloykun.github.io/cover.png","datePublished": "2025-02-11T00:00:00Z",
+  "dateModified": "2025-02-11T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "Franz Louis Cesista"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://leloykun.github.io/ponder/grpo-flaw/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Franz Louis Cesista",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://leloykun.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css" integrity="sha384-RZU/ijkSsFbcmivfdRBQDtwuwVqK7GMOw6IMvKyeWL2K5UAlyp6WonmB8m7Jd0Hn" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.js" integrity="sha384-pK1WpvzWVBQiP0/GjnvRxV4mOb0oxFuyRxJlk6vVw146n3egcN5C925NCP7a7BY8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          
+          
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: "\\begin{equation}", right: "\\end{equation}", display: true},
+            {left: "\\begin{equation*}", right: "\\end{equation*}", display: true},
+            {left: "\\begin{align}", right: "\\end{align}", display: true},
+            {left: "\\begin{align*}", right: "\\end{align*}", display: true},
+            {left: "\\begin{alignat}", right: "\\end{alignat}", display: true},
+            {left: "\\begin{gather}", right: "\\end{gather}", display: true},
+            {left: "\\begin{CD}", right: "\\end{CD}", display: true},
+          ],
+          
+          throwOnError : false
+        });
+    });
+</script>
+ 
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://leloykun.github.io/" accesskey="h" title="Franz Louis Cesista">
+             
+                <img src="https://leloykun.github.io/favicon.ico" alt="" aria-label="logo"
+                    height="18"
+                    width="18">Franz Louis Cesista</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://leloykun.github.io/cv.pdf" title="CV">
+                    <span>CV</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/papers/" title="Papers">
+                    <span>Papers</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/personal-projects/" title="Personal Projects">
+                    <span>Personal Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/ponder/" title="Ponder (Blog)">
+                    <span>Ponder (Blog)</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+    <main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      GRPO&#39;s Main Flaw
+    </h1>
+    <div class="post-meta"><span title='2025-02-11 00:00:00 +0000 UTC'>February 11, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista&nbsp;&middot;&nbsp;<a href="https://x.com/leloykun/status/1889333283693179351" rel="noopener noreferrer" target="_blank">Crossposted from X (formerly Twitter)</a>
+
+</div>
+  </header> 
+  <div class="post-content"><div align="center">
+    <img src="cover.png"/>
+</div>
+<p>I&rsquo;ve been testing different critic-free RL algos on multi-task environments, and one thing I&rsquo;ve noticed is that GRPO$^{[1]}$ seems to slightly underperform normalization-free variants. This tracks with the results in the LOOP$^{[2]}$ paper.</p>
+<p>Why? Most likely because GRPO&rsquo;s normalization term, in a sense, penalizes large magnitude rewards. But in multi-task envs, these rewards are highly informative!</p>
+<p>E.g.:</p>
+<ul>
+<li>If your agent gets a very low (negative) reward, then it must be getting things consistently wrong&ndash;and this must be punished severely. And</li>
+<li>If it gets a very high reward, then it must be getting things consistently right&ndash;and this must be encouraged a lot more.</li>
+</ul>
+<hr>
+<p>Here&rsquo;s a concrete example: Suppose we have 5+ sources of rewards per rollout and we sample 7 rollouts per iteration. And suppose,</p>
+<p>At iteration 1, we get:</p>
+<ul>
+<li>Rewards: <code>[-1, -1, -1, 0, 1, 1, 1]</code></li>
+<li>Advantages: <code>[-1.08, -1.08, -1.08, 0, 1.08, 1.08, 1.08]</code></li>
+</ul>
+<p>And at iteration 2, we get:</p>
+<ul>
+<li>Rewards: <code>[-5, -5, -5, 0, 5, 5, 5]</code></li>
+<li>Advantages: <code>[-1.08, -1.08, -1.08, 0, 1.08, 1.08, 1.08]</code></li>
+</ul>
+<p>The reward distribution in the second iteration is clearly more informative than the first because the agents are either getting things consistently right or consistently wrong. Yet, we get the same advantages with GRPO! This is problematic.</p>
+<hr>
+<p>Why haven&rsquo;t Deepseek and the rest of the open-source community catch this yet?</p>
+<p>Because it doesn&rsquo;t matter for the way we currently train our reasoning LLMs anyway. We only have one source of rewards: the verifier at the end of the generation step.</p>
+<p>But this is going to be a problem when you try to train an agent that need to complete multiple (verifiable) tasks per run (e.g. a browser agent). Be careful!</p>
+<hr>
+<p>Yes, the goal of introducing a baseline is to reduce the variance of the gradient estimator to stabilize training. But this is the kind of variance we don&rsquo;t want to get rid of!</p>
+<h2 id="how-to-cite">How to cite</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bibtex" data-lang="bibtex"><span style="display:flex;"><span><span style="color:#0a0;text-decoration:underline">@misc</span>{cesista2025grpoflaw,
+</span></span><span style="display:flex;"><span>  <span style="color:#1e90ff">author</span> = <span style="color:#a50">{Franz Louis Cesista}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#1e90ff">title</span> = <span style="color:#a50">{GRPO&#39;s Main Flaw}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#1e90ff">year</span> = <span style="color:#a50">{2025}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#1e90ff">url</span> = <span style="color:#a50">{http://leloykun.github.io/ponder/grpo-flaw/}</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="references">References</h2>
+<p>[1] Shao, Z., Wang, P., Zhu, Q., Xu, R., Song, J., Bi, X., Zhang, H., Zhang, M., Li, Y.K., Wu, Y., &amp; Guo, D. (2025). DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models. URL <a href="https://arxiv.org/abs/2402.03300" target="_blank">https://arxiv.org/abs/2402.03300</a>
+</p>
+<p>[2] Chen, K., Cusumano-Towner, M., Huval, B., Petrenko, A., Hamburger, J., Koltun, V., &amp; Krähenbühl, P. (2025). Reinforcement Learning for Long-Horizon Interactive LLM Agents. URL <a href="https://arxiv.org/abs/2502.01600" target="_blank">https://arxiv.org/abs/2502.01600</a>
+</p>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://leloykun.github.io/tags/machine-learning/">Machine Learning</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    &copy; 2025 Franz Louis Cesista
+    <span>
+    &middot;  Powered by 
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/pmichaillat/hugo-website/" rel="noopener" target="_blank">a modified version</a>
+         of 
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+</html>

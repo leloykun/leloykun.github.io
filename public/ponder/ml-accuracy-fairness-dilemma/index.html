@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>The Accuracy-Fairness Dilemma in Machine Learning | Franz Louis Cesista</title>
+<meta name="keywords" content="Machine Learning, Algorithmic Fairness">
+<meta name="description" content="Machine learning models merely amplify our biases - not eliminate them.">
+<meta name="author" content="Franz Louis Cesista">
+<link rel="canonical" href="https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.f1e4501a2ac2bf9fff5dc0c77f152affb825b371cb176acfcf9201015d59b4d4.css" integrity="sha256-8eRQGirCv5//XcDHfxUq/7gls3HLF2rPz5IBAV1ZtNQ=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://leloykun.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://leloykun.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://leloykun.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://leloykun.github.io/apple-touch-icon.png">
+
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><meta property="og:title" content="The Accuracy-Fairness Dilemma in Machine Learning" />
+<meta property="og:description" content="Machine learning models merely amplify our biases - not eliminate them." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/" />
+<meta property="og:image" content="https://leloykun.github.io/cover.jpg" /><meta property="article:section" content="ponder" />
+<meta property="article:published_time" content="2020-10-24T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-10-24T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://leloykun.github.io/cover.jpg" />
+<meta name="twitter:title" content="The Accuracy-Fairness Dilemma in Machine Learning"/>
+<meta name="twitter:description" content="Machine learning models merely amplify our biases - not eliminate them."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Ponder",
+      "item": "https://leloykun.github.io/ponder/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "The Accuracy-Fairness Dilemma in Machine Learning",
+      "item": "https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "The Accuracy-Fairness Dilemma in Machine Learning",
+  "name": "The Accuracy-Fairness Dilemma in Machine Learning",
+  "description": "Machine learning models merely amplify our biases - not eliminate them.",
+  "keywords": [
+    "Machine Learning", "Algorithmic Fairness"
+  ],
+  "articleBody": "This article is the static version of the demo with the same title. Click here for the full experience.\nNewbie data scientists tend to put the accuracy of their models on a pedestal. Couple this with their disdain of the social sciences and they end up automating discrimination instead of fighting it.\nI admit I was guilty of this too. “If we just replace flawed humans with cold, calculating machines,” I thought, “then we can eliminate discrimination in the world.” Seems reasonable, right? But, this view is naive. Machines can be flawed too and their creators don’t have to be evil for them to be so.\nFairness doesn’t follow from the accuracy of our models. In fact, the two are inherently conflicted. This is what I call the Accuracy-Fairness Dilemma:\nTo maximize accuracy, models have to learn everything they can from the data - including the human biases embedded in them. But to maximize fairness, they have to unlearn the human biases.\nWe want to teach machines as much as we can, but we may also end up teaching them the mistakes of the past.\nA Concrete Example Car salespeople have this uncanny ability to predict how much their customers are really able to pay for a car, despite the latter’s denials. It takes years of practice to do this well. But, wouldn’t it be nice if we could build a machine learning model that can do the same? With it, we could rake in a lot more profits with much less experience under our belt.\nHere we have historical data on car sales of a certain car retailer. The first five columns contain customer data while the last column contains how much customers paid for a car.\nA newbie data scientist would just blindly maximize the accuracy of their models without taking ethical and social considerations into account.\nTry it Yourself Please proceed to this link for the demo.\nHow to Measure Unfairness If you deployed this model to production, it would’ve misled your company into charging women customers $1354.976 more than the men for no logical reason at all. That would be unethical and discriminatory.\nI know anecdotes aren’t enough to prove theories. Thus, we need a more mathematical approach to show that our model really is discriminatory.\nThere are a lot of valid ways to measure unfairness, but I followed the steps below for this demo:\nPartition the dataset into two groups; Oversample the groups to make their sizes equal; and Use the following formula to calculate the unfairness of the model: unfairness = Mean(Predictions(Women) - Predictions(Men)) Notice that if unfairness = 0, then we can say our model treats women and men customers equally. In this case, unfairness = 1354.976. This means that the model recommends us to charge women $1354.976 more than men, on average.\nConclusion Machine learning models merely amplify our biases - not eliminate them.\nThe Accuracy-Fairness Dilemma also generalizes to all models, even our mental models of the world. We have a lot of incentives to make them as accurate as possible. But, we can’t just blindly optimize their accuracy because we may also end up teaching them the mistakes of the past.\nFAQs Why don’t we prevent the model from accessing sensitive data while training?\nUncheck ‘Include sensitive data’ in the sidebar to the left and redo the demo. I can guarantee the unfairness wouldn’t be eliminated.\nWhat if the data isn’t “clean” in the first place?\nYou shouldn’t fudge with or delete someone’s data just because they seem “odd” along with everybody else’s. We are unique in our own way and our data reflect that. It is what it is and you just have to deal with it.\n",
+  "wordCount" : "618",
+  "inLanguage": "en",
+  "image":"https://leloykun.github.io/cover.jpg","datePublished": "2020-10-24T00:00:00Z",
+  "dateModified": "2020-10-24T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "Franz Louis Cesista"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Franz Louis Cesista",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://leloykun.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css" integrity="sha384-RZU/ijkSsFbcmivfdRBQDtwuwVqK7GMOw6IMvKyeWL2K5UAlyp6WonmB8m7Jd0Hn" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.js" integrity="sha384-pK1WpvzWVBQiP0/GjnvRxV4mOb0oxFuyRxJlk6vVw146n3egcN5C925NCP7a7BY8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          
+          
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: "\\begin{equation}", right: "\\end{equation}", display: true},
+            {left: "\\begin{equation*}", right: "\\end{equation*}", display: true},
+            {left: "\\begin{align}", right: "\\end{align}", display: true},
+            {left: "\\begin{align*}", right: "\\end{align*}", display: true},
+            {left: "\\begin{alignat}", right: "\\end{alignat}", display: true},
+            {left: "\\begin{gather}", right: "\\end{gather}", display: true},
+            {left: "\\begin{CD}", right: "\\end{CD}", display: true},
+          ],
+          
+          throwOnError : false
+        });
+    });
+</script>
+ 
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://leloykun.github.io/" accesskey="h" title="Franz Louis Cesista">
+             
+                <img src="https://leloykun.github.io/favicon.ico" alt="" aria-label="logo"
+                    height="18"
+                    width="18">Franz Louis Cesista</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://leloykun.github.io/cv.pdf" title="CV">
+                    <span>CV</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/papers/" title="Papers">
+                    <span>Papers</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/personal-projects/" title="Personal Projects">
+                    <span>Personal Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/ponder/" title="Ponder (Blog)">
+                    <span>Ponder (Blog)</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+    <main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      The Accuracy-Fairness Dilemma in Machine Learning
+    </h1>
+    <div class="post-meta"><span title='2020-10-24 00:00:00 +0000 UTC'>October 24, 2020</span>&nbsp;&middot;&nbsp;Franz Louis Cesista&nbsp;&middot;&nbsp;<a href="https://ponder.substack.com/p/the-accuracy-fairness-dilemma" rel="noopener noreferrer" target="_blank">Crossposted on Ponder</a>
+
+</div>
+  </header> 
+  <div class="post-content"><p>This article is the static version of the demo with the same title. Click here for the full experience.</p>
+<p><img loading="lazy" src="cover.jpg" alt="cover"  />
+</p>
+<hr>
+<p>Newbie data scientists tend to put the accuracy of their models on a pedestal. Couple this with their disdain of the social sciences and they end up automating discrimination instead of fighting it.</p>
+<p>I admit I was guilty of this too. &ldquo;If we just replace flawed humans with cold, calculating machines,&rdquo; I thought, &ldquo;then we can eliminate discrimination in the world.&rdquo; Seems reasonable, right? But, this view is naive. Machines can be flawed too and their creators don&rsquo;t have to be evil for them to be so.</p>
+<p>Fairness doesn&rsquo;t follow from the accuracy of our models. In fact, the two are inherently conflicted. This is what I call the Accuracy-Fairness Dilemma:</p>
+<blockquote>
+<p>To maximize accuracy, models have to learn everything they can from the data - including the human biases embedded in them. But to maximize fairness, they have to unlearn the human biases.</p>
+</blockquote>
+<p>We want to teach machines as much as we can, but we may also end up teaching them the mistakes of the past.</p>
+<h2 id="a-concrete-example">A Concrete Example</h2>
+<p>Car salespeople have this uncanny ability to predict how much their customers are really able to pay for a car, despite the latter&rsquo;s denials. It takes years of practice to do this well. But, wouldn&rsquo;t it be nice if we could build a machine learning model that can do the same? With it, we could rake in a lot more profits with much less experience under our belt.</p>
+<p>Here we have historical data on car sales of a certain car retailer. The first five columns contain customer data while the last column contains how much customers paid for a car.</p>
+<p><img loading="lazy" src="1.png" alt="Sample data"  />
+</p>
+<p>A newbie data scientist would just blindly maximize the accuracy of their models without taking ethical and social considerations into account.</p>
+<h2 id="try-it-yourself">Try it Yourself</h2>
+<p>Please proceed to this <a href="https://share.streamlit.io/leloykun/accuracy-fairness-dilemma/main" target="_blank">link</a>
+ for the demo.</p>
+<p><img loading="lazy" src="2.png" alt="Demo"  />
+</p>
+<h2 id="how-to-measure-unfairness">How to Measure Unfairness</h2>
+<p>If you deployed this model to production, it would&rsquo;ve misled your company into charging women customers <code>$1354.976</code> more than the men for no logical reason at all. That would be unethical and discriminatory.</p>
+<p>I know anecdotes aren’t enough to prove theories. Thus, we need a more mathematical approach to show that our model really is discriminatory.</p>
+<p>There are a lot of valid ways to measure unfairness, but I followed the steps below for this demo:</p>
+<ol>
+<li>Partition the dataset into two groups;</li>
+<li>Oversample the groups to make their sizes equal; and</li>
+<li>Use the following formula to calculate the unfairness of the model: <code>unfairness = Mean(Predictions(Women) - Predictions(Men))</code></li>
+</ol>
+<p>Notice that if <code>unfairness = 0</code>, then we can say our model treats women and men customers equally. In this case, <code>unfairness = 1354.976</code>. This means that the model recommends us to charge women <code>$1354.976</code> more than men, on average.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Machine learning models merely amplify our biases - not eliminate them.</p>
+<p>The Accuracy-Fairness Dilemma also generalizes to all models, even our mental models of the world. We have a lot of incentives to make them as accurate as possible. But, we can’t just blindly optimize their accuracy because we may also end up teaching them the mistakes of the past.</p>
+<hr>
+<center><iframe src="https://ponder.substack.com/embed" width="480" height="320" style="border:1px solid #EEE; background:white;" frameborder="0" scrolling="no"></iframe></center>
+<hr>
+<h2 id="faqs">FAQs</h2>
+<blockquote>
+<p>Why don’t we prevent the model from accessing sensitive data while training?</p>
+</blockquote>
+<p>Uncheck &lsquo;Include sensitive data&rsquo; in the sidebar to the left and redo the demo. I can guarantee the unfairness wouldn&rsquo;t be eliminated.</p>
+<blockquote>
+<p>What if the data isn’t “clean” in the first place?</p>
+</blockquote>
+<p>You shouldn’t fudge with or delete someone&rsquo;s data just because they seem &ldquo;odd&rdquo; along with everybody else&rsquo;s. We are unique in our own way and our data reflect that. It is what it is and you just have to deal with it.</p>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://leloykun.github.io/tags/machine-learning/">Machine Learning</a></li>
+      <li><a href="https://leloykun.github.io/tags/algorithmic-fairness/">Algorithmic Fairness</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    &copy; 2025 Franz Louis Cesista
+    <span>
+    &middot;  Powered by 
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/pmichaillat/hugo-website/" rel="noopener" target="_blank">a modified version</a>
+         of 
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+</html>

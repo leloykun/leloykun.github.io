@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Personal Projects on Franz Louis Cesista</title>
+    <link>https://leloykun.github.io/personal-projects/</link>
+    <description>Recent content in Personal Projects on Franz Louis Cesista</description>
+    <image>
+      <url>https://leloykun.github.io/cover.png</url>
+      <link>https://leloykun.github.io/cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 14 Jul 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/personal-projects/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Multimodal Structured Generation</title>
+      <link>https://leloykun.github.io/personal-projects/mmsg/</link>
+      <pubDate>Sun, 14 Jul 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/mmsg/</guid>
+      <description>Generate interleaved text and image content in a structured format you can directly pass to downstream APIs.</description>
+    </item>
+    
+    <item>
+      <title>Flash Hyperbolic Attention Minimal [WIP]</title>
+      <link>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</guid>
+      <description>A minimal implementation of Flash Attention 1 &amp;amp; 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the various variations of Hyperbolic Attention in CUDA.</description>
+    </item>
+    
+    <item>
+      <title>Llama.cpp</title>
+      <link>https://leloykun.github.io/personal-projects/llama.cpp/</link>
+      <pubDate>Tue, 25 Jul 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/llama.cpp/</guid>
+      <description>A C&#43;&#43; implementation of Meta&amp;#39;s Llama2 generative large-language model. I also optimized the original C implementation by Karpathy by adding parallelization on the multi-head attention layer.</description>
+    </item>
+    
+    <item>
+      <title>Expedock Assistant: ChatGPT Applied to Logistics Data</title>
+      <link>https://leloykun.github.io/personal-projects/expedock-assistant/</link>
+      <pubDate>Tue, 31 Jan 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/expedock-assistant/</guid>
+      <description>Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry.</description>
+    </item>
+    
+    <item>
+      <title>Expedock AutoML</title>
+      <link>https://leloykun.github.io/personal-projects/expedock-automl/</link>
+      <pubDate>Mon, 25 Jul 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/expedock-automl/</guid>
+      <description>Expedock&amp;#39;s AutoML Library -- fit a model, run batch inference, and get explanations in one line of code each.</description>
+    </item>
+    
+    <item>
+      <title>Ateneo&#39;s Competitive Programming Varsity&#39;s Code Library</title>
+      <link>https://leloykun.github.io/personal-projects/progvar-library/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/progvar-library/</guid>
+      <description>A collection of algorithms, data structures and other useful information for competitive programming. Used and maintained by members of the Ateneo de Manila University Programming Varsity.</description>
+    </item>
+    
+    <item>
+      <title>Codeball 2018</title>
+      <link>https://leloykun.github.io/personal-projects/codeball/</link>
+      <pubDate>Thu, 24 Jan 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/codeball/</guid>
+      <description>My entry for the World Finals of the Russian AI Cup 2018 - Codeball. A 3D physics-aware orchestrator of a pair of bots in a Rocket League-esque soccer game.</description>
+    </item>
+    
+    <item>
+      <title>Codewars 2017</title>
+      <link>https://leloykun.github.io/personal-projects/codewars/</link>
+      <pubDate>Mon, 12 Feb 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/codewars/</guid>
+      <description>My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.</description>
+    </item>
+    
+    <item>
+      <title>Booking Demand Prediction for Grab SEA</title>
+      <link>https://leloykun.github.io/personal-projects/grab-booking-demand-prediction/</link>
+      <pubDate>Sun, 16 Jun 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://leloykun.github.io/personal-projects/grab-booking-demand-prediction/</guid>
+      <description>Booking demand prediction for Grab&amp;#39;s Southeast Asia operations. The project involves spatio-temporal forecasting, anomaly detection, and econometric modeling.</description>
+    </item>
+    
+  </channel>
+</rss>
