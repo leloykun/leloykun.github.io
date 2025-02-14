@@ -20,12 +20,6 @@ menu:
         - name: Personal Projects
           url: personal-projects/
           weight: 3
-        # - name: Courses
-        #   url: courses/
-        #   weight: 2
-        # - name: Data
-        #   url: data/
-        #   weight: 3 
         - name: Ponder (Blog)
           url: ponder/
           weight: 4
@@ -74,16 +68,8 @@ params:
               url: papers/
             - name: Personal Projects
               url: personal-projects/
-            # - name: Courses
-            #   url: courses/
-            # - name: Data
-            #   url: data/
             - name: Ponder (Blog)
               url: ponder/
-            # - name: Tags
-            #   url: tags/
-            # - name: Archive
-            #   url: archive/
     socialIcons:
         - name: Email
           url: mailto:franzlouiscesista@gmail.com
