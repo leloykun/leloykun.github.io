@@ -13,8 +13,6 @@ editPost:
     Text: "Crossposted on Ponder"
 ---
 
-![cover](cover.jpg)
-
 ## Traditional vs. BioNTech’s mRNA vaccines
 
 Despite what you might think, the human body is excellent at preventing diseases. When a virus enters our bloodstream, our immune system produces antibodies to eliminate it. The problem is, for viruses our immune system hasn't dealt with before, this process is often slow, and we could die before it takes full effect.

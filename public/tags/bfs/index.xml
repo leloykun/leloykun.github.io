@@ -5,20 +5,20 @@
     <link>https://leloykun.github.io/tags/bfs/</link>
     <description>Recent content in BFS on Franz Louis Cesista</description>
     <image>
+      <title>Franz Louis Cesista</title>
       <url>https://leloykun.github.io/cover.png</url>
       <link>https://leloykun.github.io/cover.png</link>
     </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 12 Feb 2018 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/bfs/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 12 Feb 2018 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://leloykun.github.io/tags/bfs/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Codewars 2017</title>
       <link>https://leloykun.github.io/personal-projects/codewars/</link>
       <pubDate>Mon, 12 Feb 2018 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/codewars/</guid>
       <description>My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.</description>
     </item>
-    
   </channel>
 </rss>

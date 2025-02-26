@@ -5,92 +5,83 @@
     <link>https://leloykun.github.io/ponder/</link>
     <description>Recent content in Ponder on Franz Louis Cesista</description>
     <image>
+      <title>Franz Louis Cesista</title>
       <url>https://leloykun.github.io/cover.png</url>
       <link>https://leloykun.github.io/cover.png</link>
     </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 11 Feb 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/ponder/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 21 Feb 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://leloykun.github.io/ponder/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients</title>
+      <link>https://leloykun.github.io/ponder/muon-opt-coeffs/</link>
+      <pubDate>Fri, 21 Feb 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/muon-opt-coeffs/</guid>
+      <description>Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients.</description>
+    </item>
     <item>
       <title>GRPO&#39;s Main Flaw</title>
       <link>https://leloykun.github.io/ponder/grpo-flaw/</link>
       <pubDate>Tue, 11 Feb 2025 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/grpo-flaw/</guid>
       <description>GRPO may not be the best choice for training reasoning models. Here&amp;#39;s why.</description>
     </item>
-    
     <item>
       <title>(Linear) Attention as Test-Time Regression</title>
       <link>https://leloykun.github.io/ponder/test-time-regression/</link>
       <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/test-time-regression/</guid>
       <description>A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference.</description>
     </item>
-    
     <item>
       <title>Deep Learning Optimizers as Steepest Descent in Normed Spaces</title>
       <link>https://leloykun.github.io/ponder/steepest-descent-opt/</link>
       <pubDate>Sun, 20 Oct 2024 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/steepest-descent-opt/</guid>
       <description>Instead of asking, &amp;#39;Which optimizer should I use?&amp;#39; ask, &amp;#39;In which space do my features live in?&amp;#39;</description>
     </item>
-    
     <item>
       <title>ChatGPT May Have Developed Seasonal Depression</title>
       <link>https://leloykun.github.io/ponder/chatgpt-seasonal-depression/</link>
       <pubDate>Sat, 16 Dec 2023 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/chatgpt-seasonal-depression/</guid>
       <description>Could ChatGPT&amp;#39;s shorter responses be an indication of something more bizarre going on?</description>
     </item>
-    
     <item>
       <title>The Human Mind May Be Universal</title>
       <link>https://leloykun.github.io/ponder/human-mind-universality/</link>
       <pubDate>Sun, 10 Dec 2023 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/human-mind-universality/</guid>
       <description>Years of experience in building artificial minds led me to believe that these AIs may end up seeming more &amp;#39;human&amp;#39; than we currently imagine them to be.</description>
     </item>
-    
     <item>
       <title>Four Rules for Rulers</title>
       <link>https://leloykun.github.io/ponder/4rules4rulers/</link>
       <pubDate>Sun, 19 Jun 2022 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/4rules4rulers/</guid>
       <description>On how to gain and maintain power.</description>
     </item>
-    
     <item>
       <title>Vaccine Search as a Computational Problem</title>
       <link>https://leloykun.github.io/ponder/vaccine-search-as-comp-prob/</link>
       <pubDate>Sat, 06 Feb 2021 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/vaccine-search-as-comp-prob/</guid>
       <description>A thought dump on mRNA vaccines and the future of computational biology</description>
     </item>
-    
     <item>
       <title>The Accuracy-Fairness Dilemma in Machine Learning</title>
       <link>https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/</link>
       <pubDate>Sat, 24 Oct 2020 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/</guid>
       <description>Machine learning models merely amplify our biases - not eliminate them.</description>
     </item>
-    
     <item>
       <title>How to Master Machine Learning: 3 Tips to Get Started</title>
       <link>https://leloykun.github.io/ponder/how-to-master-machine-learning/</link>
       <pubDate>Sat, 12 Sep 2020 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/how-to-master-machine-learning/</guid>
       <description>Whether you&amp;#39;re only here for the hype or genuinely interested in the field, you’re in for a wild ride.</description>
     </item>
-    
   </channel>
 </rss>

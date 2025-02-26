@@ -13,8 +13,6 @@ editPost:
     Text: "Crossposted on Ponder"
 ---
 
-![Cover](cover.png)
-
 Modern-day AIs are just applications of machine learning. We use them to make financial decisions, drive cars, and be our assistants like Siri—you know, all the fancy stuff. But I bet you interacted with at least 3 of them just a minute ago without realizing it. They also curate your social media feeds, filter out spam from your inbox, and manage your device's battery consumption. That's how ubiquitous they are.
 
 Don't worry if you're only here for the hype. I expect machine learning to be so much more prevalent, the next generation of high schoolers will study it in school in 5 to 10 years tops. If you don't get into this field now, your boss will eventually force you to. Besides, it isn't that hard. If you know how to build lego towers, you're smart enough to build neural networks (no kidding!).

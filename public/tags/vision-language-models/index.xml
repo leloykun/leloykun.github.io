@@ -5,20 +5,20 @@
     <link>https://leloykun.github.io/tags/vision-language-models/</link>
     <description>Recent content in Vision-Language Models on Franz Louis Cesista</description>
     <image>
+      <title>Franz Louis Cesista</title>
       <url>https://leloykun.github.io/cover.png</url>
       <link>https://leloykun.github.io/cover.png</link>
     </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 14 Jul 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/vision-language-models/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 14 Jul 2024 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://leloykun.github.io/tags/vision-language-models/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Multimodal Structured Generation</title>
       <link>https://leloykun.github.io/personal-projects/mmsg/</link>
       <pubDate>Sun, 14 Jul 2024 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/mmsg/</guid>
       <description>Generate interleaved text and image content in a structured format you can directly pass to downstream APIs.</description>
     </item>
-    
   </channel>
 </rss>

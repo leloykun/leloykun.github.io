@@ -5,20 +5,20 @@
     <link>https://leloykun.github.io/tags/brain/</link>
     <description>Recent content in Brain on Franz Louis Cesista</description>
     <image>
+      <title>Franz Louis Cesista</title>
       <url>https://leloykun.github.io/cover.png</url>
       <link>https://leloykun.github.io/cover.png</link>
     </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 10 Dec 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/brain/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 10 Dec 2023 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://leloykun.github.io/tags/brain/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>The Human Mind May Be Universal</title>
       <link>https://leloykun.github.io/ponder/human-mind-universality/</link>
       <pubDate>Sun, 10 Dec 2023 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/human-mind-universality/</guid>
       <description>Years of experience in building artificial minds led me to believe that these AIs may end up seeming more &amp;#39;human&amp;#39; than we currently imagine them to be.</description>
     </item>
-    
   </channel>
 </rss>

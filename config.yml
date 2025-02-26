@@ -20,7 +20,7 @@ menu:
         - name: Personal Projects
           url: personal-projects/
           weight: 3
-        - name: Ponder (Blog)
+        - name: Ponder (Posts)
           url: ponder/
           weight: 4
 
@@ -32,17 +32,17 @@ params:
     defaultTheme: light
     hideFooter: false
     disableThemeToggle: true
-    ShowShareButtons: false
-    ShowReadingTime: false
-    disableSpecial1stPost: true
+    ShowShareButtons: true
+    ShowReadingTime: true
+    disableSpecial1stPost: false
     disableAnchoredHeadings: true
-    ShowPostNavLinks: false
+    ShowPostNavLinks: true
     ShowBreadCrumbs: false
     ShowCodeCopyButtons: true
     ShowAllPagesInArchive: false
     MainSections: ["books","courses","papers","data"]
-    ShowToc: false
-    disableScrollToTop: true
+    ShowToc: true
+    disableScrollToTop: false
     TocOpen: true
     ShowWordCount: false
     UseHugoToc: true
@@ -68,7 +68,7 @@ params:
               url: papers/
             - name: Personal Projects
               url: personal-projects/
-            - name: Ponder (Blog)
+            - name: Ponder (Posts)
               url: ponder/
     socialIcons:
         - name: Email
@@ -86,12 +86,14 @@ params:
     assets:
         disableScrollBarStyle: true
     cover:
+        hidden: false
         hiddenInList: false
-        hiddenInSingle: true
+        hiddenInSingle: false
     label:
         text: "Franz Louis Cesista"
         icon: favicon.ico
         iconHeight: 18
+    env: production
 
 markup:
     goldmark:

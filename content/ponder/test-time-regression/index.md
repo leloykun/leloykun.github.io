@@ -13,8 +13,6 @@ editPost:
     Text: "Crossposted from X (formerly Twitter)"
 ---
 
-![cover](cover.jpg)
-
 > Note: This was originally posted as a Twitter thread. I've reformatted it here for better readability.
 
 By now, you've probably already heard of linear attention, in-context learning, test-time scaling, etc...
@@ -25,13 +23,13 @@ Here, I'll discuss:
 2. How to derive different linear attention variants from scratch; and
 3. How to parallelize training linear attention models
 
-## Learning How to Learn In-Context
+## Learning how to learn in-context
 
 First, what do we want from an ideal model?
 
-1. **In-Context Learning**: We want it to learn from information it has ingested so far and use that information to make more accurate predictions moving forward.
+1. **In-context learning**: We want it to learn from information it has ingested so far and use that information to make more accurate predictions moving forward.
 
-2. **Computational Expressivity**: We want it to have a complex-enough internal machinery so it can actually solve hard problems we encounter in real-life.
+2. **Computational expressivity**: We want it to have a complex-enough internal machinery so it can actually solve hard problems we encounter in real-life.
 
 3. **Efficiency**.
 
@@ -82,15 +80,13 @@ Interestingly, this results in a two-layer optimization process:
 
 2. While the "inner model" treats the outer model as a black box and simply optimizes its state to better predict the values from the keys.
 
-<div align="center">
-    <img src="inner-opt.png" alt="Inner Optimization Process" />
-</div>
+![](inner-opt.png#center)
 
 And with more modern optimizers, such as Shampoo/SOAP/PSGD, you can actually think of this as a three-layer optimization process because:
 
 1. The optimizer is also trying to learn the geometry of the loss landscape by adjusting the gradient preconditioners.
 
-## Deriving Linear Attention Mechanisms from First Principles
+## Deriving linear attention Mechanisms from first principles
 
 If the "inner model" is optimizing something, which loss function is it trying to minimize?
 
@@ -100,9 +96,7 @@ $$model(key) \Leftrightarrow value$$
 
 Question is, how do we define this "distance"?
 
-<div align="center">
-    <img src="linear-attn-loss-functions.png" alt="Linear Attention Loss Functions" />
-</div>
+![](linear-attn-loss-functions.png#center)
 
 In practice, we've pretty much settled on two of the most basic distance metrics:
 
@@ -111,9 +105,7 @@ In practice, we've pretty much settled on two of the most basic distance metrics
 
 ---
 
-<div align="center">
-    <img src="linear-attention-derivations.png" alt="Deriving Linear Attention Mechanisms from the Loss Functions they Optimize" />
-</div>
+![Deriving Linear Attention Mechanisms from the Loss Functions they Optimize](linear-attention-derivations.png#center)
 
 From here, we can simply add the tricks we've learned so far from designing optimizers one-by-one to arrive at the different variants of linear attention.
 
@@ -126,7 +118,7 @@ From here, we can simply add the tricks we've learned so far from designing opti
     - If we use non-linear key -> value transforms, we'll get TTT.
     - But if we add a momentum term instead, we'll get the newly released Titans.
 
----
+## How to design flash kernels for linear attention mechanisms
 
 Let's go back to my claim earlier: that linear attention mechanisms are more efficient. This is clearly true at inference time... but how about training?
 

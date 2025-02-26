@@ -5,20 +5,20 @@
     <link>https://leloykun.github.io/tags/ml-interpretability/</link>
     <description>Recent content in ML Interpretability on Franz Louis Cesista</description>
     <image>
+      <title>Franz Louis Cesista</title>
       <url>https://leloykun.github.io/cover.png</url>
       <link>https://leloykun.github.io/cover.png</link>
     </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 25 Jul 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/ml-interpretability/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 25 Jul 2022 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://leloykun.github.io/tags/ml-interpretability/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Expedock AutoML</title>
       <link>https://leloykun.github.io/personal-projects/expedock-automl/</link>
       <pubDate>Mon, 25 Jul 2022 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/expedock-automl/</guid>
       <description>Expedock&amp;#39;s AutoML Library -- fit a model, run batch inference, and get explanations in one line of code each.</description>
     </item>
-    
   </channel>
 </rss>

@@ -13,10 +13,6 @@ editPost:
     Text: "Crossposted from X (formerly Twitter)"
 ---
 
-<div align="center">
-    <img src="deep-learning-optimizers-intro.png"/>
-</div>
-
 > Note: This was originally posted as a Twitter thread. I've reformatted it here for better readability.
 
 1. Why do steepest descent in non-Euclidean spaces?

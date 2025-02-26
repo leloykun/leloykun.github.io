@@ -5,19 +5,19 @@
     <link>https://leloykun.github.io/tags/competitive-programming/</link>
     <description>Recent content in Competitive Programming on Franz Louis Cesista</description>
     <image>
+      <title>Franz Louis Cesista</title>
       <url>https://leloykun.github.io/cover.png</url>
       <link>https://leloykun.github.io/cover.png</link>
     </image>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en</language><atom:link href="https://leloykun.github.io/tags/competitive-programming/index.xml" rel="self" type="application/rss+xml" />
+    <generator>Hugo -- 0.125.4</generator>
+    <language>en</language>
+    <atom:link href="https://leloykun.github.io/tags/competitive-programming/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Ateneo&#39;s Competitive Programming Varsity&#39;s Code Library</title>
       <link>https://leloykun.github.io/personal-projects/progvar-library/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/progvar-library/</guid>
       <description>A collection of algorithms, data structures and other useful information for competitive programming. Used and maintained by members of the Ateneo de Manila University Programming Varsity.</description>
     </item>
-    
   </channel>
 </rss>

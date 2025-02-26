@@ -5,20 +5,20 @@
     <link>https://leloykun.github.io/tags/test-time-regression/</link>
     <description>Recent content in Test-Time Regression on Franz Louis Cesista</description>
     <image>
+      <title>Franz Louis Cesista</title>
       <url>https://leloykun.github.io/cover.png</url>
       <link>https://leloykun.github.io/cover.png</link>
     </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 27 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/test-time-regression/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 27 Jan 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://leloykun.github.io/tags/test-time-regression/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>(Linear) Attention as Test-Time Regression</title>
       <link>https://leloykun.github.io/ponder/test-time-regression/</link>
       <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/test-time-regression/</guid>
       <description>A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference.</description>
     </item>
-    
   </channel>
 </rss>

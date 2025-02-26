@@ -13,9 +13,7 @@ editPost:
     Text: "Crossposted from X (formerly Twitter)"
 ---
 
-<div align="center">
-    <img src="cover.png"/>
-</div>
+## GRPO might not be the best choice for multi-task RL training
 
 I've been testing different critic-free RL algos on multi-task environments, and one thing I've noticed is that GRPO$^{[1]}$ seems to slightly underperform normalization-free variants. This tracks with the results in the LOOP$^{[2]}$ paper.
 
@@ -26,9 +24,9 @@ E.g.:
 - If your agent gets a very low (negative) reward, then it must be getting things consistently wrong--and this must be punished severely. And
 - If it gets a very high reward, then it must be getting things consistently right--and this must be encouraged a lot more.
 
----
+## More conrete example
 
-Here's a concrete example: Suppose we have 5+ sources of rewards per rollout and we sample 7 rollouts per iteration. And suppose,
+Suppose we have 5+ sources of rewards per rollout and we sample 7 rollouts per iteration. And suppose,
 
 At iteration 1, we get:
 
@@ -42,9 +40,7 @@ And at iteration 2, we get:
 
 The reward distribution in the second iteration is clearly more informative than the first because the agents are either getting things consistently right or consistently wrong. Yet, we get the same advantages with GRPO! This is problematic.
 
----
-
-Why haven't Deepseek and the rest of the open-source community catch this yet?
+## Why haven't Deepseek and the rest of the open-source community catch this yet?
 
 Because it doesn't matter for the way we currently train our reasoning LLMs anyway. We only have one source of rewards: the verifier at the end of the generation step.
 

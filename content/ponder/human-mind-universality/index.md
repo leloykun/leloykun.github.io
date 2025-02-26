@@ -13,8 +13,6 @@ editPost:
     Text: "Crossposted on Ponder"
 ---
 
-![cover](cover.jpg)
-
 > What we consider today as characteristically "human" thought and consciousness may just be a valley in a large attractor basin of all possible minds.
 
 If there's an alien civilization out there, they may not think that differently from us. Likewise, "human-level" and superhuman AIs in the future may end up seeming more "human" than we currently imagine them to be. Instead of being Lovecraftian horrors as we see them on movies, they’ll probably just have the same philosophical questions, the same moral dilemmas, and perhaps even the same worries as us.

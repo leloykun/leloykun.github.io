@@ -2,296 +2,70 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/location/</loc>
-    <lastmod>2024-05-08T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/</loc>
-    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/officehours/</loc>
-    <lastmod>2024-05-08T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/academia/</loc>
-    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/experimental-psychology/</loc>
-    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/inner-hedgehog/</loc>
-    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/invasive-thoughts/</loc>
-    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/papers/</loc>
-    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/social-psychology/</loc>
-    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/</loc>
-    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/papers/paper3/</loc>
-    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/data/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/dataset/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/french/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/irregular-verbs/</loc>
-    <lastmod>2024-09-08T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/italian/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/data/</loc>
-    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/personal-projects/mmsg/</loc>
     <lastmod>2024-07-14T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/data/data1/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/data/data1/</loc>
-    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</loc>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/philology/</loc>
-    <lastmod>2024-09-08T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/tags/keyword-10/</loc>
-    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/personal-projects/llama.cpp/</loc>
     <lastmod>2023-07-25T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/portuguese/</loc>
-    <lastmod>2024-09-08T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/tags/keyword-5/</loc>
-    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/personal-projects/expedock-assistant/</loc>
     <lastmod>2023-01-31T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/python/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/tags/keyword-6/</loc>
-    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/personal-projects/expedock-automl/</loc>
     <lastmod>2022-07-25T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/romance-languages/</loc>
-    <lastmod>2024-09-08T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/tags/keyword-7/</loc>
-    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/personal-projects/progvar-library/</loc>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/simulations/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/</loc>
-    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/personal-projects/codeball/</loc>
     <lastmod>2019-01-24T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/spanish/</loc>
-    <lastmod>2024-09-08T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/tags/</loc>
-    <lastmod>2023-09-07T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/personal-projects/codewars/</loc>
     <lastmod>2018-02-12T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/history-of-oil/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/courses/course1/</loc>
-    <lastmod>2022-03-10T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/personal-projects/grab-booking-demand-prediction/</loc>
     <lastmod>2019-06-16T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/mediterranean-world/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/oleic-science/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/courses/</loc>
-    <lastmod>2022-03-10T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/</loc>
-    <lastmod>2025-02-11T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
+    <lastmod>2025-02-21T00:00:00+00:00</lastmod>
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/papers/paper1/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/tags/keyword-1/</loc>
-    <lastmod>2022-03-10T00:00:00+00:00</lastmod>
-=======
+    <loc>https://leloykun.github.io/tags/machine-learning/</loc>
+    <lastmod>2025-02-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/muon/</loc>
+    <lastmod>2025-02-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/ponder/</loc>
+    <lastmod>2025-02-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/ponder/muon-opt-coeffs/</loc>
+    <lastmod>2025-02-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/</loc>
+    <lastmod>2025-02-21T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://leloykun.github.io/ponder/grpo-flaw/</loc>
     <lastmod>2025-02-11T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/canine-pulmonary-efficiency/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/tags/keyword-2/</loc>
-    <lastmod>2022-03-10T00:00:00+00:00</lastmod>
-=======
-    <loc>https://leloykun.github.io/tags/machine-learning/</loc>
-    <lastmod>2025-02-11T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
-  </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/canine-science/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/tags/keyword-3/</loc>
-    <lastmod>2022-03-10T00:00:00+00:00</lastmod>
-=======
-    <loc>https://leloykun.github.io/ponder/</loc>
-    <lastmod>2025-02-11T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
-  </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/experimental-zoology/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/courses/course2/</loc>
-    <lastmod>2021-06-16T00:00:00+00:00</lastmod>
-=======
-    <loc>https://leloykun.github.io/tags/</loc>
-    <lastmod>2025-02-11T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
-  </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/sausage-dogs/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/tags/keyword-4/</loc>
-    <lastmod>2021-06-16T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/ponder/test-time-regression/</loc>
     <lastmod>2025-01-27T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/papers/paper2/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/papers/paper2/</loc>
-    <lastmod>2015-12-01T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/tags/linear-attention/</loc>
     <lastmod>2025-01-27T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/zoology/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/papers/</loc>
-    <lastmod>2015-12-01T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/tags/test-time-regression/</loc>
     <lastmod>2025-01-27T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/courses/</loc>
-    <lastmod>2024-09-08T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/papers/paper1/</loc>
-    <lastmod>2012-06-01T00:00:00+00:00</lastmod>
-=======
     <loc>https://leloykun.github.io/ponder/steepest-descent-opt/</loc>
     <lastmod>2024-10-20T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/courses/course1/</loc>
-    <lastmod>2024-09-08T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/archive/</loc>
-=======
     <loc>https://leloykun.github.io/personal-projects/</loc>
     <lastmod>2024-07-14T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/books/</loc>
-    <lastmod>2024-05-08T00:00:00+00:00</lastmod>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/location/</loc>
-=======
     <loc>https://leloykun.github.io/tags/structured-generation/</loc>
     <lastmod>2024-07-14T00:00:00+00:00</lastmod>
->>>>>>> c2a5aa9... squash all commits
   </url><url>
-<<<<<<< HEAD
-    <loc>https://pascalmichaillat.org/hugo-website/tags/portugese/</loc>
-    <lastmod>2024-05-08T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/books/book1/</loc>
-    <lastmod>2024-05-08T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/celtic-languages/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/irish/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/language-modernization/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/tags/profanity/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/courses/course2/</loc>
-    <lastmod>2024-07-12T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://pascalmichaillat.org/hugo-website/archive/</loc>
-||||||| parent of c2a5aa9... squash all commits
-    <loc>https://pascalmichaillat.org/hugo-website/officehours/</loc>
-=======
     <loc>https://leloykun.github.io/tags/vision-language-models/</loc>
     <lastmod>2024-07-14T00:00:00+00:00</lastmod>
   </url><url>
@@ -308,7 +82,7 @@
     <lastmod>2024-06-17T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/papers/</loc>
-    <lastmod>2024-06-17T00:00:00+00:00</lastmod>
+    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/retrieval-augmented-generation/</loc>
     <lastmod>2024-04-15T00:00:00+00:00</lastmod>
@@ -354,6 +128,24 @@
   </url><url>
     <loc>https://leloykun.github.io/ponder/4rules4rulers/</loc>
     <lastmod>2022-06-19T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/academia/</loc>
+    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/experimental-psychology/</loc>
+    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/inner-hedgehog/</loc>
+    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/invasive-thoughts/</loc>
+    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/social-psychology/</loc>
+    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/papers/paper3/</loc>
+    <lastmod>2024-10-18T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/computational-biology/</loc>
     <lastmod>2021-02-06T00:00:00+00:00</lastmod>
@@ -412,6 +204,21 @@
     <loc>https://leloykun.github.io/tags/potential-flows/</loc>
     <lastmod>2018-02-12T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://leloykun.github.io/books/</loc>
+    <lastmod>2024-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/irregular-verbs/</loc>
+    <lastmod>2024-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/philology/</loc>
+    <lastmod>2024-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/portugese/</loc>
+    <lastmod>2024-05-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/books/book1/</loc>
+    <lastmod>2024-05-08T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://leloykun.github.io/archive/</loc>
   </url><url>
     <loc>https://leloykun.github.io/tags/competitive-programming/</loc>
@@ -425,6 +232,5 @@
     <loc>https://leloykun.github.io/tags/non-euclidean-geometry/</loc>
   </url><url>
     <loc>https://leloykun.github.io/tags/pytorch/</loc>
->>>>>>> c2a5aa9... squash all commits
   </url>
 </urlset>

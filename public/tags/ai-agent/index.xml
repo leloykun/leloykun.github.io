@@ -5,20 +5,20 @@
     <link>https://leloykun.github.io/tags/ai-agent/</link>
     <description>Recent content in AI Agent on Franz Louis Cesista</description>
     <image>
+      <title>Franz Louis Cesista</title>
       <url>https://leloykun.github.io/cover.png</url>
       <link>https://leloykun.github.io/cover.png</link>
     </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 31 Jan 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/tags/ai-agent/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 31 Jan 2023 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://leloykun.github.io/tags/ai-agent/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Expedock Assistant: ChatGPT Applied to Logistics Data</title>
       <link>https://leloykun.github.io/personal-projects/expedock-assistant/</link>
       <pubDate>Tue, 31 Jan 2023 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/expedock-assistant/</guid>
       <description>Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry.</description>
     </item>
-    
   </channel>
 </rss>

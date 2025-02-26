@@ -13,8 +13,6 @@ editPost:
     Text: "Crossposted on Ponder"
 ---
 
-![Cover](cover.jpg)
-
 If you've been chatting with ChatGPT for the past few months, like me, you may have noticed that it got lazier and gloomier.
 
 A few months ago, if you asked it to solve a coding puzzle, it'd give you the code in python—with all the details and comments you need to understand it. Now, it just says something like, "here's the code structure, just fill up the lines with '...' by yourself".

@@ -15,8 +15,6 @@ editPost:
 
 This article is the static version of the demo with the same title. Click here for the full experience.
 
-![cover](cover.jpg)
-
 ---
 
 Newbie data scientists tend to put the accuracy of their models on a pedestal. Couple this with their disdain of the social sciences and they end up automating discrimination instead of fighting it.
@@ -35,7 +33,7 @@ Car salespeople have this uncanny ability to predict how much their customers ar
 
 Here we have historical data on car sales of a certain car retailer. The first five columns contain customer data while the last column contains how much customers paid for a car.
 
-![Sample data](1.png)
+![Sample data](1.png#center)
 
 A newbie data scientist would just blindly maximize the accuracy of their models without taking ethical and social considerations into account.
 
@@ -43,7 +41,7 @@ A newbie data scientist would just blindly maximize the accuracy of their models
 
 Please proceed to this [link](https://share.streamlit.io/leloykun/accuracy-fairness-dilemma/main) for the demo.
 
-![Demo](2.png)
+![Demo](2.png#center)
 
 ## How to Measure Unfairness
 

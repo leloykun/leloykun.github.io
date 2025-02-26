@@ -1,341 +1,179 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-<<<<<<< HEAD
-    <title>Moritz-Maria von Igelfeld</title>
-    <link>https://pascalmichaillat.org/hugo-website/</link>
-    <description>Recent content on Moritz-Maria von Igelfeld</description>
-    <generator>Hugo -- 0.139.0</generator>
-||||||| parent of c2a5aa9... squash all commits
-    <title>Prof. Name</title>
-    <link>https://pascalmichaillat.org/hugo-website/</link>
-    <description>Recent content on Prof. Name</description>
-    <generator>Hugo -- gohugo.io</generator>
-=======
     <title>Franz Louis Cesista</title>
     <link>https://leloykun.github.io/</link>
     <description>Recent content on Franz Louis Cesista</description>
     <image>
+      <title>Franz Louis Cesista</title>
       <url>https://leloykun.github.io/cover.png</url>
       <link>https://leloykun.github.io/cover.png</link>
     </image>
-    <generator>Hugo -- gohugo.io</generator>
->>>>>>> c2a5aa9... squash all commits
+    <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-<<<<<<< HEAD
-    <lastBuildDate>Fri, 18 Oct 2024 00:00:00 +0000</lastBuildDate>
-    <atom:link href="https://pascalmichaillat.org/hugo-website/index.xml" rel="self" type="application/rss+xml" />
-||||||| parent of c2a5aa9... squash all commits
-    <lastBuildDate>Thu, 07 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://pascalmichaillat.org/hugo-website/index.xml" rel="self" type="application/rss+xml" />
-=======
-    <lastBuildDate>Tue, 11 Feb 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://leloykun.github.io/index.xml" rel="self" type="application/rss+xml" />
->>>>>>> c2a5aa9... squash all commits
+    <lastBuildDate>Fri, 21 Feb 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://leloykun.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
-<<<<<<< HEAD
-      <title>Location</title>
-      <link>https://pascalmichaillat.org/hugo-website/location/</link>
-      <pubDate>Wed, 08 May 2024 00:00:00 +0000</pubDate>
-      <guid>https://pascalmichaillat.org/hugo-website/location/</guid>
-      <description>Professor Dr von Igelfeld&amp;#39;s mailing and office addresses at the Institute of Romance Philology.</description>
-||||||| parent of c2a5aa9... squash all commits
-      <title>Dataset Title</title>
-      <link>https://pascalmichaillat.org/hugo-website/data/data1/</link>
-      <pubDate>Thu, 07 Sep 2023 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/data/data1/</guid>
-      <description>This dataset contains things.</description>
-=======
       <title>Multimodal Structured Generation</title>
       <link>https://leloykun.github.io/personal-projects/mmsg/</link>
       <pubDate>Sun, 14 Jul 2024 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/mmsg/</guid>
       <description>Generate interleaved text and image content in a structured format you can directly pass to downstream APIs.</description>
->>>>>>> c2a5aa9... squash all commits
     </item>
     <item>
-<<<<<<< HEAD
-      <title>Office Hours</title>
-      <link>https://pascalmichaillat.org/hugo-website/officehours/</link>
-      <pubDate>Wed, 08 May 2024 00:00:00 +0000</pubDate>
-      <guid>https://pascalmichaillat.org/hugo-website/officehours/</guid>
-      <description>Schedule and location for Professor Dr von Igelfeld&amp;#39;s office hours.</description>
-||||||| parent of c2a5aa9... squash all commits
-      <title>Course Title 1</title>
-      <link>https://pascalmichaillat.org/hugo-website/courses/course1/</link>
-      <pubDate>Thu, 10 Mar 2022 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/courses/course1/</guid>
-      <description>This graduate course presents things.</description>
-=======
       <title>Flash Hyperbolic Attention Minimal [WIP]</title>
       <link>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</guid>
       <description>A minimal implementation of Flash Attention 1 &amp;amp; 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the various variations of Hyperbolic Attention in CUDA.</description>
->>>>>>> c2a5aa9... squash all commits
     </item>
     <item>
-<<<<<<< HEAD
-      <title>Your Inner Hedgehog</title>
-      <link>https://pascalmichaillat.org/hugo-website/papers/paper3/</link>
-      <pubDate>Tue, 06 Apr 2021 00:00:00 +0000</pubDate>
-      <guid>https://pascalmichaillat.org/hugo-website/papers/paper3/</guid>
-      <description>This paper describes the inner hedgehog, a psychological condition widespread in academia. Published in the Journal of Socio-Experimental Psychology, 2021.</description>
-||||||| parent of c2a5aa9... squash all commits
-      <title>Course Title 2</title>
-      <link>https://pascalmichaillat.org/hugo-website/courses/course2/</link>
-      <pubDate>Wed, 16 Jun 2021 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/courses/course2/</guid>
-      <description>This undergraduate course presents many new things.</description>
-=======
       <title>Llama.cpp</title>
       <link>https://leloykun.github.io/personal-projects/llama.cpp/</link>
       <pubDate>Tue, 25 Jul 2023 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/llama.cpp/</guid>
       <description>A C&#43;&#43; implementation of Meta&amp;#39;s Llama2 generative large-language model. I also optimized the original C implementation by Karpathy by adding parallelization on the multi-head attention layer.</description>
->>>>>>> c2a5aa9... squash all commits
     </item>
     <item>
-<<<<<<< HEAD
-      <title>List of Irregular Verbs Across Romance Languages</title>
-      <link>https://pascalmichaillat.org/hugo-website/data/data1/</link>
-      <pubDate>Thu, 07 Mar 2013 00:00:00 +0000</pubDate>
-      <guid>https://pascalmichaillat.org/hugo-website/data/data1/</guid>
-      <description>This dataset contains all irregular verbs in known Romance languages.</description>
-||||||| parent of c2a5aa9... squash all commits
-      <title>Paper Title 2</title>
-      <link>https://pascalmichaillat.org/hugo-website/papers/paper2/</link>
-      <pubDate>Tue, 01 Dec 2015 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/papers/paper2/</guid>
-      <description>This paper shows other things. Published in Journal Name, 2015.</description>
-=======
       <title>Expedock Assistant: ChatGPT Applied to Logistics Data</title>
       <link>https://leloykun.github.io/personal-projects/expedock-assistant/</link>
       <pubDate>Tue, 31 Jan 2023 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/expedock-assistant/</guid>
       <description>Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry.</description>
->>>>>>> c2a5aa9... squash all commits
     </item>
     <item>
-<<<<<<< HEAD
-      <title>Unusual Uses For Olive Oil</title>
-      <link>https://pascalmichaillat.org/hugo-website/papers/paper1/</link>
-      <pubDate>Tue, 15 Jan 2013 00:00:00 +0000</pubDate>
-      <guid>https://pascalmichaillat.org/hugo-website/papers/paper1/</guid>
-      <description>This paper reviews unusual uses for olive oil throughout the Mediterranean world. Published in the Journal of Oleic Science, 2013.</description>
-||||||| parent of c2a5aa9... squash all commits
-      <title>Paper Title 1</title>
-      <link>https://pascalmichaillat.org/hugo-website/papers/paper1/</link>
-      <pubDate>Fri, 01 Jun 2012 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/papers/paper1/</guid>
-      <description>This paper shows things. Published in Journal Name, 2012.</description>
-=======
       <title>Expedock AutoML</title>
       <link>https://leloykun.github.io/personal-projects/expedock-automl/</link>
       <pubDate>Mon, 25 Jul 2022 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/expedock-automl/</guid>
       <description>Expedock&amp;#39;s AutoML Library -- fit a model, run batch inference, and get explanations in one line of code each.</description>
->>>>>>> c2a5aa9... squash all commits
     </item>
-<<<<<<< HEAD
-||||||| parent of c2a5aa9... squash all commits
-    
-    
-=======
-    
->>>>>>> c2a5aa9... squash all commits
     <item>
-<<<<<<< HEAD
-      <title>The Finer Points of Sausage Dogs</title>
-      <link>https://pascalmichaillat.org/hugo-website/papers/paper2/</link>
-      <pubDate>Tue, 28 Dec 2004 00:00:00 +0000</pubDate>
-      <guid>https://pascalmichaillat.org/hugo-website/papers/paper2/</guid>
-      <description>This paper studies the pulmonary efficiency of sausage dogs. Published in the Journal of Canine Science, 2004.</description>
-||||||| parent of c2a5aa9... squash all commits
-      <title>Location</title>
-      <link>https://pascalmichaillat.org/hugo-website/location/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/location/</guid>
-      <description>Mailing and office addresses at the University of Place.</description>
-=======
       <title>Ateneo&#39;s Competitive Programming Varsity&#39;s Code Library</title>
       <link>https://leloykun.github.io/personal-projects/progvar-library/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/progvar-library/</guid>
       <description>A collection of algorithms, data structures and other useful information for competitive programming. Used and maintained by members of the Ateneo de Manila University Programming Varsity.</description>
->>>>>>> c2a5aa9... squash all commits
     </item>
     <item>
-<<<<<<< HEAD
-      <title>Lectures at the Villa of Reduced Circumstances</title>
-      <link>https://pascalmichaillat.org/hugo-website/courses/course1/</link>
-      <pubDate>Mon, 10 Mar 2003 00:00:00 +0000</pubDate>
-      <guid>https://pascalmichaillat.org/hugo-website/courses/course1/</guid>
-      <description>This graduate course presents classical results in Romance philology.</description>
-    </item>
-    <item>
-      <title>Portugese Irregular Verbs</title>
-      <link>https://pascalmichaillat.org/hugo-website/books/book1/</link>
-      <pubDate>Wed, 01 Jan 1997 00:00:00 +0000</pubDate>
-      <guid>https://pascalmichaillat.org/hugo-website/books/book1/</guid>
-      <description>This book discusses Portugese irregular verbs in great details.</description>
-    </item>
-    <item>
-      <title>Profanity in Early Irish</title>
-      <link>https://pascalmichaillat.org/hugo-website/courses/course2/</link>
-      <pubDate>Sat, 16 Jun 1990 00:00:00 +0000</pubDate>
-      <guid>https://pascalmichaillat.org/hugo-website/courses/course2/</guid>
-      <description>This undergraduate course discusses profanity in Early Irish.</description>
-||||||| parent of c2a5aa9... squash all commits
-      <title>Office Hours</title>
-      <link>https://pascalmichaillat.org/hugo-website/officehours/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://pascalmichaillat.org/hugo-website/officehours/</guid>
-      <description>Schedule and location for office hours.</description>
-=======
       <title>Codeball 2018</title>
       <link>https://leloykun.github.io/personal-projects/codeball/</link>
       <pubDate>Thu, 24 Jan 2019 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/codeball/</guid>
       <description>My entry for the World Finals of the Russian AI Cup 2018 - Codeball. A 3D physics-aware orchestrator of a pair of bots in a Rocket League-esque soccer game.</description>
     </item>
-    
     <item>
       <title>Codewars 2017</title>
       <link>https://leloykun.github.io/personal-projects/codewars/</link>
       <pubDate>Mon, 12 Feb 2018 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/codewars/</guid>
       <description>My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.</description>
     </item>
-    
     <item>
       <title>Booking Demand Prediction for Grab SEA</title>
       <link>https://leloykun.github.io/personal-projects/grab-booking-demand-prediction/</link>
       <pubDate>Sun, 16 Jun 2019 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/personal-projects/grab-booking-demand-prediction/</guid>
       <description>Booking demand prediction for Grab&amp;#39;s Southeast Asia operations. The project involves spatio-temporal forecasting, anomaly detection, and econometric modeling.</description>
     </item>
-    
+    <item>
+      <title>Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients</title>
+      <link>https://leloykun.github.io/ponder/muon-opt-coeffs/</link>
+      <pubDate>Fri, 21 Feb 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/muon-opt-coeffs/</guid>
+      <description>Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients.</description>
+    </item>
     <item>
       <title>GRPO&#39;s Main Flaw</title>
       <link>https://leloykun.github.io/ponder/grpo-flaw/</link>
       <pubDate>Tue, 11 Feb 2025 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/grpo-flaw/</guid>
       <description>GRPO may not be the best choice for training reasoning models. Here&amp;#39;s why.</description>
     </item>
-    
     <item>
       <title>(Linear) Attention as Test-Time Regression</title>
       <link>https://leloykun.github.io/ponder/test-time-regression/</link>
       <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/test-time-regression/</guid>
       <description>A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference.</description>
     </item>
-    
     <item>
       <title>Deep Learning Optimizers as Steepest Descent in Normed Spaces</title>
       <link>https://leloykun.github.io/ponder/steepest-descent-opt/</link>
       <pubDate>Sun, 20 Oct 2024 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/steepest-descent-opt/</guid>
       <description>Instead of asking, &amp;#39;Which optimizer should I use?&amp;#39; ask, &amp;#39;In which space do my features live in?&amp;#39;</description>
     </item>
-    
     <item>
       <title>Multimodal Structured Generation: CVPR&#39;s 2nd MMFM Challenge Technical Report</title>
       <link>https://leloykun.github.io/papers/mmsg/</link>
       <pubDate>Mon, 17 Jun 2024 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/papers/mmsg/</guid>
       <description>Multimodal Foundation Models (MMFMs) have shown remarkable performance on various computer vision and natural language processing tasks. However, their performance on particular tasks such as document understanding is still limited. They also require more compute, time, and engineering resources to finetune and deploy compared to traditional, unimodal models. In this report, we present Multimodal Structured Generation, a general framework which constrains the output logits of frozen MMFMs to force them to reason before responding with structured outputs that downstream APIs can parse and use. We provide a detailed account of our approach, including the technical details, theoretical discussions, and final evaluation results in the 2nd Multimodal Foundation Models Challenge hosted by the Computer Vision and Pattern Recognition (CVPR) conference. Our approach achieved the second highest score in the hidden test set for Phase 2 and third highest overall. This shows the method&amp;#39;s ability to generalize to unseen tasks. And that simple engineering can beat expensive &amp;amp; complicated modelling steps as we first discussed in our paper, Retrieval Augmented Structured Generation: Business Document Information Extraction as Tool Use.</description>
     </item>
-    
     <item>
       <title>Retrieval Augmented Structured Generation: Business Document Information Extraction As Tool Use [Preprint - Accepted @ IEEE MIPR 2024]</title>
       <link>https://leloykun.github.io/papers/rasg/</link>
       <pubDate>Mon, 15 Apr 2024 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/papers/rasg/</guid>
       <description>Business Document Information Extraction (BDIE) is the problem of transforming a blob of unstructured information (raw text, scanned documents, etc.) into a structured format that downstream systems can parse and use. It has two main tasks: Key-Information Extraction (KIE) and Line Items Recognition (LIR). In this paper, we argue that BDIE is best modeled as a Tool Use problem, where the tools are these downstream systems. We then present Retrieval Augmented Structured Generation (RASG), a novel general framework for BDIE that achieves state of the art (SOTA) results on both KIE and LIR tasks on BDIE benchmarks.
 The contributions of this paper are threefold: (1) We show, with ablation benchmarks, that Large Language Models (LLMs) with RASG are already competitive with or surpasses current SOTA Large Multimodal Models (LMMs) without RASG on BDIE benchmarks. (2) We propose a new metric class for Line Items Recognition, General Line Items Recognition Metric (GLIRM), that is more aligned with practical BDIE use cases compared to existing metrics, such as ANLS*, DocILE, and GriTS. (3) We provide a heuristic algorithm for backcalculating bounding boxes of predicted line items and tables without the need for vision encoders. Finally, we claim that, while LMMs might sometimes offer marginal performance benefits, LLMs &#43; RASG is oftentimes superior given real-world applications and constraints of BDIE.</description>
     </item>
-    
     <item>
       <title>ChatGPT May Have Developed Seasonal Depression</title>
       <link>https://leloykun.github.io/ponder/chatgpt-seasonal-depression/</link>
       <pubDate>Sat, 16 Dec 2023 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/chatgpt-seasonal-depression/</guid>
       <description>Could ChatGPT&amp;#39;s shorter responses be an indication of something more bizarre going on?</description>
     </item>
-    
     <item>
       <title>The Human Mind May Be Universal</title>
       <link>https://leloykun.github.io/ponder/human-mind-universality/</link>
       <pubDate>Sun, 10 Dec 2023 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/human-mind-universality/</guid>
       <description>Years of experience in building artificial minds led me to believe that these AIs may end up seeming more &amp;#39;human&amp;#39; than we currently imagine them to be.</description>
     </item>
-    
     <item>
       <title>Four Rules for Rulers</title>
       <link>https://leloykun.github.io/ponder/4rules4rulers/</link>
       <pubDate>Sun, 19 Jun 2022 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/4rules4rulers/</guid>
       <description>On how to gain and maintain power.</description>
     </item>
-    
+    <item>
+      <title>Your Inner Hedgehog</title>
+      <link>https://leloykun.github.io/papers/paper3/</link>
+      <pubDate>Tue, 06 Apr 2021 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/papers/paper3/</guid>
+      <description>This paper describes the inner hedgehog, a psychological condition widespread in academia. Published in the Journal of Socio-Experimental Psychology, 2021.</description>
+    </item>
     <item>
       <title>Vaccine Search as a Computational Problem</title>
       <link>https://leloykun.github.io/ponder/vaccine-search-as-comp-prob/</link>
       <pubDate>Sat, 06 Feb 2021 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/vaccine-search-as-comp-prob/</guid>
       <description>A thought dump on mRNA vaccines and the future of computational biology</description>
     </item>
-    
     <item>
       <title>The Accuracy-Fairness Dilemma in Machine Learning</title>
       <link>https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/</link>
       <pubDate>Sat, 24 Oct 2020 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/</guid>
       <description>Machine learning models merely amplify our biases - not eliminate them.</description>
->>>>>>> c2a5aa9... squash all commits
     </item>
-<<<<<<< HEAD
-||||||| parent of c2a5aa9... squash all commits
-    
-=======
-    
     <item>
       <title>How to Master Machine Learning: 3 Tips to Get Started</title>
       <link>https://leloykun.github.io/ponder/how-to-master-machine-learning/</link>
       <pubDate>Sat, 12 Sep 2020 00:00:00 +0000</pubDate>
-      
       <guid>https://leloykun.github.io/ponder/how-to-master-machine-learning/</guid>
       <description>Whether you&amp;#39;re only here for the hype or genuinely interested in the field, you’re in for a wild ride.</description>
     </item>
-    
-    
->>>>>>> c2a5aa9... squash all commits
+    <item>
+      <title>Portugese Irregular Verbs</title>
+      <link>https://leloykun.github.io/books/book1/</link>
+      <pubDate>Wed, 01 Jan 1997 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/books/book1/</guid>
+      <description>This book discusses Portugese irregular verbs in great details.</description>
+    </item>
   </channel>
 </rss>

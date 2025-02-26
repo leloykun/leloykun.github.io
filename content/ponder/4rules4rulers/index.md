@@ -13,8 +13,6 @@ editPost:
     Text: "Crossposted on Ponder"
 ---
 
-![Cover](cover.jpg)
-
 Why are our rulers usually evil? And why do good rulers get replaced so quickly?
 
 Do you need to be evil to rule longer? Not necessarily, but you need to be cunning.
