@@ -11,6 +11,10 @@ cover:
 editPost:
     URL: "https://ponder.substack.com/p/how-to-master-machine-learning-3"
     Text: "Crossposted on Ponder"
+_build:
+  list: false
+  render: true
+  publishResources: true
 ---
 
 Modern-day AIs are just applications of machine learning. We use them to make financial decisions, drive cars, and be our assistants like Siri—you know, all the fancy stuff. But I bet you interacted with at least 3 of them just a minute ago without realizing it. They also curate your social media feeds, filter out spam from your inbox, and manage your device's battery consumption. That's how ubiquitous they are.

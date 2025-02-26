@@ -11,6 +11,10 @@ cover:
 editPost:
     URL: "https://ponder.substack.com/p/4rules4rulers"
     Text: "Crossposted on Ponder"
+_build:
+  list: false
+  render: true
+  publishResources: true
 ---
 
 Why are our rulers usually evil? And why do good rulers get replaced so quickly?
