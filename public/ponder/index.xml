@@ -14,18 +14,18 @@
     <lastBuildDate>Fri, 21 Feb 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/ponder/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>CASPR Without Accumulation is Muon</title>
-      <link>https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/</link>
-      <pubDate>Fri, 21 Feb 2025 00:00:00 +0000</pubDate>
-      <guid>https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/</guid>
-      <description>The CASPR optimizer, a variant of Shampoo, reduces to Muon when we remove the accumulation on the preconditioners.</description>
-    </item>
-    <item>
       <title>Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients</title>
       <link>https://leloykun.github.io/ponder/muon-opt-coeffs/</link>
       <pubDate>Fri, 21 Feb 2025 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/ponder/muon-opt-coeffs/</guid>
       <description>Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients.</description>
+    </item>
+    <item>
+      <title>CASPR Without Accumulation is Muon</title>
+      <link>https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/</link>
+      <pubDate>Thu, 13 Feb 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/</guid>
+      <description>The CASPR optimizer, a variant of Shampoo, reduces to Muon when we remove the accumulation on the preconditioners.</description>
     </item>
     <item>
       <title>GRPO&#39;s Main Flaw</title>

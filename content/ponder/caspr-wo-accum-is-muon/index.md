@@ -1,6 +1,6 @@
 ---
 title: "CASPR Without Accumulation is Muon"
-date: 2025-02-21
+date: 2025-02-13
 tags: ["Machine Learning", "Muon"]
 author: "Franz Louis Cesista"
 description: "The CASPR optimizer, a variant of Shampoo, reduces to Muon when we remove the accumulation on the preconditioners."
