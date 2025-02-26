@@ -23,7 +23,7 @@ $$\Delta W = (\tilde{L}^{-1/2}_t G_t + 2 \tilde{L}^{-1/4}_t G_t \tilde{R}^{-1/4}
 ## CASPR without accumulation
 
 If we turn off accumulation on the preconditioners, we get:
-$$\Delta W = (1/4) \cdot ((G G^T + \epsilon I_m)^{-1/2}_t G + 2 (G G^T + \epsilon I_m)^{-1/4}_t G (G^T G + \epsilon I_n)^{-1/4}_t + G (G^T G + \epsilon I_n)^{-1/2}_t)$$
+$$\Delta W = (1/4) \cdot ((G G^T + \epsilon I_m)^{-1/2} G + 2 (G G^T + \epsilon I_m)^{-1/4} G (G^T G + \epsilon I_n)^{-1/4} + G (G^T G + \epsilon I_n)^{-1/2})$$
 
 To simplify this, let's first decompose $G$ via its singular value decomposition (SVD): $$G = U \Sigma V^T,$$ where $U$ and $V$ are orthogonal matrices and $\Sigma$ is a diagonal matrix with the singular values of $G$.
 
