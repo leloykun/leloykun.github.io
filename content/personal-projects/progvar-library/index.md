@@ -11,11 +11,6 @@ cover:
 editPost:
     URL: "https://github.com/admu-progvar/progvar-library"
     Text: "Github Repository"
-weight: 4
----
-
-![1st Page of Progvar's Team Notebook](progvar-library.png)
-
 ---
 
 Download: [Team Notebook](notebook.pdf)

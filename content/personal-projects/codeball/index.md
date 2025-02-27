@@ -11,10 +11,7 @@ cover:
 editPost:
     URL: "https://github.com/leloykun/codeball-2018"
     Text: "Github Repository"
-weight: 5
 ---
-
-![Codeball](codeball.png)
 
 My entry for the World Finals of the Russian AI Cup 2018 - Codeball. Codeball is a Rocket League-esque 3D soccer game where we have to program an AI to control a pair of bots to beat enemy AI-controlled pair of bots.
 

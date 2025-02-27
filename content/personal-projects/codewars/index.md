@@ -12,7 +12,6 @@ cover:
 editPost:
     URL: "https://github.com/leloykun/codewars-2017"
     Text: "Github Repository"
-weight: 6
 ---
 
 ![Game Screenshot](screenshot_nuke.png)

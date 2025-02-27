@@ -13,11 +13,6 @@ cover:
 editPost:
     URL: "https://github.com/leloykun/llama2.cpp"
     Text: "Github Repository"
-weight: 2
----
-
-![llama_cute.jpg](llama_cute.jpg)
-
 ---
 
 A C++ implementation of Meta's Llama2 generative large-language model. I also optimized the original C implementation by Andrej Karpathy by parallelizing the multi-head attention layer, among other things.

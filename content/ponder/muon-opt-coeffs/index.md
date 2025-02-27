@@ -303,8 +303,8 @@ if __name__ == "__main__":
 ## How to Cite
 
 ```bibtex
-@misc{cesista2024muonoptcoeffs,
-  author = {Franz Louis Cesista},
+@misc{cesista2025muonoptcoeffs,
+  author = {Franz Louis Cesista and YouJiacheng and Keller Jordan},
   title = {Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients},
   year = {2025},
   url = {http://leloykun.github.io/ponder/muon-opt-coeffs/},

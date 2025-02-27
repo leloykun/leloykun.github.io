@@ -11,9 +11,6 @@ cover:
 editPost:
     URL: "https://github.com/leloykun/mmsg"
     Text: "Github Repository"
-weight: 1
 ---
-
-![](mmsg-cover.png)
 
 Generate interleaved text and image content in a structured format you can directly pass to downstream APIs. You can also use this to control how many "draft" text tokens and "imagination" image tokens the model generates first before it starts generating the final output.

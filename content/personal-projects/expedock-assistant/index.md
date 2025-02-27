@@ -11,7 +11,6 @@ cover:
 editPost:
     URL: "https://ponder.substack.com/p/expedock-assistant-demystifying-logistics"
     Text: "Blog Post cross-posted on Ponder"
-weight: 3
 ---
 
 Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry. When using this tool, the vast knowledge base and conversational skills of ChatGPT can alleviate some of the complexities of the logistics industry.

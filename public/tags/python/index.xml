@@ -14,13 +14,6 @@
     <lastBuildDate>Thu, 24 Jan 2019 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/tags/python/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Ateneo&#39;s Competitive Programming Varsity&#39;s Code Library</title>
-      <link>https://leloykun.github.io/personal-projects/progvar-library/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://leloykun.github.io/personal-projects/progvar-library/</guid>
-      <description>A collection of algorithms, data structures and other useful information for competitive programming. Used and maintained by members of the Ateneo de Manila University Programming Varsity.</description>
-    </item>
-    <item>
       <title>Codeball 2018</title>
       <link>https://leloykun.github.io/personal-projects/codeball/</link>
       <pubDate>Thu, 24 Jan 2019 00:00:00 +0000</pubDate>
@@ -33,6 +26,13 @@
       <pubDate>Mon, 12 Feb 2018 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/personal-projects/codewars/</guid>
       <description>My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.</description>
+    </item>
+    <item>
+      <title>Ateneo&#39;s Competitive Programming Varsity&#39;s Code Library</title>
+      <link>https://leloykun.github.io/personal-projects/progvar-library/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/personal-projects/progvar-library/</guid>
+      <description>A collection of algorithms, data structures and other useful information for competitive programming. Used and maintained by members of the Ateneo de Manila University Programming Varsity.</description>
     </item>
   </channel>
 </rss>

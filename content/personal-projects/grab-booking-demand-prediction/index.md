@@ -8,12 +8,9 @@ summary: "Booking demand prediction for Grab's Southeast Asia operations. The pr
 editPost:
     URL: "https://github.com/leloykun/booking-demand-prediction"
     Text: "Github Repository"
-weight: 7
 cover:
     image: "grab-aiforsea-header.PNG"
     alt: "Grab AI for SEA"
 ---
-
-![grab-aiforsea-header.PNG](grab-aiforsea-header.PNG)
 
 Booking demand prediction for Grab's Southeast Asia operations. The project involved spatio-temporal forecasting, hyperlocal forecasting, anomaly detection, and econometric modeling.

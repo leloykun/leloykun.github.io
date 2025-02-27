@@ -8,7 +8,6 @@ summary: "Expedock's AutoML Library -- fit a model, run batch inference, and get
 editPost:
     URL: "https://expedock.github.io/expedock-automl/index.html"
     Text: "Documentation"
-weight: 3.1
 ---
 
 ![Expedock AutoML](expedock-automl.png)
