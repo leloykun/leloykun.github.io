@@ -70,11 +70,11 @@ $$\text{dualizer}_{||\cdot||\_{1 \to \infty}}(\nabla L(W_l)) = \text{sign}(\nabl
 Thus, the update rule for steepest descent under the max-of-max norm is:
 $$
 \begin{align*}
-    \Delta W_l^* &= -\frac{||\nabla L(W_l)||\_{1 \to \infty}}{\lambda} \text{sign}(\nabla L(W_l))\\\\
+    \Delta W_l^* &= -\frac{||\nabla L(W_l)||\_{1 \to \infty}^\dagger}{\lambda} \text{sign}(\nabla L(W_l))\\\\
     \Delta W_l^* &= -\frac{1}{\hat{\lambda}} \frac{\nabla L(W_l)}{\sqrt{\nabla L(W_l) \odot \nabla L(W_l)}}
 \end{align*}
 $$
-where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||\_{1 \to \infty}}$ and $\odot$ is the element-wise (Hadamard) product. Note that this is the update rule for Adam without accumulation.
+where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||\_{1 \to \infty}^\dagger}$ and $\odot$ is the element-wise (Hadamard) product. Note that this is the update rule for Adam without accumulation.
 
 3. **Spectral Norm $||\cdot||_{2 \to 2}$:** A unit-step matrix under this norm is a matrix whose singular values are all 1. And we can show that the unit-step matrix $T$ that maximizes the Frobenius inner product with the gradient $\nabla L(W_l)$ is the matrix whose singular vectors are also the singular vectors of $\nabla L(W_l)$. We will prove this more rigorously in the next section. But for now, the dualizer for the spectral norm is:
 $$\text{dualizer}\_{||\cdot||_{2 \to 2}}(\nabla L(W_l)) = UV^T,$$
