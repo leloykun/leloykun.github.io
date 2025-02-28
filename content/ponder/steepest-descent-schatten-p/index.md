@@ -27,19 +27,19 @@ $$\Delta W_l^* = \arg\min_{\Delta W_l} L(W_l + \Delta W_l)$$
 
 And from here, we have three choies on how to approximate $\Delta W_l^*$:
 
-1. **Second-order methods.** Here, drop the third-order and higher-order terms in the Taylor expansion:
+1. **Second-order methods.** Drop the third- and higher-order terms in the Taylor expansion:
 $$\Delta W_l^* = \arg\min_{\Delta W_l} \\{\langle\nabla L(W_l), \Delta W_l\rangle_F + \frac{1}{2} \langle\Delta W_l, H(W_l) \Delta W_l\rangle_F\\}$$
 Then, using Newton's method, we get:
 $$\Delta W_l^* = -H(W_l)^{-1} \nabla L(W_l)$$
 However, computing the Hessian, let alone inverting it, is computationally expensive. Thus, second-order optimizers like Shampoo and CASPR resort to adding more assumptions to the structure of the Hessian to get the job done. We will discuss more on this in a future post.
 
-2. **First-order with a soft norm constraint.** Here, we approximate the second-order and subsequent terms in the Taylor expansion with a (squared-) norm constraint:
+1. **First-order with a soft norm constraint.** Here, we approximate the second-order and subsequent terms in the Taylor expansion with a (squared-) norm penalty:
 $$\Delta W_l^* = \arg\min_{\Delta W_l} \\{\langle\nabla L(W_l), \Delta W_l\rangle_F + \frac{\lambda}{2} ||\Delta W_l||^2\\},$$
 for some norm $||\cdot||$ and some sharpness parameter $\lambda$ chosen a priori. This leads to the work of Bernstein & Newhouse (2024) on Steepest Descent Under Operator Norms where they show that the optimal $\Delta W_l^\*$ is:
 $$\Delta W_l^* = -\frac{||\nabla L(W_l)||^{\dagger}}{\lambda}\text{dualizer}\_{||\cdot||}(\nabla L(W_l)),$$
 where $||\cdot||^{\dagger}$ is the dual norm of $||\cdot||$ and $$\text{dualizer}\_{||\cdot||}(X) = \arg\max_{||T|| = 1}\langle X, T \rangle_F.$$
 
-3. **First-order with a hard norm constraint.** This is similar to the previous choice but we require that $\Delta W_l$ be of some fixed "length" $r$ with respect to the norm $||\cdot||$:
+1. **First-order with a hard norm constraint.** This is similar to the previous choice but we require that $\Delta W_l$ be of some fixed "length" $r$ with respect to the norm $||\cdot||$:
 $$\Delta W_l^* = \arg\min_{\Delta W_l} \langle\nabla L(W_l), \Delta W_l\rangle_F \quad \text{s.t.} \quad ||\Delta W_l|| = r.$$
 This leads to the work of Pethick et al. (2025) on Linear Minimization Oracle (LMO) over a norm ball.
 
@@ -264,7 +264,7 @@ One can interpret this as, for some large enough $p$, the dualized gradient is a
   author = {Franz Louis Cesista},
   title = {Steepest Descent Under Schatten-$p$ Norms},
   year = {2025},
-  url = {http://leloykun.github.io/ponder/muon-opt-coeffs/},
+  url = {http://leloykun.github.io/ponder/steepest-descent-schatten-p/},
 }
 ```
 
