@@ -170,7 +170,7 @@
     <h1 class="post-title entry-hint-parent">
       Codewars 2017
     </h1>
-    <div class="post-meta"><span title='2018-02-12 00:00:00 +0000 UTC'>February 12, 2018</span>&nbsp;&middot;&nbsp;2 min&nbsp;&middot;&nbsp;Franz Louis Cesista&nbsp;&middot;&nbsp;<a href="https://github.com/leloykun/codewars-2017" rel="noopener noreferrer" target="_blank">Github Repository</a>
+    <div class="post-meta"><span title='2018-02-12 00:00:00 +0000 UTC'>February 12, 2018</span>&nbsp;&middot;&nbsp;Franz Louis Cesista&nbsp;&middot;&nbsp;<a href="https://github.com/leloykun/codewars-2017" rel="noopener noreferrer" target="_blank">Github Repository</a>
 
 </div>
   </header> 
@@ -198,19 +198,20 @@
   <div class="post-content"><p><img loading="lazy" src="screenshot_nuke.png" alt="Game Screenshot"  />
 </p>
 <p>My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game.</p>
-<h2 id="game-mechanics">Game Mechanics</h2>
+<h2 id="game-mechanics">Game Mechanics<a hidden class="anchor" aria-hidden="true" href="#game-mechanics">#</a></h2>
 <p>CodeWars is a Command-and-Conquer-esque game where we and our enemy have hundreds of units of different types. The unit types are kind-of like rock-paper-and-scissor: a unit type can easily beat some types while weak to other types. Each enemy kill is worth 1 point and our goal is to either (a) kill all enemy units or (b) get a higher score than our opponent when the timer runs out.</p>
 <p>In the later stages, fog-of-war gets activated and Facilities appear on the map. Capturing them gives us 50 points and holding them long enough gives us new units that&rsquo;d spawn near the Facilities. We could also launch nukes from time to time.</p>
 <p>Finally, we are only allowed to do at most 60 actions per second.</p>
-<h2 id="techniques-used-in-my-strategy">Techniques Used in My Strategy</h2>
-<h3 id="1-k-means-clustering">1. K-Means Clustering</h3>
+<h2 id="techniques-used-in-my-strategy">Techniques Used in My Strategy<a hidden class="anchor" aria-hidden="true" href="#techniques-used-in-my-strategy">#</a></h2>
+<h3 id="1-k-means-clustering">1. K-Means Clustering<a hidden class="anchor" aria-hidden="true" href="#1-k-means-clustering">#</a></h3>
 <p>The 60 actions-per-second rule makes it infeasible to manage our forces with precise granularity. And thus, we need to divide them into &ldquo;army groups&rdquo; that behave as if they&rsquo;re a single unit. Most of our opponents do this too, but they don&rsquo;t (and can&rsquo;t) tell us which units belong to which groups. And so, we have to guess the groupings with K-means clustering.</p>
-<h3 id="2-state-space-breadth-first-search">2. State-Space Breadth-First Search</h3>
+<h3 id="2-state-space-breadth-first-search">2. State-Space Breadth-First Search<a hidden class="anchor" aria-hidden="true" href="#2-state-space-breadth-first-search">#</a></h3>
 <p>After grouping our units, we then do a state-space search using BFS to find the optimal initial positions before launching our offensives. Note: we only use BFS to rearrange our army groups, not to find the perfect attack paths for them.</p>
-<h3 id="3-potential-flows">3. Potential Flows</h3>
+<h3 id="3-potential-flows">3. Potential Flows<a hidden class="anchor" aria-hidden="true" href="#3-potential-flows">#</a></h3>
 <p><img loading="lazy" src="potential_flow.png" alt="Potential Flows"  />
 </p>
 <p>Finally, even with the groupings, it&rsquo;s impossible to make a strategy that takes into account all possible permutations of allied &amp; enemy positions. Thus, we need to rely on heuristics. One such heuristic is by modelling the stuff in the game map as particles that produce potential fields. All of our army groups (and stronger enemy groups) are negatively charged - thus, they repel each other. While our targets (facilities &amp; weaker enemy groups) attract each other. We calculate this potential field for each group. And viola, we now have a direction field for our units.</p>
+
 
   </div>
 

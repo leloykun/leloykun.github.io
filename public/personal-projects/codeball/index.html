@@ -170,7 +170,7 @@
     <h1 class="post-title entry-hint-parent">
       Codeball 2018
     </h1>
-    <div class="post-meta"><span title='2019-01-24 00:00:00 +0000 UTC'>January 24, 2019</span>&nbsp;&middot;&nbsp;2 min&nbsp;&middot;&nbsp;Franz Louis Cesista&nbsp;&middot;&nbsp;<a href="https://github.com/leloykun/codeball-2018" rel="noopener noreferrer" target="_blank">Github Repository</a>
+    <div class="post-meta"><span title='2019-01-24 00:00:00 +0000 UTC'>January 24, 2019</span>&nbsp;&middot;&nbsp;Franz Louis Cesista&nbsp;&middot;&nbsp;<a href="https://github.com/leloykun/codeball-2018" rel="noopener noreferrer" target="_blank">Github Repository</a>
 
 </div>
   </header> 
@@ -195,10 +195,10 @@
 </div>
 
   <div class="post-content"><p>My entry for the World Finals of the Russian AI Cup 2018 - Codeball. Codeball is a Rocket League-esque 3D soccer game where we have to program an AI to control a pair of bots to beat enemy AI-controlled pair of bots.</p>
-<h2 id="strategy">Strategy</h2>
-<h3 id="physics-simulation">Physics Simulation</h3>
+<h2 id="strategy">Strategy<a hidden class="anchor" aria-hidden="true" href="#strategy">#</a></h2>
+<h3 id="physics-simulation">Physics Simulation<a hidden class="anchor" aria-hidden="true" href="#physics-simulation">#</a></h3>
 <p>My strategy employs a 3D physics engine to (1) track and predict the ball&rsquo;s and the bots&rsquo; positions and directions, and (2) calculate the best location, angle, and speed to intercept the ball, block an enemy bot, or score a goal.</p>
-<h3 id="bot-behavior">Bot Behavior</h3>
+<h3 id="bot-behavior">Bot Behavior<a hidden class="anchor" aria-hidden="true" href="#bot-behavior">#</a></h3>
 <p>The AI uses a rudimentary finite state machine to shuffle the bots between these behaviors:</p>
 <ol>
 <li><strong>Attacker</strong>: The bot focuses on scoring goals. It attempt to score a goal whenever it has the opportunity. It will try to steal the ball and if it can score a goal, it will try to do so.</li>
@@ -207,6 +207,7 @@
 <li><strong>Blocker</strong>: The bot focuses on blocking enemy bots from scoring goals.</li>
 <li><strong>Follower</strong>: The bot follows the ball or an enemy bot&ndash;usually as a follow up to an aggressive attack, a defensive block, or just to distract enemy bots.</li>
 </ol>
+
 
   </div>
 

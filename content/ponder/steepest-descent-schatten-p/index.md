@@ -33,13 +33,13 @@ Then, using Newton's method, we get:
 $$\Delta W_l^* = -H(W_l)^{-1} \nabla L(W_l)$$
 However, computing the Hessian, let alone inverting it, is computationally expensive. Thus, second-order optimizers like Shampoo and CASPR resort to adding more assumptions to the structure of the Hessian to get the job done. We will discuss more on this in a future post.
 
-1. **First-order with a soft norm constraint.** Here, we approximate the second-order and subsequent terms in the Taylor expansion with a (squared-) norm penalty:
+2. **First-order with a soft norm penalty.** Here, we approximate the second-order and subsequent terms in the Taylor expansion with a (squared-) norm penalty:
 $$\Delta W_l^* = \arg\min_{\Delta W_l} \\{\langle\nabla L(W_l), \Delta W_l\rangle_F + \frac{\lambda}{2} ||\Delta W_l||^2\\},$$
 for some norm $||\cdot||$ and some sharpness parameter $\lambda$ chosen a priori. This leads to the work of Bernstein & Newhouse (2024) on Steepest Descent Under Operator Norms where they show that the optimal $\Delta W_l^\*$ is:
 $$\Delta W_l^* = -\frac{||\nabla L(W_l)||^{\dagger}}{\lambda}\text{dualizer}\_{||\cdot||}(\nabla L(W_l)),$$
 where $||\cdot||^{\dagger}$ is the dual norm of $||\cdot||$ and $$\text{dualizer}\_{||\cdot||}(X) = \arg\max_{||T|| = 1}\langle X, T \rangle_F.$$
 
-1. **First-order with a hard norm constraint.** This is similar to the previous choice but we require that $\Delta W_l$ be of some fixed "length" $r$ with respect to the norm $||\cdot||$:
+3. **First-order with a hard norm constraint.** This is similar to the previous choice but we require that $\Delta W_l$ be of some fixed "length" $r$ with respect to the norm $||\cdot||$:
 $$\Delta W_l^* = \arg\min_{\Delta W_l} \langle\nabla L(W_l), \Delta W_l\rangle_F \quad \text{s.t.} \quad ||\Delta W_l|| = r.$$
 This leads to the work of Pethick et al. (2025) on Linear Minimization Oracle (LMO) over a norm ball.
 
@@ -116,11 +116,13 @@ $$
 
 ### von Neumann's Trace Inequality
 
-> **Theorem.** Let $A$ and $B$ be two matrices. Then, the following inequality holds:
+And to find the dualizers for the Schatten-$p$ norms, we need the following inequality:
+
+> **Theorem (von Neumann's Trace Inequality).** Let $A$ and $B$ be two matrices. Then, the following inequality holds:
 $$\text{tr}(A^TB) \leq \sum_{i=1}^{\min(m,n)} \sigma_i(A) \sigma_i(B),$$
 where $\sigma_i(A)$ are the singular values of $A$. And equality holds if and only if $A^T$ and $B$ share singular vectors.
 
-### Steepest Descent Under Schatten-$p$ Norms
+### Steepest descent under Schatten-$p$ Norms
 
 Here, we derive the dualizer for an arbitrary Schatten-$p$ norm.
 
@@ -211,9 +213,9 @@ where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||\_{S_1}}$.
 
 Both of which also matches our prior results. And as a fun exercise, try to prove that the dualizer for the Schatten-$1$ norm, or the Nuclear norm, results in a rank-1 matrix.
 
-## What Does the Dualizer Do to the Singular Values?
+## What Does the Dualizer Actually Do?
 
-We observe that steepest descent under the Schatten-$p$ norm very quickly starts to look like steepest descent under the Spectral norm as $p$ approaches $\infty$. This is probably why optimizers that merely approximately semi-orthogonalize the gradients like Sketching and Muon work so well in practice despite resulting in (relatively) high-variance singular values post-dualization.
+We observe that steepest descent under the Schatten-$p$ norm very quickly starts to "look like" steepest descent under the Spectral norm as $p$ approaches $\infty$. This is probably why optimizers that merely approximately semi-orthogonalize the gradients like Sketching and Muon work so well in practice despite resulting in (relatively) high-variance singular values post-dualization.
 
 To support this, we show that the (1) variance of singular values, (2) relative size, and (3) stable rank of the gradients post-dualization under the Schatten-$p$ norm converge to those of the Spectral norm very quickly as $p$ approaches $\infty$. And in fact, at $p = 32$, the results are already very close to those of the Spectral norm.
 
@@ -251,11 +253,27 @@ $$\text{relsize}(\Delta W) = \frac{||\Delta W||}{||W||}$$
 
 > **Definition 7: Stable Rank.** The stable rank of a matrix $A$ is defined as $$srank(A) = \frac{\|\|A\|\|\_F^2}{\|\|A\|\|\_{2 \to 2}^2}$$
 
-As we can see in the following plot, the raw gradients have very low-stable rank for all $p$. However, the stable rank of the gradients post-dualization under the Schatten-$p$ norm converges very quickly to that of the Spectral norm as $p$ approaches $\infty$.
+As we can see in the following plot, the raw gradients have very low-stable rank. But the stable rank of the gradients post-dualization under the Schatten-$p$ norm converges very quickly to that of the Spectral norm as $p$ approaches $\infty$.
 
 ![](srank_sv_dualizer.png#center)
 
 One can interpret this as, for some large enough $p$, the dualized gradient is already very close to being "maximal" in a sense. And increasing $p$ further would only offer rapidly diminishing returns.
+
+### Faster feature learning
+
+Why do we want 'maximal' updates? I'd love to dive deeper into this in a future post. But for now, I'll leave you with these:
+
+1. **Weight Erasure.** Because the raw gradients are naturally "small" or have low stable rank, models trained with SGD, Adam, or similar optimizers tend to get 'stuck' within a small region of the parameter space around the initialization (Lee et al., 2020; Jesus et al., 2021). On the other hand, optimizers like Muon that ramp up the stable rank of the gradients can quickly 'escape' the init region and explore the parameter space more effectively. If you want to learn more about this, check out [Bernstein's blog post on weight erasure](https://docs.modula.systems/examples/weight-erasure/) (2024).
+
+![](weight-erasure.png)
+
+2. **Faster Feature Learning.** Another reason we want 'maximal' updates is that it allows the model to learn features faster. If our updates are too small, they would vanish at larger model widths. E.g., it's going to take you forever to learn a diverse features on a 4096-wide model if your updates are merely rank-1. Ideally, our updates should "grow" with the model width. And this is what optimizers like Muon do.
+
+---
+
+That's it for now. Until next time!
+
+---
 
 ## How to Cite
 
@@ -271,8 +289,13 @@ One can interpret this as, for some large enough $p$, the dualized gradient is a
 ## References
 
 1. Jeremy Bernstein and Laker Newhouse. “Old optimizer, new norm: An anthology.” arXiv preprint arXiv:2409.20325 (2024).
-2. Keller Jordan, Jeremy Bernstein, Brendan Rappazzo, @fernbear.bsky.social, Boza Vlado, Jiacheng You, Franz Cesista, Braden Koszarsky, and @Grad62304977. modded-nanogpt: Speedrunning the NanoGPT baseline. 2024. Available at: https://github.com/KellerJordan/modded-nanogpt.
-3. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/.
-4. Rohan Anil et al. “Scalable second order optimization for deep learning.” arXiv preprint arXiv:2002.09018 (2020).
-5. Surya, S., Duvvuri, Devvrit, F., Anil, R., Hsieh, C., & Dhillon, I.S. (2024). Combining Axes Preconditioners through Kronecker Approximation for Deep Learning. International Conference on Learning Representations.
-6. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. Available at: https://arxiv.org/abs/2502.07529.
+2. Jeremy Bernstein (2024). "Weight erasure." Available at: https://docs.modula.systems/examples/weight-erasure/
+3. Keller Jordan, Jeremy Bernstein, Brendan Rappazzo, @fernbear.bsky.social, Boza Vlado, Jiacheng You, Franz Cesista, Braden Koszarsky, and @Grad62304977. modded-nanogpt: Speedrunning the NanoGPT baseline. 2024. Available at: https://github.com/KellerJordan/modded-nanogpt.
+4. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/.
+5. Rohan Anil et al. “Scalable second order optimization for deep learning.” arXiv preprint arXiv:2002.09018 (2020).
+6. Surya, S., Duvvuri, Devvrit, F., Anil, R., Hsieh, C., & Dhillon, I.S. (2024). Combining Axes Preconditioners through Kronecker Approximation for Deep Learning. International Conference on Learning Representations.
+7. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. Available at: https://arxiv.org/abs/2502.07529.
+8. David E Carlson, Edo Collins, Ya-Ping Hsieh, Lawrence Carin, Volkan Cevher (2015). Preconditioned Spectral Descent for Deep Learning. Advances in Neural Information Processing Systems 28 (NIPS 2015)
+9. Lee, Jaehoon, et al. “Wide Neural Networks of Any Depth Evolve as Linear Models under Gradient Descent.” Journal of Statistical Mechanics: Theory and Experiment, vol. 2020, no. 12, Dec. 2020, p. 124002. Crossref, https://doi.org/10.1088/1742-5468/abc62b.
+10. Jesus, Ricardo J., et al. “Effect of Initial Configuration of Weights on Training and Function of Artificial Neural Networks.” Mathematics, vol. 9, no. 18, Sept. 2021, p. 2246. Crossref, https://doi.org/10.3390/math9182246.
+11. Greg Yang and James B. Simon and Jeremy Bernstein (2024). A Spectral Condition for Feature Learning. Available at: https://arxiv.org/abs/2310.17813.

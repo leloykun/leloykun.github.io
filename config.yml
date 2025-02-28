@@ -33,14 +33,14 @@ params:
     hideFooter: false
     disableThemeToggle: true
     ShowShareButtons: true
-    ShowReadingTime: true
+    ShowReadingTime: false
     disableSpecial1stPost: false
-    disableAnchoredHeadings: true
+    disableAnchoredHeadings: false
     ShowPostNavLinks: true
     ShowBreadCrumbs: false
     ShowCodeCopyButtons: true
     ShowAllPagesInArchive: false
-    MainSections: ["books","courses","papers","data"]
+    MainSections: ["Papers", "Personal Projects", "Ponder (Posts)"]
     ShowToc: true
     disableScrollToTop: false
     TocOpen: true
@@ -48,15 +48,13 @@ params:
     UseHugoToc: true
     comments: false
     math: true
-    images:
-        - cover.png
     profileMode:
         enabled: true
         title: <span style="color:#011F5B">Franz Louis Cesista</span>
         subtitle:
             Building things 👨‍🍳🚀 • Soon <span style="color:#011F5B">**Research Engineer**</span> at [will announce soon] • prev **Machine Learning (AI) Research Scientist, Full-Stack Software Engineer, & Data Engineer** at [Expedock Software Inc.](https://expedock.com) • <span style="color:#011F5B">**2x IOI & 2x ICPC World Finalist**</span> • Mathematics at the [Ateneo de Manila University](https://www.ateneo.edu/)<br><br>
 
-            Geometric Deep Learning • Multimodal Machine Learning • Information Retrieval • Structured Generation
+            NanoGPT Speedrunning • Geometric Deep Learning • Multimodal Machine Learning • Information Retrieval • Structured Generation
         imageUrl: "picture.png"
         imageWidth: 160
         imageHeight: 160
