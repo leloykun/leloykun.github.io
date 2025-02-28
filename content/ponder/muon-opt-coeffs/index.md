@@ -60,7 +60,7 @@ As you can see below, Muon's Newton-Schulz iteration actually introduces a lot o
     <img src="muon-noise.png"/>
 </div>
 
-And if my maths is correct, if you were doing steepest descent under the Schatten-4 norm instead, the spread of the resulting singular values would be about the same. So, in a sense, you can interpret Muon with the old coefficients as doing steepest descent under the Schatten-4 norm.
+And if my maths is correct, if you were doing steepest descent under the Schatten-32 norm instead, the spread of the resulting singular values would be about the same. So, in a sense, you can interpret Muon with the old coefficients as doing steepest descent under the Schatten-32 norm.
 
 ## How do we optimize the coefficients?
 
