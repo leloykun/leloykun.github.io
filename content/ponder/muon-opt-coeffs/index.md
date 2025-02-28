@@ -19,10 +19,10 @@ editPost:
 
 ## What's Muon?
 
-Muon is an optimizer for 2D parameters that approximately semi-orthogonalizes the gradient (using Newton-Schulz iteration) first before using it to update the parameters.
+Muon is an optimizer for 2D parameters that approximately semi-orthogonalizes the gradient first using Newton-Schulz iteration before using it to update the parameters.
 
 <div align="center">
-    <img src="muon-definition.png"/>
+    <img src="muon-definition.png" style="width:70%; height:70%" />
 </div>
 
 ## Why semi-orthogonalize the gradients first?
