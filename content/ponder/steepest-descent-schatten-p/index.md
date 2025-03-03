@@ -15,9 +15,9 @@ summary: "Simply switching to Muon can already get you 2x efficiency gains. But 
 
 ## Prologue
 
-When training a neural network, our goal is to find parameters $\hat{W} = \\{W_l\\}_{1 \leq l \leq L}$ that minimize a loss function $L(\hat{W})$ with respect to some training data. This loss function is typically non-convex and/or intractable to compute exactly. Thus, we resort to iterative optimization algorithms to find a decent local minimum of the loss function.
+When training a neural network, our goal is to find parameters $\hat{W} = \\{W_l\\}_{1 \leq l \leq L}$ that minimize a loss function $L(\hat{W})$ with respect to some training data. This loss function is typically non-convex and/or intractable to compute exactly. Thus, we resort to iterative optimization algorithms to find a decent local minimum instead.
 
-And every minute choice on how we approximate $L$ leads to different optimization algorithms. To illustrate this simply, let's focus on one of the parameters $W_l$ and let's take the Taylor expansion of $L$ around $W_l$:
+And every minute choice we make on how we approximate $L$ leads to different optimization algorithm. To illustrate this simply, let's focus on one of the parameters $W_l$ and let's take the Taylor expansion of $L$ around $W_l$:
 $$L(W_l + \Delta W_l) = L(W_l) + \langle\nabla L(W_l), \Delta W_l\rangle_F + \frac{1}{2} \langle\Delta W_l, H(W_l) \Delta W_l\rangle_F + \ldots,$$
 where $\nabla L(W_l)$ is the gradient of $L$ at $W_l$, $H(W_l)$ is the Hessian of $L$ at $W_l$, and $\langle\cdot, \cdot\rangle_F$ is the Frobenius inner product:
 $$\langle A, B\rangle_F = \text{tr}(A^T B) = \sum_{i,j} A_{ij}B_{ij}.$$
@@ -25,9 +25,9 @@ $$\langle A, B\rangle_F = \text{tr}(A^T B) = \sum_{i,j} A_{ij}B_{ij}.$$
 Our goal at each iteration then is to find $\Delta W_l$ that minimizes $L(W_l + \Delta W_l)$. I.e.:
 $$\Delta W_l^* = \arg\min_{\Delta W_l} L(W_l + \Delta W_l)$$
 
-And from here, we have three choies on how to approximate $\Delta W_l^*$:
+And from here, we have three choies on how to approximate $L$ (and consequently $\Delta W_l^*$):
 
-1. **Second-order methods.** Drop the third- and higher-order terms in the Taylor expansion:
+1. **Second-order methods.** Drop the third-order and subsequent terms in the Taylor expansion:
 $$\Delta W_l^* = \arg\min_{\Delta W_l} \\{\langle\nabla L(W_l), \Delta W_l\rangle_F + \frac{1}{2} \langle\Delta W_l, H(W_l) \Delta W_l\rangle_F\\}$$
 Then, using Newton's method, we get:
 $$\Delta W_l^* = -H(W_l)^{-1} \nabla L(W_l)$$
@@ -63,9 +63,9 @@ $$
 \Delta W_l^* &= -\frac{1}{\lambda} \nabla L(W_l)
 \end{align*}
 $$
-which is just the update rule for Stoachastic Gradient Descent (SGD).
+which is just the update rule for Stochastic Gradient Descent (SGD).
 
-2. **Max-of-Max Norm $||\cdot||_{1 \to \infty}$:** A unit-step matrix under this norm is a matrix where all entries are $\pm 1$. Thus, the unit-step matrix $T$ that maximizes the Frobenius inner product with the gradient $\nabla L(W_l)$ is the matrix whose entries are the signs of the entries of $\nabla L(W_l)$:
+2. **Max-of-Max Norm $||\cdot||_{1 \to \infty}$:** A unit-length matrix under this norm is a matrix where all entries are $\pm 1$. And we can show that the unit-length matrix $T$ that maximizes the Frobenius inner product with the gradient $\nabla L(W_l)$ is the matrix whose entries are the signs of the entries of $\nabla L(W_l)$:
 $$\text{dualizer}_{||\cdot||\_{1 \to \infty}}(\nabla L(W_l)) = \text{sign}(\nabla L(W_l))$$
 Thus, the update rule for steepest descent under the max-of-max norm is:
 $$
@@ -76,7 +76,7 @@ $$
 $$
 where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||\_{1 \to \infty}^\dagger}$ and $\odot$ is the element-wise (Hadamard) product. Note that this is the update rule for Adam without accumulation.
 
-3. **Spectral Norm $||\cdot||_{2 \to 2}$:** A unit-step matrix under this norm is a matrix whose singular values are all 1. And we can show that the unit-step matrix $T$ that maximizes the Frobenius inner product with the gradient $\nabla L(W_l)$ is the matrix whose singular vectors are also the singular vectors of $\nabla L(W_l)$. We will prove this more rigorously in the next section. But for now, the dualizer for the spectral norm is:
+3. **Spectral Norm $||\cdot||_{2 \to 2}$:** A unit-length matrix under this norm is a matrix whose singular values are all 1. And we can show that the unit-length matrix $T$ that maximizes the Frobenius inner product with the gradient $\nabla L(W_l)$ is the matrix whose singular vectors are also the singular vectors of $\nabla L(W_l)$. We will prove this more rigorously in the next section. But for now, the dualizer for the spectral norm is:
 $$\text{dualizer}\_{||\cdot||_{2 \to 2}}(\nabla L(W_l)) = UV^T,$$
 where $\nabla L(W_l) = U\Sigma V^T$ is the singular value decomposition of $\nabla L(W_l)$. Thus, the update rule for steepest descent under the spectral norm is: 
 $$
@@ -109,7 +109,7 @@ In a sense, you can think of the Schatten-$p$ norm of $A$ as the $p$-norm of the
 (2) may be non-obvious to some, but here's a short proof:
 $$
 \begin{align*}
-    ||A||\_F &= \sqrt{\sum\_{ij} |A_{ij}|^2} = \sqrt{tr(A^TA)} = \sqrt{tr((U\Sigma V^T)^T(U\Sigma V^T))}\\\\
+    ||A||\_F &= \sqrt{\sum\_{ij} A_{ij}^2} = \sqrt{tr(A^TA)} = \sqrt{tr((U\Sigma V^T)^T(U\Sigma V^T))}\\\\
     &= \sqrt{tr(V \Sigma^2 V^T)} = \left(\sum_i \sigma_i(A)^2\right)^{\frac{1}{2}} = ||A||\_{S_2}
 \end{align*}
 $$
@@ -211,13 +211,13 @@ $$
 $$
 where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||\_{S_1}}$.
 
-Both of which also matches our prior results. And as a fun exercise, try to prove that the dualizer for the Schatten-$1$ norm, or the Nuclear norm, results in a rank-1 matrix.
+Both of which matches prior results. And as a fun exercise, try to prove that the dualizer for the Schatten-$1$ norm, or the Nuclear norm, results in a rank-$k$ matrix where $k$ is the multiplicity of the largest singular value.
 
 ## What Does the Dualizer Actually Do?
 
 We observe that steepest descent under the Schatten-$p$ norm very quickly starts to "look like" steepest descent under the Spectral norm as $p$ approaches $\infty$. This is probably why optimizers that merely approximately semi-orthogonalize the gradients like Sketching and Muon work so well in practice despite resulting in (relatively) high-variance singular values post-dualization.
 
-To support this, we show that the (1) variance of singular values, (2) relative size, and (3) stable rank of the gradients post-dualization under the Schatten-$p$ norm converge to those of the Spectral norm very quickly as $p$ approaches $\infty$. And in fact, at $p = 32$, the results are already very close to those of the Spectral norm.
+To support this, we show that the (1) variance of singular values, and the (2) relative size, and (3) stable rank of the gradients post-dualization under the Schatten-$p$ norm converge to those of the Spectral norm very quickly as $p$ approaches $\infty$. And in fact, at $p = 32$, the results are already very close to those of the Spectral norm.
 
 ### On the variance of singular values
 
@@ -231,7 +231,7 @@ $$
     t_i &\approx 1 + (q-1)\ln\frac{\sigma_i(\nabla L(W_l))}{\|\|\nabla L(W_l)\|\|\_{S_q}}
 \end{align*}
 $$
-where the last line follows from first-order Taylor approximation of $t_i$. Thus, the mean is
+where the last line follows from first-order Taylor approximation of $t_i$. Thus, the mean and variance are:
 $$
 \begin{align*}
     \mathbb{E}[t_i] &\approx 1 + (q-1)\mathbb{E}\left[\ln\frac{\sigma_i(\nabla L(W_l))}{\|\|\nabla L(W_l)\|\|\_{S_q}}\right]\\\\
@@ -267,7 +267,7 @@ Why do we want 'maximal' updates? I'd love to dive deeper into this in a future 
 
 ![](weight-erasure.png)
 
-2. **Faster Feature Learning.** Another reason we want 'maximal' updates is that it allows the model to learn features faster. If our updates are too small, they would vanish at larger model widths. E.g., it's going to take you forever to learn a diverse features on a 4096-wide model if your updates are merely rank-1. Ideally, our updates should "grow" with the model width. And this is what optimizers like Muon do.
+2. **Faster Feature Learning.** Another reason we want 'maximal' updates is that it allows the model to learn features faster. If our updates are too small, they would vanish at larger model widths. E.g., it's going to take you forever to learn a diverse features set on a 4096-wide model if your updates are merely rank-1. Ideally, our updates should "grow" with the model width. And, in a sense, this is what optimizers like Muon do.
 
 ---
 
@@ -280,7 +280,7 @@ That's it for now. Until next time!
 ```bibtex
 @misc{cesista2025schattenp,
   author = {Franz Louis Cesista},
-  title = {Steepest Descent Under Schatten-$p$ Norms},
+  title = {Steepest Descent Under Schatten-p Norms},
   year = {2025},
   url = {http://leloykun.github.io/ponder/steepest-descent-schatten-p/},
 }
