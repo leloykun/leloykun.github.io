@@ -13,7 +13,7 @@
       <link>https://leloykun.github.io/ponder/steepest-descent-schatten-p/</link>
       <pubDate>Thu, 27 Feb 2025 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/ponder/steepest-descent-schatten-p/</guid>
-      <description>Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients.</description>
+      <description>Why Muon still work despite not perfectly semi-orthogonalizing the gradients.</description>
     </item>
     <item>
       <title>Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients</title>

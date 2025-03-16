@@ -3,8 +3,8 @@ title: "Steepest Descent Under Schatten-p Norms"
 date: 2025-02-27
 tags: ["Machine Learning", "Muon"]
 author: "Franz Louis Cesista"
-description: "Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients."
-summary: "Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients."
+description: "Why Muon still work despite not perfectly semi-orthogonalizing the gradients."
+summary: "Why Muon still work despite not perfectly semi-orthogonalizing the gradients."
 # cover:
     # image: "muon-022125-speedrun-record.png"
     # alt: "Cover"

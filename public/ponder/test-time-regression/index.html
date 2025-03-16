@@ -10,7 +10,7 @@
 <meta name="description" content="A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference.">
 <meta name="author" content="Franz Louis Cesista">
 <link rel="canonical" href="https://leloykun.github.io/ponder/test-time-regression/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.e690afcd5c523330d5c8b4d746eb158361600a015e99518d4d246a6ccab0cc19.css" integrity="sha256-5pCvzVxSMzDVyLTXRusVg2FgCgFemVGNTSRqbMqwzBk=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.7695d65198b4eb0454d08822ddd0b9bc75437b4a2a995eef4f73b0ae209c4e92.css" integrity="sha256-dpXWUZi06wRU0Igi3dC5vHVDe0oqmV7vT3OwriCcTpI=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://leloykun.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://leloykun.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://leloykun.github.io/favicon-32x32.png">
@@ -71,8 +71,8 @@
   "keywords": [
     "Machine Learning", "Linear Attention", "Test-Time Regression"
   ],
-  "articleBody": " Note: This was originally posted as a Twitter thread. I’ve reformatted it here for better readability.\nBy now, you’ve probably already heard of linear attention, in-context learning, test-time scaling, etc…\nHere, I’ll discuss:\nThe unifying framework that ties them all together; How to derive different linear attention variants from scratch; and How to parallelize training linear attention models Learning how to learn in-context First, what do we want from an ideal model?\nIn-context learning: We want it to learn from information it has ingested so far and use that information to make more accurate predictions moving forward.\nComputational expressivity: We want it to have a complex-enough internal machinery so it can actually solve hard problems we encounter in real-life.\nEfficiency.\nOf course, there are other stuff we’d want. But these are the most important ones. And here, we’ll focus on the first one.\nTo teach the models to learn in context, let’s steal an idea from nature: Associative Recall\nMom’s cooking triggers memories of my childhood Live wires remind me of the time I got electrocuted That’s associative recall.\nA “cue” goes into the brain and a “response” comes out. And the brain learns this “cue”-“response” pairing automatically through experience.\nWe want our models to learn how to do this too. But in practice, we call the “cue” the “key” and the “response” the “value” (following the Attention is All You Need$^{[1]}$ paper).\nFrom here, we have a (major) architectural design decision to make: Either we let the model’s “state” grow with the context length… or we fix it at a certain size.\nThe former allows us to keep as much information as we can as we chug through the context, which in turn helps with the model’s expressivity.\nWhile the latter is much more efficient at the cost of expressivity. There’s an upper limit on how much information we can store in this state. And there’s also the question of how we’re gonna teach the model to learn which information are important enough to store and which to discard.\nFor the rest of the thread, I’ll focus on linear attention… I’ll just make another thread for the former case (stay tuned!).\nBut where do we actually get the keys and the values?\nAnother very common (\u0026 very old) architectural design decision is to map the input context into key-value pairs.\nInterestingly, this results in a two-layer optimization process:\nThe “outer model” optimizes the mapping from the input context into key-value pairs.\nWhile the “inner model” treats the outer model as a black box and simply optimizes its state to better predict the values from the keys.\nAnd with more modern optimizers, such as Shampoo/SOAP/PSGD, you can actually think of this as a three-layer optimization process because:\nThe optimizer is also trying to learn the geometry of the loss landscape by adjusting the gradient preconditioners. Deriving linear attention Mechanisms from first principles If the “inner model” is optimizing something, which loss function is it trying to minimize?\nAgain, we need to make another design decision. But in general, we want to minimize the “distance” between:\n$$model(key) \\Leftrightarrow value$$\nQuestion is, how do we define this “distance”?\nIn practice, we’ve pretty much settled on two of the most basic distance metrics:\nThe negative dot product. Minimizing this is equivalent to maximizing the dot product or the “alignment” between $Mk$ and $v$. The (squared) Euclidean distance. Minimizing this is equivalent to doing (linear) regression between the keys and the values. From here, we can simply add the tricks we’ve learned so far from designing optimizers one-by-one to arrive at the different variants of linear attention.\nIf we pick the negative dot product loss and do online gradient descent, we’ll get Vanilla Linear Attention. If we add a data-independent weight decay, we’ll get Lightning Attention 2 that’s used in the MiniMax-O1 paper. If we make the weight decay data dependent instead, we’ll get Mamba 2 that was all the rave last year. Now, if we pick the Euclidean loss instead, we’ll get the Vanilla DeltaNet. If we add a data-dependent weight decay, we’ll get Gated DeltaNet. Then we fork from here: If we use non-linear key -\u003e value transforms, we’ll get TTT. But if we add a momentum term instead, we’ll get the newly released Titans. How to design flash kernels for linear attention mechanisms Let’s go back to my claim earlier: that linear attention mechanisms are more efficient. This is clearly true at inference time… but how about training?\nRemember: the primary reason pretty much everyone dropped RNNs in favor of (Vaswani) attention is that the latter is very easy to parallelize. Thus, we can scale it up better. And scale, often times, is all you need.\nSo, when can we parallelize training of linear attention mechanisms? As a rule of thumb, if you can recast your update rule as an associative operation over sequences, you can parallelize it!\nNote that there are faster ways to implement DeltaNet’s update rule (e.g. WY representations, etc.). We’ll discuss that next time!\nBut in practice, how do we actually calculate the running “sums” efficiently? Well, remember those leetcode job interview data structure questions you hate? Well… this is when they’re relevant…\nThe most naive way is to simply run a loop through the key-value pairs. This is the recurrent form, and this is what we should be doing at inference time. But we can do much better than this.\nOn the other extreme end is the fully parallel associative scan where we aggregate the running sums by powers of two. If you’ve implemented a Fenwick tree before, this is it.\nBut in practice, we use the chunk-wise parallel form where we:\nDivide the sequence into chunks. Use the parallel form within chunks. Use the recurrent form to propagate running sums across chunks. That’s it for now. Next time, I plan to talk about:\nHow to derive different attention mechanisms using tensor string diagrams. Circuit complexity of different attention mechanisms. LLM reasoning. Stay tuned!\nHow to Cite @misc{cesista2025linearattn, author = {Franz Louis Cesista}, title = {({L}inear) {A}ttention as {T}est-{T}ime {R}egression}, year = {2025}, url = {https://leloykun.github.io/ponder/test-time-regression/}, } References [1] Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., … \u0026 Polosukhin, I. (2017). Attention is all you need. URL https://arxiv.org/abs/1706.03762\n[2] Gupta, V., Koren, T., \u0026 Singer, Y. (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568\n[3] Wang, K., Shi, J., Fox., E. (2025). Test-time regression: a unifying framework for designing sequence models with associative memory. URL https://arxiv.org/abs/2501.12352\n[4] Yang, S. (2025). What’s Next for Mamba? Towards More Expressive Recurrent Update Rules. URL https://sustcsonglin.github.io/assets/pdf/talk_250117.pdf\n",
-  "wordCount" : "1102",
+  "articleBody": " Note: This was originally posted as a Twitter thread. I’ve reformatted it here for better readability.\nBy now, you’ve probably already heard of linear attention, in-context learning, test-time scaling, and etc…\nHere, I’ll discuss:\nThe unifying framework that ties them all together; How to derive different linear attention variants from scratch; and How to parallelize training linear attention models Learning how to learn in-context First, what do we want from an ideal language model?\nIn-context learning: At inference time, we want the model to learn from information it has ingested so far and use that information to make more accurate predictions moving forward.\nComputational expressivity: We want it to have a complex-enough internal machinery so it can actually solve hard problems we encounter in real-life. And\nEfficiency.\nOf course, there are other stuff we’d want. But these are the most important ones. And here, we’ll focus on the first one.\nAssociative Recall To teach the models to learn in context, let’s steal an idea from nature: Associative Recall\nMom’s cooking triggers memories of my childhood Live wires remind me of the time I got electrocuted That’s associative recall.\nA “cue” goes into the brain and a “response” comes out. And the brain learns this “cue”-“response” mapping automatically through experience.\nWe want our models to learn how to do this too. But in practice, we call the “cue” the “key” and the “response” the “value” (following the Attention is All You Need$^{[1]}$ paper).\nFrom here, we have a (major) architectural design decision to make: Either we let the model’s “state” grow with the context length, or… we fix it at a certain size.\nThe former allows us to keep as much information as we can as we chug through the context. This, in turn, helps with the model’s expressivity as there is little to no information loss.\nThe latter, on the other hand, is much more efficient at the cost of expressivity. There’s an upper limit on how much information we can store in this state. And there’s also the question of how we’re gonna teach the model to learn which information are important enough to store and which to discard.\nFor the rest of the thread, I’ll focus on linear attention… I’ll make another thread for the former case (stay tuned!).\nHeirarchical optimization process with (linear) attention mechanisms Now, another design decision we need to make is how to map the input context into key-value pairs.\nInterestingly, this results in a two-layer optimization process:\nThe “outer model” optimizes the mapping from the input context into key-value pairs.\nWhile the “inner model” treats the outer model as a black box and simply optimizes its state to better predict the values from the keys.\nAnd with more modern optimizers, such as Shampoo/PSGD, you can actually think of this as a three-layer optimization process because:\nThe optimizer is also trying to learn the geometry of the loss landscape by adjusting the gradient preconditioners. Deriving linear attention Mechanisms from first principles If the “inner model” is optimizing something, then what is it optimizing? Again, we need to make another design decision here on which loss function to use. But which one is the most appropriate?\nTo simulate associative recall, we want the model to learn a mapping from the keys to the values. In other words, we want to learn a function:\n$$M : \\text{key} \\rightarrow \\text{value}$$\nThus, we need to define a distance metric between the model’s prediction and the actual value:\n$$\\text{loss}_M(\\text{key}, \\text{value}) = \\text{distance}(M(\\text{key}), \\text{value})$$\nQuestion is, how do we define this “distance”?\nIn practice, we’ve pretty much settled on two of the most basic distance metrics:\nThe negative dot product. Minimizing this is equivalent to maximizing the dot product or the “alignment” between $Mk$ and $v$. The (squared) Euclidean distance. Minimizing this is equivalent to doing (linear) regression between the keys and the values. From here, we can add the tricks we’ve learned so far from designing optimizers one-by-one to arrive at different variants of linear attention.\nIf we pick the negative dot product loss and do online gradient descent, we’ll get Vanilla Linear Attention. If we add a data-independent weight decay, we’ll get Lightning Attention 2 that’s used in the MiniMax-O1 paper. If we make the weight decay data dependent instead, we’ll get Mamba 2 that was all the rave last year. Now, if we pick the Euclidean loss instead, we’ll get the Vanilla DeltaNet. If we add a data-dependent weight decay, we’ll get Gated DeltaNet. Then we fork from here: If we use non-linear key -\u003e value transforms, we’ll get TTT. But if we add a momentum term instead, we’ll get the newly released Titans. How to design flash kernels for linear attention mechanisms Let’s go back to my claim earlier that linear attention mechanisms are more efficient. This is clearly true at inference time because, unlike (Vaswani) Softmax Attention, we don’t need to loop through all the previous key-value pairs to make a prediction–we only need to update the state with the new key-value pair and use that updated state to make a prediction.\nBut what about at training time? Can we parallelize training of linear attention mechanisms?\nRemember: the primary reason pretty much everyone dropped RNNs in favor of (Vaswani) Softmax Attention is that the latter is very easy to parallelize. Thus, we can scale it up better. And scale is, often times, all you need.\nA sufficient condition for parallelizing training As a rule of thumb, if you can recast your update rule as an associative operation over sequences, then you can parallelize it! This is, of course, only a sufficient, but not necessary, condition. There are non-associative operations that can be parallelized too with Chunk-wise parallelism.\nNote that there are faster ways to implement DeltaNet’s update rule (e.g. WY representations, etc.). We’ll discuss that next time!\nComputational forms of paralleled training In practice, how do we actually calculate the running “sums” efficiently? Remember those leetcode job interview data structure questions you hate? Well… this is when they become relevant…\nThe most naive way is to simply run a loop through the key-value pairs. This is the recurrent form, and this is what we should be doing at inference time. But we can do much better than this.\nOn the other extreme end is the fully-parallel associative scan where we first aggregate the running sums by powers of two, then do a second pass to propagate the running sums across the sequence. If you’ve implemented a Fenwick Tree before, this is roughly how it works.\nBut in practice, we use chunk-wise parallelism where we:\nDivide the sequence into chunks. Use fully-parallel associative scan within each chunk. And Use the recurrent form to propagate running sums across chunks. That’s it for now. Next time, I plan to talk about:\nHow to derive different attention mechanisms using tensor string diagrams. Circuit complexity of different attention mechanisms. LLM reasoning. Stay tuned!\nHow to Cite @misc{cesista2025linearattn, author = {Franz Louis Cesista}, title = {({L}inear) {A}ttention as {T}est-{T}ime {R}egression}, year = {2025}, url = {https://leloykun.github.io/ponder/test-time-regression/}, } References [1] Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., … \u0026 Polosukhin, I. (2017). Attention is all you need. URL https://arxiv.org/abs/1706.03762\n[2] Gupta, V., Koren, T., \u0026 Singer, Y. (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568\n[3] Wang, K., Shi, J., Fox., E. (2025). Test-time regression: a unifying framework for designing sequence models with associative memory. URL https://arxiv.org/abs/2501.12352\n[4] Yang, S. (2025). What’s Next for Mamba? Towards More Expressive Recurrent Update Rules. URL https://sustcsonglin.github.io/assets/pdf/talk_250117.pdf\n",
+  "wordCount" : "1257",
   "inLanguage": "en",
   "image":"https://leloykun.github.io/cover.jpg","datePublished": "2025-01-27T00:00:00Z",
   "dateModified": "2025-01-27T00:00:00Z",
@@ -201,7 +201,7 @@
   <div class="post-content"><blockquote>
 <p>Note: This was originally posted as a Twitter thread. I&rsquo;ve reformatted it here for better readability.</p>
 </blockquote>
-<p>By now, you&rsquo;ve probably already heard of linear attention, in-context learning, test-time scaling, etc&hellip;</p>
+<p>By now, you&rsquo;ve probably already heard of linear attention, in-context learning, test-time scaling, and etc&hellip;</p>
 <p>Here, I&rsquo;ll discuss:</p>
 <ol>
 <li>The unifying framework that ties them all together;</li>
@@ -209,20 +209,20 @@
 <li>How to parallelize training linear attention models</li>
 </ol>
 <h2 id="learning-how-to-learn-in-context">Learning how to learn in-context<a hidden class="anchor" aria-hidden="true" href="#learning-how-to-learn-in-context">#</a></h2>
-<p>First, what do we want from an ideal model?</p>
+<p>First, what do we want from an <em>ideal</em> language model?</p>
 <ol>
 <li>
-<p><strong>In-context learning</strong>: We want it to learn from information it has ingested so far and use that information to make more accurate predictions moving forward.</p>
+<p><strong>In-context learning</strong>: <em>At inference time</em>, we want the model to learn from information it has ingested so far and use that information to make more accurate predictions moving forward.</p>
 </li>
 <li>
-<p><strong>Computational expressivity</strong>: We want it to have a complex-enough internal machinery so it can actually solve hard problems we encounter in real-life.</p>
+<p><strong>Computational expressivity</strong>: We want it to have a complex-enough internal machinery so it can actually solve hard problems we encounter in real-life. And</p>
 </li>
 <li>
 <p><strong>Efficiency</strong>.</p>
 </li>
 </ol>
 <p>Of course, there are other stuff we&rsquo;d want. But these are the most important ones. And here, we&rsquo;ll focus on the first one.</p>
-<hr>
+<h3 id="associative-recall">Associative Recall<a hidden class="anchor" aria-hidden="true" href="#associative-recall">#</a></h3>
 <p>To teach the models to learn in context, let&rsquo;s steal an idea from nature: <strong>Associative Recall</strong></p>
 <ul>
 <li>Mom&rsquo;s cooking triggers memories of my childhood</li>
@@ -232,20 +232,18 @@
 <div align="center">
     <img src="associative-recall.png" style="width:80%; height:80%" />
 </div>
-<p>A &ldquo;cue&rdquo; goes into the brain and a &ldquo;response&rdquo; comes out. And the brain learns this &ldquo;cue&rdquo;-&ldquo;response&rdquo; pairing automatically through experience.</p>
+<p>A &ldquo;cue&rdquo; goes into the brain and a &ldquo;response&rdquo; comes out. And the brain learns this &ldquo;cue&rdquo;-&ldquo;response&rdquo; mapping automatically through experience.</p>
 <p>We want our models to learn how to do this too. But in practice, we call the &ldquo;cue&rdquo; the &ldquo;key&rdquo; and the &ldquo;response&rdquo; the &ldquo;value&rdquo; (following the Attention is All You Need$^{[1]}$ paper).</p>
 <hr>
-<p>From here, we have a (major) architectural design decision to make: Either we let the model&rsquo;s &ldquo;state&rdquo; grow with the context length&hellip; or we fix it at a certain size.</p>
-<p>The former allows us to keep as much information as we can as we chug through the context, which in turn helps with the model&rsquo;s expressivity.</p>
-<p>While the latter is much more efficient at the cost of expressivity. There&rsquo;s an upper limit on how much information we can store in this state. And there&rsquo;s also the question of how we&rsquo;re gonna teach the model to learn which information are important enough to store and which to discard.</p>
+<p>From here, we have a (major) architectural design decision to make: Either we let the model&rsquo;s &ldquo;state&rdquo; grow with the context length, or&hellip; we fix it at a certain size.</p>
+<p>The former allows us to keep as much information as we can as we chug through the context. This, in turn, helps with the model&rsquo;s expressivity as there is little to no information loss.</p>
+<p>The latter, on the other hand, is <em>much</em> more efficient at the cost of expressivity. There&rsquo;s an upper limit on how much information we can store in this state. And there&rsquo;s also the question of <em>how</em> we&rsquo;re gonna teach the model to learn which information are important enough to store and which to discard.</p>
 <div align="center">
     <img src="vaswani-vs-linear-attention.png" style="width:90%; height:90%;" />
 </div>
-<p>For the rest of the thread, I&rsquo;ll focus on linear attention&hellip; I&rsquo;ll just make another thread for the former case (stay tuned!).</p>
-<hr>
-<p>But where do we actually get the keys and the values?</p>
-<p>Another very common (&amp; very old) architectural design decision is to map the input context into key-value pairs.</p>
-<hr>
+<p>For the rest of the thread, I&rsquo;ll focus on linear attention&hellip; I&rsquo;ll make another thread for the former case (stay tuned!).</p>
+<h3 id="heirarchical-optimization-process-with-linear-attention-mechanisms">Heirarchical optimization process with (linear) attention mechanisms<a hidden class="anchor" aria-hidden="true" href="#heirarchical-optimization-process-with-linear-attention-mechanisms">#</a></h3>
+<p>Now, another design decision we need to make is how to map the input context into key-value pairs.</p>
 <p>Interestingly, this results in a two-layer optimization process:</p>
 <ol>
 <li>
@@ -257,14 +255,16 @@
 </ol>
 <p><img loading="lazy" src="inner-opt.png#center" alt=""  />
 </p>
-<p>And with more modern optimizers, such as Shampoo/SOAP/PSGD, you can actually think of this as a three-layer optimization process because:</p>
-<ol>
+<p>And with more modern optimizers, such as Shampoo/PSGD, you can actually think of this as a three-layer optimization process because:</p>
+<ol start="3">
 <li>The optimizer is also trying to learn the geometry of the loss landscape by adjusting the gradient preconditioners.</li>
 </ol>
 <h2 id="deriving-linear-attention-mechanisms-from-first-principles">Deriving linear attention Mechanisms from first principles<a hidden class="anchor" aria-hidden="true" href="#deriving-linear-attention-mechanisms-from-first-principles">#</a></h2>
-<p>If the &ldquo;inner model&rdquo; is optimizing something, which loss function is it trying to minimize?</p>
-<p>Again, we need to make another design decision. But in general, we want to minimize the &ldquo;distance&rdquo; between:</p>
-<p>$$model(key) \Leftrightarrow value$$</p>
+<p>If the &ldquo;inner model&rdquo; is optimizing something, then what is it optimizing? Again, we need to make another design decision here on which loss function to use. But which one is the most appropriate?</p>
+<p>To simulate associative recall, we want the model to learn a mapping from the keys to the values. In other words, we want to learn a function:</p>
+<p>$$M : \text{key} \rightarrow \text{value}$$</p>
+<p>Thus, we need to define a distance metric between the model&rsquo;s prediction and the actual value:</p>
+<p>$$\text{loss}_M(\text{key}, \text{value}) = \text{distance}(M(\text{key}), \text{value})$$</p>
 <p>Question is, how do we define this &ldquo;distance&rdquo;?</p>
 <p><img loading="lazy" src="linear-attn-loss-functions.png#center" alt=""  />
 </p>
@@ -276,7 +276,7 @@
 <hr>
 <p><img loading="lazy" src="linear-attention-derivations.png#center" alt="Deriving Linear Attention Mechanisms from the Loss Functions they Optimize"  />
 </p>
-<p>From here, we can simply add the tricks we&rsquo;ve learned so far from designing optimizers one-by-one to arrive at the different variants of linear attention.</p>
+<p>From here, we can add the tricks we&rsquo;ve learned so far from designing optimizers one-by-one to arrive at different variants of linear attention.</p>
 <ul>
 <li>If we pick the negative dot product loss and do online gradient descent, we&rsquo;ll get Vanilla Linear Attention.
 <ul>
@@ -297,24 +297,26 @@
 </li>
 </ul>
 <h2 id="how-to-design-flash-kernels-for-linear-attention-mechanisms">How to design flash kernels for linear attention mechanisms<a hidden class="anchor" aria-hidden="true" href="#how-to-design-flash-kernels-for-linear-attention-mechanisms">#</a></h2>
-<p>Let&rsquo;s go back to my claim earlier: that linear attention mechanisms are more efficient. This is clearly true at inference time&hellip; but how about training?</p>
-<p>Remember: the primary reason pretty much everyone dropped RNNs in favor of (Vaswani) attention is that the latter is very easy to parallelize. Thus, we can scale it up better. And scale, often times, is all you need.</p>
-<p>So, when can we parallelize training of linear attention mechanisms? As a rule of thumb, if you can recast your update rule as an associative operation over sequences, you can parallelize it!</p>
+<p>Let&rsquo;s go back to my claim earlier that linear attention mechanisms are more efficient. This is clearly true at inference time because, unlike (Vaswani) Softmax Attention, we don&rsquo;t need to loop through all the previous key-value pairs to make a prediction&ndash;we only need to update the state with the new key-value pair and use that updated state to make a prediction.</p>
+<p>But what about at training time? Can we parallelize training of linear attention mechanisms?</p>
+<p>Remember: the primary reason pretty much everyone dropped RNNs in favor of (Vaswani) Softmax Attention is that the latter is very easy to parallelize. Thus, we can scale it up better. And scale is, often times, all you need.</p>
+<h3 id="a-sufficient-condition-for-parallelizing-training">A sufficient condition for parallelizing training<a hidden class="anchor" aria-hidden="true" href="#a-sufficient-condition-for-parallelizing-training">#</a></h3>
+<p>As a rule of thumb, if you can recast your update rule as an associative operation over sequences, then you can parallelize it! This is, of course, only a sufficient, but not necessary, condition. There are non-associative operations that can be parallelized too with Chunk-wise parallelism.</p>
 <div align="center">
     <img src="linear-attn-parallel-training.png" style="width:75%; height:75%;" />
 </div>
 <p>Note that there are faster ways to implement DeltaNet&rsquo;s update rule (e.g. WY representations, etc.). We&rsquo;ll discuss that next time!</p>
-<hr>
-<p>But in practice, how do we actually calculate the running &ldquo;sums&rdquo; efficiently? Well, remember those leetcode job interview data structure questions you hate? Well&hellip; this is when they&rsquo;re relevant&hellip;</p>
+<h3 id="computational-forms-of-paralleled-training">Computational forms of paralleled training<a hidden class="anchor" aria-hidden="true" href="#computational-forms-of-paralleled-training">#</a></h3>
+<p>In practice, how do we actually calculate the running &ldquo;sums&rdquo; efficiently? Remember those leetcode job interview data structure questions you hate? Well&hellip; this is when they become relevant&hellip;</p>
 <div align="center">
     <img src="linear-attn-comp-forms.png" style="width:75%; height:75%;" />
 </div>
-<p>The most naive way is to simply run a loop through the key-value pairs. This is the recurrent form, and this is what we should be doing at inference time. But we can do much better than this.</p>
-<p>On the other extreme end is the fully parallel associative scan where we aggregate the running sums by powers of two. If you&rsquo;ve implemented a Fenwick tree before, this is it.</p>
-<p>But in practice, we use the chunk-wise parallel form where we:</p>
+<p>The most naive way is to simply run a loop through the key-value pairs. This is the <strong>recurrent form</strong>, and this is what we should be doing at inference time. But we can do much better than this.</p>
+<p>On the other extreme end is the <strong>fully-parallel associative scan</strong> where we first aggregate the running sums by powers of two, then do a second pass to propagate the running sums across the sequence. If you&rsquo;ve implemented a Fenwick Tree before, this is roughly how it works.</p>
+<p>But in practice, we use <strong>chunk-wise parallelism</strong> where we:</p>
 <ol>
 <li>Divide the sequence into chunks.</li>
-<li>Use the parallel form within chunks.</li>
+<li>Use fully-parallel associative scan within each chunk. And</li>
 <li>Use the recurrent form to propagate running sums across chunks.</li>
 </ol>
 <hr>
