@@ -6,8 +6,15 @@
     <description>Recent content in Machine Learning on Franz Louis Cesista</description>
     <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 27 Feb 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 16 Mar 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/tags/machine-learning/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Blocked Matrix Formulation of Linear Attention Mechanisms</title>
+      <link>https://leloykun.github.io/ponder/blockmat-linear-attn/</link>
+      <pubDate>Sun, 16 Mar 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/blockmat-linear-attn/</guid>
+      <description>The blocked matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism.</description>
+    </item>
     <item>
       <title>Steepest Descent Under Schatten-p Norms</title>
       <link>https://leloykun.github.io/ponder/steepest-descent-schatten-p/</link>

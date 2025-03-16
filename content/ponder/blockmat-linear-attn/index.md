@@ -1,6 +1,6 @@
 ---
 title: "Blocked Matrix Formulation of Linear Attention Mechanisms"
-date: 2025-03-17
+date: 2025-03-16
 tags: ["Machine Learning", "Linear Attention", "Test-Time Regression"]
 author: "Franz Louis Cesista"
 description: "The blocked matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism."
