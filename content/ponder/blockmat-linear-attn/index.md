@@ -498,10 +498,10 @@ $$
 $$
 $$
 S_C =
-    \begin{bmatrix}
-    0 & I
-    \end{bmatrix}
     \underline{
+        \begin{bmatrix}
+        0 & I
+        \end{bmatrix}
         \begin{bmatrix}
         A'\_1 & 0 \\\\
         B'\_1 & I
