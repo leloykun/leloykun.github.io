@@ -17,7 +17,7 @@ summary: "Why Muon still work despite not perfectly semi-orthogonalizing the gra
 
 When training a neural network, our goal is to find parameters $\hat{W} = \\{W_l\\}_{1 \leq l \leq L}$ that minimize a loss function $L(\hat{W})$ with respect to some training data. This loss function is typically non-convex and/or intractable to compute exactly. Thus, we resort to iterative optimization algorithms to find a decent local minimum instead.
 
-And every minute choice we make on how we approximate $L$ leads to different optimization algorithm. To illustrate this simply, let's focus on one of the parameters $W_l$ and let's take the Taylor expansion of $L$ around $W_l$:
+And every minute choice we make on how we approximate $L$ leads to a different optimization algorithm. To illustrate this simply, let's focus on one of the parameters $W_l$ and let's take the Taylor expansion of $L$ around $W_l$:
 $$L(W_l + \Delta W_l) = L(W_l) + \langle\nabla L(W_l), \Delta W_l\rangle_F + \frac{1}{2} \langle\Delta W_l, H(W_l) \Delta W_l\rangle_F + \ldots,$$
 where $\nabla L(W_l)$ is the gradient of $L$ at $W_l$, $H(W_l)$ is the Hessian of $L$ at $W_l$, and $\langle\cdot, \cdot\rangle_F$ is the Frobenius inner product:
 $$\langle A, B\rangle_F = \text{tr}(A^T B) = \sum_{i,j} A_{ij}B_{ij}.$$
@@ -43,7 +43,7 @@ where $||\cdot||^{\dagger}$ is the dual norm of $||\cdot||$ and $$\text{dualizer
 $$\Delta W_l^* = \arg\min_{\Delta W_l} \langle\nabla L(W_l), \Delta W_l\rangle_F \quad \text{s.t.} \quad ||\Delta W_l|| = r.$$
 This leads to the work of Pethick et al. (2025) on Linear Minimization Oracle (LMO) over a norm ball.
 
-Now, notice that for $r = 1$, the only difference between the second and third choices is actually the scaling factor or the "learning rate", the schedule of which we can tune separately. Either way, the crucial part is how we choose the norm $||\cdot||$--if we pick a different norm, we get a different optimizer.
+Now, notice that for $r = 1$, the only difference between the second and third choices is actually the scaling factor or the "learning rate", the schedule of which we can tune separately. Either way, the crucial part is how we choose the norm $||\cdot||$--if we pick a different norm, we get a different class of optimizers.
 
 ## Steepest Descent Under Operator Norms
 
@@ -85,7 +85,7 @@ $$
     \Delta W_l^* &= -\frac{1}{\hat{\lambda}} UV^T
 \end{align*}
 $$
-where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||\_{2 \to 2}}^{\dagger}$
+where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||^{\dagger}\_{2 \to 2}}$
 which is just the update rule for Muon.
 
 ## Steepest Descent Under Schatten-$p$ Norms
@@ -106,7 +106,7 @@ In a sense, you can think of the Schatten-$p$ norm of $A$ as the $p$-norm of the
 2. $p = 2$: The Frobenius norm, $||A||\_{S_2} = \left(\sum_{i=1}^{\min(m,n)} |\sigma_i(A)|^2\right)^{\frac{1}{2}} = ||A||\_F$
 3. $p = \infty$: The Spectral norm, $||A||\_{S_{\infty}} = \max_{i} \sigma_i(A) = ||A||\_{2 \to 2}$
 
-(2) may be non-obvious to some, but here's a short proof:
+$(2)$ may be non-obvious to some, but here's a short proof:
 $$
 \begin{align*}
     ||A||\_F &= \sqrt{\sum\_{ij} A_{ij}^2} = \sqrt{tr(A^TA)} = \sqrt{tr((U\Sigma V^T)^T(U\Sigma V^T))}\\\\
@@ -120,7 +120,7 @@ And to find the dualizers for the Schatten-$p$ norms, we need the following ineq
 
 > **Theorem (von Neumann's Trace Inequality).** Let $A$ and $B$ be two matrices. Then, the following inequality holds:
 $$\text{tr}(A^TB) \leq \sum_{i=1}^{\min(m,n)} \sigma_i(A) \sigma_i(B),$$
-where $\sigma_i(A)$ are the singular values of $A$. And equality holds if and only if $A^T$ and $B$ share singular vectors.
+where $\sigma_i(A)$ are the singular values of $A$. And equality holds if and only if $A$ and $B$ share singular vectors.
 
 ### Steepest descent under Schatten-$p$ Norms
 
@@ -134,8 +134,8 @@ where $X = U\Sigma V^T$ is the singular value decomposition of $X$ and $\frac{1}
 $$
 \begin{align*}
     T^* &= \text{dualizer}\_{||\cdot||\_{S_p}}(X)\\\\
-     &= \arg\max_{||T||\_{S_p} = 1} \langle X, T \rangle_F\\\\
-     &= \arg\max_{||T||\_{S_p} = 1} \text{tr}(X^T T)
+    T^* &= \arg\max_{||T||\_{S_p} = 1} \langle X, T \rangle_F\\\\
+    T^* &= \arg\max_{||T||\_{S_p} = 1} \text{tr}(X^T T)
 \end{align*}
 $$
 Then, from von Neumann's Trace Inequality, we know that $T^\*$ must share singular vectors with $X$ and that:
@@ -166,7 +166,7 @@ $$
     &= \sum_i \sigma_i(X) \frac{\sigma\_i(X)^{q-1}}{||X||\_{S_q}^{q-1}}\\\\
     &= \frac{1}{||X||\_{S_q}^{q-1}} \sum_i \sigma_i(X)^q\\\\
     &= \frac{||X||\_{S_q}^q}{||X||\_{S_q}^{q-1}}\\\\
-    ||X||\_{S_p}^{\dagger} &= ||X||\_{S_q}
+    ||X||\_{S_p}^{\dagger} &= ||X||\_{S_q}\quad\blacksquare
 \end{align*}
 $$
 
@@ -175,6 +175,8 @@ Finally,
 > **Theorem 4.** The update rule for steepest descent under the Schatten-$p$ norm is:
 $$\Delta W_l^* = -\frac{1}{\hat{\lambda}} U \frac{\text{diag}\left(\sigma\_1(\nabla L(W_l))^{q-1}, \ldots, \sigma\_{\min(m,n)}(\nabla L(W_l))^{q-1}\right)}{||\nabla L(W_l)||\_{S_q}^{q-1}} V^T$$
 where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||\_{S_q}}$, $\nabla L(W_l) = U\Sigma V^T$ is the singular value decomposition of $\nabla L(W_l)$, and $\frac{1}{p} + \frac{1}{q} = 1$.
+
+The proof follows directly from Proposition 2 and Corollary 3.
 
 ### Sanity Checks
 
@@ -215,7 +217,7 @@ Both of which matches prior results. And as a fun exercise, try to prove that th
 
 ## What Does the Dualizer Actually Do?
 
-We observe that steepest descent under the Schatten-$p$ norm very quickly starts to "look like" steepest descent under the Spectral norm as $p$ approaches $\infty$. This is probably why optimizers that merely approximately semi-orthogonalize the gradients like Sketching and Muon work so well in practice despite resulting in (relatively) high-variance singular values post-dualization.
+We observe that steepest descent under the Schatten-$p$ norm very quickly starts to "look like" steepest descent under the Spectral norm as $p$ approaches $\infty$. This is probably why optimizers that merely approximately semi-orthogonalize the gradients like Sketching and Muon work so well in practice despite resulting in (relatively) high-variance of singular values post-dualization.
 
 To support this, we show that the (1) variance of singular values, and the (2) relative size, and (3) stable rank of the gradients post-dualization under the Schatten-$p$ norm converge to those of the Spectral norm very quickly as $p$ approaches $\infty$. And in fact, at $p = 32$, the results are already very close to those of the Spectral norm.
 
