@@ -270,7 +270,7 @@ I \\\\
 \end{bmatrix}
 \end{align}
 $$
-where $S_{i,j}$, $A_{i,j}$, and $B_{i,j}$ are the state and update matrices for the $j$-th gradient descent step for the $i$-th token.
+where $A_{i,j}$ and $B_{i,j}$ are the update matrices for the $j$-th gradient descent step for the $i$-th token.
 
 And if we reindex this as $[\cdot]\_k = [\cdot]\_{\lceil k/n\_h \rceil,\space (k-1) \\% n\_h + 1}$, then from equation $(3)$ above, we get:
 $$
@@ -481,19 +481,21 @@ $$
         \end{bmatrix}\\\\
 \end{align*}
 $$
+where $A_{c,i}$ and $B_{c,i}$ are now the update matrices for the $i$-th token within the $c$-th chunk.
+
 And by combining the updates for each chunk as in Equation $(6)$ above, we get:
 $$
 \begin{bmatrix}
-    A'\_{i} & 0 \\\\
-    B'\_{i} & I
+    A'\_{c} & 0 \\\\
+    B'\_{c} & I
 \end{bmatrix}
-= \prod\_{j=1}^{n_c} \begin{bmatrix}
-    A\_{i,j} & 0 \\\\
-    B\_{i,j} & I
+= \prod\_{i=1}^{n_c} \begin{bmatrix}
+    A\_{c,i} & 0 \\\\
+    B\_{c,i} & I
 \end{bmatrix}
 = \begin{bmatrix}
-    \prod\_{j=1}^{n_c} A\_{i,j} & 0 \\\\
-    \sum\_{j=1}^{n_c} \left(B\_{i,j} \prod\_{j'=j+1}^{n_c} A\_{i,j'}\right) & I
+    \prod\_{i=1}^{n_c} A\_{c,i} & 0 \\\\
+    \sum\_{i=1}^{n_c} \left(B\_{c,i} \prod\_{i'=i+1}^{n_c} A\_{c,i'}\right) & I
 \end{bmatrix}
 $$
 $$
@@ -550,15 +552,15 @@ Now, let's derive the $S_C$ for the linear attention mechanisms in the table abo
 
 $$
 \begin{align*}
-    A\_{i,j} &= \text{diag}\left(\alpha\_{i,j} I\right) & B\_{i,j} &= \bm{v}\_{i,j} \bm{k}\_{i,j}^T\\\\
-    A'_C &= \prod\_{j=1}^{n_c} \text{diag}\left(\alpha\_{C,j} I\right) & B'_C &= \sum\_{j=1}^{n_c} \left(\bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \text{diag}\left(\alpha\_{C,j'} I\right)\right)
+    A\_{c,i} &= \text{diag}\left(\alpha\_{c,i} I\right) & B\_{c,i} &= \bm{v}\_{c,i} \bm{k}\_{c,i}^T\\\\
+    A'_C &= \prod\_{i=1}^{n_c} \text{diag}\left(\alpha\_{C,i} I\right) \quad & B'_C &= \sum\_{i=1}^{n_c} \left(\bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \text{diag}\left(\alpha\_{C,i'} I\right)\right)
 \end{align*}
 $$
 Then, from Equation $(12)$ above, we get:
 $$
 \begin{align*}
-    S_C &= S\_{C-1} \prod\_{j=1}^{n_c} \text{diag}\left(\alpha\_{C,j} I\right) + \sum\_{j=1}^{n_c} \left(\bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \text{diag}\left(\alpha\_{C,j'} I\right)\right)\\\\
-    S_C &= S\_{C-1} \prod\_{j=1}^{n_c} \alpha\_{C,j} + \sum\_{j=1}^{n_c} \left(\prod\_{j'=j+1}^{n_c} \alpha\_{C,j'}\right) \bm{v}\_{C,j} \bm{k}\_{C,j}^T
+    S_C &= S\_{C-1} \prod\_{i=1}^{n_c} \text{diag}\left(\alpha\_{C,i} I\right) + \sum\_{i=1}^{n_c} \left(\bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \text{diag}\left(\alpha\_{C,i'} I\right)\right)\\\\
+    S_C &= S\_{C-1} \prod\_{i=1}^{n_c} \alpha\_{C,i} + \sum\_{i=1}^{n_c} \left(\prod\_{i'=i+1}^{n_c} \alpha\_{C,i'}\right) \bm{v}\_{C,i} \bm{k}\_{C,i}^T
 \end{align*}
 $$
 
@@ -566,26 +568,26 @@ $$
 
 $$
 \begin{align*}
-    A\_{i,j} &= I - \beta\_{i,j} \bm{k}\_{i,j} \bm{k}\_{i,j}^T & B\_{i,j} &= \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T\\\\
-    A'_C &= \prod\_{j=1}^{n_c} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right) & B'_C &= \sum\_{j=1}^{n_c} \left(\beta\_{C,j} \bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)
+    A\_{c,i} &= I - \beta\_{c,i} \bm{k}\_{c,i} \bm{k}\_{c,i}^T & B\_{c,i} &= \beta\_{c,i} \bm{v}\_{c,i} \bm{k}\_{c,i}^T\\\\
+    A'_C &= \prod\_{i=1}^{n_c} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) \quad & B'_C &= \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
 \end{align*}
 $$
 $$
-S_C = S\_{C-1} \prod\_{j=1}^{n_c} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right) + \sum\_{j=1}^{n_c} \left(\beta\_{C,j} \bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)
+S_C = S\_{C-1} \prod\_{i=1}^{n_c} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) + \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
 $$
 
 ### Chunk-wise Gated DeltaNet
 
 $$
 \begin{align*}
-    A\_{i,j} &= \alpha\_{i,j}(I - \beta\_{i,j} \bm{k}\_{i,j} \bm{k}\_{i,j}^T) & B\_{i,j} &= \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T\\\\
-    A'_C &= \prod\_{j=1}^{n_c} \alpha\_{C,j} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right) & B'_C &= \sum\_{j=1}^{n_c} \left(\beta\_{C,j} \bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \alpha\_{C,j'} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)
+    A\_{c,i} &= \alpha\_{c,i}(I - \beta\_{c,i} \bm{k}\_{c,i} \bm{k}\_{c,i}^T) & B\_{c,i} &= \beta\_{c,i} \bm{v}\_{c,i} \bm{k}\_{c,i}^T\\\\
+    A'_C &= \prod\_{i=1}^{n_c} \alpha\_{C,i} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) \quad & B'_C &= \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \alpha\_{C,i'} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
 \end{align*}
 $$
 $$
 \begin{align*}
-    S_C &= S\_{C-1} \prod\_{j=1}^{n_c} \alpha\_{C,j} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right) + \sum\_{j=1}^{n_c} \left(\beta\_{C,j} \bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \alpha\_{C,j'} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)\\\\
-    S_C &= S\_{C-1} \left(\prod\_{j=1}^{n_c} \alpha\_{C,j} \right) \left(\prod\_{j=1}^{n_c} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right)\right) + \sum\_{j=1}^{n_c} \left(\left(\beta\_{C,j} \prod\_{j'=j+1}^{n_c} \alpha\_{C,j'} \right) \bm{v}\_{C,j} \bm{k}\_{C,j}^T  \prod\_{j'=j+1}^{n_c} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)
+    S_C &= S\_{C-1} \prod\_{i=1}^{n_c} \alpha\_{C,i} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) + \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \alpha\_{C,i'} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)\\\\
+    S_C &= S\_{C-1} \left(\prod\_{i=1}^{n_c} \alpha\_{C,i} \right) \left(\prod\_{i=1}^{n_c} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right)\right) + \sum\_{i=1}^{n_c} \left(\left(\beta\_{C,i} \prod\_{i'=i+1}^{n_c} \alpha\_{C,i'} \right) \bm{v}\_{C,i} \bm{k}\_{C,i}^T  \prod\_{i'=i+1}^{n_c} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
 \end{align*}
 $$
 
