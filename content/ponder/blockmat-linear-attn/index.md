@@ -613,5 +613,7 @@ Not only is the blocked matrix formulation of linear attention mechanisms intuit
 
 ## References
 
+[UNDER CONSTRUCTION]
+
 1. Julien Siems, Timur Carstensen, Arber Zela, Frank Hutter, Massimiliano Pontil, Riccardo Grazzi (2025). DeltaProduct: Increasing the Expressivity of DeltaNet Through Products of Householders. URL https://arxiv.org/abs/2502.10297
 2. 
