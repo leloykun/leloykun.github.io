@@ -32,7 +32,7 @@ Here are a couple of examples:
 
 where $\bm{k}_i  \in \mathbb{R}^{d_k}$ and $\bm{v}_i \in \mathbb{R}^{d_v}$ are the corresponding key-value pair for the $i$-th token; $\alpha_i \in [0, 1]$ can be thought of as a date-dependent weight decay that controls how much of the previous state to keep or forget; and $\beta_i \in [0, 1]$ can be thought of as a date-dependent learning rate that controls how much of the new information to add to the state.
 
-If we let $\alpha_i \in [-1, 1]$ for Mamba 2 and $\beta_i \in [0, 2]$ for (Gated) DeltaNet, then $A_i$ can have negative eigenvalues while still having norm $\|\|A_i\|\| \leq 1$. This allows the models to learn more complex patterns while maintaining training stability [1].
+If we let $\alpha_i \in [-1, 1]$ for Mamba 2 and $\beta_i \in [0, 2]$ for (Gated) DeltaNet, then $A_i$ can have negative eigenvalues while still having norm $\|\|A_i\|\| \leq 1$. This allows the models to learn more complex patterns while maintaining training stability (Grazzi et al., 2025).
 
 ## Blocked Matrix Formulation of Linear Attention Mechanisms
 
@@ -229,7 +229,7 @@ Easy!
 
 Now, what if we take $n_h$ gradient descent steps per token?
 
-To do this, we can follow the procedure outlined in the DeltaProduct paper where they: 
+To do this, we can follow the procedure outlined in the DeltaProduct (Siems et al., 2025) paper where they: 
 
 1. Recurrently generate $n_h$ key-value pairs for each input token,
 2. Update the state using the $n_h$ key-value pairs, and
@@ -382,7 +382,7 @@ S_N &= \sum\_{k=1}^{Nn\_h} \left(\beta\_k \bm{v}\_k \bm{k}\_k^T \prod\_{k'=k+1}^
 \end{align*}
 $$
 
-### GatedDeltaProduct
+### Gated DeltaProduct
 
 $$A\_{i,j} = \alpha\_{i,j}(I - \beta\_{i,j} \bm{k}\_{i,j} \bm{k}\_{i,j}^T) \quad\quad B\_{i,j} = \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T$$
 $$
@@ -403,7 +403,7 @@ $$
 
 Since the update rules of linear attention mechanisms are associative (i.e., the order of operations doesn't matter), we can do the computations in multiple ways.
 
-At inference time, the recurrent form works best. But at training time, we ideally want to fully parallelize the computation. However, this is often infeasible due to memory constraints. So, we use chunk-wise parallelism instead:
+At inference time, the recurrent form works best. But at training time, we ideally want to fully parallelize the computation. However, this is often infeasible due to memory constraints. So, we use chunk-wise parallelism (Hua et al., 2022; Sun et al., 2023) instead:
 
 1. First, we divide the sequence into chunks.
 2. Then, we assign the chunks to different GPUs/TPUs.
@@ -591,7 +591,7 @@ $$
 
 ---
 
-As an exercise, try deriving the chunk-wise update rules for MambaSum, DeltaProduct, and GatedDeltaProduct.
+As an exercise, try deriving the chunk-wise update rules for MambaSum, DeltaProduct, and Gated DeltaProduct.
 
 ---
 
@@ -614,7 +614,11 @@ Not only is the blocked matrix formulation of linear attention mechanisms intuit
 
 ## References
 
-[UNDER CONSTRUCTION]
-
-1. Julien Siems, Timur Carstensen, Arber Zela, Frank Hutter, Massimiliano Pontil, Riccardo Grazzi (2025). DeltaProduct: Increasing the Expressivity of DeltaNet Through Products of Householders. URL https://arxiv.org/abs/2502.10297
-2. 
+1. Riccardo Grazzi, Julien Siems, Jörg K.H. Franke, Arber Zela, Frank Hutter, Massimiliano Pontil (2025). Unlocking State-Tracking in Linear RNNs Through Negative Eigenvalues. URL https://arxiv.org/abs/2411.12537
+2. Julien Siems, Timur Carstensen, Arber Zela, Frank Hutter, Massimiliano Pontil, Riccardo Grazzi (2025). DeltaProduct: Increasing the Expressivity of DeltaNet Through Products of Householders. URL https://arxiv.org/abs/2502.10297
+3. Angelos Katharopoulos, Apoorv Vyas, Nikolaos Pappas, and François Fleuret. Transformers are rnns: Fast autoregressive transformers with linear attention. In Proceedings of the 37th International Conference on Machine Learning, ICML 2020, 13-18 July 2020, Virtual Event, volume 119 of Proceedings of Machine Learning Research, pp. 5156–5165. PMLR, 2020b. URL http://proceedings.mlr.press/v119/katharopoulos20a.html.
+4. Tri Dao and Albert Gu. Transformers are SSMs: Generalized models and efficient algorithms through structured state space duality. In Proceedings of the 41st International Conference on MachineLearning, volume 235 of Proceedingsof Machine Learning Research, pp. 10041–10071. PMLR, 2024b. URL https://proceedings.mlr.press/v235/dao24a.html.
+5. Songlin Yang, Bailin Wang, Yu Zhang, Yikang Shen, and Yoon Kim (2025). Parallelizing Linear Transformers with the Delta Rule over Sequence Length. URL https://arxiv.org/abs/2406.06484
+6. Songlin Yang, Jan Kautz, Ali Hatamizadeh (2025). Gated Delta Networks: Improving Mamba2 with Delta Rule. URL https://arxiv.org/abs/2412.06464
+7. Weizhe Hua, Zihang Dai, Hanxiao Liu, and Quoc V. Le. Transformer quality in linear time. In Kamalika Chaudhuri, Stefanie Jegelka, Le Song, Csaba Szepesvári, Gang Niu, and Sivan Sabato (eds.), International Conference on Machine Learning, ICML 2022, 17-23 July 2022, Baltimore, Maryland, USA, volume 162 of Proceedings of Machine Learning Research, pp. 9099–9117. PMLR, 2022b. URL https://proceedings.mlr.press/v162/hua22a.html.
+8. Yutao Sun, Li Dong, Shaohan Huang, Shuming Ma, Yuqing Xia, Jilong Xue, Jianyong Wang, and Furu Wei. Retentive network: A successor to transformer for large language models. ArXiv preprint, abs/2307.08621, 2023. URL https://arxiv.org/abs/2307.08621.
