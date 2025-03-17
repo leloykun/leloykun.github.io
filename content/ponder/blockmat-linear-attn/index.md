@@ -36,7 +36,7 @@ If we let $\alpha_i \in [-1, 1]$ for Mamba 2 and $\beta_i \in [0, 2]$ for (Gated
 
 ## Blocked Matrix Formulation of Linear Attention Mechanisms
 
-Notice that the update rule above is just a linear transform of the state $S_{i-1}$. Thus, we can rewrite it as,
+Notice that we can rewrite the update rule above as,
 
 $$
 \begin{align*}
@@ -65,7 +65,7 @@ B_i & I
 \end{bmatrix}
 $$
 
-Now, at training time, we need *all* of the intermediary states, not just the final state. Thus, we need an efficient way to compute $S_N$ for all token indices $N$. To do this, let's unroll the recurrence above:
+At training time, we need *all* of the intermediary states, not just the final state. Thus, we need an efficient way to compute $S_N$ for all token indices $N$. To do this, let's unroll the recurrence above:
 
 $$
 \begin{align*}
@@ -179,7 +179,7 @@ S_N &= \sum_{i=1}^{N} \left(B_i \prod_{j=i+1}^{N} A_j\right)
 $$
 where $(1) \rightarrow (2)$ can be proven by induction.
 
-Equation $(1)$ makes it obvious *why* and *how* we can parallelize computation of $S_N$, for all $N$, at training time: the updates are merely (blocked) matrix multiplications; matrix multiplications are associative; and we can easily parallelize associative operations!
+Equation $(1)$ makes it obvious *why* and *how* we can parallelize computation of $S_N$, for all $N$, at training time: the updates are merely (blocked) matrix multiplications; matrix multiplications are associative; thus, we can use the (fully-parallel) associative scan algorithm to compute all the intermediary states in $O(N)$ time!
 
 ## One-Step Online Gradient Descent per Token
 
@@ -235,7 +235,31 @@ To do this, we can follow the procedure outlined in the DeltaProduct (Siems et a
 2. Update the state using the $n_h$ key-value pairs, and
 3. Keep only the final key-value pair and discard the rest.
 
-So instead of updating the state only once per token, we update it $n_h$ times per token. And to get the final state for each token, $S_N$, we expand equation $(1)$ above:
+In our formulation, this is equivalent to replacing each update with a product of $n_h$ updates:
+
+$$
+\begin{bmatrix}
+A_{i} & 0 \\\\
+B_{i} & I
+\end{bmatrix}
+\longrightarrow
+\begin{bmatrix}
+A_{i,1} & 0 \\\\
+B_{i,1} & I
+\end{bmatrix}
+\begin{bmatrix}
+A_{i,2} & 0 \\\\
+B_{i,2} & I
+\end{bmatrix}
+\cdots
+\begin{bmatrix}
+A_{i,n_h} & 0 \\\\
+B_{i,n_h} & I
+\end{bmatrix}
+$$
+where $A_{i,j}$ and $B_{i,j}$ are the update matrices for the $j$-th gradient descent step for the $i$-th token.
+
+Thus, Equation $(1)$ becomes:
 $$
 \begin{align}
 S_N =
@@ -270,7 +294,6 @@ I \\\\
 \end{bmatrix}
 \end{align}
 $$
-where $A_{i,j}$ and $B_{i,j}$ are the update matrices for the $j$-th gradient descent step for the $i$-th token.
 
 And if we reindex this as $[\cdot]\_k = [\cdot]\_{\lceil k/n\_h \rceil,\space (k-1) \\% n\_h + 1}$, then from equation $(3)$ above, we get:
 $$
@@ -283,19 +306,19 @@ Alternatively, we can also combine the updates for each token into a single upda
 
 $$
 \begin{align}
-\begin{bmatrix}
-A'\_{i} & 0 \\\\
-B'\_{i} & I
-\end{bmatrix}
-= \prod\_{j=1}^{n_h}
-\begin{bmatrix}
-A\_{i,j} & 0 \\\\
-B\_{i,j} & I
-\end{bmatrix}
-= \begin{bmatrix}
-\prod\_{j=1}^{n_h} A\_{i,j} & 0 \\\\
-\sum\_{j=1}^{n_h} \left(B\_{i,j} \prod\_{j'=j+1}^{n_h} A\_{i,j'}\right) & I
-\end{bmatrix}
+    \begin{bmatrix}
+        A'\_{i} & 0 \\\\
+        B'\_{i} & I
+    \end{bmatrix}
+    = \prod\_{j=1}^{n_h}
+    \begin{bmatrix}
+        A\_{i,j} & 0 \\\\
+        B\_{i,j} & I
+    \end{bmatrix}
+    = \begin{bmatrix}
+        \prod\_{j=1}^{n_h} A\_{i,j} & 0 \\\\
+        \sum\_{j=1}^{n_h} \left(B\_{i,j} \prod\_{j'=j+1}^{n_h} A\_{i,j'}\right) & I
+    \end{bmatrix}
 \end{align}
 $$
 
@@ -334,18 +357,7 @@ $$
         I \\\\
         0
         \end{bmatrix}\\\\
-    S_N &=
-        \begin{bmatrix}
-        0 & I
-        \end{bmatrix}
-        \begin{bmatrix}
-        \prod\_{i=1}^N \prod\_{j=1}^{n_h} A\_{i,j} & 0 \\\\
-        \sum\_{i=1}^N \sum\_{j=1}^{n_h} \left( B\_{i,j} \left(\prod\_{j'=j+1}^{n_h} A\_{i,j'}\right) \left(\prod\_{i'=i+1}^N \prod\_{j'=1}^{n_h} A\_{i',j'} \right)\right) & I
-        \end{bmatrix}
-        \begin{bmatrix}
-        I \\\\
-        0
-        \end{bmatrix}\\\\
+    S_N &= \sum\_{i=1}^N \left( B'\_i \prod\_{i'=i+1}^N A'\_{i'} \right)\\\\
     S_N &= \sum\_{i=1}^N \sum\_{j=1}^{n_h} \left( B\_{i,j} \underline{\left(\prod\_{j'=j+1}^{n_h} A\_{i,j'}\right) \left(\prod\_{i'=i+1}^N \prod\_{j'=1}^{n_h} A\_{i',j'} \right)}\right)
 \end{align}
 $$
@@ -362,6 +374,7 @@ Now, let's derive the $S_N$ for the linear attention mechanisms in the table abo
 ### MambaSum*
 
 $$A\_{i,j} = \text{diag}\left(\alpha\_{i,j} I\right) \quad\quad B\_{i,j} = \bm{v}\_{i,j} \bm{k}\_{i,j}^T$$
+Thus, from Equation $(10)$ above,
 $$
 \begin{align*}
 S_N &= \sum\_{i=1}^N \sum\_{j=1}^{n_h} \left( \bm{v}\_{i,j} \bm{k}\_{i,j}^T \left(\prod\_{j'=j+1}^{n_h} \text{diag}\left(\alpha\_{i,j'} I\right)\right) \left(\prod\_{i'=i+1}^N \prod\_{j'=1}^{n_h} \text{diag}\left(\alpha\_{i',j'} I\right) \right)\right)\\\\
@@ -401,7 +414,7 @@ $$
     <img src="../test-time-regression/linear-attn-comp-forms.png" style="width:75%; height:75%;" />
 </div>
 
-Since the update rules of linear attention mechanisms are associative (i.e., the order of operations doesn't matter), we can do the computations in multiple ways.
+Since the update rules of linear attention mechanisms are associative (i.e., the order of how we "combine" the updates doesn't matter), we can do the computations in multiple ways.
 
 At inference time, the recurrent form works best. But at training time, we ideally want to fully parallelize the computation. However, this is often infeasible due to memory constraints. So, we use chunk-wise parallelism (Hua et al., 2022; Sun et al., 2023) instead:
 
@@ -485,9 +498,10 @@ where $A_{c,i}$ and $B_{c,i}$ are now the update matrices for the $i$-th token w
 
 And by combining the updates for each chunk as in Equation $(6)$ above, we get:
 $$
+\begin{align}
 \begin{bmatrix}
-    A'\_{c} & 0 \\\\
-    B'\_{c} & I
+    A^\*\_{c} & 0 \\\\
+    B^\*\_{c} & I
 \end{bmatrix}
 = \prod\_{i=1}^{n_c} \begin{bmatrix}
     A\_{c,i} & 0 \\\\
@@ -497,6 +511,7 @@ $$
     \prod\_{i=1}^{n_c} A\_{c,i} & 0 \\\\
     \sum\_{i=1}^{n_c} \left(B\_{c,i} \prod\_{i'=i+1}^{n_c} A\_{c,i'}\right) & I
 \end{bmatrix}
+\end{align}
 $$
 $$
 S_C =
@@ -505,22 +520,22 @@ S_C =
         0 & I
         \end{bmatrix}
         \begin{bmatrix}
-        A'\_1 & 0 \\\\
-        B'\_1 & I
+        A^\*\_1 & 0 \\\\
+        B^\*\_1 & I
         \end{bmatrix}
         \begin{bmatrix}
-        A'_2 & 0 \\\\
-        B'_2 & I
+        A^\*_2 & 0 \\\\
+        B^\*_2 & I
         \end{bmatrix}
         \cdots
         \begin{bmatrix}
-        A'\_{C-1} & 0 \\\\
-        B'\_{C-1} & I
+        A^\*\_{C-1} & 0 \\\\
+        B^\*\_{C-1} & I
         \end{bmatrix}
     }
     \begin{bmatrix}
-    A'_C & 0 \\\\
-    B'_C & I
+    A^\*_C & 0 \\\\
+    B^\*_C & I
     \end{bmatrix}
     \begin{bmatrix}
     I \\\\
@@ -531,16 +546,16 @@ which has the equivalent cross-chunk recurrent form:
 $$
 \begin{align}
 \begin{bmatrix}
-S\_{C} & I
+    S\_{C} & I
 \end{bmatrix} &=
 \begin{bmatrix}
-S\_{C-1} & I
+    S\_{C-1} & I
 \end{bmatrix}
 \begin{bmatrix}
-A'_C & 0 \\\\
-B'_C & I
+    A^\*_C & 0 \\\\
+    B^\*_C & I
 \end{bmatrix}\\\\
-S_C &= S\_{C-1}A'_C + B'_C
+S_C &= S\_{C-1}A^\*_C + B^\*_C
 \end{align}
 $$
 
@@ -553,12 +568,13 @@ Now, let's derive the $S_C$ for the linear attention mechanisms in the table abo
 $$
 \begin{align*}
     A\_{c,i} &= \text{diag}\left(\alpha\_{c,i} I\right) & B\_{c,i} &= \bm{v}\_{c,i} \bm{k}\_{c,i}^T\\\\
-    A'_C &= \prod\_{i=1}^{n_c} \text{diag}\left(\alpha\_{C,i} I\right) \quad & B'_C &= \sum\_{i=1}^{n_c} \left(\bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \text{diag}\left(\alpha\_{C,i'} I\right)\right)
+    A^\*_C &= \prod\_{i=1}^{n_c} \text{diag}\left(\alpha\_{C,i} I\right) \quad & B^\*_C &= \sum\_{i=1}^{n_c} \left(\bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \text{diag}\left(\alpha\_{C,i'} I\right)\right)
 \end{align*}
 $$
-Then, from Equation $(12)$ above, we get:
+Thus, from Equation $(13)$ above,
 $$
 \begin{align*}
+    S_C &= S\_{C-1}A^\*_C + B^\*_C\\\\
     S_C &= S\_{C-1} \prod\_{i=1}^{n_c} \text{diag}\left(\alpha\_{C,i} I\right) + \sum\_{i=1}^{n_c} \left(\bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \text{diag}\left(\alpha\_{C,i'} I\right)\right)\\\\
     S_C &= S\_{C-1} \prod\_{i=1}^{n_c} \alpha\_{C,i} + \sum\_{i=1}^{n_c} \left(\prod\_{i'=i+1}^{n_c} \alpha\_{C,i'}\right) \bm{v}\_{C,i} \bm{k}\_{C,i}^T
 \end{align*}
@@ -569,11 +585,15 @@ $$
 $$
 \begin{align*}
     A\_{c,i} &= I - \beta\_{c,i} \bm{k}\_{c,i} \bm{k}\_{c,i}^T & B\_{c,i} &= \beta\_{c,i} \bm{v}\_{c,i} \bm{k}\_{c,i}^T\\\\
-    A'_C &= \prod\_{i=1}^{n_c} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) \quad & B'_C &= \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
+    A^\*_C &= \prod\_{i=1}^{n_c} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) \quad & B^\*_C &= \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
 \end{align*}
 $$
+Thus,
 $$
-S_C = S\_{C-1} \prod\_{i=1}^{n_c} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) + \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
+\begin{align*}
+    S_C &= S\_{C-1}A^\*_C + B^\*_C\\\\
+    S_C &= S\_{C-1} \prod\_{i=1}^{n_c} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) + \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
+\end{align*}
 $$
 
 ### Chunk-wise Gated DeltaNet
@@ -581,19 +601,105 @@ $$
 $$
 \begin{align*}
     A\_{c,i} &= \alpha\_{c,i}(I - \beta\_{c,i} \bm{k}\_{c,i} \bm{k}\_{c,i}^T) & B\_{c,i} &= \beta\_{c,i} \bm{v}\_{c,i} \bm{k}\_{c,i}^T\\\\
-    A'_C &= \prod\_{i=1}^{n_c} \alpha\_{C,i} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) \quad & B'_C &= \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \alpha\_{C,i'} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
+    A^\*_C &= \prod\_{i=1}^{n_c} \alpha\_{C,i} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) \quad & B^\*_C &= \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \alpha\_{C,i'} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
 \end{align*}
 $$
+Thus,
 $$
 \begin{align*}
+    S_C &= S\_{C-1}A^\*_C + B^\*_C\\\\
     S_C &= S\_{C-1} \prod\_{i=1}^{n_c} \alpha\_{C,i} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) + \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \alpha\_{C,i'} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)\\\\
     S_C &= S\_{C-1} \left(\prod\_{i=1}^{n_c} \alpha\_{C,i} \right) \left(\prod\_{i=1}^{n_c} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right)\right) + \sum\_{i=1}^{n_c} \left(\left(\beta\_{C,i} \prod\_{i'=i+1}^{n_c} \alpha\_{C,i'} \right) \bm{v}\_{C,i} \bm{k}\_{C,i}^T  \prod\_{i'=i+1}^{n_c} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
 \end{align*}
 $$
 
+## Multi-Step Online Gradient Descent per Token with Chunk-wise Parallelism
+
+Let's combine the two techniques we've discussed so far: multi-step online gradient descent per token and chunk-wise parallelism.
+
+### The strategy
+
+We can do this either way, but suppose we chunk the updates first then expand the each of the updates within the chunks into a product of $n_h$ updates. I.e., we have:
+
+$$
+\begin{bmatrix}
+    A_{(c-1)*n_c + i} & 0 \\\\
+    B_{(c-1)*n_c + i} & I
+\end{bmatrix}
+\xrightarrow{\text{reindex}}
+\begin{bmatrix}
+    A_{c,i} & 0 \\\\
+    B_{c,i} & I
+\end{bmatrix}
+\xrightarrow{\text{expand}}
+\begin{bmatrix}
+    A_{c,i,1} & 0 \\\\
+    B_{c,i,1} & I
+\end{bmatrix}
+\begin{bmatrix}
+    A_{c,i,2} & 0 \\\\
+    B_{c,i,2} & I
+\end{bmatrix}
+\cdots
+\begin{bmatrix}
+    A_{c,i,n_h} & 0 \\\\
+    B_{c,i,n_h} & I
+\end{bmatrix}
+$$
+where $A_{c,i,j}$ and $B_{c,i,j}$ are the update matrices for the $j$-th gradient descent step for the $i$-th token within the $c$-th chunk.
+
+And from equations $(6)$, $(10)$, and $(11)$, we have:
+$$
+\begin{align*}
+    \begin{bmatrix}
+        A^\*\_{c} & 0 \\\\
+        B^\*\_{c} & I
+    \end{bmatrix}
+    &= \prod\_{i=1}^{n_c} \begin{bmatrix}
+        A'\_{c,i} & 0 \\\\
+        B'\_{c,i} & I
+    \end{bmatrix}
+    = \prod\_{i=1}^{n_c} \prod\_{j=1}^{n_h} \begin{bmatrix}
+        A\_{c,i,j} & 0 \\\\
+        B\_{c,i,j} & I
+    \end{bmatrix}\\\\
+    \begin{bmatrix}
+        A^\*\_{c} & 0 \\\\
+        B^\*\_{c} & I
+    \end{bmatrix}
+    &= \begin{bmatrix}
+        \prod\_{i=1}^{n_c} \prod\_{j=1}^{n_h} A\_{c,i,j} & 0 \\\\
+        \sum\_{i=1}^{n_c}\sum\_{j=1}^{n_h} \left( B\_{c,i,j} \left(\prod\_{j'=j+1}^{n_h} A\_{c,i,j'}\right) \left(\prod\_{i'=i+1}^{n_c} \prod\_{j=1}^{n_h} A\_{c,i,j}\right)\right) & I
+    \end{bmatrix}
+\end{align*}
+$$
+Thus,
+$$
+\begin{align*}
+    A^\*\_{c} &= \prod\_{i=1}^{n_c} \prod\_{j=1}^{n_h} A\_{c,i,j} \\\\
+    B^\*\_{c} &= \sum\_{i=1}^{n_c}\sum\_{j=1}^{n_h} \left( B\_{c,i,j} \left(\prod\_{j'=j+1}^{n_h} A\_{c,i,j'}\right) \left(\prod\_{i'=i+1}^{n_c} \prod\_{j=1}^{n_h} A\_{c,i,j}\right)\right)
+\end{align*}
+$$
+which we can then plug into Equation $(13)$ to get the cross-chunk recurrence:
+
+$$
+\begin{align*}
+    S_C &= S\_{C-1}A^\*_C + B^\*_C\\\\
+    S_C &= S\_{C-1} \prod\_{i=1}^{n_c} \prod\_{j=1}^{n_h} A\_{C,i,j} + \sum\_{i=1}^{n_c}\sum\_{j=1}^{n_h} \left( B\_{C,i,j} \left(\prod\_{j'=j+1}^{n_h} A\_{C,i,j'}\right) \left(\prod\_{i'=i+1}^{n_c} \prod\_{j=1}^{n_h} A\_{C,i,j}\right)\right)
+\end{align*}
+$$
+
+or, if we reindex this as $[\cdot]\_{C,k} = [\cdot]\_{C,\space \lceil k/n\_h \rceil,\space (k-1) \\% n\_h + 1}$, we get:
+
+$$
+\begin{align*}
+    S_C &= S\_{C-1} \prod\_{k=1}^{n_c n_h} A\_{C,k} + \sum\_{k=1}^{n_c n_h} \left( B\_{C,k} \prod\_{k'=k+1}^{n_c n_h} A\_{C,k'}\right)
+\end{align*}
+$$
+
 ---
 
-As an exercise, try deriving the chunk-wise update rules for MambaSum, DeltaProduct, and Gated DeltaProduct.
+As an exercise, try deriving the cross-chunk recurrence for MambaSum, DeltaProduct, and Gated DeltaProduct.
 
 ---
 
