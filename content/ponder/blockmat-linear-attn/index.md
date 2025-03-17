@@ -30,9 +30,9 @@ Here are a couple of examples:
 | DeltaNet                       |         $S_i = S_{i-1}(I - \beta_i \bm{k}_i \bm{k}_i^T) + \beta_i \bm{v}_i \bm{k}_i^T$ |           $I - \beta_i \bm{k}_i \bm{k}_i^T$ | $\beta_i \bm{v}_i \bm{k}_i^T$ |
 | Gated DeltaNet                 | $S_i = S_{i-1}\alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T) + \beta_i \bm{v}_i \bm{k}_i^T$ | $\alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T)$ | $\beta_i \bm{v}_i \bm{k}_i^T$ |
 
-where $\bm{k}_i  \in \mathbb{R}^{d_k}$ and $\bm{v}_i \in \mathbb{R}^{d_v}$ are the corresponding key-value pair for the $i$-th token, respectively; $\alpha_i \in [0, 1]$ can be thought of as a date-dependent weight decay that controls how much of the previous state to keep; and $\beta_i \in [0, 1]$ can be thought of as a date-dependent learning rate that controls how much of the new information to add to the state.
+where $\bm{k}_i  \in \mathbb{R}^{d_k}$ and $\bm{v}_i \in \mathbb{R}^{d_v}$ are the corresponding key-value pair for the $i$-th token; $\alpha_i \in [0, 1]$ can be thought of as a date-dependent weight decay that controls how much of the previous state to keep or forget; and $\beta_i \in [0, 1]$ can be thought of as a date-dependent learning rate that controls how much of the new information to add to the state.
 
-If we let $\alpha_i \in [-1, 1]$ for Mamba 2 and $\beta_i \in [0, 2]$ for (Gated) DeltaNet, then $A_i$ can have negative eigenvalues while still having norm $\|\|A_i\|\| \leq 1$. This allows the models to be more expressive and learn more complex patterns while maintaining stability [1].
+If we let $\alpha_i \in [-1, 1]$ for Mamba 2 and $\beta_i \in [0, 2]$ for (Gated) DeltaNet, then $A_i$ can have negative eigenvalues while still having norm $\|\|A_i\|\| \leq 1$. This allows the models to learn more complex patterns while maintaining training stability [1].
 
 ## Blocked Matrix Formulation of Linear Attention Mechanisms
 
@@ -232,10 +232,10 @@ Now, what if we take $n_h$ gradient descent steps per token?
 To do this, we can follow the procedure outlined in the DeltaProduct paper where they: 
 
 1. Recurrently generate $n_h$ key-value pairs for each input token,
-2. Update the state using $n_h$ the key-value pairs, and
+2. Update the state using the $n_h$ key-value pairs, and
 3. Keep only the final key-value pair and discard the rest.
 
-So instead of updating the state only once per token, we update the state $n_h$ times per token. And to get the final state for each token $S_N$, we expand equation $(1)$ above:
+So instead of updating the state only once per token, we update it $n_h$ times per token. And to get the final state for each token, $S_N$, we expand equation $(1)$ above:
 $$
 \begin{align}
 S_N =
@@ -554,10 +554,11 @@ $$
     A'_C &= \prod\_{j=1}^{n_c} \text{diag}\left(\alpha\_{C,j} I\right) & B'_C &= \sum\_{j=1}^{n_c} \left(\bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \text{diag}\left(\alpha\_{C,j'} I\right)\right)
 \end{align*}
 $$
+Then, from Equation $(12)$ above, we get:
 $$
 \begin{align*}
-    S_C &= S\_{C-1} \left(\prod\_{j=1}^{n_c} \text{diag}\left(\alpha\_{C,j} I\right)\right) + \sum\_{j=1}^{n_c} \left(\bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \text{diag}\left(\alpha\_{C,j'} I\right)\right)\\\\
-    S_C &= S\_{C-1} \left(\prod\_{j=1}^{n_c} \alpha\_{C,j}\right) + \sum\_{j=1}^{n_c} \left(\prod\_{j'=j+1}^{n_c} \alpha\_{C,j'}\right) \bm{v}\_{C,j} \bm{k}\_{C,j}^T
+    S_C &= S\_{C-1} \prod\_{j=1}^{n_c} \text{diag}\left(\alpha\_{C,j} I\right) + \sum\_{j=1}^{n_c} \left(\bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \text{diag}\left(\alpha\_{C,j'} I\right)\right)\\\\
+    S_C &= S\_{C-1} \prod\_{j=1}^{n_c} \alpha\_{C,j} + \sum\_{j=1}^{n_c} \left(\prod\_{j'=j+1}^{n_c} \alpha\_{C,j'}\right) \bm{v}\_{C,j} \bm{k}\_{C,j}^T
 \end{align*}
 $$
 
@@ -570,7 +571,7 @@ $$
 \end{align*}
 $$
 $$
-S_C = S\_{C-1} \left(\prod\_{j=1}^{n_c} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right)\right) + \sum\_{j=1}^{n_c} \left(\beta\_{C,j} \bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)
+S_C = S\_{C-1} \prod\_{j=1}^{n_c} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right) + \sum\_{j=1}^{n_c} \left(\beta\_{C,j} \bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)
 $$
 
 ### Chunk-wise Gated DeltaNet
@@ -583,8 +584,8 @@ $$
 $$
 $$
 \begin{align*}
-    S_C &= S\_{C-1} \left(\prod\_{j=1}^{n_c} \alpha\_{C,j} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right)\right) + \sum\_{j=1}^{n_c} \left(\beta\_{C,j} \bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \alpha\_{C,j'} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)\\\\
-    S_C &= S\_{C-1} \left(\prod\_{j=1}^{n_c} \alpha\_{C,j} \right) \left(\prod\_{j=1}^{n_c} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right)\right) + \sum\_{j=1}^{n_c} \left(\beta\_{C,j} \prod\_{j'=j+1}^{n_c} \alpha\_{C,j'} \right) \bm{v}\_{C,j} \bm{k}\_{C,j}^T
+    S_C &= S\_{C-1} \prod\_{j=1}^{n_c} \alpha\_{C,j} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right) + \sum\_{j=1}^{n_c} \left(\beta\_{C,j} \bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \alpha\_{C,j'} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)\\\\
+    S_C &= S\_{C-1} \left(\prod\_{j=1}^{n_c} \alpha\_{C,j} \right) \left(\prod\_{j=1}^{n_c} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right)\right) + \sum\_{j=1}^{n_c} \left(\left(\beta\_{C,j} \prod\_{j'=j+1}^{n_c} \alpha\_{C,j'} \right) \bm{v}\_{C,j} \bm{k}\_{C,j}^T  \prod\_{j'=j+1}^{n_c} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)
 \end{align*}
 $$
 
@@ -598,7 +599,7 @@ As an exercise, try deriving the chunk-wise update rules for MambaSum, DeltaProd
 
 And that's it!
 
-Not only is the blocked matrix formulation of linear attention mechanisms intuitive but it also makes the connection between different algorithms and computational forms much more obvious. I'd even go as far as to say that we now have the proper abstraction to do an evolutionary search for new linear attention mechanisms ;)
+Not only is the blocked matrix formulation of linear attention mechanisms intuitive, it also makes the connections between different algorithms and computational forms much more obvious. I'd even go as far as to say that we now have the proper abstraction to do an evolutionary search for new linear attention mechanisms ;)
 
 ## How to Cite
 
