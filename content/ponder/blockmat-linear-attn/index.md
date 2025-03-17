@@ -13,15 +13,13 @@ editPost:
     Text: "Crossposted from X (formerly Twitter)"
 ---
 
-In the [previous post](../test-time-regression/), we derived several linear attention mechanisms from scratch by formulating them as test-time online regression problems. Here, we'll discuss a more intuitive way to represent the update rules of these linear attention mechanisms using a blocked matrix formulation. Then, we'll discuss how to use it to (1) derive the update rules for linear attention mechanisms that take multiple gradient descent steps per token and (2) derive the update rules for chunk-wise parallelism of already-existing linear attention mechanisms.
+In the [previous post](../test-time-regression/), we derived several linear attention mechanisms from scratch by formulating them as test-time online regression problems. Here, we'll discuss a more intuitive way to represent the update rules of the internal states of these linear attention mechanisms using a blocked matrix formulation. Then, we'll discuss how to use it to (1) derive the update rules for linear attention mechanisms that take multiple gradient descent steps per token and (2) derive the update rules for chunk-wise parallelism of already-existing linear attention mechanisms.
 
-## Blocked Matrix Formulation
+## Recap: Linear Attention Mechanisms
 
-The update rules of linear attention mechanisms have the following structure:
-
+Linear attention mechanisms typically have an update rule of the form:
 $$S_i = S_{i-1}A_i + B_i$$
-
-where $S_{i-1}$ is the (old) state at time step $i-1$, $S_i$ is the (new) state at time step $i$, and $A_i$ and $B_i$ are update matrices. In most cases, $A_i$ "removes" some information from the state while $B_i$ "adds" new information to the state. But if $A_i$ can have negative eigenvalues, we can think of it as "inverting" some information instead of "removing" it.
+where $S\_{i-1}$ is the (old) state after processing the first $i-1$ tokens, $S_i$ is the (new) state after processing the first $i$ tokens, and $A_i$ and $B_i$ are update matrices. Think of $A_i$ as an operation that *modifies* some information already stored in the state while $B_i$ *adds* new information to the state. In most cases where $A_i \neq I$, $A_i$ typically *removes* some (old) information from the state. But if we allow $A_i$ to have negative eigenvalues, then we can also think of it as an operation that, in a sense, *inverts* information instead.
 
 Here are a couple of examples:
 
@@ -29,22 +27,29 @@ Here are a couple of examples:
 | ------------------------------ | -------------------------------------------------------------------------------------: | ------------------------------------------: | ----------------------------: |
 | Vanilla Linear Attention       |                                                  $S_i = S_{i-1} + \bm{v}_i \bm{k}_i^T$ |                                         $I$ |         $\bm{v}_i \bm{k}_i^T$ |
 | Mamba 2                        |            $S_i = S\_{i-1}\text{diag}\left(\alpha\_i I\right) + \bm{v}\_i \bm{k}\_i^T$ |       $\text{diag}\left(\alpha\_i I\right)$ |         $\bm{v}_i \bm{k}_i^T$ |
-| DeltaNet                       |                 $S_i = S_{i-1}(I - \beta_i \bm{k}_i \bm{k}_i^T) + \bm{v}_i \bm{k}_i^T$ |           $I - \beta_i \bm{k}_i \bm{k}_i^T$ | $\beta_i \bm{v}_i \bm{k}_i^T$ |
+| DeltaNet                       |         $S_i = S_{i-1}(I - \beta_i \bm{k}_i \bm{k}_i^T) + \beta_i \bm{v}_i \bm{k}_i^T$ |           $I - \beta_i \bm{k}_i \bm{k}_i^T$ | $\beta_i \bm{v}_i \bm{k}_i^T$ |
 | Gated DeltaNet                 | $S_i = S_{i-1}\alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T) + \beta_i \bm{v}_i \bm{k}_i^T$ | $\alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T)$ | $\beta_i \bm{v}_i \bm{k}_i^T$ |
 
-where $v_i$ and $k_i$ are the value and key at time step $i$, respectively.
+where $\bm{k}_i  \in \mathbb{R}^{d_k}$ and $\bm{v}_i \in \mathbb{R}^{d_v}$ are the corresponding key-value pair for the $i$-th token, respectively; $\alpha_i \in [0, 1]$ can be thought of as a date-dependent weight decay that controls how much of the previous state to keep; and $\beta_i \in [0, 1]$ can be thought of as a date-dependent learning rate that controls how much of the new information to add to the state.
 
-Now, notice that the update rule above can be rewritten as:
+If we let $\alpha_i \in [-1, 1]$ for Mamba 2 and $\beta_i \in [0, 2]$ for (Gated) DeltaNet, then $A_i$ can have negative eigenvalues while still having norm $\|\|A_i\|\| \leq 1$. This allows the models to be more expressive and learn more complex patterns while maintaining stability [1].
+
+## Blocked Matrix Formulation of Linear Attention Mechanisms
+
+Notice that the update rule above is just a linear transform of the state $S_{i-1}$. Thus, we can rewrite it as,
 
 $$
-S_{i} =
-\begin{bmatrix}
-S_{i-1} & I
-\end{bmatrix}
-\begin{bmatrix}
-A_i \\\\
-B_i
-\end{bmatrix}
+\begin{align*}
+    S_i &= S_{i-1}A_i + B_i\\\\
+    S_{i} &=
+        \begin{bmatrix}
+            S_{i-1} & I
+        \end{bmatrix}
+        \begin{bmatrix}
+            A_i \\\\
+            B_i
+        \end{bmatrix}
+\end{align*}
 $$
 or, equivalently,
 $$
@@ -60,10 +65,35 @@ B_i & I
 \end{bmatrix}
 $$
 
-Now, at training time, we need an efficient way to compute $S_i$ for all $i$. We can do this by unrolling the recurrence above:
+Now, at training time, we need *all* of the intermediary states, not just the final state. Thus, we need an efficient way to compute $S_N$ for all token indices $N$. To do this, let's unroll the recurrence above:
 
 $$
 \begin{align*}
+\begin{bmatrix}
+S_{N} & I
+\end{bmatrix} &=
+\begin{bmatrix}
+S_{N-1} & I
+\end{bmatrix}
+\begin{bmatrix}
+A_N & 0 \\\\
+B_N & I
+\end{bmatrix}\\\\
+\begin{bmatrix}
+S_{N} & I
+\end{bmatrix} &=
+\begin{bmatrix}
+S_{N-2} & I
+\end{bmatrix}
+\begin{bmatrix}
+A\_{N-1} & 0 \\\\
+B\_{N-1} & I
+\end{bmatrix}
+\begin{bmatrix}
+A_N & 0 \\\\
+B_N & I
+\end{bmatrix}\\\\
+&\vdots\\\\
 \begin{bmatrix}
 S_{N} & I
 \end{bmatrix} &=
@@ -158,6 +188,7 @@ Let's derive $S_N$ for each of the linear attention mechanisms in the table abov
 ### Vanilla Linear Attention
 
 $$A_i = I \quad\quad B_i = \bm{v}_i \bm{k}_i^T$$
+From Equation $(3)$ above, we get:
 $$
 \begin{align*}
 S_N &= \sum\_{i=1}^{N} \left(\bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} I\right)\\\\
@@ -196,16 +227,15 @@ Easy!
 
 ## Multi-Step Online Gradient Descent per Token
 
-Now, what if we want to take $n_h$ gradient descent steps per token?
+Now, what if we take $n_h$ gradient descent steps per token?
 
 To do this, we can follow the procedure outlined in the DeltaProduct paper where they: 
 
-1. Recurrently generate $n_h$ intermediate tokens for each input token (including the input token itself),
-2. Calculate the key-value pairs for each intermediate token,
-3. Update the state using the key-value pairs, and
-4. Discard the outputs except for the last one to maintain the number of tokens.
+1. Recurrently generate $n_h$ key-value pairs for each input token,
+2. Update the state using $n_h$ the key-value pairs, and
+3. Keep only the final key-value pair and discard the rest.
 
-So, instead of updating the state only once per token, we update the state $n_h$ times per token. And to get the final state for each token $S_N$, we expand equation $(1)$ above:
+So instead of updating the state only once per token, we update the state $n_h$ times per token. And to get the final state for each token $S_N$, we expand equation $(1)$ above:
 $$
 \begin{align}
 S_N =
@@ -329,9 +359,9 @@ as expected.
 
 Now, let's derive the $S_N$ for the linear attention mechanisms in the table above, but this time, with $n_h$ gradient descent steps per token.
 
-### MambaSum
+### MambaSum*
 
-$$A_i = \text{diag}\left(\alpha_i I\right) \quad\quad B_i = \bm{v}_i \bm{k}_i^T$$
+$$A\_{i,j} = \text{diag}\left(\alpha\_{i,j} I\right) \quad\quad B\_{i,j} = \bm{v}\_{i,j} \bm{k}\_{i,j}^T$$
 $$
 \begin{align*}
 S_N &= \sum\_{i=1}^N \sum\_{j=1}^{n_h} \left( \bm{v}\_{i,j} \bm{k}\_{i,j}^T \left(\prod\_{j'=j+1}^{n_h} \text{diag}\left(\alpha\_{i,j'} I\right)\right) \left(\prod\_{i'=i+1}^N \prod\_{j'=1}^{n_h} \text{diag}\left(\alpha\_{i',j'} I\right) \right)\right)\\\\
@@ -340,9 +370,11 @@ S_N &= \sum\_{k=1}^{Nn\_h} \left(\prod\_{k'=k+1}^{Nn\_h} \alpha\_{k'}\right) \bm
 \end{align*}
 $$
 
+> *I'm not actually sure if MambaSum already exists under a different name. If it does, please let me know!
+
 ### DeltaProduct
 
-$$A_i = I - \beta_i \bm{k}_i \bm{k}_i^T \quad\quad B_i = \beta_i \bm{v}_i \bm{k}_i^T$$
+$$A\_{i,j} = I - \beta\_{i,j} \bm{k}\_{i,j} \bm{k}\_{i,j}^T \quad\quad B\_{i,j} = \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T$$
 $$
 \begin{align*}
 S_N &= \sum\_{i=1}^N \sum\_{j=1}^{n_h} \left( \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T \underline{\left(\prod\_{j'=j+1}^{n_h} \left(I - \beta\_{i,j'} \bm{k}\_{i,j'} \bm{k}\_{i,j'}^T\right)\right) \left(\prod\_{i'=i+1}^N \prod\_{j'=1}^{n_h} \left(I - \beta\_{i',j'} \bm{k}\_{i',j'} \bm{k}\_{i',j'}^T\right) \right)}\right)\\\\
@@ -352,7 +384,7 @@ $$
 
 ### GatedDeltaProduct
 
-$$A_i = \alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T) \quad\quad B_i = \beta_i \bm{v}_i \bm{k}_i^T$$
+$$A\_{i,j} = \alpha\_{i,j}(I - \beta\_{i,j} \bm{k}\_{i,j} \bm{k}\_{i,j}^T) \quad\quad B\_{i,j} = \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T$$
 $$
 \begin{align*}
 S_N &= \sum\_{i=1}^N \sum\_{j=1}^{n_h} \left( \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T \underline{\left(\prod\_{j'=j+1}^{n_h} \alpha\_{i,j'} \left(I - \beta\_{i,j'} \bm{k}\_{i,j'} \bm{k}\_{i,j'}^T\right)\right) \left(\prod\_{i'=i+1}^N \prod\_{j'=1}^{n_h} \alpha\_{i',j'} \left(I - \beta\_{i',j'} \bm{k}\_{i',j'} \bm{k}\_{i',j'}^T\right) \right)}\right)\\\\
@@ -518,8 +550,8 @@ Now, let's derive the $S_C$ for the linear attention mechanisms in the table abo
 
 $$
 \begin{align*}
-    A_i &= \text{diag}\left(\alpha_i I\right) & B_i &= \bm{v}_i \bm{k}_i^T\\\\
-    A'_C &= \prod\_{j=1}^{n_c} \text{diag}\left(\alpha\_{C,j} I\right) & B'_i &= \sum\_{j=1}^{n_c} \left(\bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \text{diag}\left(\alpha\_{C,j'} I\right)\right)
+    A\_{i,j} &= \text{diag}\left(\alpha\_{i,j} I\right) & B\_{i,j} &= \bm{v}\_{i,j} \bm{k}\_{i,j}^T\\\\
+    A'_C &= \prod\_{j=1}^{n_c} \text{diag}\left(\alpha\_{C,j} I\right) & B'_C &= \sum\_{j=1}^{n_c} \left(\bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \text{diag}\left(\alpha\_{C,j'} I\right)\right)
 \end{align*}
 $$
 $$
@@ -533,7 +565,7 @@ $$
 
 $$
 \begin{align*}
-    A_i &= I - \beta_i \bm{k}_i \bm{k}_i^T & B_i &= \beta_i \bm{v}_i \bm{k}_i^T\\\\
+    A\_{i,j} &= I - \beta\_{i,j} \bm{k}\_{i,j} \bm{k}\_{i,j}^T & B\_{i,j} &= \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T\\\\
     A'_C &= \prod\_{j=1}^{n_c} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right) & B'_C &= \sum\_{j=1}^{n_c} \left(\beta\_{C,j} \bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)
 \end{align*}
 $$
@@ -545,7 +577,7 @@ $$
 
 $$
 \begin{align*}
-    A_i &= \alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T) & B_i &= \beta_i \bm{v}_i \bm{k}_i^T\\\\
+    A\_{i,j} &= \alpha\_{i,j}(I - \beta\_{i,j} \bm{k}\_{i,j} \bm{k}\_{i,j}^T) & B\_{i,j} &= \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T\\\\
     A'_C &= \prod\_{j=1}^{n_c} \alpha\_{C,j} \left(I - \beta\_{C,j} \bm{k}\_{C,j} \bm{k}\_{C,j}^T\right) & B'_C &= \sum\_{j=1}^{n_c} \left(\beta\_{C,j} \bm{v}\_{C,j} \bm{k}\_{C,j}^T \prod\_{j'=j+1}^{n_c} \alpha\_{C,j'} \left(I - \beta\_{C,j'} \bm{k}\_{C,j'} \bm{k}\_{C,j'}^T\right)\right)
 \end{align*}
 $$
@@ -581,4 +613,5 @@ Not only is the blocked matrix formulation of linear attention mechanisms intuit
 
 ## References
 
-[Under Construction]
+1. Julien Siems, Timur Carstensen, Arber Zela, Frank Hutter, Massimiliano Pontil, Riccardo Grazzi (2025). DeltaProduct: Increasing the Expressivity of DeltaNet Through Products of Householders. URL https://arxiv.org/abs/2502.10297
+2. 
