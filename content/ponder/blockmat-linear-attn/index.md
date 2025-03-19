@@ -188,13 +188,13 @@ Let's derive $S_N$ for each of the linear attention mechanisms in the table abov
 
 ### Vanilla Linear Attention
 
-{{< collapse summary="Show derivation of $S_C$" openByDefault=true >}}
+{{< collapse summary="Show derivation of $S_N$" openByDefault=true >}}
 $$A_i = I \quad\quad B_i = \bm{v}_i \bm{k}_i^T$$
 From Equation $(3)$ above, we get:
 $$
 \begin{align*}
-S_N &= \sum\_{i=1}^{N} \left(\bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} I\right)\\\\
-S_N &= \sum\_{i=1}^{N} \bm{v}\_i \bm{k}\_i^T
+    S_N &= \sum\_{i=1}^{N} \left(\bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} I\right)\\\\
+    S_N &= \sum\_{i=1}^{N} \bm{v}\_i \bm{k}\_i^T
 \end{align*}
 $$
 {{< /collapse >}}
@@ -206,8 +206,8 @@ $$A_i = \text{diag}\left(\alpha_i I\right) \quad\quad B_i = \bm{v}_i \bm{k}_i^T$
 Thus,
 $$
 \begin{align*}
-S_N &= \sum\_{i=1}^{N} \left(\bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} \text{diag}\left(\alpha_j I\right)\right)\\\\
-S_N &= \sum\_{i=1}^{N} \left( \prod\_{j=i+1}^{N} \alpha_j \right) \bm{v}\_i \bm{k}\_i^T
+    S_N &= \sum\_{i=1}^{N} \left(\bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} \text{diag}\left(\alpha_j I\right)\right)\\\\
+    S_N &= \sum\_{i=1}^{N} \left( \prod\_{j=i+1}^{N} \alpha_j \right) \bm{v}\_i \bm{k}\_i^T
 \end{align*}
 $$
 {{< /collapse >}}
@@ -227,8 +227,8 @@ $$A_i = \alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T) \quad\quad B_i = \beta_i \bm{v
 Thus,
 $$
 \begin{align*}
-S_N &= \sum\_{i=1}^{N} \left(\beta_i \bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} \alpha_j \left(I - \beta_j \bm{k}_j \bm{k}_j^T\right)\right)\\\\
-S_N &= \sum\_{i=1}^{N} \left(\left(\beta_i \prod\_{j=i+1}^{N} \alpha_j \right) \bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} \left(I - \beta_j \bm{k}_j \bm{k}_j^T\right)\right)
+    S_N &= \sum\_{i=1}^{N} \left(\beta_i \bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} \alpha_j \left(I - \beta_j \bm{k}_j \bm{k}_j^T\right)\right)\\\\
+    S_N &= \sum\_{i=1}^{N} \left(\left(\beta_i \prod\_{j=i+1}^{N} \alpha_j \right) \bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} \left(I - \beta_j \bm{k}_j \bm{k}_j^T\right)\right)
 \end{align*}
 $$
 {{< /collapse >}}
@@ -393,7 +393,7 @@ Now, let's derive the $S_N$ for the linear attention mechanisms in the table abo
 
 ### MambaSum*
 
-{{< collapse summary="Show derivation of $S_C$" openByDefault=true >}}
+{{< collapse summary="Show derivation of $S_N$" openByDefault=true >}}
 $$A\_{i,j} = \text{diag}\left(\alpha\_{i,j} I\right) \quad\quad B\_{i,j} = \bm{v}\_{i,j} \bm{k}\_{i,j}^T$$
 Thus, from Equation $(10)$ above,
 $$
@@ -449,22 +449,22 @@ $$
 
 ---
 
-## Chunk-wise Parallelism [Under Review]
+## Chunk-wise Parallelism
 
 <div align="center">
     <img src="../test-time-regression/linear-attn-comp-forms.png" style="width:75%; height:75%;" />
 </div>
 
-Since the update rules of linear attention mechanisms are associative (i.e., the order of how we "combine" the updates doesn't matter), we can do the computations in multiple ways.
+Since the update operations of linear attention mechanisms we discussed above are associative--i.e., the order in which we "combine" the updates doesn't matter--we can perform the computations in multiple ways:
+1. The **Fully Recurrent Form** where we update the state as we loop through the tokens/update matrices one by one,
+2. The **Fully-Parallel Associative Scan Form** where we hierarchically combine the updates in a tree-like structure, and
+3. The **Chunk-wise Parallel Form** (Hua et al., 2022; Sun et al., 2023) which is a compromise between the two where we divide the sequence into chunks first, combine intra-chunk updates in parallel, and then combine the chunk-level updates in a recurrent manner.
 
-At inference time, the recurrent form works best. But at training time, we ideally want to fully parallelize the computation. However, this is often infeasible due to memory constraints. So, we use chunk-wise parallelism (Hua et al., 2022; Sun et al., 2023) instead:
+At inference time, the recurrent form works best. But at training time, we have to be more hardware-aware to squeeze out as much performance as possible. We will discuss more about this in a separate post. But for now, there are two important things to keep in mind:
+1. The **GPU Memory Hierarchy**. NVIDIA GPUs have a "global", high-bandwidth memory (HBM) that all threads in all processing units can access, and a smaller, shared memory (SMem) that threads in the same processing unit can access. The shared memory, being more "local", has a much lower latency than the HBM. Thus, ideally, we want to limit communications between the processing units and the HBM and use the SMem instead as much as possible.
+2. The **Tensor Cores**. Modern NVIDIA GPUs have tensor cores that can perform matrix multiplications much faster. Thus, ideally, we want to maximize the number of matrix multiplications and limit other operations.
 
-1. First, we divide the sequence into chunks.
-2. Then, we assign the chunks to different GPUs/TPUs.
-3. Then, independently from each other, we compute the combined update for each chunk using the fully-parallel associative scan or the like.
-4. Finally, we use the recurrent form to propagate the running sums across chunks.
-
-Alternatively, we can also loop through the chunks and only compute the combined update of a chunk as needed. This way, we can further save memory at the cost of longer wall-clock time.
+Now, parallel associative scan might seem the best choice, and indeed it already suffices for some architectures like Mamba 1. However, it requires a lot more (shared) memory and communication between the processing units (and therefore materialization to the HBM). And it also doesn't fully utilize the tensor cores. But with chunk-wise parallelism, we only need to store the current state in the shared memory, and use matrix multiplications to compute the next chunk-level state. This way, we don't have to materialize the $S_N$s to the HBM at all, and we can fully utilize the tensor cores. Hence why most flash linear attention kernels use chunk-wise parallelism.
 
 ---
 
@@ -778,6 +778,10 @@ Not only is the blocked matrix formulation of linear attention mechanisms intuit
 
 In the next post, we'll talk about faster ways to calculate $A^\*\_{c}$ and $B^\*\_{c}$ for diagonal and diagonal-plus-low-rank $A^\*\_{c}$ using the WY Representations and the UT Transform. Stay tuned!
 
+## Acknowledgements
+
+Big thanks to Songlin Yang, Julien Siems, and @Smerky, @BeeGass, @safelix, and @jacobbuckman for their feedback and discussions!
+
 ## How to Cite
 
 ```bibtex
@@ -799,3 +803,4 @@ In the next post, we'll talk about faster ways to calculate $A^\*\_{c}$ and $B^\
 6. Songlin Yang, Jan Kautz, Ali Hatamizadeh (2025). Gated Delta Networks: Improving Mamba2 with Delta Rule. URL https://arxiv.org/abs/2412.06464
 7. Weizhe Hua, Zihang Dai, Hanxiao Liu, and Quoc V. Le. Transformer quality in linear time. In Kamalika Chaudhuri, Stefanie Jegelka, Le Song, Csaba Szepesvári, Gang Niu, and Sivan Sabato (eds.), International Conference on Machine Learning, ICML 2022, 17-23 July 2022, Baltimore, Maryland, USA, volume 162 of Proceedings of Machine Learning Research, pp. 9099–9117. PMLR, 2022b. URL https://proceedings.mlr.press/v162/hua22a.html.
 8. Yutao Sun, Li Dong, Shaohan Huang, Shuming Ma, Yuqing Xia, Jilong Xue, Jianyong Wang, and Furu Wei. Retentive network: A successor to transformer for large language models. ArXiv preprint, abs/2307.08621, 2023. URL https://arxiv.org/abs/2307.08621.
+9. Bo Peng, Ruichong Zhang, Daniel Goldstein, Eric Alcaide, Haowen Hou, Janna Lu, William Merrill, Guangyu Song, Kaifeng Tan, Saiteja Utpala, Nathan Wilce, Johan S. Wind, Tianyi Wu, Daniel Wuttke, Christian Zhou-Zheng (2025). RWKV-7 "Goose" with Expressive Dynamic State Evolution. URL https://arxiv.org/abs/2503.14456
