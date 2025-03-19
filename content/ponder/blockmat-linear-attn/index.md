@@ -23,12 +23,13 @@ where $S\_{i-1}$ is the (old) state after processing the first $i-1$ tokens, $S_
 
 Here are a couple of examples:
 
-| **Linear Attention Mechanism** |                                                                        **Update Rule** |                                   **$A_i$** |                     **$B_i$** |
-| ------------------------------ | -------------------------------------------------------------------------------------: | ------------------------------------------: | ----------------------------: |
-| Vanilla Linear Attention       |                                                  $S_i = S_{i-1} + \bm{v}_i \bm{k}_i^T$ |                                         $I$ |         $\bm{v}_i \bm{k}_i^T$ |
-| Mamba 2                        |            $S_i = S\_{i-1}\text{diag}\left(\alpha\_i I\right) + \bm{v}\_i \bm{k}\_i^T$ |       $\text{diag}\left(\alpha\_i I\right)$ |         $\bm{v}_i \bm{k}_i^T$ |
-| DeltaNet                       |         $S_i = S_{i-1}(I - \beta_i \bm{k}_i \bm{k}_i^T) + \beta_i \bm{v}_i \bm{k}_i^T$ |           $I - \beta_i \bm{k}_i \bm{k}_i^T$ | $\beta_i \bm{v}_i \bm{k}_i^T$ |
-| Gated DeltaNet                 | $S_i = S_{i-1}\alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T) + \beta_i \bm{v}_i \bm{k}_i^T$ | $\alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T)$ | $\beta_i \bm{v}_i \bm{k}_i^T$ |
+| Linear Attention Mechanism |                                                                          **$A_i$** |                     **$B_i$** |
+| -------------------------- | ---------------------------------------------------------------------------------: | ----------------------------: |
+| Vanilla Linear Attention   |                                                                                $I$ |         $\bm{v}_i \bm{k}_i^T$ |
+| Mamba 2                    |                                              $\text{diag}\left(\alpha\_i I\right)$ |         $\bm{v}_i \bm{k}_i^T$ |
+| DeltaNet                   |                                                  $I - \beta_i \bm{k}_i \bm{k}_i^T$ | $\beta_i \bm{v}_i \bm{k}_i^T$ |
+| Gated DeltaNet             |                                        $\alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T)$ | $\beta_i \bm{v}_i \bm{k}_i^T$ |
+| RWKV-7                     | $\text{diag}(\bm{w}_i) - \bm{\hat{\kappa}}_i(\bm{a}_i \odot\bm{\hat{\kappa}}_i^T)$ |         $\bm{v}_i \bm{k}_i^T$ |
 
 where $\bm{k}_i  \in \mathbb{R}^{d_k}$ and $\bm{v}_i \in \mathbb{R}^{d_v}$ are the corresponding key-value pair for the $i$-th token; $\alpha_i \in [0, 1]$ can be thought of as a date-dependent weight decay that controls how much of the previous state to keep or forget; and $\beta_i \in [0, 1]$ can be thought of as a date-dependent learning rate that controls how much of the new information to add to the state.
 
@@ -54,14 +55,14 @@ $$
 or, equivalently,
 $$
 \begin{bmatrix}
-S_{i} & I
+    S_{i} & I
 \end{bmatrix} =
 \begin{bmatrix}
-S_{i-1} & I
+    S_{i-1} & I
 \end{bmatrix}
 \begin{bmatrix}
-A_i & 0 \\\\
-B_i & I
+    A_i & 0 \\\\
+    B_i & I
 \end{bmatrix}
 $$
 
@@ -70,69 +71,69 @@ At training time, we need *all* of the intermediary states, not just the final s
 $$
 \begin{align*}
 \begin{bmatrix}
-S_{N} & I
+    S_{N} & I
 \end{bmatrix} &=
 \begin{bmatrix}
-S_{N-1} & I
+    S_{N-1} & I
 \end{bmatrix}
 \begin{bmatrix}
-A_N & 0 \\\\
-B_N & I
+    A_N & 0 \\\\
+    B_N & I
 \end{bmatrix}\\\\
 \begin{bmatrix}
-S_{N} & I
+    S_{N} & I
 \end{bmatrix} &=
 \begin{bmatrix}
-S_{N-2} & I
+    S_{N-2} & I
 \end{bmatrix}
 \begin{bmatrix}
-A\_{N-1} & 0 \\\\
-B\_{N-1} & I
+    A\_{N-1} & 0 \\\\
+    B\_{N-1} & I
 \end{bmatrix}
 \begin{bmatrix}
-A_N & 0 \\\\
-B_N & I
+    A_N & 0 \\\\
+    B_N & I
 \end{bmatrix}\\\\
 &\vdots\\\\
 \begin{bmatrix}
-S_{N} & I
+    S_{N} & I
 \end{bmatrix} &=
 \begin{bmatrix}
-S_{0} & I
+    S_{0} & I
 \end{bmatrix}
 \begin{bmatrix}
-A_1 & 0 \\\\
-B_1 & I
+    A_1 & 0 \\\\
+    B_1 & I
 \end{bmatrix}
 \begin{bmatrix}
-A_2 & 0 \\\\
-B_2 & I
+    A_2 & 0 \\\\
+    B_2 & I
 \end{bmatrix}
 \cdots
 \begin{bmatrix}
-A_N & 0 \\\\
-B_N & I
+    A_N & 0 \\\\
+    B_N & I
 \end{bmatrix}\\\\
-S_N &=
+    S_N &=
 \begin{bmatrix}
-S_{0} & I
+    S_{0} & I
 \end{bmatrix}
 \begin{bmatrix}
-A_1 & 0 \\\\
-B_1 & I
+    A_1 & 0 \\\\
+    B_1 & I
 \end{bmatrix}
 \begin{bmatrix}
-A_2 & 0 \\\\
-B_2 & I
+    A_2 & 0 \\\\
+    B_2 & I
 \end{bmatrix}
 \cdots
 \begin{bmatrix}
-A_N & 0 \\\\
-B_N & I
+    A_N & 0 \\\\
+    B_N & I
 \end{bmatrix}
 \begin{bmatrix}
-I \\\\
-0
+    I \\\\
+    0
 \end{bmatrix}
 \end{align*}
 $$
@@ -141,40 +142,40 @@ In practice, we usually initialize $S_0$ as the zero matrix. Thus,
 
 $$
 \begin{align}
-S_N &=
+    S_N &=
 \begin{bmatrix}
-0 & I
+    0 & I
 \end{bmatrix}
 \begin{bmatrix}
-A_1 & 0 \\\\
-B_1 & I
+    A_1 & 0 \\\\
+    B_1 & I
 \end{bmatrix}
 \begin{bmatrix}
-A_2 & 0 \\\\
-B_2 & I
+    A_2 & 0 \\\\
+    B_2 & I
 \end{bmatrix}
 \cdots
 \begin{bmatrix}
-A_N & 0 \\\\
-B_N & I
+    A_N & 0 \\\\
+    B_N & I
 \end{bmatrix}
 \begin{bmatrix}
-I \\\\
-0
+    I \\\\
+    0
 \end{bmatrix}\\\\
-S_N &=
+    S_N &=
 \begin{bmatrix}
-0 & I
+    0 & I
 \end{bmatrix}
 \begin{bmatrix}
-\prod_{i=1}^{N} A_i & 0 \\\\
-\sum_{i=1}^{N} \left(B_i \prod_{j=i+1}^{N} A_j\right) & I
+    \prod_{i=1}^{N} A_i & 0 \\\\
+    \sum_{i=1}^{N} \left(B_i \prod_{j=i+1}^{N} A_j\right) & I
 \end{bmatrix}
 \begin{bmatrix}
-I \\\\
-0
+    I \\\\
+    0
 \end{bmatrix}\\\\
-S_N &= \sum_{i=1}^{N} \left(B_i \prod_{j=i+1}^{N} A_j\right)
+    S_N &= \sum_{i=1}^{N} \left(B_i \prod_{j=i+1}^{N} A_j\right)
 \end{align}
 $$
 where $(1) \rightarrow (2)$ can be proven by induction.
@@ -187,6 +188,7 @@ Let's derive $S_N$ for each of the linear attention mechanisms in the table abov
 
 ### Vanilla Linear Attention
 
+{{< collapse summary="Show derivation of $S_C$" openByDefault=true >}}
 $$A_i = I \quad\quad B_i = \bm{v}_i \bm{k}_i^T$$
 From Equation $(3)$ above, we get:
 $$
@@ -195,31 +197,49 @@ S_N &= \sum\_{i=1}^{N} \left(\bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} I\right)\\
 S_N &= \sum\_{i=1}^{N} \bm{v}\_i \bm{k}\_i^T
 \end{align*}
 $$
+{{< /collapse >}}
 
 ### Mamba 2
 
+{{< collapse summary="Show derivation of $S_N$" >}}
 $$A_i = \text{diag}\left(\alpha_i I\right) \quad\quad B_i = \bm{v}_i \bm{k}_i^T$$
+Thus,
 $$
 \begin{align*}
 S_N &= \sum\_{i=1}^{N} \left(\bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} \text{diag}\left(\alpha_j I\right)\right)\\\\
 S_N &= \sum\_{i=1}^{N} \left( \prod\_{j=i+1}^{N} \alpha_j \right) \bm{v}\_i \bm{k}\_i^T
 \end{align*}
 $$
+{{< /collapse >}}
 
 ### DeltaNet
 
+{{< collapse summary="Show derivation of $S_N$" >}}
 $$A_i = I - \beta_i \bm{k}_i \bm{k}_i^T \quad\quad B_i = \beta_i \bm{v}_i \bm{k}_i^T$$
+Thus,
 $$S_N = \sum\_{i=1}^{N} \left(\beta_i \bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} \left(I - \beta_j \bm{k}_j \bm{k}_j^T\right)\right)$$
+{{< /collapse >}}
 
 ### Gated DeltaNet
 
+{{< collapse summary="Show derivation of $S_N$" >}}
 $$A_i = \alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T) \quad\quad B_i = \beta_i \bm{v}_i \bm{k}_i^T$$
+Thus,
 $$
 \begin{align*}
 S_N &= \sum\_{i=1}^{N} \left(\beta_i \bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} \alpha_j \left(I - \beta_j \bm{k}_j \bm{k}_j^T\right)\right)\\\\
 S_N &= \sum\_{i=1}^{N} \left(\left(\beta_i \prod\_{j=i+1}^{N} \alpha_j \right) \bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} \left(I - \beta_j \bm{k}_j \bm{k}_j^T\right)\right)
 \end{align*}
 $$
+{{< /collapse >}}
+
+### RWKV-7
+
+{{< collapse summary="Show derivation of $S_N$" >}}
+$$A_i = \text{diag}(\bm{w}_i) - \bm{\hat{\kappa}}_i(\bm{a}_i \odot\bm{\hat{\kappa}}_i^T) \quad\quad B_i = \bm{v}_i \bm{k}_i^T$$
+Thus,
+$$S_N = \sum\_{i=1}^{N} \left(\bm{v}\_i \bm{k}\_i^T \prod\_{j=i+1}^{N} \left(\text{diag}(\bm{w}_j) - \bm{\hat{\kappa}}_j(\bm{a}_j \odot\bm{\hat{\kappa}}_j^T)\right)\right)$$
+{{< /collapse >}}
 
 Easy!
 
@@ -239,22 +259,22 @@ In our formulation, this is equivalent to replacing each update with a product o
 
 $$
 \begin{bmatrix}
-A_{i} & 0 \\\\
-B_{i} & I
+    A_{i} & 0 \\\\
+    B_{i} & I
 \end{bmatrix}
 \longrightarrow
 \begin{bmatrix}
-A_{i,1} & 0 \\\\
-B_{i,1} & I
+    A_{i,1} & 0 \\\\
+    B_{i,1} & I
 \end{bmatrix}
 \begin{bmatrix}
-A_{i,2} & 0 \\\\
-B_{i,2} & I
+    A_{i,2} & 0 \\\\
+    B_{i,2} & I
 \end{bmatrix}
 \cdots
 \begin{bmatrix}
-A_{i,n_h} & 0 \\\\
-B_{i,n_h} & I
+    A_{i,n_h} & 0 \\\\
+    B_{i,n_h} & I
 \end{bmatrix}
 $$
 where $A_{i,j}$ and $B_{i,j}$ are the update matrices for the $j$-th gradient descent step for the $i$-th token.
@@ -264,33 +284,33 @@ $$
 \begin{align}
 S_N =
 \begin{bmatrix}
-0 & I
+    0 & I
 \end{bmatrix}
 \begin{bmatrix}
-A_{1,1} & 0 \\\\
-B_{1,1} & I
+    A_{1,1} & 0 \\\\
+    B_{1,1} & I
 \end{bmatrix}
 \begin{bmatrix}
-A_{1,2} & 0 \\\\
-B_{1,2} & I
-\end{bmatrix}
-\cdots
-\begin{bmatrix}
-A_{1,n_h} & 0 \\\\
-B_{1,n_h} & I
-\end{bmatrix}
-\begin{bmatrix}
-A_{2,1} & 0 \\\\
-B_{2,1} & I
+    A_{1,2} & 0 \\\\
+    B_{1,2} & I
 \end{bmatrix}
 \cdots
 \begin{bmatrix}
-A_{N, n_h} & 0 \\\\
-B_{N, n_h} & I
+    A_{1,n_h} & 0 \\\\
+    B_{1,n_h} & I
 \end{bmatrix}
 \begin{bmatrix}
-I \\\\
-0
+    A_{2,1} & 0 \\\\
+    B_{2,1} & I
+\end{bmatrix}
+\cdots
+\begin{bmatrix}
+    A_{N, n_h} & 0 \\\\
+    B_{N, n_h} & I
+\end{bmatrix}
+\begin{bmatrix}
+    I \\\\
+    0
 \end{bmatrix}
 \end{align}
 $$
@@ -373,6 +393,7 @@ Now, let's derive the $S_N$ for the linear attention mechanisms in the table abo
 
 ### MambaSum*
 
+{{< collapse summary="Show derivation of $S_C$" openByDefault=true >}}
 $$A\_{i,j} = \text{diag}\left(\alpha\_{i,j} I\right) \quad\quad B\_{i,j} = \bm{v}\_{i,j} \bm{k}\_{i,j}^T$$
 Thus, from Equation $(10)$ above,
 $$
@@ -382,22 +403,28 @@ S_N &= \sum\_{i=1}^N \sum\_{j=1}^{n_h} \left(\underline{\left( \prod\_{j'=j+1}^{
 S_N &= \sum\_{k=1}^{Nn\_h} \left(\prod\_{k'=k+1}^{Nn\_h} \alpha\_{k'}\right) \bm{v}\_k \bm{k}\_k^T
 \end{align*}
 $$
+{{< /collapse >}}
 
 > *I'm not actually sure if MambaSum already exists under a different name. If it does, please let me know!
 
 ### DeltaProduct
 
+{{< collapse summary="Show derivation of $S_N$" >}}
 $$A\_{i,j} = I - \beta\_{i,j} \bm{k}\_{i,j} \bm{k}\_{i,j}^T \quad\quad B\_{i,j} = \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T$$
+Thus,
 $$
 \begin{align*}
 S_N &= \sum\_{i=1}^N \sum\_{j=1}^{n_h} \left( \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T \underline{\left(\prod\_{j'=j+1}^{n_h} \left(I - \beta\_{i,j'} \bm{k}\_{i,j'} \bm{k}\_{i,j'}^T\right)\right) \left(\prod\_{i'=i+1}^N \prod\_{j'=1}^{n_h} \left(I - \beta\_{i',j'} \bm{k}\_{i',j'} \bm{k}\_{i',j'}^T\right) \right)}\right)\\\\
 S_N &= \sum\_{k=1}^{Nn\_h} \left(\beta\_k \bm{v}\_k \bm{k}\_k^T \prod\_{k'=k+1}^{Nn\_h} \left(I - \beta\_{k'} \bm{k}\_{k'} \bm{k}\_{k'}^T\right)\right)
 \end{align*}
 $$
+{{< /collapse >}}
 
 ### Gated DeltaProduct
 
+{{< collapse summary="Show derivation of $S_N$" >}}
 $$A\_{i,j} = \alpha\_{i,j}(I - \beta\_{i,j} \bm{k}\_{i,j} \bm{k}\_{i,j}^T) \quad\quad B\_{i,j} = \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T$$
+Thus,
 $$
 \begin{align*}
 S_N &= \sum\_{i=1}^N \sum\_{j=1}^{n_h} \left( \beta\_{i,j} \bm{v}\_{i,j} \bm{k}\_{i,j}^T \underline{\left(\prod\_{j'=j+1}^{n_h} \alpha\_{i,j'} \left(I - \beta\_{i,j'} \bm{k}\_{i,j'} \bm{k}\_{i,j'}^T\right)\right) \left(\prod\_{i'=i+1}^N \prod\_{j'=1}^{n_h} \alpha\_{i',j'} \left(I - \beta\_{i',j'} \bm{k}\_{i',j'} \bm{k}\_{i',j'}^T\right) \right)}\right)\\\\
@@ -405,10 +432,24 @@ S_N &= \sum\_{k=1}^{Nn\_h} \left(\beta\_k \bm{v}\_k \bm{k}\_k^T \prod\_{k'=k+1}^
 S_N &= \sum\_{k=1}^{Nn\_h} \left(\left( \beta\_k \prod\_{k'=k+1}^{Nn\_h} \alpha\_{k'} \right) \bm{v}\_k \bm{k}\_k^T \prod\_{k'=k+1}^{Nn\_h} \left(I - \beta\_{k'} \bm{k}\_{k'} \bm{k}\_{k'}^T\right)\right)
 \end{align*}
 $$
+{{< /collapse >}}
+
+### RWKV-7P
+
+{{< collapse summary="Show derivation of $S_N$" >}}
+$$A\_{i,j} = \text{diag}(\bm{w}\_{i,j}) - \bm{\hat{\kappa}}\_{i,j}(\bm{a}\_{i,j} \odot\bm{\hat{\kappa}}\_{i,j}^T) \quad\quad B\_{i,j} = \bm{v}\_{i,j} \bm{k}\_{i,j}^T$$
+Thus,
+$$
+\begin{align*}
+S_N &= \sum\_{i=1}^N \sum\_{j=1}^{n_h} \left( \bm{v}\_{i,j} \bm{k}\_{i,j}^T \underline{\left(\prod\_{j'=j+1}^{n_h} \left(\text{diag}(\bm{w}\_{i,j'}) - \bm{\hat{\kappa}}\_{i,j'}(\bm{a}\_{i,j'} \odot\bm{\hat{\kappa}}\_{i,j'}^T)\right)\right) \left(\prod\_{i'=i+1}^N \prod\_{j'=1}^{n_h} \left(\text{diag}(\bm{w}\_{i',j'}) - \bm{\hat{\kappa}}\_{i',j'}(\bm{a}\_{i',j'} \odot\bm{\hat{\kappa}}\_{i',j'}^T)\right) \right)}\right)\\\\
+S_N &= \sum\_{k=1}^{Nn\_h} \left(\bm{v}\_k \bm{k}\_k^T \prod\_{k'=k+1}^{Nn\_h} \left(\text{diag}(\bm{w}\_k') - \bm{\hat{\kappa}}\_k'(\bm{a}\_k' \odot\bm{\hat{\kappa}}\_k'^T)\right)\right)
+\end{align*}
+$$
+{{< /collapse >}}
 
 ---
 
-## Chunk-wise Parallelism
+## Chunk-wise Parallelism [Under Review]
 
 <div align="center">
     <img src="../test-time-regression/linear-attn-comp-forms.png" style="width:75%; height:75%;" />
@@ -565,6 +606,7 @@ Now, let's derive the $S_C$ for the linear attention mechanisms in the table abo
 
 ### Chunk-wise Mamba 2
 
+{{< collapse summary="Show derivation of $S_C$" openByDefault=true >}}
 $$
 \begin{align*}
     A\_{c,i} &= \text{diag}\left(\alpha\_{c,i} I\right) & B\_{c,i} &= \bm{v}\_{c,i} \bm{k}\_{c,i}^T\\\\
@@ -579,9 +621,11 @@ $$
     S_C &= S\_{C-1} \prod\_{i=1}^{n_c} \alpha\_{C,i} + \sum\_{i=1}^{n_c} \left(\prod\_{i'=i+1}^{n_c} \alpha\_{C,i'}\right) \bm{v}\_{C,i} \bm{k}\_{C,i}^T
 \end{align*}
 $$
+{{< /collapse >}}
 
 ### Chunk-wise DeltaNet
 
+{{< collapse summary="Show derivation of $S_C$" >}}
 $$
 \begin{align*}
     A\_{c,i} &= I - \beta\_{c,i} \bm{k}\_{c,i} \bm{k}\_{c,i}^T & B\_{c,i} &= \beta\_{c,i} \bm{v}\_{c,i} \bm{k}\_{c,i}^T\\\\
@@ -595,9 +639,11 @@ $$
     S_C &= S\_{C-1} \prod\_{i=1}^{n_c} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right) + \sum\_{i=1}^{n_c} \left(\beta\_{C,i} \bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
 \end{align*}
 $$
+{{< /collapse >}}
 
 ### Chunk-wise Gated DeltaNet
 
+{{< collapse summary="Show derivation of $S_C$" >}}
 $$
 \begin{align*}
     A\_{c,i} &= \alpha\_{c,i}(I - \beta\_{c,i} \bm{k}\_{c,i} \bm{k}\_{c,i}^T) & B\_{c,i} &= \beta\_{c,i} \bm{v}\_{c,i} \bm{k}\_{c,i}^T\\\\
@@ -612,6 +658,25 @@ $$
     S_C &= S\_{C-1} \left(\prod\_{i=1}^{n_c} \alpha\_{C,i} \right) \left(\prod\_{i=1}^{n_c} \left(I - \beta\_{C,i} \bm{k}\_{C,i} \bm{k}\_{C,i}^T\right)\right) + \sum\_{i=1}^{n_c} \left(\left(\beta\_{C,i} \prod\_{i'=i+1}^{n_c} \alpha\_{C,i'} \right) \bm{v}\_{C,i} \bm{k}\_{C,i}^T  \prod\_{i'=i+1}^{n_c} \left(I - \beta\_{C,i'} \bm{k}\_{C,i'} \bm{k}\_{C,i'}^T\right)\right)
 \end{align*}
 $$
+{{< /collapse >}}
+
+### Chunk-wise RWKV-7
+
+{{< collapse summary="Show derivation of $S_C$" >}}
+$$
+\begin{align*}
+    A\_{c,i} &= \text{diag}\left(\bm{w}\_{c,i}\right) - \bm{\hat{\kappa}}\_{c,i}(\bm{a}\_{c,i} \odot\bm{\hat{\kappa}}\_{c,i}^T) & B\_{c,i} &= \bm{v}\_{c,i} \bm{k}\_{c,i}^T\\\\
+    A^\*_C &= \prod\_{i=1}^{n_c} \left(\text{diag}\left(\bm{w}\_{C,i}\right) - \bm{\hat{\kappa}}\_{C,i}(\bm{a}\_{C,i} \odot\bm{\hat{\kappa}}\_{C,i}^T)\right) \quad & B^\*_C &= \sum\_{i=1}^{n_c} \left(\bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \left(\text{diag}\left(\bm{w}\_{C,i'}\right) - \bm{\hat{\kappa}}\_{C,i'}(\bm{a}\_{C,i'} \odot\bm{\hat{\kappa}}\_{C,i'}^T)\right)\right)
+\end{align*}
+$$
+Thus,
+$$
+\begin{align*}
+    S_C &= S\_{C-1}A^\*_C + B^\*_C\\\\
+    S_C &= S\_{C-1} \prod\_{i=1}^{n_c} \left(\text{diag}\left(\bm{w}\_{C,i}\right) - \bm{\hat{\kappa}}\_{C,i}(\bm{a}\_{C,i} \odot\bm{\hat{\kappa}}\_{C,i}^T)\right) + \sum\_{i=1}^{n_c} \left(\bm{v}\_{C,i} \bm{k}\_{C,i}^T \prod\_{i'=i+1}^{n_c} \left(\text{diag}\left(\bm{w}\_{C,i'}\right) - \bm{\hat{\kappa}}\_{C,i'}(\bm{a}\_{C,i'} \odot\bm{\hat{\kappa}}\_{C,i'}^T)\right)\right)
+\end{align*}
+$$
+{{< /collapse >}}
 
 ## Multi-Step Online Gradient Descent per Token with Chunk-wise Parallelism
 
@@ -699,7 +764,7 @@ $$
 
 ---
 
-As an exercise, try deriving the cross-chunk recurrence for MambaSum, DeltaProduct, and Gated DeltaProduct.
+As an exercise, try deriving the cross-chunk recurrence for MambaSum, DeltaProduct, Gated DeltaProduct, and RWKV-7P.
 
 ---
 
@@ -708,6 +773,10 @@ As an exercise, try deriving the cross-chunk recurrence for MambaSum, DeltaProdu
 And that's it!
 
 Not only is the blocked matrix formulation of linear attention mechanisms intuitive, it also makes the connections between different algorithms and computational forms much more obvious. I'd even go as far as to say that we now have the proper abstraction to do an evolutionary search for new linear attention mechanisms ;)
+
+---
+
+In the next post, we'll talk about faster ways to calculate $A^\*\_{c}$ and $B^\*\_{c}$ for diagonal and diagonal-plus-low-rank $A^\*\_{c}$ using the WY Representations and the UT Transform. Stay tuned!
 
 ## How to Cite
 
