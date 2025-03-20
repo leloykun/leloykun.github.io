@@ -15,7 +15,7 @@ editPost:
 
 ## GRPO might not be the best choice for multi-task RL training
 
-I've been testing different critic-free RL algos on multi-task environments, and one thing I've noticed is that GRPO$^{[1]}$ seems to slightly underperform normalization-free variants. This tracks with the results in the LOOP$^{[2]}$ paper.
+I've been testing different critic-free RL algos on multi-task environments, and one thing I've noticed is that GRPO (Deepseek, 2024) seems to slightly underperform normalization-free variants. This tracks with the results in the LOOP paper (Chen et al., 2025).
 
 Why? Most likely because GRPO's normalization term, in a sense, penalizes large magnitude rewards. But in multi-task envs, these rewards are highly informative!
 
@@ -63,6 +63,5 @@ Yes, the goal of introducing a baseline is to reduce the variance of the gradien
 
 ## References
 
-[1] Shao, Z., Wang, P., Zhu, Q., Xu, R., Song, J., Bi, X., Zhang, H., Zhang, M., Li, Y.K., Wu, Y., & Guo, D. (2025). DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models. URL https://arxiv.org/abs/2402.03300
-
-[2] Chen, K., Cusumano-Towner, M., Huval, B., Petrenko, A., Hamburger, J., Koltun, V., & Krähenbühl, P. (2025). Reinforcement Learning for Long-Horizon Interactive LLM Agents. URL https://arxiv.org/abs/2502.01600
+1. Shao, Z., Wang, P., Zhu, Q., Xu, R., Song, J., Bi, X., Zhang, H., Zhang, M., Li, Y.K., Wu, Y., & Guo, D. (2024). DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models. URL https://arxiv.org/abs/2402.03300
+2. Chen, K., Cusumano-Towner, M., Huval, B., Petrenko, A., Hamburger, J., Koltun, V., & Krähenbühl, P. (2025). Reinforcement Learning for Long-Horizon Interactive LLM Agents. URL https://arxiv.org/abs/2502.01600

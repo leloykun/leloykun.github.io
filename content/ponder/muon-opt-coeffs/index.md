@@ -13,10 +13,6 @@ editPost:
     Text: "Crossposted from X (formerly Twitter)"
 ---
 
-> Site is currently under construction. For now, you can read the original X/Twitter thread here: https://x.com/leloykun/status/1892793848163946799
-
----
-
 ## What's Muon?
 
 Muon is an optimizer for 2D parameters that approximately semi-orthogonalizes the gradient first using Newton-Schulz iteration before using it to update the parameters.
@@ -33,13 +29,9 @@ Muon is an optimizer for 2D parameters that approximately semi-orthogonalizes th
 
 3. Because it works well in practice ;P
 
-<div align="center">
-    <img src="muon-as-shampoo-wo-accum.png"/>
-</div>
+![](muon-as-shampoo-wo-accum.png#center)
 
-<div align="center">
-    <img src="muon-as-caspr-wo-accum.png"/>
-</div>
+![](muon-as-caspr-wo-accum.png#center)
 
 For more details, I'd recommend reading [Keller's writeup on Muon](https://kellerjordan.github.io/posts/muon/) and [Jeremy's paper on steepest descent under operator norms](https://arxiv.org/abs/2409.20325).
 
@@ -56,9 +48,7 @@ And if we interpolate, all of the directions from the original gradient to its n
 
 As you can see below, Muon's Newton-Schulz iteration actually introduces a lot of noise to the resulting singular values--too much variance!
 
-<div align="center">
-    <img src="muon-noise.png"/>
-</div>
+![](muon-noise.png#center)
 
 And if my maths is correct, if you were doing steepest descent under the Schatten-32 norm instead, the spread of the resulting singular values would be about the same. So, in a sense, you can interpret Muon with the old coefficients as doing steepest descent under the Schatten-32 norm.
 
@@ -68,9 +58,7 @@ Keller found the original coefficients using gradient descent with a bias for st
 
 A key insight is that we don't have to use the same coefficients for all the newton-shultz iteration steps! We can initialize a `[NUM_STEPS, 3]` matrix and do gradient descent to find the optimal coefficients. We can even use Muon to improve itself!
 
-<div align="center">
-    <img src="muon-iterators.jpg"/>
-</div>
+![](muon-iterators.jpg#center)
 
 YouJiaching, Keller, & I actually experimented a lot on this a few months ago when we only had the GPT2-small track. But we didn't get any improvements with the trick, so we abandoned it. It's only now that we have a GPT2-medium track that this has started to be useful.
 
@@ -310,3 +298,14 @@ if __name__ == "__main__":
   url = {http://leloykun.github.io/ponder/muon-opt-coeffs/},
 }
 ```
+
+## References
+
+1. Keller Jordan, Jeremy Bernstein, Brendan Rappazzo, @fernbear.bsky.social, Boza Vlado, Jiacheng You, Franz Cesista, Braden Koszarsky, and @Grad62304977. modded-nanogpt: Speedrunning the NanoGPT baseline. 2024. Available at: https://github.com/KellerJordan/modded-nanogpt.
+2. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/.
+3. Surya, S., Duvvuri, Devvrit, F., Anil, R., Hsieh, C., & Dhillon, I.S. (2024). Combining Axes Preconditioners through Kronecker Approximation for Deep Learning. International Conference on Learning Representations.
+4. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
+5. Rohan Anil et al. “Scalable second order optimization for deep learning.” arXiv preprint arXiv:2002.09018 (2020).
+6. Jeremy Bernstein and Laker Newhouse. “Old optimizer, new norm: An anthology.” arXiv preprint arXiv:2409.20325 (2024).
+7. Jeremy Bernstein (2024). "Weight erasure." Available at: https://docs.modula.systems/examples/weight-erasure/
+8. Franz Louis Cesista (2025). CASPR Without Accumulation is Muon. URL https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/
