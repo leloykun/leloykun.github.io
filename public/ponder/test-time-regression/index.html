@@ -10,7 +10,7 @@
 <meta name="description" content="A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference.">
 <meta name="author" content="Franz Louis Cesista">
 <link rel="canonical" href="https://leloykun.github.io/ponder/test-time-regression/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.7695d65198b4eb0454d08822ddd0b9bc75437b4a2a995eef4f73b0ae209c4e92.css" integrity="sha256-dpXWUZi06wRU0Igi3dC5vHVDe0oqmV7vT3OwriCcTpI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.253701e64acde2b382c010121092cc581e3817c116fed20d9655c14fd77bfad9.css" integrity="sha256-JTcB5krN4rOCwBASEJLMWB44F8EW/tINllXBT9d7&#43;tk=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://leloykun.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://leloykun.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://leloykun.github.io/favicon-32x32.png">
@@ -175,9 +175,12 @@
 </div>
   </header> 
 <figure class="entry-cover">
-        <img loading="lazy" srcset="https://leloykun.github.io/ponder/test-time-regression/cover_hu10191c65d2c6a33b2d44ab1d2348ea9c_638875_360x0_resize_q75_box.jpg 360w ,https://leloykun.github.io/ponder/test-time-regression/cover_hu10191c65d2c6a33b2d44ab1d2348ea9c_638875_480x0_resize_q75_box.jpg 480w ,https://leloykun.github.io/ponder/test-time-regression/cover_hu10191c65d2c6a33b2d44ab1d2348ea9c_638875_720x0_resize_q75_box.jpg 720w ,https://leloykun.github.io/ponder/test-time-regression/cover_hu10191c65d2c6a33b2d44ab1d2348ea9c_638875_1080x0_resize_q75_box.jpg 1080w ,https://leloykun.github.io/ponder/test-time-regression/cover_hu10191c65d2c6a33b2d44ab1d2348ea9c_638875_1500x0_resize_q75_box.jpg 1500w ,https://leloykun.github.io/ponder/test-time-regression/cover.jpg 5423w" 
-            sizes="(min-width: 768px) 720px, 100vw" src="https://leloykun.github.io/ponder/test-time-regression/cover.jpg" alt="Cover" 
-            width="5423" height="2951">
+            <img loading="eager"
+                srcset='https://leloykun.github.io/ponder/test-time-regression/cover_hu_578158ffab31b2ae.jpg 360w,https://leloykun.github.io/ponder/test-time-regression/cover_hu_74a4aaf981023949.jpg 480w,https://leloykun.github.io/ponder/test-time-regression/cover_hu_b0ae4ade20b1b1cd.jpg 720w,https://leloykun.github.io/ponder/test-time-regression/cover_hu_5dbecbf7d2318feb.jpg 1080w,https://leloykun.github.io/ponder/test-time-regression/cover_hu_54783ac7c7de8506.jpg 1500w,https://leloykun.github.io/ponder/test-time-regression/cover.jpg 5423w'
+                src="https://leloykun.github.io/ponder/test-time-regression/cover.jpg"
+                sizes="(min-width: 768px) 720px, 100vw"
+                width="5423" height="2951"
+                alt="Cover">
         
 </figure><div class="toc">
     <details  open>
@@ -199,8 +202,7 @@
 </div>
 
   <div class="post-content"><blockquote>
-<p>Note: This was originally posted as a Twitter thread. I&rsquo;ve reformatted it here for better readability.</p>
-</blockquote>
+<p>Note: This was originally posted as a Twitter thread. I&rsquo;ve reformatted it here for better readability.</p></blockquote>
 <p>By now, you&rsquo;ve probably already heard of linear attention, in-context learning, test-time scaling, and etc&hellip;</p>
 <p>Here, I&rsquo;ll discuss:</p>
 <ol>
@@ -253,8 +255,7 @@
 <p>While the &ldquo;inner model&rdquo; treats the outer model as a black box and simply optimizes its state to better predict the values from the keys.</p>
 </li>
 </ol>
-<p><img loading="lazy" src="inner-opt.png#center" alt=""  />
-</p>
+<p><img loading="lazy" src="/ponder/test-time-regression/inner-opt.png#center"></p>
 <p>And with more modern optimizers, such as Shampoo/PSGD, you can actually think of this as a three-layer optimization process because:</p>
 <ol start="3">
 <li>The optimizer is also trying to learn the geometry of the loss landscape by adjusting the gradient preconditioners.</li>
@@ -266,16 +267,14 @@
 <p>Thus, we need to define a distance metric between the model&rsquo;s prediction and the actual value:</p>
 <p>$$\text{loss}_M(\text{key}, \text{value}) = \text{distance}(M(\text{key}), \text{value})$$</p>
 <p>Question is, how do we define this &ldquo;distance&rdquo;?</p>
-<p><img loading="lazy" src="linear-attn-loss-functions.png#center" alt=""  />
-</p>
+<p><img loading="lazy" src="/ponder/test-time-regression/linear-attn-loss-functions.png#center"></p>
 <p>In practice, we&rsquo;ve pretty much settled on two of the most basic distance metrics:</p>
 <ol>
 <li>The <strong>negative dot product</strong>. Minimizing this is equivalent to maximizing the dot product or the &ldquo;alignment&rdquo; between $Mk$ and $v$.</li>
 <li>The <strong>(squared) Euclidean distance</strong>. Minimizing this is equivalent to doing (linear) regression between the keys and the values.</li>
 </ol>
 <hr>
-<p><img loading="lazy" src="linear-attention-derivations.png#center" alt="Deriving Linear Attention Mechanisms from the Loss Functions they Optimize"  />
-</p>
+<p><img alt="Deriving Linear Attention Mechanisms from the Loss Functions they Optimize" loading="lazy" src="/ponder/test-time-regression/linear-attention-derivations.png#center"></p>
 <p>From here, we can add the tricks we&rsquo;ve learned so far from designing optimizers one-by-one to arrive at different variants of linear attention.</p>
 <ul>
 <li>If we pick the negative dot product loss and do online gradient descent, we&rsquo;ll get Vanilla Linear Attention.

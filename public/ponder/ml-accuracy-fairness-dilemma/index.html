@@ -10,7 +10,7 @@
 <meta name="description" content="Machine learning models merely amplify our biases - not eliminate them.">
 <meta name="author" content="Franz Louis Cesista">
 <link rel="canonical" href="https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.7695d65198b4eb0454d08822ddd0b9bc75437b4a2a995eef4f73b0ae209c4e92.css" integrity="sha256-dpXWUZi06wRU0Igi3dC5vHVDe0oqmV7vT3OwriCcTpI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.253701e64acde2b382c010121092cc581e3817c116fed20d9655c14fd77bfad9.css" integrity="sha256-JTcB5krN4rOCwBASEJLMWB44F8EW/tINllXBT9d7&#43;tk=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://leloykun.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://leloykun.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://leloykun.github.io/favicon-32x32.png">
@@ -175,9 +175,12 @@
 </div>
   </header> 
 <figure class="entry-cover">
-        <img loading="lazy" srcset="https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover_hue755ef7c099369165b15c33500b1add2_3361467_360x0_resize_q75_box.jpg 360w ,https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover_hue755ef7c099369165b15c33500b1add2_3361467_480x0_resize_q75_box.jpg 480w ,https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover_hue755ef7c099369165b15c33500b1add2_3361467_720x0_resize_q75_box.jpg 720w ,https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover_hue755ef7c099369165b15c33500b1add2_3361467_1080x0_resize_q75_box.jpg 1080w ,https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover_hue755ef7c099369165b15c33500b1add2_3361467_1500x0_resize_q75_box.jpg 1500w ,https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover.jpg 5892w" 
-            sizes="(min-width: 768px) 720px, 100vw" src="https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover.jpg" alt="Cover: The Accuracy-Fairness Dilemma in Machine Learning" 
-            width="5892" height="3928">
+            <img loading="eager"
+                srcset='https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover_hu_23e22d99f1ad2189.jpg 360w,https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover_hu_b1502029c2b61c11.jpg 480w,https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover_hu_4ba3dde43fa33820.jpg 720w,https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover_hu_57e7f78fcf574f0.jpg 1080w,https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover_hu_e78b5881ae460c4f.jpg 1500w,https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover.jpg 5892w'
+                src="https://leloykun.github.io/ponder/ml-accuracy-fairness-dilemma/cover.jpg"
+                sizes="(min-width: 768px) 720px, 100vw"
+                width="5892" height="3928"
+                alt="Cover: The Accuracy-Fairness Dilemma in Machine Learning">
         
 </figure><div class="toc">
     <details  open>
@@ -204,19 +207,16 @@
 <p>I admit I was guilty of this too. &ldquo;If we just replace flawed humans with cold, calculating machines,&rdquo; I thought, &ldquo;then we can eliminate discrimination in the world.&rdquo; Seems reasonable, right? But, this view is naive. Machines can be flawed too and their creators don&rsquo;t have to be evil for them to be so.</p>
 <p>Fairness doesn&rsquo;t follow from the accuracy of our models. In fact, the two are inherently conflicted. This is what I call the Accuracy-Fairness Dilemma:</p>
 <blockquote>
-<p>To maximize accuracy, models have to learn everything they can from the data - including the human biases embedded in them. But to maximize fairness, they have to unlearn the human biases.</p>
-</blockquote>
+<p>To maximize accuracy, models have to learn everything they can from the data - including the human biases embedded in them. But to maximize fairness, they have to unlearn the human biases.</p></blockquote>
 <p>We want to teach machines as much as we can, but we may also end up teaching them the mistakes of the past.</p>
 <h2 id="a-concrete-example">A Concrete Example<a hidden class="anchor" aria-hidden="true" href="#a-concrete-example">#</a></h2>
 <p>Car salespeople have this uncanny ability to predict how much their customers are really able to pay for a car, despite the latter&rsquo;s denials. It takes years of practice to do this well. But, wouldn&rsquo;t it be nice if we could build a machine learning model that can do the same? With it, we could rake in a lot more profits with much less experience under our belt.</p>
 <p>Here we have historical data on car sales of a certain car retailer. The first five columns contain customer data while the last column contains how much customers paid for a car.</p>
-<p><img loading="lazy" src="1.png#center" alt="Sample data"  />
-</p>
+<p><img alt="Sample data" loading="lazy" src="/ponder/ml-accuracy-fairness-dilemma/1.png#center"></p>
 <p>A newbie data scientist would just blindly maximize the accuracy of their models without taking ethical and social considerations into account.</p>
 <h2 id="try-it-yourself">Try it Yourself<a hidden class="anchor" aria-hidden="true" href="#try-it-yourself">#</a></h2>
 <p>Please proceed to this <a href="https://share.streamlit.io/leloykun/accuracy-fairness-dilemma/main" target="_blank">link</a> for the demo.</p>
-<p><img loading="lazy" src="2.png#center" alt="Demo"  />
-</p>
+<p><img alt="Demo" loading="lazy" src="/ponder/ml-accuracy-fairness-dilemma/2.png#center"></p>
 <h2 id="how-to-measure-unfairness">How to Measure Unfairness<a hidden class="anchor" aria-hidden="true" href="#how-to-measure-unfairness">#</a></h2>
 <p>If you deployed this model to production, it would&rsquo;ve misled your company into charging women customers <code>$1354.976</code> more than the men for no logical reason at all. That would be unethical and discriminatory.</p>
 <p>I know anecdotes aren’t enough to prove theories. Thus, we need a more mathematical approach to show that our model really is discriminatory.</p>
@@ -235,12 +235,10 @@
 <hr>
 <h2 id="faqs">FAQs<a hidden class="anchor" aria-hidden="true" href="#faqs">#</a></h2>
 <blockquote>
-<p>Why don’t we prevent the model from accessing sensitive data while training?</p>
-</blockquote>
+<p>Why don’t we prevent the model from accessing sensitive data while training?</p></blockquote>
 <p>Uncheck &lsquo;Include sensitive data&rsquo; in the sidebar to the left and redo the demo. I can guarantee the unfairness wouldn&rsquo;t be eliminated.</p>
 <blockquote>
-<p>What if the data isn’t “clean” in the first place?</p>
-</blockquote>
+<p>What if the data isn’t “clean” in the first place?</p></blockquote>
 <p>You shouldn’t fudge with or delete someone&rsquo;s data just because they seem &ldquo;odd&rdquo; along with everybody else&rsquo;s. We are unique in our own way and our data reflect that. It is what it is and you just have to deal with it.</p>
 
 
