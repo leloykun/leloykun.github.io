@@ -8,6 +8,7 @@ summary: "Machine learning models merely amplify our biases - not eliminate them
 cover:
     image: "cover.jpg"
     alt: "Cover: The Accuracy-Fairness Dilemma in Machine Learning"
+    relative: true
 editPost:
     URL: "https://ponder.substack.com/p/the-accuracy-fairness-dilemma"
     Text: "Crossposted on Ponder"

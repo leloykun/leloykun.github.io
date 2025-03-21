@@ -8,6 +8,7 @@ summary: "[Technical Report for CVPR's 2nd MMFM Challenge] This report presents 
 cover:
     image: "cover.png"
     alt: "Multimodal Structured Generation: CVPR's 2nd MMFM Challenge Technical Report"
+    relative: true
 ---
 
 ![cover](cover.png)

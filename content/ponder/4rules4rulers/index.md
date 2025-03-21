@@ -8,6 +8,7 @@ summary: "On how to gain and maintain power."
 cover:
     image: "cover.jpg"
     alt: "Cover: Four Rules for Rulers"
+    relative: true
 editPost:
     URL: "https://ponder.substack.com/p/4rules4rulers"
     Text: "Crossposted on Ponder"

@@ -10,6 +10,7 @@ summary: "[Preprint - Accepted @ IEEE 7th International Conference on Multimedia
 cover:
     image: "cover.png"
     alt: "Retrieval Augmented Structured Generation: Business Document Information Extraction As Tool Use [Preprint - Accepted @ IEEE MIPR 2024]"
+    relative: true
 ---
 
 ![cover](cover.png)

@@ -8,6 +8,7 @@ summary: "Years of experience in building artificial minds led me to believe tha
 cover:
     image: "cover.jpg"
     alt: "Cover: The 'Human' Mind May Be Universal"
+    relative: true
 editPost:
     URL: "https://ponder.substack.com/p/the-human-mind-may-be-universal"
     Text: "Crossposted on Ponder"

@@ -8,6 +8,7 @@ summary: "A unifying framework for linear attention mechanisms as test-time regr
 cover:
     image: "cover.jpg"
     alt: "Cover"
+    relative: true
 editPost:
     URL: "https://x.com/leloykun/status/1883634169902952655"
     Text: "Crossposted from X (formerly Twitter)"

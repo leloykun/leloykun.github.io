@@ -8,6 +8,7 @@ summary: "Whether you're only here for the hype or genuinely interested in the f
 cover:
     image: "cover.png"
     alt: "Cover: How to Master Machine Learning"
+    relative: true
 editPost:
     URL: "https://ponder.substack.com/p/how-to-master-machine-learning-3"
     Text: "Crossposted on Ponder"

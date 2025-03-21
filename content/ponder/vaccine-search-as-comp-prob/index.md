@@ -8,6 +8,7 @@ summary: "A thought dump on mRNA vaccines and the future of computational biolog
 cover:
     image: "cover.jpg"
     alt: "Cover"
+    relative: true
 editPost:
     URL: "https://ponder.substack.com/p/vaccine-search-as-comp-prob"
     Text: "Crossposted on Ponder"

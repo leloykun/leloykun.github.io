@@ -8,6 +8,7 @@ summary: "Simply switching to Muon can already get you 2x efficiency gains. But 
 cover:
     image: "muon-022125-speedrun-record.png"
     alt: "Cover"
+    relative: true
 editPost:
     URL: "https://x.com/leloykun/status/1892793848163946799"
     Text: "Crossposted from X (formerly Twitter)"

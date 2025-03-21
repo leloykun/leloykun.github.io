@@ -8,10 +8,10 @@ summary: "GRPO may not be the best choice for training reasoning models. Here's 
 cover:
     image: "cover.png"
     alt: "Cover"
+    relative: true
 editPost:
     URL: "https://x.com/leloykun/status/1889333283693179351"
     Text: "Crossposted from X (formerly Twitter)"
-images: ["cover.png"]
 ---
 
 ## GRPO might not be the best choice for multi-task RL training

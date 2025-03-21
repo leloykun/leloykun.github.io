@@ -8,6 +8,7 @@ summary: "Instead of asking, 'Which optimizer should I use?' ask, 'In which spac
 cover:
     image: "deep-learning-optimizers-intro.png"
     alt: "Cover"
+    relative: true
 editPost:
     URL: "https://x.com/leloykun/status/1847919153589735705"
     Text: "Crossposted from X (formerly Twitter)"

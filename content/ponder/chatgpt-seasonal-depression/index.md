@@ -8,6 +8,7 @@ summary: "Could ChatGPT's shorter responses be an indication of something more b
 cover:
     image: "cover.jpg"
     alt: "Cover: ChatGPT May Have Developed Seasonal Depression"
+    relative: true
 editPost:
     URL: "https://ponder.substack.com/p/chatgpt-may-have-developed-seasonal-depression"
     Text: "Crossposted on Ponder"
