@@ -6,8 +6,15 @@
     <description>Recent content on Franz Louis Cesista</description>
     <generator>Hugo -- 0.145.0</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 16 Mar 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 24 Mar 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Napkin Math on Non-Euclidean Trust Region Optimization</title>
+      <link>https://leloykun.github.io/ponder/napkin-math-trust-region-opt/</link>
+      <pubDate>Mon, 24 Mar 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/napkin-math-trust-region-opt/</guid>
+      <description>A possible reason why Muon converges faster &amp;amp; does better at higher learning rates than Adam.</description>
+    </item>
     <item>
       <title>Blocked Matrix Formulation of Linear Attention Mechanisms</title>
       <link>https://leloykun.github.io/ponder/blockmat-linear-attn/</link>
