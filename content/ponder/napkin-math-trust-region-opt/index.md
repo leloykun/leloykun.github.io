@@ -13,9 +13,7 @@ summary: "A possible reason why Muon converges faster & does better at higher le
 #     Text: "Crossposted from X (formerly Twitter)"
 ---
 
-[UNDER CONSTRUCTION]
-
-In a [previous post](../steepest-descent-schatten-p/), we talked about how to derive some common optimizers from a choice of norm. In this post, we'll go over Kovalev's recent paper on Non-Euclidean Trust Region Optimization and how we can use its main result to explain why Muon converges faster and does better at higher learning rates than Adam.
+In a [previous post](../steepest-descent-schatten-p/), we talked about how to derive some common optimizers from a choice of norm. In this post, we'll go over [Kovalev's recent paper on Non-Euclidean Trust Region Optimization](https://arxiv.org/abs/2503.12645) and how we can use its main result to explain why Muon converges faster and does better at higher learning rates than Adam.
 
 ## Non-Euclidean Trust Region Optimization
 
@@ -23,9 +21,7 @@ We consider the following optimization problem:
 $$\min_{x \in \mathcal{X}} f(x)$$
 where $f(\cdot): \mathcal{X} \rightarrow \mathbb{R}$ is a bounded from below and differentiable objective function and $\mathcal{X}$ is finite-dimensional vector space equipped with an inner product $\langle \cdot, \cdot \rangle: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}$ and a norm $\|\| \cdot \|\|: \mathcal{X} \rightarrow \mathbb{R}$ which may or may not coincide with the inner product.
 
----
-
-We make three assumptions:
+And we make three assumptions:
 
 > **(A1).** We have access to an unbiased and bounded variance stochastic estimator $g(\cdot; \xi) : \mathcal{X} \rightarrow \mathcal{X}$ of the gradient $\nabla f(\cdot)$, $\xi \sim D$ is a random variable sampled from a distribution $D$. I.e., $$\mathbb{E}_{\xi \sim D}[g(x; \xi)] = \nabla f(x)\quad\text{and}\quad \mathbb{E}\_{\xi \sim D}[\|\|g(x; \xi) - \nabla f(x)\|\|_2^2] \leq \sigma^2\quad \forall x \in \mathcal{X}$$ where $\sigma > 0$ is a positive variance parameter and $\|\|\cdot\|\|_2 = \sqrt{\langle \cdot, \cdot \rangle}$.
 
@@ -33,14 +29,16 @@ We make three assumptions:
 
 > **(A3).** To connect the norms in **(A1)** and **(A2)**, we use the following inequality: $$\|\|x\|\|_* \leq \rho\cdot\|\|x\|\|_2\quad \forall x \in \mathcal{X}$$ where $\rho > 0$ is a positive constant. Note that this $\rho$ always exists due to the norm equivalence theorem for finite-dimensional vector spaces.
 
----
+These are sufficient conditions for the convergence of the following trust region optimization algorithm:
 
-> **(Kovalev's) Theorem 2.** Let Assumptions **(A1)** to **(A3)** hold, and let $m_0 = g(x_0; \xi_0)$. Then the iterations of Algorithm 1 satisfy the following iequality:
-$$\mathbb{E}\left[ \min_{k=1,\ldots,K} \|\| \nabla f(x_k) \|\|_* \right] \leq \frac{\Delta_0}{\eta K} + \frac{2\rho\sigma}{\alpha K} + 2\sqrt{\alpha}\rho\sigma + \frac{3L\eta}{2} + \frac{2L\eta}{\alpha},$$ where $\Delta_0 = \nabla f(x_0) - \inf_x f(x)$. Hence, to reach precision $\mathbb{E}\left[ \min\_{k=1,\ldots,K} \|\| \nabla f(x\_k) \|\|\_* \right] \leq \epsilon$, it is sufficient to choose the stepsize $\eta$ and the momentum parameter $\alpha$ as follows:
+![](tro-algo-1.png#center)
+
+> **(Kovalev's) Theorem 2.** Let Assumptions **(A1)** to **(A3)** hold and let $m_0 = g(x_0; \xi_0)$. Then the iterations of Algorithm 1 satisfy the following inequality:
+$$\mathbb{E}\left[ \min_{k=1,\ldots,K} \|\| \nabla f(x_k) \|\|_* \right] \leq \frac{\Delta_0}{\eta K} + \frac{2\rho\sigma}{\alpha K} + 2\sqrt{\alpha}\rho\sigma + \frac{3L\eta}{2} + \frac{2L\eta}{\alpha},$$ where $\Delta_0 = f(x_0) - \inf_x f(x)$. Hence, to reach precision $\mathbb{E}\left[ \min\_{k=1,\ldots,K} \|\| \nabla f(x\_k) \|\|\_* \right] \leq \epsilon$, it is sufficient to choose the stepsize $\eta$ and the momentum parameter $\alpha$ as follows:
 $$\eta = \min\left\\{\frac{\epsilon}{16L}, \frac{\epsilon^3}{256\rho^2\sigma^2L} \right\\},\quad\quad \alpha=\min\left\\{ 1, \frac{\epsilon^2}{16\rho^2\sigma^2} \right\\},$$ and the number of iterations $K$ as follows:
 $$K = \left\lceil \max\left\\{ \frac{2048L\Delta_0\rho^2\sigma^2}{\epsilon^4}, \frac{256\rho^3\sigma^3}{\epsilon^3},\frac{128L\Delta_0}{\epsilon^2}, \frac{16\rho\sigma}{\epsilon} \right\\}\right\rceil.$$
 
-First, notice that the theorem works for any well-defined norm $\|\|\cdot\|\|$ on $\mathcal{X}$. However, $\rho$ and the Lipschitz constant $L$ depend on the choice of norm. And as they increase, the lower $\eta$ and $\alpha$ become and the higher $K$ becomes.
+First, notice that the theorem works for any well-defined norm $\|\|\cdot\|\|$ on $\mathcal{X}$. However, the norm embedding constant $\rho$ and the Lipschitz constant $L$ both depend on the choice of norm. And as they increase, the lower $\eta$ and $\alpha$ become and the higher $K$ becomes.
 
 ---
 
@@ -57,11 +55,11 @@ Following Bernstein & Newhouse (2024), we can interpret Adam and Muon as steepes
 |   Adam    | $\quad\|\|A\|\|_{\text{max}} = \|\|vec(A)\|\|\_\infty = \max\_{i,j}\|A\_{i,j}\|\quad$ |   $\|\|x\|\|\_{1} = \sum\_{i,j}\|A\_{i,j}\|$   |
 |   Muon    |    $\quad\|\|A\|\|_{2\to 2} = \|\|\sigma(A)\|\|\_\infty = \max_i \sigma_i(A)\quad$    | $\|\|x\|\|\_{\text{nuc}} = \sum_i \sigma_i(A)$ |
 
-where $\sigma(A) = (\sigma(A)_1, \sigma(A)_2, \ldots, \sigma(A)_r)$ are the singular values of $A$ and $r \leq \min(m, n)$ is the rank of $A$.
+where $A \in \mathbb{R}^{m \times n}$, $\sigma(A) = (\sigma(A)_1, \sigma(A)_2, \ldots, \sigma(A)_r)$ are the singular values of $A$, and $r = \text{rank}(A) \leq \min(m, n)$.
 
-And we will also heavily rely on the following inequality in our proofs below:
+We will also heavily rely on the following inequality in our proofs below:
 
-> **The monotonicity for $p$-norms.** For any vector $x \in \mathbb{R}^N$ and for $0 < p \leq q \leq \infty$, the $p$-norms satisfy $$\|\|A\|\|_q \leq \|\|A\|\|_p \leq N^{1/p - 1/q}\|\|A\|\|_q,$$ which is a direct consequence of the Hölder's inequality.
+> **The monotonicity inequality for $p$-norms.** For any vector $x \in \mathbb{R}^N$ and for $0 < p \leq q \leq \infty$, the $p$-norms satisfy $$\|\|A\|\|_q \leq \|\|A\|\|_p \leq N^{1/p - 1/q}\|\|A\|\|_q,$$ which is a direct consequence of the Hölder's inequality.
 
 ### Adam has a higher $\rho$ than Muon
 
@@ -70,9 +68,9 @@ Let $x \in \mathbb{R}^{m \times n}$. We can let $p = 1$ and $q = 2$ above to get
 > For Adam:
 $$
 \begin{align*}
-    \|\|A\|\|_1 &= \|\|\sigma(A)\|\|_1\\\\
-                &\leq (mn)^{1/1 - 1/2}\|\|\sigma(A)\|\|_2\\\\
-                &\leq \sqrt{mn}\|\|\sigma(A)\|\|_2\\\\
+    \|\|A\|\|_1 &= \|\|vec(A)\|\|_1\\\\
+                &\leq (mn)^{1/1 - 1/2}\|\|vec(A)\|\|_2\\\\
+                &\leq \sqrt{mn}\|\|vec(A)\|\|_2\\\\
     \|\|A\|\|_1 &\leq \sqrt{mn}\|\|A\|\|_F
 \end{align*}
 $$
@@ -100,7 +98,7 @@ Now, to get an upper bound on the RHS, let $p = 2$ and $q = \infty$ above to get
 > For Adam:
 $$
 \begin{align*}
-    \|\|\sigma(A)\|\|\_2 &\leq (mn)^{1/2 - 0}\|\|\sigma(A)\|\|\_\infty\\\\
+    \|\|vec(A)\|\|\_2 &\leq (mn)^{1/2 - 0}\|\|vec(A)\|\|\_\infty\\\\
     \|\|A\|\|_F       &\leq \sqrt{mn}\|\|A\|\|\_{\text{max}}
 \end{align*}
 $$
@@ -135,10 +133,10 @@ Thus, Muon's $L$ is $\min\\{m,n\\}$ which is always less than $mn$.
 
 ### Conclusion
 
-Let's go back to:
+Let's go back to Kovalev's main result:
 $$\eta = \min\left\\{\frac{\epsilon}{16L}, \frac{\epsilon^3}{256\rho^2\sigma^2L} \right\\},\quad\quad \alpha=\min\left\\{ 1, \frac{\epsilon^2}{16\rho^2\sigma^2} \right\\},$$ $$K = \left\lceil \max\left\\{ \frac{2048L\Delta_0\rho^2\sigma^2}{\epsilon^4}, \frac{256\rho^3\sigma^3}{\epsilon^3},\frac{128L\Delta_0}{\epsilon^2}, \frac{16\rho\sigma}{\epsilon} \right\\}\right\rceil$$
 
-Muon has a lower $\rho$ and $L$ than Adam. Thus, Muon's $\eta$ and $\alpha$ should be higher. And, at least for the learning rate, this is actually the case. Also notice that a lower $\rho$ and $L$ means a lower $K$, which means that, theoretically, Muon should converge faster than Adam which is what we observe in practice.
+Muon has a lower norm embedding constant $\rho$ and Lipschitz constant $L$ than Adam. Thus, Muon's learning rate $\eta$ and momentum $\alpha$ should be higher. And in practice, we do observe that Muon loves higher learning rates. Also notice that a lower $\rho$ and $L$ leads to a lower $K$. This means that, theoretically, Muon should converge faster than Adam--which is exactly what we observe in practice.
 
 ## How to Cite
 
@@ -150,3 +148,11 @@ Muon has a lower $\rho$ and $L$ than Adam. Thus, Muon's $\eta$ and $\alpha$ shou
   url = {http://leloykun.github.io/ponder/napkin-math-trust-region-opt/},
 }
 ```
+
+## References
+
+1. Dmitry Kovalev (2025). Understanding Gradient Orthogonalization for Deep Learning via Non-Euclidean Trust-Region Optimization. Available at: https://arxiv.org/abs/2503.12645
+2. Jeremy Bernstein and Laker Newhouse. “Old optimizer, new norm: An anthology.” arXiv preprint arXiv:2409.20325 (2024).
+3. Keller Jordan, Jeremy Bernstein, Brendan Rappazzo, @fernbear.bsky.social, Boza Vlado, Jiacheng You, Franz Cesista, Braden Koszarsky, and @Grad62304977. modded-nanogpt: Speedrunning the NanoGPT baseline. 2024. Available at: https://github.com/KellerJordan/modded-nanogpt.
+4. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/.
+5. Moonshot AI Team (2025). Muon is Scalable for LLM Training. URL https://arxiv.org/abs/2502.16982
