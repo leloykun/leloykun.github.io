@@ -40,9 +40,9 @@ $$K = \left\lceil \max\left\\{ \frac{2048L\Delta_0\rho^2\sigma^2}{\epsilon^4}, \
 
 First, notice that the theorem works for any well-defined norm $\|\|\cdot\|\|$ on $\mathcal{X}$. However, the norm embedding constant $\rho$ and the Lipschitz constant $L$ both depend on the choice of norm. And as they increase, the lower $\eta$ and $\alpha$ become and the higher $K$ becomes.
 
----
+## Why Muon Outperforms Adam
 
-## Adam vs. Muon
+We're entering napkin math territory here, so take everything with a grain of salt.
 
 Here we'll show that Adam's $\rho$ and $L$ are higher than Muon's and consequently its $\eta$ and $\alpha$ are lower and $K$ is higher. And this largely explains why Muon converges faster and does better at higher learning rates than Adam.
 
@@ -91,7 +91,7 @@ Thus, Muon's $\rho$ is $\sqrt{\min\\{m,n\\}}$ which is always less than $\sqrt{m
 
 We make another assumption:
 
-> **(A4).** Suppose that for all $x, x'$ we have $$\|\|\nabla f(x) - \nabla f(x')\|\|_F \leq \|\| x - x' \|\|_F.$$
+> **(A4).** Suppose that $\hat{L} > 0$ such that for all $x, x'$ we have $$\|\|\nabla f(x) - \nabla f(x')\|\|_F \leq \hat{L} \|\| x - x' \|\|_F.$$
 
 Now, to get an upper bound on the RHS, let $p = 2$ and $q = \infty$ above to get,
 
@@ -106,12 +106,12 @@ Thus for all $x, x'$,
 $$
 \begin{align*}
     \|\|x - x'\|\|_F &\leq \sqrt{mn}\|\|x - x'\|\|\_{\text{max}}\\\\
-    \|\|\nabla f(x) - \nabla f(x')\|\|_F &\leq \sqrt{mn}\|\|x - x'\|\|\_{\text{max}}\quad\quad\text{from (A4)}\\\\
-    \frac{1}{\sqrt{mn}}\|\|\nabla f(x) - \nabla f(x')\|\|_1 &\leq \sqrt{mn}\|\|x - x'\|\|\_{\text{max}}\\\\
-    \|\|\nabla f(x) - \nabla f(x')\|\|_1 &\leq mn\|\|x - x'\|\|\_{\text{max}}
+    \frac{1}{\hat{L}}\|\|\nabla f(x) - \nabla f(x')\|\|_F &\leq \sqrt{mn}\|\|x - x'\|\|\_{\text{max}}\quad\quad\text{from (A4)}\\\\
+    \frac{1}{\hat{L}\sqrt{mn}}\|\|\nabla f(x) - \nabla f(x')\|\|_1 &\leq \sqrt{mn}\|\|x - x'\|\|\_{\text{max}}\\\\
+    \|\|\nabla f(x) - \nabla f(x')\|\|_1 &\leq \hat{L}mn\|\|x - x'\|\|\_{\text{max}}
 \end{align*}
 $$
-Thus, Adam's $L$ is $mn$.
+Thus, Adam's $L$ is $\hat{L}mn$.
 
 > Likewise, for Muon:
 $$
@@ -124,12 +124,12 @@ Thus for all $x, x'$,
 $$
 \begin{align*}
     \|\|x - x'\|\|_F                                        &\leq \sqrt{\min\\{m,n\\}}\|\|x - x'\|\|\_{2\to 2}\\\\
-    \|\|\nabla f(x) - \nabla f(x')\|\|_F                    &\leq \sqrt{\min\\{m,n\\}}\|\|x - x'\|\|\_{2\to 2}\quad\quad\text{from (A4)}\\\\
-    \frac{1}{\sqrt{\min\\{m,n\\}}}\|\|\nabla f(x) - \nabla f(x')\|\|\_{\text{nuc}} &\leq \sqrt{\min\\{m,n\\}}\|\|x - x'\|\|\_{2\to 2}\\\\
-    \|\|\nabla f(x) - \nabla f(x')\|\|\_{\text{nuc}}                    &\leq \min\\{m,n\\}\|\|x - x'\|\|\_{2\to 2}
+    \frac{1}{\hat{L}}\|\|\nabla f(x) - \nabla f(x')\|\|_F                    &\leq \sqrt{\min\\{m,n\\}}\|\|x - x'\|\|\_{2\to 2}\quad\quad\text{from (A4)}\\\\
+    \frac{1}{\hat{L}\sqrt{\min\\{m,n\\}}}\|\|\nabla f(x) - \nabla f(x')\|\|\_{\text{nuc}} &\leq \sqrt{\min\\{m,n\\}}\|\|x - x'\|\|\_{2\to 2}\\\\
+    \|\|\nabla f(x) - \nabla f(x')\|\|\_{\text{nuc}}                    &\leq \hat{L}\min\\{m,n\\}\|\|x - x'\|\|\_{2\to 2}
 \end{align*}
 $$
-Thus, Muon's $L$ is $\min\\{m,n\\}$ which is always less than $mn$.
+Thus, Muon's $L$ is $\hat{L}\min\\{m,n\\}$ which is always less than $\hat{L}mn$.
 
 ### Conclusion
 
