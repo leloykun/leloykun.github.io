@@ -21,7 +21,9 @@ We consider the following optimization problem:
 $$\min_{x \in \mathcal{X}} f(x)$$
 where $f(\cdot): \mathcal{X} \rightarrow \mathbb{R}$ is a bounded from below and differentiable objective function and $\mathcal{X}$ is finite-dimensional vector space equipped with an inner product $\langle \cdot, \cdot \rangle: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}$ and a norm $\|\| \cdot \|\|: \mathcal{X} \rightarrow \mathbb{R}$ which may or may not coincide with the inner product.
 
-And we make three assumptions:
+### Assumptions
+
+The paper's results rely on the following assumptions, which I find to be quite reasonable:
 
 > **(A1).** We have access to an unbiased and bounded variance stochastic estimator $g(\cdot; \xi) : \mathcal{X} \rightarrow \mathcal{X}$ of the gradient $\nabla f(\cdot)$, $\xi \sim D$ is a random variable sampled from a distribution $D$. I.e., $$\mathbb{E}_{\xi \sim D}[g(x; \xi)] = \nabla f(x)\quad\text{and}\quad \mathbb{E}\_{\xi \sim D}[\|\|g(x; \xi) - \nabla f(x)\|\|_2^2] \leq \sigma^2\quad \forall x \in \mathcal{X}$$ where $\sigma > 0$ is a positive variance parameter and $\|\|\cdot\|\|_2 = \sqrt{\langle \cdot, \cdot \rangle}$.
 
@@ -29,18 +31,33 @@ And we make three assumptions:
 
 > **(A3).** To connect the norms in **(A1)** and **(A2)**, we use the following inequality: $$\|\|x\|\|_* \leq \rho\cdot\|\|x\|\|_2\quad \forall x \in \mathcal{X}$$ where $\rho > 0$ is a positive constant. Note that this $\rho$ always exists due to the norm equivalence theorem for finite-dimensional vector spaces.
 
-These are sufficient conditions for the convergence of the following trust region optimization algorithm:
+These are sufficient conditions for the convergence of the following trust region optimization algorithm.
+
+### Algorithm 1: Stochastic Non-Euclidean Trust-Region Gradient Method with Momentum
 
 ![](tro-algo-1.png#center)
+
+![](tro-algo-2.png#center)
+
+### Important Results
+
+The first is Lemma 3 which gives an upper bound on the distance between the momentum $m_k$ and the true gradient $\nabla f(x_k)$, following the update rule in Algorithm 1. And the second is Theorem 2 which provides convergence guarantees for Algorithm 1.
+
+> **(Kovalev's) Lemma 3.** Let Assumptions **(A1)** to **(A3)** hold and let $m_0 = g(x_0; \xi_0)$. Then the iterations of Algorithm 1 satisfy the following inequality for $k \geq 1$:
+$$\mathbb{E}[\|\| m_k - \nabla f(x_k) \|\|_*] \leq (1-a)^k \rho \sigma + \sqrt{\alpha}\rho\sigma+\frac{L\eta}{\alpha}.$$
+
+This is why, unlike OSGDM, we must accumulate the momentum term *before* we apply the dualizer. Otherwise, we can't guarantee that our momentum term would actually be useful, nor even converge. And this lemma also works for any well-defined norm $\|\|\cdot\|\|$ on $\mathcal{X}$. Previous work by Cutkosky & Mehta (2020) has only shown this for the Frobenius norm.
 
 > **(Kovalev's) Theorem 2.** Let Assumptions **(A1)** to **(A3)** hold and let $m_0 = g(x_0; \xi_0)$. Then the iterations of Algorithm 1 satisfy the following inequality:
 $$\mathbb{E}\left[ \min_{k=1,\ldots,K} \|\| \nabla f(x_k) \|\|_* \right] \leq \frac{\Delta_0}{\eta K} + \frac{2\rho\sigma}{\alpha K} + 2\sqrt{\alpha}\rho\sigma + \frac{3L\eta}{2} + \frac{2L\eta}{\alpha},$$ where $\Delta_0 = f(x_0) - \inf_x f(x)$. Hence, to reach precision $\mathbb{E}\left[ \min\_{k=1,\ldots,K} \|\| \nabla f(x\_k) \|\|\_* \right] \leq \epsilon$, it is sufficient to choose the stepsize $\eta$ and the momentum parameter $\alpha$ as follows:
 $$\eta = \min\left\\{\frac{\epsilon}{16L}, \frac{\epsilon^3}{256\rho^2\sigma^2L} \right\\},\quad\quad \alpha=\min\left\\{ 1, \frac{\epsilon^2}{16\rho^2\sigma^2} \right\\},$$ and the number of iterations $K$ as follows:
 $$K = \left\lceil \max\left\\{ \frac{2048L\Delta_0\rho^2\sigma^2}{\epsilon^4}, \frac{256\rho^3\sigma^3}{\epsilon^3},\frac{128L\Delta_0}{\epsilon^2}, \frac{16\rho\sigma}{\epsilon} \right\\}\right\rceil.$$
 
-First, notice that the theorem works for any well-defined norm $\|\|\cdot\|\|$ on $\mathcal{X}$. However, the norm embedding constant $\rho$ and the Lipschitz constant $L$ both depend on the choice of norm. And as they increase, the lower $\eta$ and $\alpha$ become and the higher $K$ becomes.
+I think this is the real meat of the paper. And this works for any well-defined norm $\|\|\cdot\|\|$ on $\mathcal{X}$, not just the Frobenius norm.
 
-## Why Muon Outperforms Adam
+However, the norm embedding constant $\rho$ and the Lipschitz constant $L$ both depend on the choice of norm. And as they increase, the lower $\eta$ and $\alpha$ become and the higher $K$ becomes.
+
+## A Possible Reason Why Muon Outperforms Adam
 
 We're entering napkin math territory here, so take everything with a grain of salt.
 
@@ -61,7 +78,7 @@ We will also heavily rely on the following inequality in our proofs below:
 
 > **The monotonicity inequality for $p$-norms.** For any vector $x \in \mathbb{R}^N$ and for $0 < p \leq q \leq \infty$, the $p$-norms satisfy $$\|\|A\|\|_q \leq \|\|A\|\|_p \leq N^{1/p - 1/q}\|\|A\|\|_q,$$ which is a direct consequence of the Hölder's inequality.
 
-### Adam has a higher $\rho$ than Muon
+### Adam has a higher norm embedding constant $\rho$ than Muon
 
 Let $x \in \mathbb{R}^{m \times n}$. We can let $p = 1$ and $q = 2$ above to get,
 
@@ -87,7 +104,7 @@ $$
 $$
 Thus, Muon's $\rho$ is $\sqrt{\min\\{m,n\\}}$ which is always less than $\sqrt{mn}$.
 
-### Adam has a higher $L$ than Muon
+### Adam has a higher Lipschitz constant $L$ than Muon
 
 We make another assumption:
 
@@ -156,3 +173,4 @@ Muon has a lower norm embedding constant $\rho$ and Lipschitz constant $L$ than 
 3. Keller Jordan, Jeremy Bernstein, Brendan Rappazzo, @fernbear.bsky.social, Boza Vlado, Jiacheng You, Franz Cesista, Braden Koszarsky, and @Grad62304977. modded-nanogpt: Speedrunning the NanoGPT baseline. 2024. Available at: https://github.com/KellerJordan/modded-nanogpt.
 4. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/.
 5. Moonshot AI Team (2025). Muon is Scalable for LLM Training. URL https://arxiv.org/abs/2502.16982
+6. Cutkosky, A., & Mehta, H. (2020). Momentum improves normalized SGD. In Proceedings of the 37th International Conference on Machine Learning (PMLR Vol. 119, pp. 2260-2268). http://proceedings.mlr.press/v119/cutkosky20b.html
