@@ -63,7 +63,7 @@ However, the norm embedding constant $\rho$ and the Lipschitz constant $L$ both 
 
 We're entering napkin math territory here, so take everything with a grain of salt.
 
-Here we'll show that Adam's $\rho$ and $L$ are higher than Muon's and consequently its $\eta$ and $\alpha$ are lower and $K$ is higher. And this largely explains why Muon converges faster and does better at higher learning rates than Adam.
+Here we'll show that Adam's $\rho$ and $L$ are higher than Muon's and consequently its $\eta$ and $\alpha$ are lower and $K$ is higher. And this may explain why Muon converges faster and does better at higher learning rates than Adam.
 
 ### Preliminaries
 
@@ -148,7 +148,7 @@ $$
         &\leq \sqrt{\min\\{m,n\\}}\|\|\nabla f(X) - \nabla f(X')\|\|_F && \text{(from $\bm{(3)}$)}\\\\
         &\leq \hat{L}\sqrt{\min\\{m,n\\}}\|\|X - X'\|\|_F && \text{(from $\bm{(A4)}$)}\\\\
     \|\|\nabla f(X) - \nabla f(X')\|\|\_{2\to 2}^{\dagger}
-        &\leq \hat{L}\min\\{m,n\\}\|\|X - X'\|\|\_{2\to 2} && \text{(from $\bm{(6)}$)}\tag{5}\\\\
+        &\leq \hat{L}\min\\{m,n\\}\|\|X - X'\|\|\_{2\to 2} && \text{(from $\bm{(6)}$)}\tag{7}\\\\
 \end{align*}
 $$
 $$
