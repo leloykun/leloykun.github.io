@@ -6,8 +6,15 @@
     <description>Recent content in Muon on Franz Louis Cesista</description>
     <generator>Hugo -- 0.145.0</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 24 Mar 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 31 Mar 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/tags/muon/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds</title>
+      <link>https://leloykun.github.io/ponder/steepest-descent-non-riemannian/</link>
+      <pubDate>Mon, 31 Mar 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/steepest-descent-non-riemannian/</guid>
+      <description>Muon from first principles, what makes it different from other optimizers, and why it works so well.</description>
+    </item>
     <item>
       <title>Napkin Math on Non-Euclidean Trust Region Optimization</title>
       <link>https://leloykun.github.io/ponder/napkin-math-trust-region-opt/</link>
@@ -35,6 +42,13 @@
       <pubDate>Thu, 13 Feb 2025 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/</guid>
       <description>The CASPR optimizer, a variant of Shampoo, reduces to Muon when we remove the accumulation on the preconditioners.</description>
+    </item>
+    <item>
+      <title>Deep Learning Optimizers as Steepest Descent in Normed Spaces</title>
+      <link>https://leloykun.github.io/ponder/steepest-descent-opt/</link>
+      <pubDate>Sun, 20 Oct 2024 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/steepest-descent-opt/</guid>
+      <description>Instead of asking, &amp;#39;Which optimizer should I use?&amp;#39; ask, &amp;#39;In which space do my features live in?&amp;#39;</description>
     </item>
   </channel>
 </rss>

@@ -1,7 +1,7 @@
 ---
 title: "Deep Learning Optimizers as Steepest Descent in Normed Spaces"
 date: 2024-10-20
-tags: ["Machine Learning"]
+tags: ["Machine Learning", "Muon"]
 author: "Franz Louis Cesista"
 description: "Instead of asking, 'Which optimizer should I use?' ask, 'In which space do my features live in?'"
 summary: "Instead of asking, 'Which optimizer should I use?' ask, 'In which space do my features live in?'"

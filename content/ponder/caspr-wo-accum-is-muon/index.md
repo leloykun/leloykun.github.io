@@ -16,7 +16,7 @@ CASPR is a variant of the Shampoo optimizer that finds different preconditioners
 
 CASPR updates the parameters using the following update rule:
 
-$$L_t := L_{t-1} + G_t G_t^T, \quad\quad R_t := R_{t-1} + G_t G_t^T$$
+$$L_t := L_{t-1} + G_t G_t^T, \quad\quad R_t := R_{t-1} + G_t^T G_t$$
 $$\tilde{L}_t := L_t + \epsilon I_m, \quad\quad \tilde{R}_t := R_t + \epsilon I_n$$
 $$\Delta W = (\tilde{L}^{-1/2}_t G_t + 2 \tilde{L}^{-1/4}_t G_t \tilde{R}^{-1/4}_t + G_t \tilde{R}^{-1/2}_t)/4.$$
 

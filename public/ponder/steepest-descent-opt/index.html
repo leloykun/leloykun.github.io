@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>Deep Learning Optimizers as Steepest Descent in Normed Spaces | Franz Louis Cesista</title>
-<meta name="keywords" content="Machine Learning">
+<meta name="keywords" content="Machine Learning, Muon">
 <meta name="description" content="Instead of asking, &#39;Which optimizer should I use?&#39; ask, &#39;In which space do my features live in?&#39;">
 <meta name="author" content="Franz Louis Cesista">
 <link rel="canonical" href="https://leloykun.github.io/ponder/steepest-descent-opt/">
@@ -69,7 +69,7 @@
   "name": "Deep Learning Optimizers as Steepest Descent in Normed Spaces",
   "description": "Instead of asking, 'Which optimizer should I use?' ask, 'In which space do my features live in?'",
   "keywords": [
-    "Machine Learning"
+    "Machine Learning", "Muon"
   ],
   "articleBody": " Note: This was originally posted as a Twitter thread. I’ve reformatted it here for better readability.\nWhy do steepest descent in non-Euclidean spaces? Why does adaptive preconditioning work so well in practice? And, Why normalize everything ala nGPT? Ideally, when training a neural network, we want to bound the features, the weights, and their respective updates so that:\n[lower] the model actually “learns” stuff; and [upper] model training is stable These bounds then depend on the norms, but which norms?\nThe fun part is that the norms of the input and output features already induce the norm of the weights between them. We can also let the feature and feature updates have the same norm (likewise for the weights). And so, we only have to choose the norms for the features!\nNow, our datasets are usually Euclidean or locally Euclidean (see Manifold Hypothesis)\nWhat’s the norm induced by Euclidean input and output vector spaces? The Spectral Norm!\nSo even if we don’t want to do anything fancy, we’d still have to do steepest descent in non-Euclidean space because:\nThe induced norm for the weights (w/ Euclidean features) is non-Euclidean; and We’re optimizing the weights, not the features. The model inputs and outputs being Euclidean sounds reasonable, but why do the “hidden” features have to be Euclidean too?\nIf we vary the norms of these features, we also vary the induced norms of the weights and vice versa.\nAdaptive preconditioning then “searches” for the proper norms.\nThis also answers @mattecapu’s Q here\nShampoo \u0026 SOAP starts from Euclidean features and Spectral weights, then tunes the norms over time. SOAP does this tuning with momentum so it’s theoretically faster.\nreally cool to also optimize the p in the norm. do you have a conceptual idea of what that’s tuning? I guess intuitively as p-\u003eoo each dimension is getting ‘further away’ from each other..\nhttps://x.com/mattecapu/status/1847218617567301804\nA more cynical answer, from a mathematician to another, is that almost nobody in this field is actually doing proper linear algebra. Adaptive preconditioning allows us to start from really crappy configurations/parametrizations and get away scoff free.\nBut a more pro-ML answer would be that humans suck at predicting which inductive biases would work best when cooked into the models. E.g. why should the “hidden” features be in Euclidean space? Why not let the model learn the proper space(s) to work with?\nFinally, why is it a good idea to normalize everything everywhere?\nCuz it lets us have sane bounds \u0026 same norms on the features which means we can use the same optimizer for all the layers with minimal tuning!\nhttps://arxiv.org/abs/2410.01131\nHow to Cite @misc{cesista2024firstordernormedopt, author = {Franz Louis Cesista}, title = {Deep Learning Optimizers as Steepest Descent in Normed Spaces}, year = {2024}, url = {http://leloykun.github.io/ponder/steepest-descent-opt/}, } References Loshchilov, I., Hsieh, C., Sun, S., Ginsburg, B. (2024). nGPT: Normalized Transformer with Representation Learning on the Hypersphere. URL https://arxiv.org/abs/2410.01131 Yang, G., Simon, J., Bernstein, J. (2024). A Spectral Condition for Feature Learning. URL https://arxiv.org/abs/2310.17813 Bernstein, J., Newhouse, L. (2024). Old Optimizer, New Norm: An Anthology. URL https://arxiv.org/abs/2409.20325 ",
   "wordCount" : "510",
@@ -280,13 +280,14 @@
   <footer class="post-footer">
     <ul class="post-tags">
       <li><a href="https://leloykun.github.io/tags/machine-learning/">Machine Learning</a></li>
+      <li><a href="https://leloykun.github.io/tags/muon/">Muon</a></li>
     </ul>
 
 
 <ul class="share-buttons">
     <li>
         <a target="_blank" rel="noopener noreferrer" aria-label="share Deep Learning Optimizers as Steepest Descent in Normed Spaces on x"
-            href="https://x.com/intent/tweet/?text=Deep%20Learning%20Optimizers%20as%20Steepest%20Descent%20in%20Normed%20Spaces&amp;url=https%3a%2f%2fleloykun.github.io%2fponder%2fsteepest-descent-opt%2f&amp;hashtags=MachineLearning">
+            href="https://x.com/intent/tweet/?text=Deep%20Learning%20Optimizers%20as%20Steepest%20Descent%20in%20Normed%20Spaces&amp;url=https%3a%2f%2fleloykun.github.io%2fponder%2fsteepest-descent-opt%2f&amp;hashtags=MachineLearning%2cMuon">
             <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
                 <path
                     d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
