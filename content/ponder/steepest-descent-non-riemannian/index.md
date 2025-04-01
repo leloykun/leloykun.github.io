@@ -51,7 +51,7 @@ $$
 $$
 where $\|\|\cdot\|\|^\dagger$ is the dual norm of $\|\|\cdot\|\|$.
 
-And in the next sections, we will also discuss optimizers that precondition the gradients,
+And in the following sections, we will also discuss optimizers that precondition the gradients,
 
 > **Definition 1 (Preconditioning).** In an optimization algorithm, a preconditioner $\mathcal{P}(\cdot; W): T_W\mathcal{W} \rightarrow T_W\mathcal{W}$ is a point-dependent linear transform that maps empirical gradients $\nabla \mathcal{L}(W)\_\xi$ to update directions $\Delta W$. That is, at any $W \in \mathcal{W}$, we have a matrix $P_W$ such that $\mathcal{P}(\nabla \mathcal{L}(W)\_\xi; W) = P_W \nabla \mathcal{L}(W)\_\xi$ and,
 $$
@@ -72,11 +72,11 @@ $$
 
 ## 2. Steepest Descent in Riemannian and Non-Riemannian Manifolds
 
-Let's consider the different cases of the geometry of $\bm{\mathcal{W}}$ induced by the choice of norm $\|\|\cdot\|\|$.
+Let us consider the different cases of the geometry of $\bm{\mathcal{W}}$ induced by the choice of norm $\|\|\cdot\|\|$.
 
 ### 2.1. $\bm{\mathcal{W}}$ is Euclidean
 
-In this case, our points, differentials, and gradients are all already in standard Euclidean coordinates and we have a canonical bijection between differentials $d\mathcal{L}_W(\cdot) \in T_W^* \bm{\mathcal{W}}$ and gradients $\nabla \mathcal{L}(W) \in T_W \bm{\mathcal{W}}$ such that $$d\mathcal{L}_W(\cdot) = \langle \nabla \mathcal{L}(W), \cdot \rangle_F$$
+That is, we pick the Frobenius norm $\|\|\cdot\|\|_F$ as our norm. In this case, our points, differentials, and gradients are all already in standard Euclidean coordinates and we have a canonical bijection between differentials $d\mathcal{L}_W(\cdot) \in T_W^* \bm{\mathcal{W}}$ and gradients $\nabla \mathcal{L}(W) \in T_W \bm{\mathcal{W}}$ such that $$d\mathcal{L}_W(\cdot) = \langle \nabla \mathcal{L}(W), \cdot \rangle_F$$
 Thus,
 
 $$
@@ -97,11 +97,11 @@ where $\hat{\lambda} = \frac{\lambda}{\|\|\nabla \mathcal{L}(W)\_\xi\|\|_F}$. Th
 
 That is, our choice of norm $\|\|\cdot\|\|$ admits a metric $g_W(\cdot, \cdot): T_W \bm{\mathcal{W}} \times T_W \bm{\mathcal{W}} \rightarrow \mathbb{R}$ for each $W \in \bm{\mathcal{W}}$ such that
 $$\|\|U\|\| = \sqrt{g_W(U, U)}\quad\text{and}\quad g_W(U, V) = \langle U, V \rangle_{G_W} = \langle GU, V \rangle_F.\quad \forall U,V \in \mathcal{W}$$
-for some positive-definite matrix $G_W$ for each $W \in \bm{\mathcal{W}}$. Case 1 above is a special case of this where $G_W = I$ for all $W \in \bm{\mathcal{W}}$ and thus, $\|\|U\|\|_F = \sqrt{g_W(U, U)} = \sqrt{\langle U, U \rangle_F}$.
+for some positive-definite matrix $G_W$ for each $W \in \bm{\mathcal{W}}$. Case 1 above is a special case of this where $G_W = I$ for all $W \in \bm{\mathcal{W}}$ and thus, $\|\|U\|\|_F = \sqrt{g_W(U, U)} = \sqrt{\langle U, U \rangle_F} \forall U \in \mathcal{W}$.
 
-And interesting property of Riemannian manifolds is that we have a canonical bijection between differentials $d\mathcal{L}_W(\cdot) \in T_W^* \bm{\mathcal{W}}$ and gradients $\nabla \mathcal{L}(W) \in T_W \bm{\mathcal{W}}$ such that $$d\mathcal{L}_W(\cdot) = \langle \nabla \mathcal{L}(W), \cdot \rangle$$
+An interesting property of Riemannian manifolds is that we have a canonical bijection between differentials $d\mathcal{L}_W(\cdot) \in T_W^* \bm{\mathcal{W}}$ and gradients $\nabla \mathcal{L}(W) \in T_W \bm{\mathcal{W}}$ such that $$d\mathcal{L}_W(\cdot) = \langle \nabla \mathcal{L}(W), \cdot \rangle$$
 
-Now, notice that,
+Now notice that,
 $$
 \begin{align*}
     d\mathcal{L}_W(\cdot) &= \langle \nabla \mathcal{L}(W), \cdot \rangle\\\\
@@ -122,7 +122,7 @@ $$
     \widehat{\Delta W} &\approx \frac{G_W^{-1}\nabla \mathcal{L}(W)\_\xi}{\|\|G_W^{-1}\nabla \mathcal{L}(W)\_\xi\|\|}\nonumber\\\\
 \end{align}
 $$
-where the supremum above can be achieved by aligning $\Delta W$ with $G_W^{-1}\nabla \mathcal{L}(W)\_{\text{coord}}$. Thus, our update rule becomes,
+where the supremum above can be achieved by aligning $\Delta W$ with $G_W^{-1}\nabla \mathcal{L}(W)\_{\text{coord}}$. Thus our update rule becomes,
 $$W_{t+1} = W\_t - \hat{\lambda} G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\_\xi$$
 where $\hat{\lambda} = \frac{\lambda}{\|\|G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\_\xi\|\|}$. This is Riemannian Stochastic Gradient Descent (RSGD) with an adaptive learning rate. And if we let $P_W = G_W^{-1}$ be the preconditioner at point $W$, we can relate this to Preconditioned Stochastic Gradient Descent (PSGD) algorithms (Li, 2015; Pooladzandi et al., 2024).
 
