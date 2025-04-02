@@ -156,11 +156,11 @@ and to simplify our notation, we use $\text{dualizer}\_{\|\|\cdot\|\|}(\nabla \m
 > 
 > **Inputs:** Initial weight $W_0 \in \mathcal{W}$, and momentum term $M_0 \in \mathcal{W}$.
 > 
-> **Parameters:** Learning rate $\lambda > 0$, momentum decay $\beta \in (0, 1)$, and number of iterations $T = {1, 2, \ldots}$
+> **Parameters:** Learning rate $\lambda > 0$, momentum decay $\beta \in (0, 1)$, and number of iterations $T \in \\{1, 2, \ldots\\}$
 > 
-> $\textbf{for } t = 1, 2, \ldots, T \textbf{ do}\\\\
+> $\textbf{for } t = 0, 1, \ldots, T-1 \textbf{ do}\\\\
 \text{... Compute }G_t = \nabla \mathcal{L}(W)\_\xi\\\\
-\text{... Compute }W_t\text{ and }M_t\text{ as follows:}\\\\
+\text{... Compute }W\_{t+1}\text{ and }M\_{t+1}\text{ as follows:}\\\\
 \text{....... }M_{t+1} = \beta M_t + (1 - \beta) G_t\\\\
 \text{....... }O_{t+1} = \text{approx-orth}(M\_{t+1})\\\\
 \text{....... }W_{t+1} = W_t - \lambda O\_{t+1}
