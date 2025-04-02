@@ -25,8 +25,8 @@ In practice, $\mathcal{L}$ often does not have a simple, closed-form solution, s
 $$W_{t+1} = W_{t} - \lambda \widehat{\Delta W}\_t,$$ where $\lambda > 0$ is a positive learning rate parameter and $-\widehat{\Delta W}\_t$ is the direction of steepest descent at step $t$,
 $$
 \begin{align}
-    -\widehat{\Delta W}\_t &= \arg\inf_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)\nonumber\\\\
-    \widehat{\Delta W}\_t &= \arg\sup_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)
+    -\widehat{\Delta W}\_t &= \arg\min_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)\nonumber\\\\
+    \widehat{\Delta W}\_t &= \arg\max_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)
 \end{align}
 $$
 where $T_{W\_t}\mathcal{W}$ is the tangent space at $W\_t$, $d\mathcal{L}\_{W\_t}(\cdot): T_{W\_t}\mathcal{W} \rightarrow \mathbb{R}$ is the differential of $\mathcal{L}$ at $W\_t$, and $d\mathcal{L}\_{W\_t}(\Delta W)$ is the directional derivative of $\mathcal{L}$ at $W\_t$ in the direction of $\Delta W$.
@@ -81,9 +81,9 @@ Thus,
 
 $$
 \begin{align*}
-    \widehat{\Delta W} &= \arg\sup_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_W(\Delta W)\\\\
-        &= \arg\sup_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W), \Delta W \rangle_F\\\\
-        &= \arg\sup_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W)_{\text{coord}}, \Delta W \rangle_F\\\\
+    \widehat{\Delta W} &= \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_W(\Delta W)\\\\
+        &= \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W), \Delta W \rangle_F\\\\
+        &= \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W)_{\text{coord}}, \Delta W \rangle_F\\\\
         &= \frac{\nabla \mathcal{L}(W)\_{\text{coord}}}{\|\|\nabla \mathcal{L}(W)\_{\text{coord}}\|\|\_F}\\\\
     \widehat{\Delta W} &\approx \frac{\nabla \mathcal{L}(W)\_\xi}{\|\|\nabla \mathcal{L}(W)\_\xi\|\|\_F}\\\\
 \end{align*}
@@ -115,14 +115,14 @@ Thus,
 
 $$
 \begin{align}
-    \widehat{\Delta W} &= \arg\sup_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_W(\Delta W)\nonumber\\\\
-        &= \arg\sup_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W), \Delta W \rangle\nonumber\\\\
-        &= \arg\sup_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle G_W^{-1} \nabla \mathcal{L}(W)\_{\text{coord}}, \Delta W \rangle\\\\
+    \widehat{\Delta W} &= \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_W(\Delta W)\nonumber\\\\
+        &= \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W), \Delta W \rangle\nonumber\\\\
+        &= \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle G_W^{-1} \nabla \mathcal{L}(W)\_{\text{coord}}, \Delta W \rangle\\\\
         &= \frac{G_W^{-1} \nabla \mathcal{L}(W)\_{\text{coord}}}{\|\|G_W^{-1}\nabla \mathcal{L}(W)\_{\text{coord}}\|\|}\nonumber\\\\
     \widehat{\Delta W} &\approx \frac{G_W^{-1}\nabla \mathcal{L}(W)\_\xi}{\|\|G_W^{-1}\nabla \mathcal{L}(W)\_\xi\|\|}\nonumber\\\\
 \end{align}
 $$
-where the supremum above can be achieved by aligning $\Delta W$ with $G_W^{-1}\nabla \mathcal{L}(W)\_{\text{coord}}$. Thus our update rule becomes,
+where the maximum above can be achieved by aligning $\Delta W$ with $G_W^{-1}\nabla \mathcal{L}(W)\_{\text{coord}}$. Thus our update rule becomes,
 $$W_{t+1} = W\_t - \hat{\lambda} G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\_\xi$$
 where $\hat{\lambda} = \frac{\lambda}{\|\|G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\_\xi\|\|}$. This is Riemannian Stochastic Gradient Descent (RSGD) with an adaptive learning rate. And if we let $P_W = G_W^{-1}$ be the preconditioner at point $W$, we can relate this to Preconditioned Stochastic Gradient Descent (PSGD) algorithms (Li, 2015; Pooladzandi et al., 2024).
 
@@ -134,16 +134,16 @@ While we still have access to the stochastic estimator of the differential in st
 $$
 \begin{align*}
     \widehat{\Delta W}
-        &= \arg\sup_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_W(\Delta W)\\\\
-        &= \arg\sup_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}\_{\text{coord}}, \Delta W \rangle_F\\\\
-        &\approx \arg\sup_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W)\_\xi, \Delta W \rangle_F\\\\
+        &= \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_W(\Delta W)\\\\
+        &= \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}\_{\text{coord}}, \Delta W \rangle_F\\\\
+        &\approx \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W)\_\xi, \Delta W \rangle_F\\\\
     \widehat{\Delta W} &= \text{dualizer}\_{\|\|\cdot\|\|}(\nabla \mathcal{L}(W)\_\xi; W)
 \end{align*}
 $$
 where
 $$
 \begin{equation}
-    \text{dualizer}\_{\|\|\cdot\|\|}(\nabla \mathcal{L}(W)\_\xi; W) = \arg\sup_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W)\_\xi, \Delta W \rangle_F
+    \text{dualizer}\_{\|\|\cdot\|\|}(\nabla \mathcal{L}(W)\_\xi; W) = \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W)\_\xi, \Delta W \rangle_F
 \end{equation}
 $$
 and to simplify our notation, we use $\text{dualizer}\_{\|\|\cdot\|\|}(\nabla \mathcal{L}(W)\_\xi)$ if this map is independent of $W$.
@@ -156,7 +156,7 @@ and to simplify our notation, we use $\text{dualizer}\_{\|\|\cdot\|\|}(\nabla \m
 > 
 > **Inputs:** Initial weight $W_0 \in \mathcal{W}$, and momentum term $M_0 \in \mathcal{W}$.
 > 
-> **Parameters:** Learning rate $\lambda > 0$, momentum decay $\beta \in (0, 1)$, and number of iterations $T \in \\{1, 2, \ldots\\}$
+> **Parameters:** Learning rate $\lambda > 0$, momentum decay $\beta \in [0, 1)$, and number of iterations $T \in \\{1, 2, \ldots\\}$
 > 
 > $\textbf{for } t = 0, 1, \ldots, T-1 \textbf{ do}\\\\
 \text{... Compute }G_t = \nabla \mathcal{L}(W)\_\xi\\\\
@@ -217,7 +217,7 @@ for some norm $\|\|\cdot\|\|$. Using standard arguments, we can show that $\math
 
 **3.2.2. Feature Learning Perspective.** Suppose that we have a linear transform $x_{l+1} = W_{l} x_{l}$ at the $l$-th layer of a neural network where $x_l \in \mathcal{R}^{d_l}$ and $x_{l+1} \in \mathcal{R}^{d_{l+1}}$ are the input and output hidden representations (or "features"), respectively, and $W_l \in \mathcal{R}^{d_{l+1} \times d_l}$ is the weight matrix. Additionally, let $\Delta x_l \in \mathcal{R}^{d_l}$, $\Delta x_{l+1} \in \mathcal{R}^{d_{l+1}}$, and $\Delta W_l \in \mathcal{R}^{d_{l+1} \times d_l}$ be their updates after a backward pass.
 
-Ideally, we want the sizes of both the hidden representations $x_l$ and their updates $\Delta x_l$ to scale with the model width $d_l$. Otherwise, if the hidden representations are 'too small', we are wasting capacity, in a sense; and if they are 'too large', we are pushing the model towards the edge of numerical stability and prevent grokking (Prieto et al., 2025). Likewise, if the updates to 'too small', they vanish at larger scales, slowing down convergence; and if they are 'too large', they cause training instability. Yang et al. (2024) summarizes this as follows,
+Ideally, we want the sizes of both the hidden representations $x_l$ and their updates $\Delta x_l$ to scale with the model width $d_l$. Otherwise, if the hidden representations are 'too small', we are wasting capacity, in a sense; and if they are 'too large', we are pushing the model towards the edge of numerical stability and prevent grokking (Prieto et al., 2025). Likewise, if the updates are 'too small', they vanish at larger scales, slowing down convergence; and if they are 'too large', they cause training instability. Yang et al. (2024) summarizes this as follows,
 
 > **Desideratum 1 (Feature Learning).** We desire that our features $x_l$ and feature updates $\Delta x_l$ be of size,
 $$
@@ -283,7 +283,7 @@ $$
 
 As we have shown in Section 2.2, the dualization process in Riemannian steepest descent always has an equivalent preconditioning process by letting $P_W = G_W^{-1}$ at every point $W \in \bm{\mathcal{W}}$. And likewise, if we have a preconditioning process where every $P_W$ is invertible, then it can be thought of as Riemannian steepest descent under the metric $G_W = P_W^{-1}$.
 
-We may not always have an equivalent preconditioning process in non-Riemannian manifolds. And if there is, it may not be unique. Here, let's examine multiple preconditioning processes that approximate the dualizer under the spectral norm in turn.
+However, we may not always have an equivalent preconditioning process in non-Riemannian manifolds. And if there is, it may not be unique. Here, let's examine multiple preconditioning processes that approximate the dualizer under the spectral norm in turn.
 
 **3.3.1. The matrix sign function.** Muon's update rule is actually equivalent to the matrix sign function,
 
@@ -352,7 +352,7 @@ $$\begin{aligned}
 \end{aligned}$$
 which is Muon's update rule $\blacksquare$.
 
-**3.3.4. PSGD Family.** This family of optimizers (Li, 2015 & 2018; Pooladzandi, 2024) explicitly tries to learn the preconditioner $\mathcal{P}(\cdot; W)$ according to several criteria to ensure training stability and, potentially, faster convergence. One of which is the noise suppression gain,
+**3.3.4. PSGD Family. [Under Review]** This family of optimizers (Li, 2015 & 2018; Pooladzandi, 2024) explicitly tries to learn the preconditioner $\mathcal{P}(\cdot; W)$ according to several criteria to ensure training stability and, potentially, faster convergence. One of which is the noise suppression gain,
 $$
 \frac{\mathbb{E}[\|\|H_0^{-1}\epsilon'\|\|_F^2]}{\mathbb{E}[\|\|P\epsilon'\|\|_F^2]}
     = \frac{\mathbb{E}[(\epsilon')^T H_0^{-2} \epsilon']}{\mathbb{E}[(\epsilon')^T P^2 \epsilon']}
@@ -379,7 +379,7 @@ where $\sigma_i(X)$ are the singular values of $X$. In a sense, the Schatten-$p$
 
 A special case is when $p = 2$, and so we have the Frobenius norm. Equipping $\mathcal{W}$ with this norm gives us the standard Euclidean manifold, which is Riemannian. However, Proposition (4) below still applies.
 
-And to find the dualizers for the Schatten-$p$ norms, 
+And to find the dualizers for the Schatten-$p$ norms, we will use the following inequality.
 
 > **Theorem 3 (von Neumann's Trace Inequality).** Let $A, B \in \mathbb{R}^{m \times n}$. Then the following inequality holds,
 $$\text{tr}(A^TB) \leq \sum_{i=1}^{\min(m,n)} \sigma_i(A) \sigma_i(B),$$
@@ -397,14 +397,14 @@ where $\frac{1}{p} + \frac{1}{q} = 1$, and $X = U\Sigma V^T$ is the singular val
 $$
 \begin{align*}
     T^* &= \text{dualizer}\_{||\cdot||\_{S_p}}(X; W)\\\\
-    T^* &= \arg\sup\_{\substack{T \in T_W\mathcal{W}\\\\ \|\|T\|\|\_{S_p} = 1}} \langle X, T \rangle_F\\\\
-    T^* &= \arg\sup\_{\substack{T \in T_W\mathcal{W}\\\\ \|\|T\|\|\_{S_p} = 1}} \text{tr}(X^T T)
+    T^* &= \arg\max\_{\substack{T \in T_W\mathcal{W}\\\\ \|\|T\|\|\_{S_p} = 1}} \langle X, T \rangle_F\\\\
+    T^* &= \arg\max\_{\substack{T \in T_W\mathcal{W}\\\\ \|\|T\|\|\_{S_p} = 1}} \text{tr}(X^T T)
 \end{align*}
 $$
 Then from von Neumann's Trace Inequality, we know that $T^\*$ must share singular vectors with $X$ and that,
-$$T^* = \arg\sup\_{\substack{T \in T_W\mathcal{W}\\\\ \|\|T\|\|\_{S_p} = 1}} \sum\_{i=1}^{\min(m,n)} \sigma_i(X) \sigma_i(T)$$
+$$T^* = \arg\max\_{\substack{T \in T_W\mathcal{W}\\\\ \|\|T\|\|\_{S_p} = 1}} \sum\_{i=1}^{\min(m,n)} \sigma_i(X) \sigma_i(T)$$
 Thus, our optimization problem reduces to
-$$\arg\sup\_{\\{\sigma_i(T)\\}} \sum\_{i=1}^{\min(m,n)} \sigma\_i(X) \sigma_i(T) \quad\text{s.t.}\quad \sum\_{i=1}^{\min(m,n)} \sigma\_{i}(T)^p = 1$$
+$$\arg\max\_{\\{\sigma_i(T)\\}} \sum\_{i=1}^{\min(m,n)} \sigma\_i(X) \sigma_i(T) \quad\text{s.t.}\quad \sum\_{i=1}^{\min(m,n)} \sigma\_{i}(T)^p = 1$$
 And solving via Lagrange multipliers, we have,
 $$\sigma_i(T) = \frac{\sigma_i(X)^{q-1}}{||X||\_{S_q}^{q-1}}$$
 which is indepdent of $W$. Hence,
