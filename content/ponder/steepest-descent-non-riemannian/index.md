@@ -22,7 +22,7 @@ Here, we will derive Muon's update rule for matrix-valued parameters and discuss
 
 We consider the following optimization problem:
 $$\begin{equation} \min_{W \in \bm{\mathcal{W}}} \mathcal{L}(W) \end{equation}$$
-where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable loss function, and $\bm{\mathcal{W}}$ is a (matrix-valued) vector space equipped with a norm $\|\|\cdot\|\|$ chosen a priori. If the norm admits a metric, then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian (Finsler) manifold. Thus, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *classes* of optimizers, precondtioners and dualizers, which we will discuss in the following sections.
+where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable loss function, and $\bm{\mathcal{W}}$ is a (matrix-valued) vector space equipped with a norm $\|\|\cdot\|\|$ chosen a priori. If the norm admits a metric, then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian (Finsler) manifold. Thus, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *classes* of optimizers, preconditioners and dualizers, which we will discuss in the following sections.
 
 In practice, $\mathcal{L}$ often does not have a simple, closed-form solution, so we resort to iterative methods of the form
 $$W_{t+1} = W_{t} - \lambda \widehat{\Delta W}\_t,$$ where $\lambda > 0$ is a positive learning rate parameter and $-\widehat{\Delta W}\_t$ is the direction of steepest descent at step $t$,
@@ -300,7 +300,7 @@ $$
 $$
 where $U\Sigma V^T$ is the singular value decomposition (SVD) of $\nabla \mathcal{L}\_\xi(W)$.
 
-And if we let $P_W = (\nabla \mathcal{L}\_\xi(W) \nabla \mathcal{L}\_\xi(W)^T)^{-1/2}$, then we arrive at a precoditioning form of Muon's update rule,
+And if we let $P_W = (\nabla \mathcal{L}\_\xi(W) \nabla \mathcal{L}\_\xi(W)^T)^{-1/2}$, then we arrive at a preconditioner form of Muon's update rule,
 $$
 \begin{align*}
     W_{t+1} &= W_t - \lambda P_W \nabla \mathcal{L}\_\xi(W\_t)\\\\
