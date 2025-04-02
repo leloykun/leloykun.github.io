@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "Why Muon still work despite not perfectly semi-orthogonalizing the gradients."
 summary: "Why Muon still work despite not perfectly semi-orthogonalizing the gradients."
 # cover:
-    # image: "muon-022125-speedrun-record.png"
+    # image: muon-022125-speedrun-record.png
     # alt: "Cover"
 # editPost:
 #     URL: "https://x.com/leloykun/status/1892793848163946799"

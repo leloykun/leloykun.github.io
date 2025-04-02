@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game."
 summary: "My entry for the World Finals of the Russian AI Cup 2017 - Codewars. A particle swarm-based AI that uses potential flows and fluid mechanics to direct units in a Command-and-Conquer-esque game."
 cover:
-    image: "potential_flow.png"
+    image: potential_flow.png
     alt: "Code Wars 2017"
     relative: false
 editPost:

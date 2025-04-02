@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "Could ChatGPT's shorter responses be an indication of something more bizarre going on?"
 summary: "Could ChatGPT's shorter responses be an indication of something more bizarre going on?"
 cover:
-    image: "cover.jpg"
+    image: cover.jpg
     alt: "Cover: ChatGPT May Have Developed Seasonal Depression"
     relative: true
 editPost:

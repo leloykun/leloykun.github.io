@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "Instead of asking, 'Which optimizer should I use?' ask, 'In which space do my features live in?'"
 summary: "Instead of asking, 'Which optimizer should I use?' ask, 'In which space do my features live in?'"
 cover:
-    image: "deep-learning-optimizers-intro.png"
+    image: deep-learning-optimizers-intro.png
     alt: "Cover"
     relative: true
 editPost:

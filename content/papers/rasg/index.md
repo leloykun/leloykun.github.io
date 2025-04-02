@@ -8,7 +8,7 @@ description: "Business Document Information Extraction (BDIE) is the problem of 
 The contributions of this paper are threefold: (1) We show, with ablation benchmarks, that Large Language Models (LLMs) with RASG are already competitive with or surpasses current SOTA Large Multimodal Models (LMMs) without RASG on BDIE benchmarks. (2) We propose a new metric class for Line Items Recognition, General Line Items Recognition Metric (GLIRM), that is more aligned with practical BDIE use cases compared to existing metrics, such as ANLS*, DocILE, and GriTS. (3) We provide a heuristic algorithm for backcalculating bounding boxes of predicted line items and tables without the need for vision encoders. Finally, we claim that, while LMMs might sometimes offer marginal performance benefits, LLMs + RASG is oftentimes superior given real-world applications and constraints of BDIE."
 summary: "[Preprint - Accepted @ IEEE 7th International Conference on Multimedia Information Processing and Retrieval (MIPR) 2024] This paper presents Retrieval Augmented Structured Generation (RASG), a novel general framework for Business Document Information Extraction that achieves state of the art (SOTA) results on both Key-Information Extraction (KIE) and Line Items Recognition (LIR)."
 cover:
-    image: "cover.png"
+    image: cover.png
     alt: "Retrieval Augmented Structured Generation: Business Document Information Extraction As Tool Use [Preprint - Accepted @ IEEE MIPR 2024]"
     relative: true
 ---

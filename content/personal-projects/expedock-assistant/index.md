@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry."
 summary: "Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry."
 cover:
-    image: "expedock_assistant.png"
+    image: expedock_assistant.png
     alt: "Expedock Assistant"
 editPost:
     URL: "https://ponder.substack.com/p/expedock-assistant-demystifying-logistics"

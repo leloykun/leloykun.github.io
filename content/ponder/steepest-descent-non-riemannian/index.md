@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "Muon from first principles, what makes it different from other optimizers, and why it works so well."
 summary: "Muon from first principles, what makes it different from other optimizers, and why it works so well."
 cover:
-    image: "cover.png"
+    image: cover.png
     alt: "Cover"
     relative: true
 ---
@@ -130,12 +130,12 @@ where $\hat{\lambda} = \frac{\lambda}{\|\|G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\
 
 In this case, our choice of norm $\|\|\cdot\|\|$ does not admit a well-behaved metric $g_W(\cdot, \cdot)$ and consequently also does not admit a well-behaved inner product $\langle \cdot, \cdot \rangle$ such that $\|\|\cdot\|\| = \sqrt{\langle \cdot, \cdot \rangle}$ for all $W \in \mathcal{W}$. Our differentials $d\mathcal{L}_W(\cdot)$ are still well-defined, but we no longer have the bijective relationship between differentials and gradients. And so, we do not always have a unique $\nabla \mathcal{L}(W)$ such that $d\mathcal{L}_W(\cdot) = \langle \nabla \mathcal{L}(W), \cdot \rangle$ if this inner product even exists.
 
-While we still have access to the stochastic estimator of the differential in standard Euclidean coordinates $\nabla \mathcal{L}\_{\text{coord}}$ from Assumption 1, it no longer has geometric meaning by itself. That is, a simple change of coordinates no longer tells us information on the direction of steepest descent. We can, however, still use it to define a dualizer that maps the differentials we get empirically to update directions,
+While we still have access to the stochastic estimator of the differential in standard Euclidean coordinates $\nabla \mathcal{L}(W)\_{\text{coord}}$ from Assumption 1, it no longer has geometric meaning by itself. That is, a simple change of coordinates no longer tells us information on the direction of steepest descent. We can, however, still use it to define a dualizer that maps the differentials we get empirically to update directions,
 $$
 \begin{align*}
     \widehat{\Delta W}
         &= \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_W(\Delta W)\\\\
-        &= \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}\_{\text{coord}}, \Delta W \rangle_F\\\\
+        &= \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W)\_{\text{coord}}, \Delta W \rangle_F\\\\
         &\approx \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W)\_\xi, \Delta W \rangle_F\\\\
     \widehat{\Delta W} &= \text{dualizer}\_{\|\|\cdot\|\|}(\nabla \mathcal{L}(W)\_\xi; W)
 \end{align*}
@@ -313,7 +313,7 @@ $$\Delta W_t = L^{-1/4}_t G_t R^{-1/4}_t$$
 
 As previously noted by Bernstein et al. (2024) and Anil (2024), Shampoo reduces to Muon if we disable the updates on the left and right preconditioners. That is, let $G_t = U\Sigma V^T$ be the singular value decomposition (SVD) of $G_t$ and let
 $$
-L_t = G_t G_t^T\quad\quad R_t = G_t^T G_t
+L_t := G_t G_t^T\quad\quad R_t := G_t^T G_t
 $$
 Then,
 $$\begin{aligned}
@@ -323,7 +323,7 @@ $$\begin{aligned}
         &= U\left(\frac{\Sigma}{\sqrt{\Sigma^2}} \right)V^T\\\\
     \Delta W_t &= UV^T
 \end{aligned}$$
-which is Muon's update rule $\blacksquare$.
+which is Muon's update rule. $\blacksquare$
 
 **3.3.3. CASPR.** Let $G_t = \nabla \mathcal{L}\_\xi(W\_t)$. Then CASPR (Surya et al., 2024) has the following update rule,
 
@@ -333,15 +333,15 @@ $$\Delta W_t = (\tilde{L}^{-1/2}_t G_t + 2 \tilde{L}^{-1/4}_t G_t \tilde{R}^{-1/
 
 As previously noted by Cesista (2025), CASPR reduces to Muon if we disable the updates on the left and right preconditioners. That is, let $G_t = U\Sigma V^T$ be the singular value decomposition (SVD) of $G_t$ and let
 $$
-L_t = G_t G_t^T\quad\quad R_t = G_t^T G_t
+L_t := G_t G_t^T\quad\quad R_t := G_t^T G_t
 $$
 Then,
 $$\begin{aligned}
     \Delta W_t
         &= (\tilde{L}^{-1/2}_t G_t + 2 \tilde{L}^{-1/4}_t G_t \tilde{R}^{-1/4}_t + G_t \tilde{R}^{-1/2}_t)/4\\\\
-        &= (1/4) \cdot [((G_t G_t^T) + \epsilon I_m)^{-1/2} G_t\\\\
-            &\quad\quad\quad+ 2 ((G_t G_t^T) + \epsilon I_m)^{-1/4} G_t ((G_t^T G_t) + \epsilon I_n)^{-1/4}\\\\
-            &\quad\quad\quad+ G_t ((G_t^T G_t) + \epsilon I_n)^{-1/2}]\\\\
+        &= (1/4) \cdot [(G_t G_t^T + \epsilon I_m)^{-1/2} G_t\\\\
+            &\quad\quad\quad+ 2 (G_t G_t^T + \epsilon I_m)^{-1/4} G_t (G_t^T G_t + \epsilon I_n)^{-1/4}\\\\
+            &\quad\quad\quad+ G_t (G_t^T G_t + \epsilon I_n)^{-1/2}]\\\\
         &= (1/4) \cdot [[(U \Sigma V^T) (U \Sigma V^T)^T + \epsilon U I U^T]^{-1/2}(U \Sigma V^T)\\\\
             &\quad\quad\quad + 2[(U \Sigma V^T) (U \Sigma V^T)^T + \epsilon U I U^T]^{-1/4}(U \Sigma V^T) [(U \Sigma V^T)^T (U \Sigma V^T) + \epsilon V I V^T]^{-1/4}\\\\
             &\quad\quad\quad + (U \Sigma V^T) [(U \Sigma V^T)^T (U \Sigma V^T) + \epsilon V I V^T]^{-1/2}]\\\\
@@ -350,7 +350,7 @@ $$\begin{aligned}
         &= U\left(\frac{\Sigma}{\sqrt{\Sigma^2 + \epsilon I}} \right)V^T \\\\
     \Delta W_t &\approx UV^T
 \end{aligned}$$
-which is Muon's update rule $\blacksquare$.
+which is Muon's update rule. $\blacksquare$
 
 **3.3.4. PSGD Family. [Under Review]** This family of optimizers (Li, 2015 & 2018; Pooladzandi, 2024) explicitly tries to learn the preconditioner $\mathcal{P}(\cdot; W)$ according to several criteria to ensure training stability and, potentially, faster convergence. One of which is the noise suppression gain,
 $$

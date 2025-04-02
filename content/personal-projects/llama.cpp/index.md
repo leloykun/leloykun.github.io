@@ -8,7 +8,7 @@ the multi-head attention layer."
 summary: "A C++ implementation of Meta's Llama2 generative large-language model. I also optimized the original C implementation by Karpathy by adding parallelization on
 the multi-head attention layer."
 cover:
-    image: "llama_cute.jpg"
+    image: llama_cute.jpg
     alt: "Cute Llama"
 editPost:
     URL: "https://github.com/leloykun/llama2.cpp"

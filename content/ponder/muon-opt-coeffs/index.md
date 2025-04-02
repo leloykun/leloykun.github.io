@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients."
 summary: "Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients."
 cover:
-    image: "muon-022125-speedrun-record.png"
+    image: muon-022125-speedrun-record.png
     alt: "Cover"
     relative: true
 editPost:

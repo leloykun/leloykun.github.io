@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "Machine learning models merely amplify our biases - not eliminate them."
 summary: "Machine learning models merely amplify our biases - not eliminate them."
 cover:
-    image: "cover.jpg"
+    image: cover.jpg
     alt: "Cover: The Accuracy-Fairness Dilemma in Machine Learning"
     relative: true
 editPost:

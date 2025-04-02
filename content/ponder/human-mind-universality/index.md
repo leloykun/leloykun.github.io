@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "Years of experience in building artificial minds led me to believe that these AIs may end up seeming more 'human' than we currently imagine them to be."
 summary: "Years of experience in building artificial minds led me to believe that these AIs may end up seeming more 'human' than we currently imagine them to be."
 cover:
-    image: "cover.jpg"
+    image: cover.jpg
     alt: "Cover: The 'Human' Mind May Be Universal"
     relative: true
 editPost:

@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "GRPO may not be the best choice for training reasoning models. Here's why."
 summary: "GRPO may not be the best choice for training reasoning models. Here's why."
 cover:
-    image: "cover.png"
+    image: cover.png
     alt: "Cover"
     relative: true
 editPost:

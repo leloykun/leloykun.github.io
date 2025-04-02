@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference."
 summary: "A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference."
 cover:
-    image: "cover.jpg"
+    image: cover.jpg
     alt: "Cover"
     relative: true
 editPost:

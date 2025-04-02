@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "Whether you're only here for the hype or genuinely interested in the field, you’re in for a wild ride."
 summary: "Whether you're only here for the hype or genuinely interested in the field, you’re in for a wild ride."
 cover:
-    image: "cover.png"
+    image: cover.png
     alt: "Cover: How to Master Machine Learning"
     relative: true
 editPost:

@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "Generate interleaved text and image content in a structured format you can directly pass to downstream APIs."
 summary: "Generate interleaved text and image content in a structured format you can directly pass to downstream APIs."
 cover:
-    image: "mmsg-cover.png"
+    image: mmsg-cover.png
     alt: "Cute Llama"
 editPost:
     URL: "https://github.com/leloykun/mmsg"

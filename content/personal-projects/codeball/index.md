@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "My entry for the World Finals of the Russian AI Cup 2018 - Codeball. A 3D physics-aware orchestrator of a pair of bots in a Rocket League-esque soccer game."
 summary: "My entry for the World Finals of the Russian AI Cup 2018 - Codeball. A 3D physics-aware orchestrator of a pair of bots in a Rocket League-esque soccer game."
 cover:
-    image: "codeball.png"
+    image: codeball.png
     alt: "Codeball 2018"
 editPost:
     URL: "https://github.com/leloykun/codeball-2018"

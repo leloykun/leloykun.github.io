@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "On how to gain and maintain power."
 summary: "On how to gain and maintain power."
 cover:
-    image: "cover.jpg"
+    image: cover.jpg
     alt: "Cover: Four Rules for Rulers"
     relative: true
 editPost:

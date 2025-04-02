@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "A possible reason why Muon converges faster & does better at higher learning rates than Adam."
 summary: "A possible reason why Muon converges faster & does better at higher learning rates than Adam."
 # cover:
-#     image: "cover.jpg"
+#     image: cover.jpg
 #     alt: "Cover"
 # editPost:
 #     URL: "https://x.com/leloykun/status/1901267939267162351"

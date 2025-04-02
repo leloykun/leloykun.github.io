@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "The blocked matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism."
 summary: "The blocked matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism."
 # cover:
-#     image: "cover.jpg"
+#     image: cover.jpg
 #     alt: "Cover"
 editPost:
     URL: "https://x.com/leloykun/status/1901267939267162351"

@@ -9,7 +9,7 @@ editPost:
     URL: "https://github.com/leloykun/booking-demand-prediction"
     Text: "Github Repository"
 cover:
-    image: "grab-aiforsea-header.PNG"
+    image: grab-aiforsea-header.PNG
     alt: "Grab AI for SEA"
 ---
 

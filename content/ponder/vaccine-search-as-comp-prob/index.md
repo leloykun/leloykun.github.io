@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "A thought dump on mRNA vaccines and the future of computational biology"
 summary: "A thought dump on mRNA vaccines and the future of computational biology"
 cover:
-    image: "cover.jpg"
+    image: cover.jpg
     alt: "Cover"
     relative: true
 editPost:
