@@ -239,7 +239,7 @@ Combining this with Desideratum 1, we have,
 $$
 \begin{align*}
     \underbrace{\|\|x\_{l+1}\|\|\_2}\_{\Theta(\sqrt{d_{l+1}})}
-        &\leq \underbrace{\|\|W\_l\|\|\_{2\to 2}}\_{??} \cdot \underbrace{\|\|x\_l\|\|\_2}\_{\Theta(\sqrt{d_l})}
+        &\leq \|\|W\_l\|\|\_{2\to 2} \cdot \underbrace{\|\|x\_l\|\|\_2}\_{\Theta(\sqrt{d_l})}
 \end{align*}
 $$
 Thus the size of the weights $W_l$ must be,
@@ -263,8 +263,8 @@ $$
     \underbrace{\|\|\Delta x\_{l+1}\|\|\_2}\_{\Theta(\sqrt{d_{l+1}})}
         &\leq
             \underbrace{\|\|W\_l\|\|\_{2\to 2}}\_{\Theta\left(\sqrt{\frac{d\_{l+1}}{d\_l}}\right)} \cdot \underbrace{\|\|\Delta x\_l\|\|\_2}\_{\Theta\left(\sqrt{d\_l}\right)}
-            + \underbrace{\|\|\Delta W\_l\|\|\_{2\to 2}}\_{??} \cdot \underbrace{\|\|x\_l\|\|\_2}\_{\Theta\left(\sqrt{d\_l}\right)}
-            + \underbrace{\|\|\Delta W\_l\|\|\_{2\to 2}}\_{??} \cdot \underbrace{\|\|\Delta x\_l\|\|\_2}\_{\Theta\left(\sqrt{d\_l}\right)}
+            + \|\|\Delta W\_l\|\|\_{2\to 2} \cdot \underbrace{\|\|x\_l\|\|\_2}\_{\Theta\left(\sqrt{d\_l}\right)}
+            + \|\|\Delta W\_l\|\|\_{2\to 2} \cdot \underbrace{\|\|\Delta x\_l\|\|\_2}\_{\Theta\left(\sqrt{d\_l}\right)}
 \end{align*}
 $$
 Thus the size of the weight updates $\Delta W_l$ must be,
