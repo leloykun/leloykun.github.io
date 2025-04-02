@@ -9,6 +9,9 @@ cover:
     image: cover.png
     alt: "Cover"
     relative: true
+editPost:
+    URL: "https://x.com/leloykun/status/1907211629982556320"
+    Text: "Crossposted from X (formerly Twitter)"
 ---
 
 A new optimizer called Muon has recently been shown to outperform Adam in both small-scale language model training (Jordan et al., 2024), and larger-scale language model training (Moonshot AI Team, 2025) by a factor of 2x in terms of flops efficiency. For non-matrix-valued parameters in a neural network, Muon falls back to Adam. But for matrix-valued parameters, Muon first semi-orthogonalizes the gradient before subtracting it from the parameter. It can also be viewed as steepest descent under the Spectral norm (Bernstein et al., 2024).
