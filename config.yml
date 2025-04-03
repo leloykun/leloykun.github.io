@@ -11,9 +11,9 @@ taxonomies:
 
 menu:
     main:
-        - name: CV
-          url: cv.pdf
-          weight: 1
+        # - name: CV
+        #   url: cv.pdf
+        #   weight: 1
         - name: Papers
           url: papers/
           weight: 2
@@ -54,14 +54,14 @@ params:
         subtitle:
             Building things 👨‍🍳🚀 • Soon <span style="color:#011F5B">**Research Engineer**</span> at [will announce soon] • prev **Machine Learning (AI) Research Scientist, Full-Stack Software Engineer, & Data Engineer** at [Expedock Software Inc.](https://expedock.com) • <span style="color:#011F5B">**2x IOI & 2x ICPC World Finalist**</span> • Mathematics at the [Ateneo de Manila University](https://www.ateneo.edu/)<br><br>
 
-            NanoGPT Speedrunning • Geometric Deep Learning • Multimodal Machine Learning • Information Retrieval • Structured Generation
+            NanoGPT Speedrunning • Geometric Deep Learning • Interleaved Large Multimodal Models • Information Retrieval • Structured Generation
         imageUrl: "picture.png"
         imageWidth: 160
         imageHeight: 160
         imageTitle: Franz Louis Cesista
         buttons:
-            - name: CV
-              url: cv.pdf
+            # - name: CV
+            #   url: cv.pdf
             - name: Papers
               url: papers/
             - name: Personal Projects
