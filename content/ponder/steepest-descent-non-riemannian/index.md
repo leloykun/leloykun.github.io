@@ -31,7 +31,7 @@ $$W_{t+1} = W_{t} - \lambda \widehat{\Delta W}\_t,$$
 where $\lambda > 0$ is a positive learning rate parameter, $W_t \in \mathcal{W}$ is the "current" point at step $t$, $W_{t+1} \in \mathcal{W}$ is the "updated" point at step $t+1$, and $-\widehat{\Delta W}\_t \in T_{W_t}\mathcal{W}$ is the direction of steepest descent at step $t$,
 $$
 \begin{align}
-    -\widehat{\Delta W}\_t &= \arg\min_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)\nonumber\\\\
+    -\widehat{\Delta W}\_t &= \arg\min_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)\\\\
     \widehat{\Delta W}\_t &= \arg\max_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)
 \end{align}
 $$
@@ -59,18 +59,20 @@ where $\|\|\cdot\|\|^\dagger$ is the dual norm of $\|\|\cdot\|\|$.
 
 And in the following sections, we will also discuss optimizers that precondition the gradients,
 
-> **Definition 1 (Preconditioning).** In an optimization algorithm, a preconditioner $\mathcal{P}(\cdot; W): T_W\mathcal{W} \rightarrow T_W\mathcal{W}$ is a point-dependent linear transform that maps empirical gradients $\nabla \mathcal{L}(W)\_\xi$ to update directions $\Delta W$. That is, at any $W \in \mathcal{W}$, we have a matrix $P_W$ such that $\mathcal{P}(\nabla \mathcal{L}(W)\_\xi; W) = P_W \nabla \mathcal{L}(W)\_\xi$ and,
+> **Definition 1 (Preconditioning).** In an optimization algorithm, a preconditioner $\mathcal{P}(\cdot; W): T_W\mathcal{W} \rightarrow T_W\mathcal{W}$ is a (possibly point-dependent) linear transform that maps empirical gradients $\nabla \mathcal{L}(W)\_\xi$ to update directions $\Delta W$. That is, at any $W \in \mathcal{W}$, we have a matrix $P_W$ such that,
+$$\mathcal{P}(\nabla \mathcal{L}(W)\_\xi; W) = P_W \nabla \mathcal{L}(W)\_\xi,$$
+and,
 $$
 \begin{align*}
-    \Delta W_t &= P_{W_t} \nabla \mathcal{L}(W_t)\\\\
-    W_{t+1} &= W_t - \lambda P_{W_t} \nabla \mathcal{L}(W_t)
+    \widehat{\Delta W_t} &= P_{W_t} \nabla \mathcal{L}(W_t)\\\\
+    W_{t+1} &= W_t - \lambda P_{W_t} \nabla \mathcal{L}(W_t).
 \end{align*}
 $$
-> It is also common to assume that we can decompose $P_W$ into a Kronecker product $P_W = L_W \otimes R_W$ (Li, 2015; Gupta et al., 2018, Surya et al., 2024), such that our update rule becomes
+> It is also common to assume that we can decompose $P_W$ into a Kronecker product $P_W = L_W \otimes R_W$ (Li, 2015; Gupta et al., 2018, Surya et al., 2024), such that our update rule becomes,
 $$
 \begin{align*}
-    \Delta W_t &= P_{W_t} \nabla \mathcal{L}(W_t)\\\\
-    \Delta W_t &= L_{W_t} \nabla \mathcal{L}(W_t) R_{W_t}\\\\
+    \widehat{\Delta W_t} &= P_{W_t} \nabla \mathcal{L}(W_t)\\\\
+    \widehat{\Delta W_t} &= L_{W_t} \nabla \mathcal{L}(W_t) R_{W_t}\\\\
     W_{t+1} &= W_t - \lambda L_{W_t} \nabla \mathcal{L}(W_t) R_{W_t}
 \end{align*}
 $$
@@ -82,15 +84,23 @@ The geometry of $\mathcal{W}$ and the optimizer we will need both depend on the 
 
 ### 2.1. Majorization-Minimization Perspective [Under Review]
 
-We can upper bound our objective function $\mathcal{L}$ by the following approximation at an arbitrary point $Z \in \bm{\mathcal{W}}$,
+We can upper bound our objective function $\mathcal{L}$ by the following approximation at an arbitrary point $W \in \bm{\mathcal{W}}$,
 $$
 \begin{equation}
-    \mathcal{U}(W; Z) = \mathcal{L}(Z) + \langle \nabla \mathcal{L}(Z)\_\xi, W - Z \rangle_F + \frac{\lambda}{2}\|\|W - Z\|\|^2
+    \mathcal{U}(\Delta W; W) = \mathcal{L}(W) + \langle \nabla \mathcal{L}(W)\_\xi, \Delta W \rangle_F + \frac{\lambda}{2}\|\|\Delta W\|\|^2
 \end{equation}
 $$
-for some norm $\|\|\cdot\|\|$. Using standard arguments, we can show that $\mathcal{L}(W) \leq \mathcal{U}(W; Z)$ for all $W \in \bm{\mathcal{W}}$ as long as $\lambda \leq L$ (Hunter et al., 2004). ~~Minimizing this upper bound is equivalent to minimizing the original objective function; the tighter the bound, the better. And as discussed by Carlson et al. (2015), the spectral norm gives us a tight upper bound and is thus a good choice. In fact, the spectral norm gives the tightest bound among all the Schatten-$p$ norms.~~ 
+for some norm $\|\|\cdot\|\|$. Using standard arguments, we can show that
+$$\mathcal{L}(W + \Delta W) \leq \mathcal{U}(\Delta W; W)$$
+for all $\Delta W \in T_W\bm{\mathcal{W}}$ as long as $\lambda \leq L$ (Hunter et al., 2004).
+
+A natural strategy to (iteratively) minimize $\mathcal{L}$ from point $W \in \mathcal{W}$ then is to (iteratively) minimize the majorant $\mathcal{U}(\cdot; W)$. And as discussed by Carlson et al. (2015), the spectral norm gives us a very tight upper bound and is thus a good choice. In fact, the spectral norm gives the tightest bound among all the Schatten-$p$ norms. As a bonus, Equation (5) above has a simple, closed-form solution as we will discuss in Section 4.
 
 ### 2.2 Feature Learning Perspective
+
+This section can be summarized as,
+> If we want the Euclidean norm of our features and feature updates to 'grow' with the model size,
+> then the *Spectral norm* of our weights and weight updates must also 'grow' with the model size.
 
 Suppose that we have a linear transform $x_{l+1} = W_{l} x_{l}$ at the $l$-th layer of a neural network where $x_l \in \mathcal{R}^{d_l}$ and $x_{l+1} \in \mathcal{R}^{d_{l+1}}$ are the input and output hidden representations (or "features"), respectively, and $W_l \in \mathcal{R}^{d_{l+1} \times d_l}$ is the weight matrix. Additionally, let $\Delta x_l \in \mathcal{R}^{d_l}$, $\Delta x_{l+1} \in \mathcal{R}^{d_{l+1}}$, and $\Delta W_l \in \mathcal{R}^{d_{l+1} \times d_l}$ be their updates after a backward pass.
 
@@ -126,7 +136,7 @@ $$
 \end{equation}
 $$
 
-2. Now let's consider the feature updates $\Delta x_l$,
+1. Now let's consider the feature updates $\Delta x_l$,
 $$
 \begin{align*}
     x\_{l+1} + \Delta x\_{l+1} &= (W\_l + \Delta W\_l)(x\_l + \Delta x\_l)\\\\
@@ -183,9 +193,24 @@ where $\hat{\lambda} = \frac{\lambda}{\|\|\nabla \mathcal{L}(W)\_\xi\|\|_F}$. Th
 
 ### 3.2. $\bm{\mathcal{W}}$ is a Riemannian Manifold
 
-That is, our choice of norm $\|\|\cdot\|\|$ admits a metric $g_W(\cdot, \cdot): T_W \bm{\mathcal{W}} \times T_W \bm{\mathcal{W}} \rightarrow \mathbb{R}$ for each $W \in \bm{\mathcal{W}}$ such that
-$$\|\|U\|\| = \sqrt{g_W(U, U)}\quad\text{and}\quad g_W(U, V) = \langle U, V \rangle_{G_W} = \langle GU, V \rangle_F\quad \forall U,V \in T\_W\mathcal{W}$$
-for some positive-definite matrix $G_W$. Case 1 above is a special case of this where $G_W = I$ for all $W \in \bm{\mathcal{W}}$ and thus, $\|\|U\|\|_F = \sqrt{g_W(U, U)} = \sqrt{\langle U, U \rangle_F}\quad\forall U \in T_W\mathcal{W}$.
+That is, our choice of norm $\|\|\cdot\|\|$ admits a smoothly-varying metric $g_W(\cdot, \cdot): T_W \bm{\mathcal{W}} \times T_W \bm{\mathcal{W}} \rightarrow \mathbb{R}$ for each $W \in \bm{\mathcal{W}}$ such that,
+$$
+\begin{align*}
+    \|\|U\|\| &= \sqrt{g_W(U, U)}&&\forall U \in T\_W\mathcal{W}\\\\
+    \text{and}\quad g_W(U, V) &= \langle U, V \rangle_{G_W} = \langle G_W U, V \rangle_F = \text{tr}(U^T G_W V) &&\forall U,V \in T\_W\mathcal{W}
+\end{align*}
+$$
+for some (symmetric) positive-definite matrix $G_W$ that may depend on the point $W$.
+
+> **Special Cases.**
+> 1. *Euclidean Manifold:* $G_W = I$ for all $W \in \bm{\mathcal{W}}$. In this case we have,
+$$\|\|U\|\| = \sqrt{g_W(U, U)} = \sqrt{\langle I U, U \rangle_F} = \sqrt{\langle U, U \rangle_F} = \|\|U\|\|_F,\quad\forall U \in T_W\mathcal{W}$$
+which is simply the Euclidean case above.
+> 2. *Euclidean Manifold in Disguise:* $G_W$ is a constant matrix, i.e. it does not depend on $W$, but may not be the identity matrix. Since the metric matrix $G_W$ is guaranteed to be (symmetric) positive-definite, we can always factor it as $G_W = C^T C$ for some invertible matrix $C$. Thus,
+$$\|\|U\|\| = \sqrt{g_W(U, U)} = \sqrt{\text{tr}(U^T C^T C U)} = \sqrt{\langle \overline{U}, \overline{U} \rangle_F} = \|\|\overline{U}\|\|\quad\forall U \in T\_W\mathcal{W}$$
+where $\overline{U} = CU\in CT_W\mathcal{W}$. This means that, up to a simple, linear change of coordinates, this case is equivalent to the Euclidean case above.
+> 
+> Our proofs below still hold in these special cases. But note that, the metric matrix $G_W$ may depend on the point $W \in \mathcal{W}$ and thus potentially induce a non-zero curvature somewhere on the manifold, making it non-Euclidean.
 
 An interesting property of Riemannian manifolds is that we have a canonical bijection between differentials $d\mathcal{L}_W(\cdot) \in T_W^* \bm{\mathcal{W}}$ and gradients $\nabla \mathcal{L}(W) \in T_W \bm{\mathcal{W}}$ such that $$d\mathcal{L}_W(\cdot) = \langle \nabla \mathcal{L}(W), \cdot \rangle$$
 
@@ -210,15 +235,19 @@ $$
     \widehat{\Delta W} &\approx \frac{G_W^{-1}\nabla \mathcal{L}(W)\_\xi}{\|\|G_W^{-1}\nabla \mathcal{L}(W)\_\xi\|\|}\nonumber\\\\
 \end{align}
 $$
-where the maximum above can be achieved by aligning $\Delta W$ with $G_W^{-1}\nabla \mathcal{L}(W)\_{\text{coord}}$. Thus our update rule becomes,
+where the maximum above can be achieved by aligning $\Delta W$ with $G_W^{-1}\nabla \mathcal{L}(W)\_{\text{coord}}$ and scaling such that $\|\|\Delta W\|\| = 1$. Thus our update rule becomes,
 $$W_{t+1} = W\_t - \hat{\lambda} G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\_\xi$$
 where $\hat{\lambda} = \frac{\lambda}{\|\|G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\_\xi\|\|}$. This is Riemannian Stochastic Gradient Descent (RSGD) with an adaptive learning rate. And if we let $P_W = G_W^{-1}$ be the preconditioner at point $W$, we can relate this to Preconditioned Stochastic Gradient Descent (PSGD) algorithms (Li, 2015; Pooladzandi et al., 2024).
 
+> **Important Takeaway:** In a Riemannian manifold, the preconditioner $P_W$ is *unique* and *well-defined* at each point $W \in \mathcal{W}$, but *may not be constant* across the manifold. Thus, as we move across the manifold, we may need to recompute or update our running estimate of the preconditioner. However, if our updates are "small-enough" by some definition, then we may not need to update it at every step; near convergence, or even earlier, it would suffice to update only every $K > 1$ steps for some $K$ chosen a priori.
+
 ### 3.3. $\bm{\mathcal{W}}$ is a Non-Riemannian Manifold
 
-In this case, our choice of norm $\|\|\cdot\|\|$ does not admit a well-behaved metric $g_W(\cdot, \cdot)$ and consequently also does not admit a well-behaved inner product $\langle \cdot, \cdot \rangle$ such that $\|\|\cdot\|\| = \sqrt{\langle \cdot, \cdot \rangle}$ for all $W \in \mathcal{W}$. Our differentials $d\mathcal{L}_W(\cdot)$ are still well-defined, but we no longer have the bijective relationship between differentials and gradients. And so, we do not always have a unique $\nabla \mathcal{L}(W)$ such that $d\mathcal{L}_W(\cdot) = \langle \nabla \mathcal{L}(W), \cdot \rangle$ if this inner product even exists.
+In this case, our choice of norm $\|\|\cdot\|\|$ does not admit a well-behaved metric $g_W(\cdot, \cdot)$ and consequently also does not admit a well-behaved inner product $\langle \cdot, \cdot \rangle$ such that $\|\|\cdot\|\| = \sqrt{\langle \cdot, \cdot \rangle}$ for all $W \in \mathcal{W}$. Our differentials $d\mathcal{L}_W(\cdot)$ are still well-defined, but we no longer have the bijective relationship between differentials and gradients. And so, we do not always have a unique $V \in T_W\mathcal{W}$ such that $d\mathcal{L}_W(\cdot) = \langle V, \cdot \rangle$ if this inner product even exists.
 
-While we still have access to the stochastic estimator of the differential in standard Euclidean coordinates $\nabla \mathcal{L}(W)\_{\text{coord}}$ from Assumption 1, it no longer has geometric meaning by itself. That is, a simple change of coordinates no longer tells us information on the direction of steepest descent. We can, however, still use it to define a dualizer for our norm, $\text{dualizer}\_{\|\|\cdot\|\|}$, that maps the differentials we get empirically to update directions,
+While we still have access to the stochastic estimator of the differential in standard Euclidean coordinates $\nabla \mathcal{L}(W)\_{\text{coord}}$ from Assumption 1, it no longer has geometric meaning by itself. More precisely, we no longer have information on how to transform $\nabla \mathcal{L}(W)\_{\text{coord}}$ to the direction of steepest descent by a (possibly point-dependent) change of coordinates on the tangent space $T_W\mathcal{W}$.
+
+We can, however, still use Assumption 1 to define a dualizer for our norm, $\text{dualizer}\_{\|\|\cdot\|\|}(\cdots; W)$ for $W \in \mathcal{W}$, that maps the differentials we get empirically to update directions,
 $$
 \begin{align*}
     \widehat{\Delta W}
@@ -228,13 +257,18 @@ $$
     \widehat{\Delta W} &= \text{dualizer}\_{\|\|\cdot\|\|}(\nabla \mathcal{L}(W)\_\xi; W)
 \end{align*}
 $$
-where
+where,
 $$
 \begin{equation}
-    \text{dualizer}\_{\|\|\cdot\|\|}(\nabla \mathcal{L}(W)\_\xi; W) = \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \nabla \mathcal{L}(W)\_\xi, \Delta W \rangle_F
+    \text{dualizer}\_{\|\|\cdot\|\|}(\cdots; W) = \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} \langle \cdots, \Delta W \rangle_F
 \end{equation}
 $$
-and to simplify our notation, we use $\text{dualizer}\_{\|\|\cdot\|\|}(\nabla \mathcal{L}(W)\_\xi)$ if this map is independent of $W$.
+and to simplify our notation, we use $\text{dualizer}\_{\|\|\cdot\|\|}(\cdots)$ if this map is independent of $W$.
+
+> **Important Takeaways:**
+> 1. In the Riemannian case, the dualization is equivalent to preconditioning. But in the non-Riemannian case, the dualizer may not be linear and may even have multiple solutions! However, as we will discuss in the next section, it may suffice to approximate the dualizer with a (linear) preconditioner in practice.
+> 2. The intuitions we have developed for the Riemannian case may not apply in the non-Riemannian case. Dualizers in the non-Riemannian case may behave counterintuitively, and may not even have approximate (linear) preconditioners that would work well in practice. And so, we must be vigilant about the geometry of the manifold we are working with.
+> 3. Instantaneous (i.e. preconditioner-free) dualization like what Muon does may be more appropriate in cases where the dualizer has a closed form solution *and* is cheap-enough to compute, according to one's compute budget.
 
 ## 4. Muon as Steepest Descent in a Non-Riemannian Manifold
 
@@ -277,7 +311,7 @@ $
 
 Muon (Algorithm 1) is an optimizer for matrix-valued parameters in neural networks (Jordan et al., 2024). For each weight $W \in \mathcal{W}$, it first accumulates the momentum term, then approximately semi-orthogonalizes the result using the Newton-Schulz iteration (Algorithm 2), before applying it as an update to the weights.
 
-We can fold the momentum term into $\nabla \mathcal{L}(W)\_\xi$ as it can be seen as a way to smooth out outlier empirical gradients. In fact, Kovalev (2025) has recently shown that, under Muon's update rule, the momentum term does becomes a tighter approximation of the true gradient $\nabla \mathcal{L}(W)\_{\text{coord}}$ as the number of iterations $T$ increases.
+We can fold the momentum term into $\nabla \mathcal{L}(W)\_\xi$ as it can be seen as a way to smooth out outlier empirical gradients. In fact, Mokhtari et al. (2018) and more recently Kovalev (2025) have recently shown that, under Muon's update rule, the momentum term does becomes a tighter approximation of the true gradient $\nabla \mathcal{L}(W)\_{\text{coord}}$ as the number of iterations $T$ increases.
 
 And while Muon only approximately (semi-)orthogonalizes the gradient, we have found that it still empirically performs just as well as exact orthogonalization. We will discuss this in more detail in the next sections. Muon is also not the first optimizer that does approximate orthogonalization. For example, Carlson et al.'s randomized algorithm Sketching (2015) does this explicitly, and so does Shampoo (Gupta et al., 2018), CASPR (Surya et al., 2024), and PSGD (Li, 2015) implicitly through their preconditioners. However, Muon is the first, non-randomized, preconditioner-free optimizer that explicitly aims to orthogonalize the gradient.
 
@@ -539,3 +573,4 @@ Many thanks to Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their 
 19. Dmitry Kovalev (2025). Understanding Gradient Orthogonalization for Deep Learning via Non-Euclidean Trust-Region Optimization. Available at: https://arxiv.org/abs/2503.12645
 20. Lee, Jaehoon, et al. “Wide Neural Networks of Any Depth Evolve as Linear Models under Gradient Descent.” Journal of Statistical Mechanics: Theory and Experiment, vol. 2020, no. 12, Dec. 2020, p. 124002. Crossref, https://doi.org/10.1088/1742-5468/abc62b.
 21. Jesus, Ricardo J., et al. “Effect of Initial Configuration of Weights on Training and Function of Artificial Neural Networks.” Mathematics, vol. 9, no. 18, Sept. 2021, p. 2246. Crossref, https://doi.org/10.3390/math9182246.
+22. Aryan Mokhtari, Hamed Hassani, Amin Karbasi (2018). Stochastic Conditional Gradient Methods: From Convex Minimization to Submodular Maximization. URL https://arxiv.org/abs/1804.09554
