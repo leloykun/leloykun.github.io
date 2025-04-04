@@ -14,7 +14,9 @@ editPost:
     Text: "Crossposted from X (formerly Twitter)"
 ---
 
-A new optimizer called Muon has recently been shown to outperform Adam in both small-scale language model training (Jordan et al., 2024), and larger-scale language model training (Moonshot AI Team, 2025) by a factor of 2x in terms of flops efficiency. For non-matrix-valued parameters in a neural network, Muon falls back to Adam. But for matrix-valued parameters, Muon first semi-orthogonalizes the gradient before subtracting it from the parameter. It can also be viewed as steepest descent under the Spectral norm (Bernstein et al., 2024).
+> This is still a Work in Progress (WIP). I've decided to publish this earlier than planned to get feedback and iterate quickly. If you spot any mistakes, please don't hesitate to let me know! Email me at franzlouiscesista@gmail.com or tag me on X ([@leloykun](https://x.com/leloykun)).
+
+A new optimizer called Muon has recently been shown to outperform Adam in both small-scale language model training (Jordan et al., 2024), and larger-scale language model training (Moonshot AI Team, 2025) by a factor of up to 2x in terms of flops efficiency. For non-matrix-valued parameters in a neural network, Muon falls back to Adam. But for matrix-valued parameters, Muon first semi-orthogonalizes the gradient before subtracting it from the parameter. It can also be viewed as steepest descent under the Spectral norm (Bernstein et al., 2024).
 
 Here, we will derive Muon's update rule for matrix-valued parameters and discuss what makes it different from other optimizers and _why_ it works so well.
 
@@ -22,10 +24,11 @@ Here, we will derive Muon's update rule for matrix-valued parameters and discuss
 
 We consider the following optimization problem:
 $$\begin{equation} \min_{W \in \bm{\mathcal{W}}} \mathcal{L}(W) \end{equation}$$
-where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable loss function, and $\bm{\mathcal{W}}$ is a matrix-valued vector space equipped with a norm $\|\|\cdot\|\|$ chosen a priori. If the norm admits a metric, then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian (Finsler) manifold. Thus, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *classes* of optimizers, preconditioners and dualizers, which we will discuss in the following sections.
+where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable loss function, and $\bm{\mathcal{W}}$ is a finite-dimensional, matrix-valued vector space equipped with a norm $\|\|\cdot\|\|$ chosen a priori. If the norm admits a metric, then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian (Finsler) manifold. Thus, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *classes* of optimizers, preconditioners and dualizers, which we will discuss in the following sections.
 
 In practice, $\mathcal{L}$ often does not have a simple, closed-form solution, so we resort to iterative methods of the form
-$$W_{t+1} = W_{t} - \lambda \widehat{\Delta W}\_t,$$ where $\lambda > 0$ is a positive learning rate parameter and $-\widehat{\Delta W}\_t$ is the direction of steepest descent at step $t$,
+$$W_{t+1} = W_{t} - \lambda \widehat{\Delta W}\_t,$$
+where $\lambda > 0$ is a positive learning rate parameter, $W_t \in \mathcal{W}$ is the "current" point at step $t$, $W_{t+1} \in \mathcal{W}$ is the "updated" point at step $t+1$, and $-\widehat{\Delta W}\_t \in T_{W_t}\mathcal{W}$ is the direction of steepest descent at step $t$,
 $$
 \begin{align}
     -\widehat{\Delta W}\_t &= \arg\min_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)\nonumber\\\\
@@ -77,7 +80,7 @@ $$
 
 The geometry of $\mathcal{W}$ and the optimizer we will need both depend on the choice of norm $\|\|\cdot\|\|$. Our core argument is that it is most natural to do steepest descent under the spectral norm $\|\|\cdot\|\|_{2 \to 2}$ in the context of training the linear weights $W$ of a neural network. The spectral norm induces $\mathcal{W}$ to be non-Riemannian, and therefore, intuitions on optimization we have developed in Riemannian manifolds may not apply.
 
-### 2.1. Majorization-Minimization Perspective
+### 2.1. Majorization-Minimization Perspective [Under Review]
 
 We can upper bound our objective function $\mathcal{L}$ by the following approximation at an arbitrary point $Z \in \bm{\mathcal{W}}$,
 $$
@@ -85,7 +88,7 @@ $$
     \mathcal{U}(W; Z) = \mathcal{L}(Z) + \langle \nabla \mathcal{L}(Z)\_\xi, W - Z \rangle_F + \frac{\lambda}{2}\|\|W - Z\|\|^2
 \end{equation}
 $$
-for some norm $\|\|\cdot\|\|$. Using standard arguments, we can show that $\mathcal{L}(W) \leq \mathcal{U}(W; Z)$ for all $W \in \bm{\mathcal{W}}$ as long as $\lambda \leq L$ (Hunter et al., 2004). Minimizing this upper bound is equivalent to minimizing the original objective function; the tighter the bound, the better. And as discussed by Carlson et al. (2015), the spectral norm gives us a tight upper bound and is thus a good choice. In fact, the spectral norm gives the tightest bound among all the Schatten-$p$ norms.
+for some norm $\|\|\cdot\|\|$. Using standard arguments, we can show that $\mathcal{L}(W) \leq \mathcal{U}(W; Z)$ for all $W \in \bm{\mathcal{W}}$ as long as $\lambda \leq L$ (Hunter et al., 2004). ~~Minimizing this upper bound is equivalent to minimizing the original objective function; the tighter the bound, the better. And as discussed by Carlson et al. (2015), the spectral norm gives us a tight upper bound and is thus a good choice. In fact, the spectral norm gives the tightest bound among all the Schatten-$p$ norms.~~ 
 
 ### 2.2 Feature Learning Perspective
 
@@ -181,8 +184,8 @@ where $\hat{\lambda} = \frac{\lambda}{\|\|\nabla \mathcal{L}(W)\_\xi\|\|_F}$. Th
 ### 3.2. $\bm{\mathcal{W}}$ is a Riemannian Manifold
 
 That is, our choice of norm $\|\|\cdot\|\|$ admits a metric $g_W(\cdot, \cdot): T_W \bm{\mathcal{W}} \times T_W \bm{\mathcal{W}} \rightarrow \mathbb{R}$ for each $W \in \bm{\mathcal{W}}$ such that
-$$\|\|U\|\| = \sqrt{g_W(U, U)}\quad\text{and}\quad g_W(U, V) = \langle U, V \rangle_{G_W} = \langle GU, V \rangle_F.\quad \forall U,V \in \mathcal{W}$$
-for some positive-definite matrix $G_W$ for each $W \in \bm{\mathcal{W}}$. Case 1 above is a special case of this where $G_W = I$ for all $W \in \bm{\mathcal{W}}$ and thus, $\|\|U\|\|_F = \sqrt{g_W(U, U)} = \sqrt{\langle U, U \rangle_F} \forall U \in \mathcal{W}$.
+$$\|\|U\|\| = \sqrt{g_W(U, U)}\quad\text{and}\quad g_W(U, V) = \langle U, V \rangle_{G_W} = \langle GU, V \rangle_F\quad \forall U,V \in T\_W\mathcal{W}$$
+for some positive-definite matrix $G_W$. Case 1 above is a special case of this where $G_W = I$ for all $W \in \bm{\mathcal{W}}$ and thus, $\|\|U\|\|_F = \sqrt{g_W(U, U)} = \sqrt{\langle U, U \rangle_F}\quad\forall U \in T_W\mathcal{W}$.
 
 An interesting property of Riemannian manifolds is that we have a canonical bijection between differentials $d\mathcal{L}_W(\cdot) \in T_W^* \bm{\mathcal{W}}$ and gradients $\nabla \mathcal{L}(W) \in T_W \bm{\mathcal{W}}$ such that $$d\mathcal{L}_W(\cdot) = \langle \nabla \mathcal{L}(W), \cdot \rangle$$
 
@@ -190,7 +193,7 @@ Now notice that,
 $$
 \begin{align*}
     d\mathcal{L}_W(\cdot) &= \langle \nabla \mathcal{L}(W), \cdot \rangle\\\\
-    d\mathcal{L}_W(\cdot) &= \langle G_W\nabla \mathcal{L}(W), \cdot \rangle_F\\\\
+    d\mathcal{L}_W(\cdot) &= \langle \underbrace{G_W\nabla \mathcal{L}(W)}\_{\nabla \mathcal{L}(W)\_{\text{coord}}}, \cdot \rangle_F\\\\
     G_W\nabla \mathcal{L}(W) &= \nabla \mathcal{L}(W)\_{\text{coord}}\\\\
     \nabla \mathcal{L}(W) &= G_W^{-1} \nabla \mathcal{L}(W)\_{\text{coord}}\\\\
 \end{align*}
@@ -215,7 +218,7 @@ where $\hat{\lambda} = \frac{\lambda}{\|\|G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\
 
 In this case, our choice of norm $\|\|\cdot\|\|$ does not admit a well-behaved metric $g_W(\cdot, \cdot)$ and consequently also does not admit a well-behaved inner product $\langle \cdot, \cdot \rangle$ such that $\|\|\cdot\|\| = \sqrt{\langle \cdot, \cdot \rangle}$ for all $W \in \mathcal{W}$. Our differentials $d\mathcal{L}_W(\cdot)$ are still well-defined, but we no longer have the bijective relationship between differentials and gradients. And so, we do not always have a unique $\nabla \mathcal{L}(W)$ such that $d\mathcal{L}_W(\cdot) = \langle \nabla \mathcal{L}(W), \cdot \rangle$ if this inner product even exists.
 
-While we still have access to the stochastic estimator of the differential in standard Euclidean coordinates $\nabla \mathcal{L}(W)\_{\text{coord}}$ from Assumption 1, it no longer has geometric meaning by itself. That is, a simple change of coordinates no longer tells us information on the direction of steepest descent. We can, however, still use it to define a dualizer that maps the differentials we get empirically to update directions,
+While we still have access to the stochastic estimator of the differential in standard Euclidean coordinates $\nabla \mathcal{L}(W)\_{\text{coord}}$ from Assumption 1, it no longer has geometric meaning by itself. That is, a simple change of coordinates no longer tells us information on the direction of steepest descent. We can, however, still use it to define a dualizer for our norm, $\text{dualizer}\_{\|\|\cdot\|\|}$, that maps the differentials we get empirically to update directions,
 $$
 \begin{align*}
     \widehat{\Delta W}
@@ -361,25 +364,26 @@ $$\begin{aligned}
 \end{aligned}$$
 which is Muon's update rule. $\blacksquare$
 
-**4.2.4. PSGD Family. [Under Review]** This family of optimizers (Li, 2015 & 2018; Pooladzandi, 2024) explicitly tries to learn the preconditioner $\mathcal{P}(\cdot; W)$ according to several criteria to ensure training stability and, potentially, faster convergence. One of which is the noise suppression gain,
+**4.2.4. PSGD Family. [Under Review]** This family of optimizers (Li, 2015 & 2018; Pooladzandi, 2024) explicitly tries to learn the preconditioner $\mathcal{P}(\cdot; W)$ according to some criterion to ensure training stability and, potentially, faster convergence.  This criterion is involved with the noise suppression gain which is defined as,
 $$
-\frac{\mathbb{E}[\|\|H_0^{-1}\epsilon'\|\|_F^2]}{\mathbb{E}[\|\|P\epsilon'\|\|_F^2]}
-    = \frac{\mathbb{E}[(\epsilon')^T H_0^{-2} \epsilon']}{\mathbb{E}[(\epsilon')^T P^2 \epsilon']}
+\text{noise\\_suppresion\\_gain}\_{\|\|\cdot\|\|_F}(P)
+    = \frac{\mathbb{E}[\|\|H_0^{-1}\epsilon'\|\|_F^2]}{\mathbb{E}[\|\|P\epsilon'\|\|_F^2]}
+    = \frac{\mathbb{E}[(\epsilon')^T H_0^{-2} \epsilon']}{\mathbb{E}[(\epsilon')^T P^2 \epsilon']},
 $$
 where $\epsilon'$ is some (matrix-valued) noise term on the Hessian $H$, which aims to reduce the noise of the preconditioned gradients.
 
-These criteria typically result in update rules that *whitens*, that is decorrelates, the entries of the gradient $\nabla \mathcal{L}(W)\_\xi$. And so while Muon can be seen as an instantaneous version of PSGD, an important difference is that Muon merely projects the gradient to its nearest (semi-)orthogonal matrix, but not necessarily decorrelates the entries.
+We get different update rules depending on which Lie group we restrict the preconditioner $P$ to. However, the criterion above typically leads to update rules that *whitens*, i.e. decorrelates, the entries of the gradient $\nabla \mathcal{L}(W)\_\xi$. And so while Muon can be seen as an instantaneous version of PSGD, an important difference is that Muon merely projects the gradient to its nearest (semi-)orthogonal matrix, but not necessarily decorrelates the entries.
 
 For future work, it would also be interesting to see what kind of update rules we get if we measure the noise suppression gain with respect to the spectral norm instead of the Frobenius norm. That is,
 $$
-\frac{\mathbb{E}[\|\|H_0^{-1}\epsilon'\|\|\_{2\to 2}]}{\mathbb{E}[\|\|P\epsilon'\|\|\_{2\to 2}]}
+\text{noise\\_suppresion\\_gain}\_{\|\|\cdot\|\|\_{2\to 2}}(P) = \frac{\mathbb{E}[\|\|H_0^{-1}\epsilon'\|\|\_{2\to 2}]}{\mathbb{E}[\|\|P\epsilon'\|\|\_{2\to 2}]}
 $$
 
 ## 5. Steepest Descent in Non-Riemannian Manifolds Induced by Schatten-$p$ Norms
 
-> **Definition 2 (Schatten-$p$ Norms).** The Schatten-$p$ norm of a real-valued matrix $X \in \mathbb{R}^{m \times n}$ is defined as:
-$$||X||\_p = \left(\sum_{i=1}^{\min(m, n)} |\sigma_i(X)|^p\right)^{1/p},$$
-where $\sigma_i(X)$ are the singular values of $X$. In a sense, the Schatten-$p$ norm of $X$ can be seen as the $p$-norm of its singular values.
+> **Definition 2 (Schatten-$p$ Norms).** The Schatten-$p$ norm of a finite-dimensional, real-valued matrix $X \in \mathbb{R}^{m \times n}$ is defined as,
+$$||X||\_{S_p} = \left(\sum_{i=1}^{\min(m, n)} |\sigma_i(X)|^p\right)^{1/p},$$
+where $\\{\sigma_i(X)\\}$ are the singular values of $X$. In a sense, the Schatten-$p$ norm of $X$ can be seen as the $p$-norm of its singular values.
 > 
 > **Examples:**
 > 1. $p = 1$: The Nuclear norm, $||A||\_{S_1} = \sum_{i=1}^{\min(m,n)} |\sigma_i(A)| = ||A||_{\text{nuc}}$
@@ -392,7 +396,7 @@ And to find the dualizers for the Schatten-$p$ norms, we will use the following 
 
 > **Theorem 3 (von Neumann's Trace Inequality).** Let $A, B \in \mathbb{R}^{m \times n}$. Then the following inequality holds,
 $$\text{tr}(A^TB) \leq \sum_{i=1}^{\min(m,n)} \sigma_i(A) \sigma_i(B),$$
-where $\sigma_i(A)$ and $\sigma_i(B)$ are the singular values of $A$ and $B$, respectively. And equality holds if and only if $A$ and $B$ share singular vectors.
+where $\\{\sigma_i(A)\\}$ and $\\{\sigma_i(B)\\}$ are the singular values of $A$ and $B$, respectively. And equality holds if and only if $A$ and $B$ share singular vectors.
 
 ### 5.1. Dualizers for Schatten-$p$ Norms
 
@@ -496,6 +500,10 @@ A side-effect of this is that it allows the model parameters to "escape" the sma
 ## 6. Optimizing Muon's Newton-Schulz Coefficients [Under Construction]
 
 ## 7. Convergence Guarantees [Under Construction]
+
+## Acknowledgements
+
+Many thanks to Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their feedback on this work. I have been (and is still) trying to incorporate their feedback into this work. And also to Jeremy Bernstein and Keller Jordan for conversations on optimization and machine learning, in general.
 
 ## How to Cite
 
