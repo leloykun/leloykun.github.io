@@ -449,7 +449,7 @@ $$
 
 ---
 
-## Chunk-wise Parallelism
+## Chunk-wise Parallelism [Section Flagged for Review]
 
 <div align="center">
     <img src="../test-time-regression/linear-attn-comp-forms.png" style="width:75%; height:75%;" />
