@@ -1,6 +1,6 @@
 ---
 title: "Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds"
-date: 2025-03-31
+date: 2025-04-03
 tags: ["Machine Learning", "Muon"]
 author: "Franz Louis Cesista"
 description: "Muon from first principles, what makes it different from other optimizers, and why it works so well."
@@ -94,7 +94,7 @@ for some norm $\|\|\cdot\|\|$. Using standard arguments, we can show that
 $$\mathcal{L}(W + \Delta W) \leq \mathcal{U}(\Delta W; W)$$
 for all $\Delta W \in T_W\bm{\mathcal{W}}$ as long as $\lambda \leq L$ (Hunter et al., 2004).
 
-A natural strategy to (iteratively) minimize $\mathcal{L}$ from point $W \in \mathcal{W}$ then is to (iteratively) minimize the majorant $\mathcal{U}(\cdot; W)$. And as discussed by Carlson et al. (2015), the spectral norm gives us a very tight upper bound and is thus a good choice. In fact, the spectral norm gives the tightest bound among all the Schatten-$p$ norms. As a bonus, Equation (5) above has a simple, closed-form solution as we will discuss in Section 4.
+A natural strategy to (iteratively) minimize $\mathcal{L}$ from point $W \in \mathcal{W}$ then is to (iteratively) minimize the majorant $\mathcal{U}(\cdot; W)$. And as discussed by Carlson et al. (2015), the spectral norm gives us a very tight upper bound and is thus a good choice. In fact, the spectral norm gives the tightest bound among all the Schatten-$p$ norms. As a bonus, Equation (5) above has a simple, closed-form solution for the spectral norm as we will discuss in Section 4.
 
 ### 2.2 Feature Learning Perspective
 
@@ -315,7 +315,7 @@ We can fold the momentum term into $\nabla \mathcal{L}(W)\_\xi$ as it can be see
 
 And while Muon only approximately (semi-)orthogonalizes the gradient, we have found that it still empirically performs just as well as exact orthogonalization. We will discuss this in more detail in the next sections. Muon is also not the first optimizer that does approximate orthogonalization. For example, Carlson et al.'s randomized algorithm Sketching (2015) does this explicitly, and so does Shampoo (Gupta et al., 2018), CASPR (Surya et al., 2024), and PSGD (Li, 2015) implicitly through their preconditioners. However, Muon is the first, non-randomized, preconditioner-free optimizer that explicitly aims to orthogonalize the gradient.
 
-An interesting fact from prior work (Carlson et al., 2015; Flynn, 2017; Bernstein et al., 2024) is that the dualizer for steepest descent under the spectral norm $\|\|\cdot\|\|_{2 \to 2}$ is exactly this orthogonalization process,
+An interesting fact from prior work (Carlson et al., 2015; Flynn, 2017; Mokhtari et al., 2018, Bernstein et al., 2024) is that the dualizer for steepest descent under the spectral norm $\|\|\cdot\|\|_{2 \to 2}$ is exactly this orthogonalization process,
 $$
 \begin{equation}
     \text{dualizer}\_{\|\|\cdot\|\|\_{2\to 2}}(\nabla \mathcal{L}(W)\_\xi) = UV^T
