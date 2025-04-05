@@ -22,11 +22,11 @@ Here, we will derive Muon's update rule for matrix-valued parameters and discuss
 
 ## 1. Preliminaries
 
-We consider the following optimization problem:
+We consider the following optimization problem,
 $$\begin{equation} \min_{W \in \bm{\mathcal{W}}} \mathcal{L}(W) \end{equation}$$
-where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable loss function, and $\bm{\mathcal{W}}$ is a finite-dimensional, matrix-valued vector space equipped with a norm $\|\|\cdot\|\|$ chosen a priori. If the norm admits a metric, then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian (Finsler) manifold. Thus, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *classes* of optimizers, preconditioners and dualizers, which we will discuss in the following sections.
+where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable objective function, and $\bm{\mathcal{W}}$ is a finite-dimensional, matrix-valued vector space equipped with a norm $\|\|\cdot\|\|$ chosen a priori. If the norm admits a metric, then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian (Finsler) manifold. Thus, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *classes* of optimizers, preconditioners and dualizers, which we will discuss in the following sections.
 
-In practice, $\mathcal{L}$ often does not have a simple, closed-form solution, so we resort to iterative methods of the form
+In practice, $\mathcal{L}$ often does not have a simple, closed-form solution, so we resort to iterative methods of the form,
 $$W_{t+1} = W_{t} - \lambda \widehat{\Delta W}\_t,$$
 where $\lambda > 0$ is a positive learning rate parameter, $W_t \in \mathcal{W}$ is the "current" point at step $t$, $W_{t+1} \in \mathcal{W}$ is the "updated" point at step $t+1$, and $-\widehat{\Delta W}\_t \in T_{W_t}\mathcal{W}$ is the direction of steepest descent at step $t$,
 $$
@@ -37,16 +37,16 @@ $$
 $$
 where $T_{W\_t}\mathcal{W}$ is the tangent space at $W\_t$, $d\mathcal{L}\_{W\_t}(\cdot): T_{W\_t}\mathcal{W} \rightarrow \mathbb{R}$ is the differential of $\mathcal{L}$ at $W\_t$, and $d\mathcal{L}\_{W\_t}(\Delta W)$ is the directional derivative of $\mathcal{L}$ at $W\_t$ in the direction of $\Delta W$.
 
-We also often do not have access to the exact differential. However, either through, e.g., backpropagation if downstream operations are differentiable or evolutionary algorithms otherwise, we often do have access to a stochastic estimator $g\_W(\cdot, \xi)\_{\text{coord}}$ of the differential in standard Euclidean coordinates,
+We also often do not have access to the exact differential. However, either through, e.g., backpropagation if downstream operations are differentiable (Rumelhart et al., 1986) or evolutionary algorithms otherwise, we often do have access to a stochastic estimator $g\_W(\cdot, \xi)\_{\text{coord}}$ of the differential in standard Euclidean coordinates,
 
 > **Assumption 1:** Suppose that, for all $W \in \bm{\mathcal{W}}$, the differential $d\mathcal{L}_W(\cdot)$ has a standard Euclidean coordinate representation $\nabla \mathcal{L}(W)\_{\text{coord}}$ such that $d\mathcal{L}_W(\cdot) = \langle \nabla \mathcal{L}(W)\_{\text{coord}}, \cdot \rangle_F$. We assume that we have access to a stochastic estimator $g\_W(\cdot, \xi)\_{\text{coord}} = \langle \nabla \mathcal{L}(W)\_\xi, \cdot \rangle\_F$ of the differential in coordinate form that is unbiased and has bounded variance. That is,
-$$
+> $$
 \begin{align*}
     &\mathbb{E}\_{\xi \sim D}[\nabla \mathcal{L}(W)\_\xi] = \nabla \mathcal{L}(W)\_{\text{coord}} && \forall W \in \bm{\mathcal{W}}\\\\
     &\mathbb{E}\_{\xi \sim D}[\|\|\nabla \mathcal{L}(W)\_\xi - \nabla \mathcal{L}(W)\_{\text{coord}} \|\|_F^2] \leq \sigma^2 && \forall W \in \bm{\mathcal{W}}
 \end{align*}
 $$
-where $\xi$ is a random variable sampled from a  distribution $D$, $\sigma > 0$ is a positive variance parameter, $\langle \cdot, \cdot \rangle_F$ is the Frobenius inner product, and $\|\|\cdot\|\|_F = \sqrt{\langle \cdot, \cdot \rangle_F}$.
+> where $\xi$ is a random variable sampled from a  distribution $D$, $\sigma > 0$ is a positive variance parameter, $\langle \cdot, \cdot \rangle_F$ is the Frobenius inner product, and $\|\|\cdot\|\|_F = \sqrt{\langle \cdot, \cdot \rangle_F}$ is the Frobenius norm.
 
 We also make the following standard continuity assumption on the gradient $\nabla \mathcal{L}(\cdot)$,
 > **Assumption 2:** The gradient $\nabla \mathcal{L}(\cdot)$ is Lipschitz continuous with respect to the norm $\|\|\cdot\|\|$ with gradient Lipschitz constant $L > 0$. That is, for all $W, Z \in \bm{\mathcal{W}}$,
@@ -59,17 +59,17 @@ where $\|\|\cdot\|\|^\dagger$ is the dual norm of $\|\|\cdot\|\|$.
 
 And in the following sections, we will also discuss optimizers that precondition the gradients,
 
-> **Definition 1 (Preconditioning).** In an optimization algorithm, a preconditioner $\mathcal{P}(\cdot; W): T_W\mathcal{W} \rightarrow T_W\mathcal{W}$ is a (possibly point-dependent) linear transform that maps empirical gradients $\nabla \mathcal{L}(W)\_\xi$ to update directions $\Delta W$. That is, at any $W \in \mathcal{W}$, we have a matrix $P_W$ such that,
-$$\mathcal{P}(\nabla \mathcal{L}(W)\_\xi; W) = P_W \nabla \mathcal{L}(W)\_\xi,$$
-and,
-$$
+> **Definition 1 (Preconditioning).** In an optimization algorithm, a preconditioner $\mathcal{P}(\cdot; W): T_W\mathcal{W} \rightarrow T_W\mathcal{W}$ is a (possibly point-dependent) linear transform that maps empirical gradients $\nabla \mathcal{L}(W)\_\xi$ to descent directions $\widehat{\Delta W}$. That is, at any $W \in \mathcal{W}$, we have a matrix $P_W$ such that,
+> $$\mathcal{P}(\nabla \mathcal{L}(W)\_\xi; W) = P_W \nabla \mathcal{L}(W)\_\xi,$$
+> and,
+> $$
 \begin{align*}
     \widehat{\Delta W_t} &= P_{W_t} \nabla \mathcal{L}(W_t)\\\\
     W_{t+1} &= W_t - \lambda P_{W_t} \nabla \mathcal{L}(W_t).
 \end{align*}
 $$
 > It is also common to assume that we can decompose $P_W$ into a Kronecker product $P_W = L_W \otimes R_W$ (Li, 2015; Gupta et al., 2018, Surya et al., 2024), such that our update rule becomes,
-$$
+> $$
 \begin{align*}
     \widehat{\Delta W_t} &= P_{W_t} \nabla \mathcal{L}(W_t)\\\\
     \widehat{\Delta W_t} &= L_{W_t} \nabla \mathcal{L}(W_t) R_{W_t}\\\\
@@ -90,11 +90,11 @@ $$
     \mathcal{U}(\Delta W; W) = \mathcal{L}(W) + \langle \nabla \mathcal{L}(W)\_\xi, \Delta W \rangle_F + \frac{\lambda}{2}\|\|\Delta W\|\|^2
 \end{equation}
 $$
-for some norm $\|\|\cdot\|\|$. Using standard arguments, we can show that
+for some norm $\|\|\cdot\|\|$. Using standard arguments, we can show that,
 $$\mathcal{L}(W + \Delta W) \leq \mathcal{U}(\Delta W; W)$$
 for all $\Delta W \in T_W\bm{\mathcal{W}}$ as long as $\lambda \leq L$ (Hunter et al., 2004).
 
-A natural strategy to (iteratively) minimize $\mathcal{L}$ from point $W \in \mathcal{W}$ then is to (iteratively) minimize the majorant $\mathcal{U}(\cdot; W)$. And as discussed by Carlson et al. (2015), the spectral norm gives us a very tight upper bound and is thus a good choice. In fact, the spectral norm gives the tightest bound among all the Schatten-$p$ norms. As a bonus, Equation (5) above has a simple, closed-form solution for the spectral norm as we will discuss in Section 4.
+A natural strategy to (iteratively) minimize $\mathcal{L}$ from point $W \in \mathcal{W}$ then is to (iteratively) minimize the majorant $\mathcal{U}(\cdot; W)$. And as discussed by Carlson et al. (2015), the spectral norm gives us a very tight upper bound and is thus a good choice. In fact, the spectral norm gives the tightest bound among all the Schatten-$p$ norms (the Frobenius norm included). And just as importantly, Equation (5) above has a simple, closed-form solution for the spectral norm as we will discuss in Section 4.
 
 ### 2.2 Feature Learning Perspective
 
@@ -104,7 +104,7 @@ This section can be summarized as,
 
 Suppose that we have a linear transform $x_{l+1} = W_{l} x_{l}$ at the $l$-th layer of a neural network where $x_l \in \mathcal{R}^{d_l}$ and $x_{l+1} \in \mathcal{R}^{d_{l+1}}$ are the input and output hidden representations (or "features"), respectively, and $W_l \in \mathcal{R}^{d_{l+1} \times d_l}$ is the weight matrix. Additionally, let $\Delta x_l \in \mathcal{R}^{d_l}$, $\Delta x_{l+1} \in \mathcal{R}^{d_{l+1}}$, and $\Delta W_l \in \mathcal{R}^{d_{l+1} \times d_l}$ be their updates after a backward pass.
 
-Ideally, we want the sizes of both the hidden representations $x_l$ and their updates $\Delta x_l$ to scale with the model width $d_l$. Otherwise, if the hidden representations are 'too small', we are wasting capacity, in a sense; and if they are 'too large', we are pushing the model towards the edge of numerical stability and prevent grokking (Prieto et al., 2025). Likewise, if the updates are 'too small', they vanish at larger scales, slowing down convergence; and if they are 'too large', they cause training instability. Yang et al. (2024) summarizes this as follows,
+Ideally, we want the sizes of both the hidden representations $x_l$ and their updates $\Delta x_l$ to scale with the model width $d_l$. Otherwise, if the hidden representations are 'too small', we are wasting capacity, in a sense (Elhage et al., 2022); and if they are 'too large', we are pushing the model towards the edge of numerical stability and prevent grokking (Prieto et al., 2025). Likewise, if the updates are 'too small', they vanish at larger scales, slowing down convergence; and if they are 'too large', they cause training instability. Yang et al. (2024) summarizes this as follows,
 
 > **Desideratum 1 (Feature Learning).** We desire that our features $x_l$ and feature updates $\Delta x_l$ be of size,
 $$
@@ -207,7 +207,7 @@ for some (symmetric) positive-definite matrix $G_W$ that may depend on the point
 $$\|\|U\|\| = \sqrt{g_W(U, U)} = \sqrt{\langle I U, U \rangle_F} = \sqrt{\langle U, U \rangle_F} = \|\|U\|\|_F,\quad\forall U \in T_W\mathcal{W}$$
 which is simply the Euclidean case above.
 > 2. *Euclidean Manifold in Disguise:* $G_W$ is a constant matrix, i.e. it does not depend on $W$, but may not be the identity matrix. Since the metric matrix $G_W$ is guaranteed to be (symmetric) positive-definite, we can always factor it as $G_W = C^T C$ for some invertible matrix $C$. Thus,
-$$\|\|U\|\| = \sqrt{g_W(U, U)} = \sqrt{\text{tr}(U^T C^T C U)} = \sqrt{\langle \overline{U}, \overline{U} \rangle_F} = \|\|\overline{U}\|\|\quad\forall U \in T\_W\mathcal{W}$$
+$$\|\|U\|\| = \sqrt{g_W(U, U)} = \sqrt{\text{tr}(U^T C^T C U)} = \sqrt{\langle \overline{U}, \overline{U} \rangle_F} = \|\|\overline{U}\|\|_F\quad\forall U \in T\_W\mathcal{W}$$
 where $\overline{U} = CU\in CT_W\mathcal{W}$. This means that, up to a simple, linear change of coordinates, this case is equivalent to the Euclidean case above.
 > 
 > Our proofs below still hold in these special cases. But note that, the metric matrix $G_W$ may depend on the point $W \in \mathcal{W}$ and thus potentially induce a non-zero curvature somewhere on the manifold, making it non-Euclidean.
@@ -239,7 +239,7 @@ where the maximum above can be achieved by aligning $\Delta W$ with $G_W^{-1}\na
 $$W_{t+1} = W\_t - \hat{\lambda} G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\_\xi$$
 where $\hat{\lambda} = \frac{\lambda}{\|\|G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\_\xi\|\|}$. This is Riemannian Stochastic Gradient Descent (RSGD) with an adaptive learning rate. And if we let $P_W = G_W^{-1}$ be the preconditioner at point $W$, we can relate this to Preconditioned Stochastic Gradient Descent (PSGD) algorithms (Li, 2015; Pooladzandi et al., 2024).
 
-> **Important Takeaway:** In a Riemannian manifold, the preconditioner $P_W$ is *unique* and *well-defined* at each point $W \in \mathcal{W}$, but *may not be constant* across the manifold. Thus, as we move across the manifold, we may need to recompute or update our running estimate of the preconditioner. However, if our updates are "small-enough" by some definition, then we may not need to update it at every step; near convergence, or even earlier, it would suffice to update only every $K > 1$ steps for some $K$ chosen a priori.
+> **Important Takeaway:** In a Riemannian manifold, the preconditioner $P_W$ is *unique* and *well-defined* at each point $W \in \mathcal{W}$, but *may not be constant* across the manifold. Thus, as we move across the manifold, we may need to recompute or update our running estimate of the preconditioner. However, if our updates are "small-enough" by some definition, then we may not need to update it at every step; near convergence, or even earlier, it would suffice to update only every $K > 1$ steps for some positive integer $K$ chosen a priori.
 
 ### 3.3. $\bm{\mathcal{W}}$ is a Non-Riemannian Manifold
 
@@ -459,7 +459,7 @@ $$T^* = \text{dualizer}\_{||\cdot||\_{S_p}}(X) = U \frac{\text{diag}\left(\sigma
 
 ### 5.2. Stochastic Gradient Descent and Muon as Special Cases
 
-**4.2.1. Recovering SGD.** Let $p = 2$, and so we have $q = 2$ and $||\cdot||\_{S_2} = ||\cdot||\_F$. Thus for $\nabla \mathcal{L}(W)\_\xi \in T_W\mathcal{W}$ at $W \in \mathcal{W}$, we have,
+**5.2.1. Recovering SGD.** Let $p = 2$, and so we have $q = 2$ and $||\cdot||\_{S_2} = ||\cdot||\_F$. Thus for $\nabla \mathcal{L}(W)\_\xi \in T_W\mathcal{W}$ at $W \in \mathcal{W}$, we have,
 $$
 \begin{align*}
     \Delta W
@@ -470,12 +470,12 @@ $$
 $$
 which matches the update rule we expect from SGD.
 
-**4.2.2. Recovering Muon.** Let $p = \infty$, and so we have $q = 1$ and $||\cdot||\_{S\_\infty} = ||\cdot||\_{2\to 2}$. Thus for $\nabla \mathcal{L}(W)\_\xi \in T_W\mathcal{W}$ at $W \in \mathcal{W}$, we have,
+**5.2.2. Recovering Muon.** Let $p = \infty$, and so we have $q = 1$ and $||\cdot||\_{S\_\infty} = ||\cdot||\_{2\to 2}$. Thus for $\nabla \mathcal{L}(W)\_\xi \in T_W\mathcal{W}$ at $W \in \mathcal{W}$, we have,
 $$
 \begin{align*}
     \Delta W
         &= \text{dualizer}\_{||\cdot||\_{2 \to 2}}(\nabla \mathcal{L}(W)\_\xi; W)\\\\
-        &= U \frac{\text{diag}\left(\sigma\_1(\nabla \mathcal{L}(W)\_\xi)^{1-1}, \ldots, \sigma\_{\min(m,n)}(X)^{1-1}\right)}{||X||\_{S_1}^{1-1}} V^T\\\\
+        &= U \frac{\text{diag}\left(\sigma\_1(\nabla \mathcal{L}(W)\_\xi)^{1-1}, \ldots, \sigma\_{\min(m,n)}(\nabla \mathcal{L}(W)\_\xi)^{1-1}\right)}{||\nabla \mathcal{L}(W)\_\xi||\_{S_1}^{1-1}} V^T\\\\
     \Delta W &= UV^T
 \end{align*}
 $$
@@ -494,19 +494,19 @@ To support this, we show that the (1) variance of dualized singular values, and 
 > **Proof:** Let $t_i$ be the $i$-th dualized singular value. From Proposition 4 earlier, we have
 $$
 \begin{align*}
-    t_i &= \left(\frac{\sigma_i(\nabla L(W_l))}{\|\|\nabla L(W_l)\|\|\_{S_q}}\right)^{q-1}\\\\
-    t_i &= \exp\left((q-1)\ln\frac{\sigma_i(\nabla L(W_l))}{\|\|\nabla L(W_l)\|\|\_{S_q}}\right)\\\\
-    t_i &\approx 1 + (q-1)\ln\frac{\sigma_i(\nabla L(W_l))}{\|\|\nabla L(W_l)\|\|\_{S_q}}
+    t_i &= \left(\frac{\sigma_i(\nabla L(W))}{\|\|\nabla L(W)\|\|\_{S_q}}\right)^{q-1}\\\\
+    t_i &= \exp\left((q-1)\ln\frac{\sigma_i(\nabla L(W))}{\|\|\nabla L(W)\|\|\_{S_q}}\right)\\\\
+    t_i &\approx 1 + (q-1)\ln\frac{\sigma_i(\nabla L(W))}{\|\|\nabla L(W)\|\|\_{S_q}}
 \end{align*}
 $$
 where the last line follows from first-order Taylor approximation of $t_i$. Thus, the mean and variance are:
 $$
 \begin{align*}
-    \mathbb{E}[t_i] &\approx 1 + (q-1)\mathbb{E}\left[\ln\frac{\sigma_i(\nabla L(W_l))}{\|\|\nabla L(W_l)\|\|\_{S_q}}\right]\\\\
-    \mathbb{E}[t_i] &\approx 1 + (q-1)\ln\frac{\mathbb{E}[\sigma_i(\nabla L(W_l))]}{\|\|\nabla L(W_l)\|\|\_{S_q}}\\\\
-    t_i - \mathbb{E}[t_i] &\approx (q-1)\ln\left[\sigma_i(\nabla L(W_l)) - \mathbb{E}[\sigma_i(\nabla L(W_l))]\right]\\\\
-    Var[t_i] &\approx (q-1)^2\mathbb{E}\left[\ln^2\left[\sigma_i(\nabla L(W_l)) - \mathbb{E}[\sigma_i(\nabla L(W_l))]\right]\right]\\\\
-    Var[t_i] &\approx \frac{1}{(p-1)^2}\mathbb{E}\left[\ln^2\left[\sigma_i(\nabla L(W_l)) - \mathbb{E}[\sigma_i(\nabla L(W_l))]\right]\right]
+    \mathbb{E}[t_i] &\approx 1 + (q-1)\mathbb{E}\left[\ln\frac{\sigma_i(\nabla L(W))}{\|\|\nabla L(W)\|\|\_{S_q}}\right]\\\\
+    \mathbb{E}[t_i] &\approx 1 + (q-1)\ln\frac{\mathbb{E}[\sigma_i(\nabla L(W))]}{\|\|\nabla L(W)\|\|\_{S_q}}\\\\
+    t_i - \mathbb{E}[t_i] &\approx (q-1)\ln\left[\sigma_i(\nabla L(W)) - \mathbb{E}[\sigma_i(\nabla L(W))]\right]\\\\
+    Var[t_i] &\approx (q-1)^2\mathbb{E}\left[\ln^2\left[\sigma_i(\nabla L(W)) - \mathbb{E}[\sigma_i(\nabla L(W))]\right]\right]\\\\
+    Var[t_i] &\approx \frac{1}{(p-1)^2}\mathbb{E}\left[\ln^2\left[\sigma_i(\nabla L(W)) - \mathbb{E}[\sigma_i(\nabla L(W))]\right]\right]
 \end{align*}
 $$
 Hence, the variance of the dualized singular values converges quadratically to $0$ as $p$ approaches $\infty$.
@@ -574,3 +574,5 @@ Many thanks to Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their 
 20. Lee, Jaehoon, et al. “Wide Neural Networks of Any Depth Evolve as Linear Models under Gradient Descent.” Journal of Statistical Mechanics: Theory and Experiment, vol. 2020, no. 12, Dec. 2020, p. 124002. Crossref, https://doi.org/10.1088/1742-5468/abc62b.
 21. Jesus, Ricardo J., et al. “Effect of Initial Configuration of Weights on Training and Function of Artificial Neural Networks.” Mathematics, vol. 9, no. 18, Sept. 2021, p. 2246. Crossref, https://doi.org/10.3390/math9182246.
 22. Aryan Mokhtari, Hamed Hassani, Amin Karbasi (2018). Stochastic Conditional Gradient Methods: From Convex Minimization to Submodular Maximization. URL https://arxiv.org/abs/1804.09554
+23. Elhage, et al., "Toy Models of Superposition", Transformer Circuits Thread, 2022.
+24. David E. Rumelhart, Geoffrey E. Hinton and Ronald J. Williams (1986). Learning representations by back-propagating errors. URL https://www.nature.com/articles/323533a0
