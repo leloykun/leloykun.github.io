@@ -16,7 +16,7 @@ editPost:
 
 > This is still a Work in Progress (WIP). I've decided to publish this earlier than planned to get feedback and iterate quickly. If you spot any mistakes, please don't hesitate to let me know! Email me at franzlouiscesista@gmail.com or tag me on X ([@leloykun](https://x.com/leloykun)).
 
-A new optimizer called Muon has recently been shown to outperform Adam in both small-scale language model training (Jordan et al., 2024), and larger-scale language model training (Moonshot AI Team, 2025) by a factor of up to 2x in terms of flops efficiency. For non-matrix-valued parameters in a neural network, Muon falls back to Adam. But for matrix-valued parameters, Muon first semi-orthogonalizes the gradient before subtracting it from the parameter. It can also be viewed as steepest descent under the Spectral norm (Bernstein et al., 2024).
+A new optimizer called Muon (Jordan et al., 2024a) has recently been shown to outperform Adam (Kingma et al., 2014) in both small-scale language model training (Jordan et al., 2024b), and larger-scale language model training (Moonshot AI Team, 2025) by a factor of up to 2x in terms of flops efficiency. For non-matrix-valued parameters in a neural network, Muon falls back to Adam. But for matrix-valued parameters, Muon first semi-orthogonalizes the gradient before subtracting it from the parameter. It can also be viewed as steepest descent under the Spectral norm (Bernstein et al., 2024).
 
 Here, we will derive Muon's update rule for matrix-valued parameters and discuss what makes it different from other optimizers and _why_ it works so well.
 
@@ -112,6 +112,7 @@ $$
     \|\|x_l\|\|_2 = \Theta(\sqrt{d_l})\quad\text{and}\quad \|\|\Delta x_l\|\|_2 = \Theta(\sqrt{d_l})\quad\text{for all layers } l = 1, 2, \ldots, L-1
 \end{equation}
 $$
+> where $f(d) = \Theta(g(d))$ means that $f(d)$ "scales like" or "grows in the order of" $g(d)$. More formally, there exists positive real constants $c, C > 0$ and positive integer $D$ such that, for all $d > D$, we have $c \cdot g(d) \leq f(d) \leq C \cdot g(d)$.
 
 We ensure this by imposing constraints on the size of the weights $W_l$ and their updates $\Delta W_l$:
 
@@ -235,7 +236,7 @@ $$
     \widehat{\Delta W} &\approx \frac{G_W^{-1}\nabla \mathcal{L}(W)\_\xi}{\|\|G_W^{-1}\nabla \mathcal{L}(W)\_\xi\|\|}\nonumber\\\\
 \end{align}
 $$
-where the maximum above can be achieved by aligning $\Delta W$ with $G_W^{-1}\nabla \mathcal{L}(W)\_{\text{coord}}$ and scaling such that $\|\|\Delta W\|\| = 1$. Thus our update rule becomes,
+where the maximum above can be achieved by aligning $\Delta W$ with $G_W^{-1}\nabla \mathcal{L}(W)\_{\text{coord}}$ and scaling such that $\|\|\Delta W\|\| = 1$ (Absil, 2008). Thus our update rule becomes,
 $$W_{t+1} = W\_t - \hat{\lambda} G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\_\xi$$
 where $\hat{\lambda} = \frac{\lambda}{\|\|G_{W\_t}^{-1}\nabla \mathcal{L}(W\_t)\_\xi\|\|}$. This is Riemannian Stochastic Gradient Descent (RSGD) with an adaptive learning rate. And if we let $P_W = G_W^{-1}$ be the preconditioner at point $W$, we can relate this to Preconditioned Stochastic Gradient Descent (PSGD) algorithms (Li, 2015; Pooladzandi et al., 2024).
 
@@ -274,7 +275,7 @@ and to simplify our notation, we use $\text{dualizer}\_{\|\|\cdot\|\|}(\cdots)$ 
 
 ### 4.1. The Muon Optimizer
 
-> **Algorithm 1 (Muon)** by Jordan et al. (2024). The weights are treated independently.
+> **Algorithm 1 (Muon)** by Jordan et al. (2024a). The weights are treated independently.
 > 
 > **Inputs:** Initial weight $W_0 \in \mathcal{W}$, and momentum term $M_0 \in \mathcal{W}$.
 > 
@@ -309,7 +310,7 @@ $
 >     return X
 > ```
 
-Muon (Algorithm 1) is an optimizer for matrix-valued parameters in neural networks (Jordan et al., 2024). For each weight $W \in \mathcal{W}$, it first accumulates the momentum term, then approximately semi-orthogonalizes the result using the Newton-Schulz iteration (Algorithm 2), before applying it as an update to the weights.
+Muon (Algorithm 1) is an optimizer for matrix-valued parameters in neural networks (Jordan et al., 2024a). For each weight $W \in \mathcal{W}$, it first accumulates the momentum term, then approximately semi-orthogonalizes the result using the Newton-Schulz iteration (Algorithm 2), before applying it as an update to the weights.
 
 We can fold the momentum term into $\nabla \mathcal{L}(W)\_\xi$ as it can be seen as a way to smooth out outlier empirical gradients. In fact, Mokhtari et al. (2018) and more recently Kovalev (2025) have recently shown that, under Muon's update rule, the momentum term does becomes a tighter approximation of the true gradient $\nabla \mathcal{L}(W)\_{\text{coord}}$ as the number of iterations $T$ increases.
 
@@ -537,7 +538,7 @@ A side-effect of this is that it allows the model parameters to "escape" the sma
 
 ## Acknowledgements
 
-Many thanks to Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their feedback on this work. I have been (and is still) trying to incorporate their feedback into this work. And also to Jeremy Bernstein and Keller Jordan for conversations on optimization and machine learning, in general.
+Many thanks to Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their feedback on this work. I have been (and still is) trying to incorporate their feedback into this work. And also to Jeremy Bernstein and Keller Jordan for conversations on optimization and machine learning, in general.
 
 ## How to Cite
 
@@ -552,27 +553,30 @@ Many thanks to Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their 
 
 ## References
 
-1. Keller Jordan and Yuchen Jin and Vlado Boza and You Jiacheng and Franz Cesista and Laker Newhouse and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. URL https://kellerjordan.github.io/posts/muon/
-2. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/.
-3. Moonshot AI Team (2025). Muon is Scalable for LLM Training. URL https://arxiv.org/abs/2502.16982
-4. Jeremy Bernstein and Laker Newhouse. “Old optimizer, new norm: An anthology.” arXiv preprint arXiv:2409.20325 (2024).
-5. Jeremy Bernstein, Laker Newhouse (2024). Modular Duality in Deep Learning. URL https://arxiv.org/abs/2410.21265
-6. Jeremy Bernstein (2024). "Weight erasure." Available at: https://docs.modula.systems/examples/weight-erasure/
-7. Xi-Lin Li (2015). Preconditioned Stochastic Gradient Descent. URL https://arxiv.org/abs/1512.04202
-8. Xi-Lin Li (2018). Preconditioner on Matrix Lie Group for SGD. URL https://arxiv.org/abs/1809.10232
-9. Omead Pooladzandi, Xi-Lin Li (2024). Curvature-Informed SGD via General Purpose Lie-Group Preconditioners. URL https://arxiv.org/abs/2402.04553
-10. David E Carlson, Edo Collins, Ya-Ping Hsieh, Lawrence Carin, Volkan Cevher. Preconditioned Spectral Descent for Deep Learning. In Advances in Neural Information Processing Systems 28 (NIPS 2015), 2015. URL https://proceedings.neurips.cc/paper_files/paper/2015/hash/f50a6c02a3fc5a3a5d4d9391f05f3efc-Abstract.html
-11. Thomas Flynn. The duality structure gradient descent algorithm: Analysis and applications to neural networks. arXiv:1708.00523, 2017. URL https://arxiv.org/abs/1708.00523
-12. Hunter, D. R. and Lange, K. (2004). A tutorial on MM algorithms. The American Statistician, 58(1):30–37.
-13. Lucas Prieto, Melih Barsbey, Pedro A.M. Mediano, Tolga Birdal (2025). Grokking at the Edge of Numerical Stability. URL https://arxiv.org/abs/2501.04697
-14. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
-15. Rohan Anil et al. “Scalable second order optimization for deep learning.” arXiv preprint arXiv:2002.09018 (2020).
-16. Surya, S., Duvvuri, Devvrit, F., Anil, R., Hsieh, C., & Dhillon, I.S. (2024). Combining Axes Preconditioners through Kronecker Approximation for Deep Learning. International Conference on Learning Representations.
-17. Franz Louis Cesista (2025). {CASPR} Without Accumulation is {M}uon. URL https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/
-18. Rohan Anil. “Just some fun linear algebra.” X post, 6 Oct. 2024, Available at: https://x.com/_arohan_/status/1843050297985466565.
-19. Dmitry Kovalev (2025). Understanding Gradient Orthogonalization for Deep Learning via Non-Euclidean Trust-Region Optimization. Available at: https://arxiv.org/abs/2503.12645
-20. Lee, Jaehoon, et al. “Wide Neural Networks of Any Depth Evolve as Linear Models under Gradient Descent.” Journal of Statistical Mechanics: Theory and Experiment, vol. 2020, no. 12, Dec. 2020, p. 124002. Crossref, https://doi.org/10.1088/1742-5468/abc62b.
-21. Jesus, Ricardo J., et al. “Effect of Initial Configuration of Weights on Training and Function of Artificial Neural Networks.” Mathematics, vol. 9, no. 18, Sept. 2021, p. 2246. Crossref, https://doi.org/10.3390/math9182246.
-22. Aryan Mokhtari, Hamed Hassani, Amin Karbasi (2018). Stochastic Conditional Gradient Methods: From Convex Minimization to Submodular Maximization. URL https://arxiv.org/abs/1804.09554
-23. Elhage, et al., "Toy Models of Superposition", Transformer Circuits Thread, 2022.
-24. David E. Rumelhart, Geoffrey E. Hinton and Ronald J. Williams (1986). Learning representations by back-propagating errors. URL https://www.nature.com/articles/323533a0
+1. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
+2. Keller Jordan and Yuchen Jin and Vlado Boza and You Jiacheng and Franz Cesista and Laker Newhouse and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. URL https://kellerjordan.github.io/posts/muon/
+3. Diederik P. Kingma, Jimmy Ba (2014). Adam: A Method for Stochastic Optimization. URL https://arxiv.org/abs/1412.6980
+4. Moonshot AI Team (2025). Muon is Scalable for LLM Training. URL https://arxiv.org/abs/2502.16982
+5. Jeremy Bernstein and Laker Newhouse. “Old optimizer, new norm: An anthology.” arXiv preprint arXiv:2409.20325 (2024).
+6. Jeremy Bernstein, Laker Newhouse (2024). Modular Duality in Deep Learning. URL https://arxiv.org/abs/2410.21265
+7. Jeremy Bernstein (2024). "Weight erasure." Available at: https://docs.modula.systems/examples/weight-erasure/
+8. Greg Yang, James B. Simon, Jeremy Bernstein (2024). A Spectral Condition for Feature Learning. URL https://arxiv.org/abs/2310.17813
+9. Xi-Lin Li (2015). Preconditioned Stochastic Gradient Descent. URL https://arxiv.org/abs/1512.04202
+10. Xi-Lin Li (2018). Preconditioner on Matrix Lie Group for SGD. URL https://arxiv.org/abs/1809.10232
+12. Omead Pooladzandi, Xi-Lin Li (2024). Curvature-Informed SGD via General Purpose Lie-Group Preconditioners. URL https://arxiv.org/abs/2402.04553
+13. P.-A. Absil, R. Mahony, and Rodolphe Sepulchre (2008). Optimization Algorithms on Matrix Manifolds. Princeton University Press.
+14. David E Carlson, Edo Collins, Ya-Ping Hsieh, Lawrence Carin, Volkan Cevher. Preconditioned Spectral Descent for Deep Learning. In Advances in Neural Information Processing Systems 28 (NIPS 2015), 2015. URL https://proceedings.neurips.cc/paper_files/paper/2015/hash/f50a6c02a3fc5a3a5d4d9391f05f3efc-Abstract.html
+15. Thomas Flynn. The duality structure gradient descent algorithm: Analysis and applications to neural networks. arXiv:1708.00523, 2017. URL https://arxiv.org/abs/1708.00523
+16. Hunter, D. R. and Lange, K. (2004). A tutorial on MM algorithms. The American Statistician, 58(1):30–37.
+17. Elhage, et al., "Toy Models of Superposition", Transformer Circuits Thread, 2022.
+18. Lucas Prieto, Melih Barsbey, Pedro A.M. Mediano, Tolga Birdal (2025). Grokking at the Edge of Numerical Stability. URL https://arxiv.org/abs/2501.04697
+19. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
+20. Rohan Anil et al. “Scalable second order optimization for deep learning.” arXiv preprint arXiv:2002.09018 (2020).
+21. Surya, S., Duvvuri, Devvrit, F., Anil, R., Hsieh, C., & Dhillon, I.S. (2024). Combining Axes Preconditioners through Kronecker Approximation for Deep Learning. International Conference on Learning Representations.
+22. Franz Louis Cesista (2025). {CASPR} Without Accumulation is {M}uon. URL https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/
+23. Rohan Anil. “Just some fun linear algebra.” X post, 6 Oct. 2024, Available at: https://x.com/_arohan_/status/1843050297985466565.
+24. Dmitry Kovalev (2025). Understanding Gradient Orthogonalization for Deep Learning via Non-Euclidean Trust-Region Optimization. Available at: https://arxiv.org/abs/2503.12645
+25. Lee, Jaehoon, et al. “Wide Neural Networks of Any Depth Evolve as Linear Models under Gradient Descent.” Journal of Statistical Mechanics: Theory and Experiment, vol. 2020, no. 12, Dec. 2020, p. 124002. Crossref, https://doi.org/10.1088/1742-5468/abc62b.
+26. Jesus, Ricardo J., et al. “Effect of Initial Configuration of Weights on Training and Function of Artificial Neural Networks.” Mathematics, vol. 9, no. 18, Sept. 2021, p. 2246. Crossref, https://doi.org/10.3390/math9182246.
+27. Aryan Mokhtari, Hamed Hassani, Amin Karbasi (2018). Stochastic Conditional Gradient Methods: From Convex Minimization to Submodular Maximization. URL https://arxiv.org/abs/1804.09554
+28. David E. Rumelhart, Geoffrey E. Hinton and Ronald J. Williams (1986). Learning representations by back-propagating errors. URL https://www.nature.com/articles/323533a0
