@@ -18,21 +18,33 @@ editPost:
 
 A new optimizer called Muon (Jordan et al., 2024a) has recently been shown to outperform Adam (Kingma et al., 2014) in both small-scale language model training (Jordan et al., 2024b), and larger-scale language model training (Moonshot AI Team, 2025) by a factor of up to 2x in terms of flops efficiency. For non-matrix-valued parameters in a neural network, Muon falls back to Adam. But for matrix-valued parameters, Muon first semi-orthogonalizes the gradient before subtracting it from the parameter. It can also be viewed as steepest descent under the Spectral norm (Bernstein et al., 2024).
 
-Here, we will derive Muon's update rule for matrix-valued parameters and discuss what makes it different from other optimizers and _why_ it works so well.
+## 0. Introduction
+
+In deep learning, the goal is find a *function* that maps input data to output data such that a certain optimization objective $\mathcal{L}$ (called "loss function") is minimized. We parametrize this function with a set of weights $\\{W_l\\}$ that are typically matrix-valued. However, previous work on deep learning optimization algorithms ignore the matrix-structure and functional nature of these weights. A common strategy involves flattening the weights into a vector and treating them as such (Kingma et al., 2014; Li, 2015; Gupta et al., 2018; Surya et al., 2024; Pooladzandi et al., 2024). Worse, this is not an isolated issue as it is also prevalent in related fields such as evolutionary algorithms research (Salimans et al., 2017; Braun et al., 2024), among others.
+
+And as demonstrated by Jordan et al. (2024a) on small-scale language model training, and Moonshot AI Team (2025) on larger-scale language model training, a simple change of perspective from a weights-as-vectors to a weights-as-matrices perspective can lead to significant improvements in training efficiency. Thus, following the work of Berstein et al. (2024), we argue--and demonstrate--that the underlying geometry of the weights are crucial to training performance and that we can reason, from first principles, about the properties of the geometry in which our weights (should) "live" in.
+
+This work is a selective survey of latest advancements in deep learning optimization research, with a focus on new developments in late 2024 and early 2025. However, we also make several novel contributions:
+1. In Sections 1 and 3, we formalize Steepest Descent in Riemannian and non-Riemannian manifolds, and how different choices of norms lead to different classes of deep learning optimization algorithms.
+2. We also formalize the connection between preconditioners in optimizers and the metric tensor in Riemannian steepest descent, and how we can use this to develop more robust intuitions on optimizer design such as when to update the preconditioner.
+3. We also discuss the connection between preconditioners and dualizers in optimizers, and when to use one over the other.
+4. In Sections 2 and 4, we motivate the Muon optimizer from first principles, and show how it can be viewed as a steepest descent under the spectral norm. We also discuss many possible reasons why it works so well in practice, despite not fitting in with more established intuitions in the field.
+5. In Section 6, we dicuss how to further improve Muon by optimizing the coefficients of the Newton-Schulz iteration. We also discuss how to use Muon to improve itself. And finally,
+6. In Section 7, we discuss convergence guarantees for Muon.
 
 ## 1. Preliminaries
 
 We consider the following optimization problem,
-$$\begin{equation} \min_{W \in \bm{\mathcal{W}}} \mathcal{L}(W) \end{equation}$$
-where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable objective function, and $\bm{\mathcal{W}}$ is a finite-dimensional, matrix-valued vector space equipped with a norm $\|\|\cdot\|\|$ chosen a priori. If the norm admits a metric, then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian (Finsler) manifold. Thus, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *classes* of optimizers, preconditioners and dualizers, which we will discuss in the following sections.
+$$\begin{equation} \min_{W \in \bm{\mathcal{W}}} \mathcal{L}(W), \end{equation}$$
+where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable objective function, and $\bm{\mathcal{W}}$ is a finite-dimensional, matrix-valued vector space equipped with a norm $||\cdot||$ chosen a priori. If the norm admits a metric, then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian (Finsler) manifold. Thus, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *classes* of optimizers, preconditioners and dualizers, which we will discuss in the following sections.
 
 In practice, $\mathcal{L}$ often does not have a simple, closed-form solution, so we resort to iterative methods of the form,
 $$W_{t+1} = W_{t} - \lambda \widehat{\Delta W}\_t,$$
 where $\lambda > 0$ is a positive learning rate parameter, $W_t \in \mathcal{W}$ is the "current" point at step $t$, $W_{t+1} \in \mathcal{W}$ is the "updated" point at step $t+1$, and $-\widehat{\Delta W}\_t \in T_{W_t}\mathcal{W}$ is the direction of steepest descent at step $t$,
 $$
 \begin{align}
-    -\widehat{\Delta W}\_t &= \arg\min_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)\\\\
-    \widehat{\Delta W}\_t &= \arg\max_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ \|\|\Delta W\|\| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)
+    -\widehat{\Delta W}\_t &= \arg\min_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ ||\Delta W|| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)\\\\
+    \widehat{\Delta W}\_t &= \arg\max_{\substack{\Delta W \in T_{W\_t}\mathcal{W}\\\\ ||\Delta W|| = 1}} d\mathcal{L}\_{W\_t}(\Delta W)
 \end{align}
 $$
 where $T_{W\_t}\mathcal{W}$ is the tangent space at $W\_t$, $d\mathcal{L}\_{W\_t}(\cdot): T_{W\_t}\mathcal{W} \rightarrow \mathbb{R}$ is the differential of $\mathcal{L}$ at $W\_t$, and $d\mathcal{L}\_{W\_t}(\Delta W)$ is the directional derivative of $\mathcal{L}$ at $W\_t$ in the direction of $\Delta W$.
@@ -43,19 +55,19 @@ We also often do not have access to the exact differential. However, either thro
 > $$
 \begin{align*}
     &\mathbb{E}\_{\xi \sim D}[\nabla \mathcal{L}(W)\_\xi] = \nabla \mathcal{L}(W)\_{\text{coord}} && \forall W \in \bm{\mathcal{W}}\\\\
-    &\mathbb{E}\_{\xi \sim D}[\|\|\nabla \mathcal{L}(W)\_\xi - \nabla \mathcal{L}(W)\_{\text{coord}} \|\|_F^2] \leq \sigma^2 && \forall W \in \bm{\mathcal{W}}
+    &\mathbb{E}\_{\xi \sim D}[||\nabla \mathcal{L}(W)\_\xi - \nabla \mathcal{L}(W)\_{\text{coord}} ||_F^2] \leq \sigma^2 && \forall W \in \bm{\mathcal{W}}
 \end{align*}
 $$
-> where $\xi$ is a random variable sampled from a  distribution $D$, $\sigma > 0$ is a positive variance parameter, $\langle \cdot, \cdot \rangle_F$ is the Frobenius inner product, and $\|\|\cdot\|\|_F = \sqrt{\langle \cdot, \cdot \rangle_F}$ is the Frobenius norm.
+> where $\xi$ is a random variable sampled from a  distribution $D$, $\sigma > 0$ is a positive variance parameter, $\langle \cdot, \cdot \rangle_F$ is the Frobenius inner product, and $||\cdot||_F = \sqrt{\langle \cdot, \cdot \rangle_F}$ is the Frobenius norm.
 
-We also make the following standard continuity assumption on the gradient $\nabla \mathcal{L}(\cdot)$,
-> **Assumption 2:** The gradient $\nabla \mathcal{L}(\cdot)$ is Lipschitz continuous with respect to the norm $\|\|\cdot\|\|$ with gradient Lipschitz constant $L > 0$. That is, for all $W, Z \in \bm{\mathcal{W}}$,
+We also make the following standard continuity assumption on the gradient $\nabla \mathcal{L}(\cdot)$ (Mokhtari et al., 2018; Kovalev, 2025),
+> **Assumption 2:** The gradient $\nabla \mathcal{L}(\cdot)$ is Lipschitz continuous with respect to the norm $||\cdot||$ with gradient Lipschitz constant $L > 0$. That is, for all $W, Z \in \bm{\mathcal{W}}$,
 $$
 \begin{equation}
-    \|\|\nabla \mathcal{L}(W) - \nabla \mathcal{L}(Z)\|\|^\dagger \leq L\|\|W - Z\|\| \quad \forall W, Z \in \bm{\mathcal{W}}
+    ||\nabla \mathcal{L}(W) - \nabla \mathcal{L}(Z)||^\dagger \leq L||W - Z|| \quad \forall W, Z \in \bm{\mathcal{W}}
 \end{equation}
 $$
-where $\|\|\cdot\|\|^\dagger$ is the dual norm of $\|\|\cdot\|\|$.
+where $||\cdot||^\dagger$ is the dual norm of $||\cdot||$.
 
 And in the following sections, we will also discuss optimizers that precondition the gradients,
 
@@ -312,7 +324,7 @@ $
 
 Muon (Algorithm 1) is an optimizer for matrix-valued parameters in neural networks (Jordan et al., 2024a). For each weight $W \in \mathcal{W}$, it first accumulates the momentum term, then approximately semi-orthogonalizes the result using the Newton-Schulz iteration (Algorithm 2), before applying it as an update to the weights.
 
-We can fold the momentum term into $\nabla \mathcal{L}(W)\_\xi$ as it can be seen as a way to smooth out outlier empirical gradients. In fact, Mokhtari et al. (2018) and more recently Kovalev (2025) have recently shown that, under Muon's update rule, the momentum term does becomes a tighter approximation of the true gradient $\nabla \mathcal{L}(W)\_{\text{coord}}$ as the number of iterations $T$ increases.
+We can fold the momentum term into $\nabla \mathcal{L}(W)\_\xi$ as it can be seen as a way to smooth out outlier empirical gradients. In fact, Mokhtari et al. (2018) and more recently Kovalev (2025) have shown that, under Muon's update rule, the momentum term does become a tighter approximation of the true gradient $\nabla \mathcal{L}(W)\_{\text{coord}}$ as the number of iterations $T$ increases.
 
 And while Muon only approximately (semi-)orthogonalizes the gradient, we have found that it still empirically performs just as well as exact orthogonalization. We will discuss this in more detail in the next sections. Muon is also not the first optimizer that does approximate orthogonalization. For example, Carlson et al.'s randomized algorithm Sketching (2015) does this explicitly, and so does Shampoo (Gupta et al., 2018), CASPR (Surya et al., 2024), and PSGD (Li, 2015) implicitly through their preconditioners. However, Muon is the first, non-randomized, preconditioner-free optimizer that explicitly aims to orthogonalize the gradient.
 
@@ -414,33 +426,77 @@ $$
 \text{noise\\_suppresion\\_gain}\_{\|\|\cdot\|\|\_{2\to 2}}(P) = \frac{\mathbb{E}[\|\|H_0^{-1}\epsilon'\|\|\_{2\to 2}]}{\mathbb{E}[\|\|P\epsilon'\|\|\_{2\to 2}]}
 $$
 
-## 5. Steepest Descent in Non-Riemannian Manifolds Induced by Schatten-$p$ Norms
+## 5. Steepest Descent under Elementwise $p$-Norms and Schatten-$p$ Norms
 
-> **Definition 2 (Schatten-$p$ Norms).** The Schatten-$p$ norm of a finite-dimensional, real-valued matrix $X \in \mathbb{R}^{m \times n}$ is defined as,
-$$||X||\_{S_p} = \left(\sum_{i=1}^{\min(m, n)} |\sigma_i(X)|^p\right)^{1/p},$$
-where $\\{\sigma_i(X)\\}$ are the singular values of $X$. In a sense, the Schatten-$p$ norm of $X$ can be seen as the $p$-norm of its singular values.
+> **Definition 2 (Vector $p$-Norms).** Given $p \in [1, \infty]$, the vector $p$-norm of a finite-dimensional, real-valued vector $\bm{x} \in \mathbb{R}^n$ is defined as,
+> $$
+||\bm{x}||\_p = \begin{cases}
+    \left(\sum_{i=1}^{n} |x_i|^p\right)^{1/p} & \text{if } 1 \leq p < \infty\\\\
+    \max_{i} |x_i| & \text{if } p = \infty
+\end{cases}
+$$
+>
+> **Examples:**
+> 1. $p = 1$: The Manhattan/Taxicab norm, $||\bm{x}||\_1 = \sum_{i=1}^{n} |x_i|$
+> 2. $p = 2$: The Euclidean norm, $||\bm{x}||\_2 = \sqrt{\sum_{i=1}^{n} |x_i|^2} = ||\bm{x}||\_F$
+> 3. $p = \infty$: The Max norm, $||\bm{x}||\_\infty = \max_{i} |x_i|$
+
+> **Definition 3 (Matrix Elementwise $p$-Norms).** Given $p = [1, \infty]$, the elementwise $p$-norm of a finite-dimensional, real-valued matrix $X \in \mathbb{R}^{m \times n}$ is defined as,
+> $$
+||X||\_{e,p} = \begin{cases}
+    \left(\sum_{i=1}^{m} \sum_{j=1}^{n} |X_{ij}|^p\right)^{1/p} & \text{if } 1 \leq p < \infty\\\\
+    \max_{i,j} |X_{ij}| & \text{if } p = \infty
+\end{cases}
+$$
+or equivalently,
+> $$||X||\_{e,p} = ||\text{vec}(X)||\_p,$$
+> where $\text{vec}(\cdot)$ is the vectorization operator that stacks the columns of $X$ into a single vector.
+>
+> **Examples:**
+> 1. $p = 1$: The Sum-of-Sums norm, $||X||\_{e,1} = \sum_{i=1}^{m} \sum_{j=1}^{n} |X_{ij}|$
+> 2. $p = 2$: The Frobenius norm, $||X||\_{e,2} = \sqrt{\sum_{i=1}^{m} \sum_{j=1}^{n} |X_{ij}|^2} = ||X||\_F$
+> 3. $p = \infty$: The Max-of-Max norm, $||X||\_{e,\infty} = \max_{i,j} |X_{ij}|$
+
+> **Definition 4 (Schatten-$p$ Norms).** Given $p = [1, \infty]$, the Schatten-$p$ norm of a finite-dimensional, real-valued matrix $X \in \mathbb{R}^{m \times n}$ is defined as,
+$$
+\|\|X\|\|\_{S_p} = \begin{cases}
+    \left(\sum_{i=1}^{\min(m, n)} |\sigma_i(X)|^p\right)^{1/p} & \text{if } 1 \leq p < \infty\\\\
+    \max_{i} \sigma_i(X) & \text{if } p = \infty
+\end{cases}
+$$
+where $\sigma(X) = (\sigma_1(X), \ldots, \sigma_{\min(m,n)}(X))$ are the singular values of $X$. Or equivalently,
+> $$\|\|X\|\|\_{S_p} = ||\sigma(X)||_p$$
 > 
 > **Examples:**
 > 1. $p = 1$: The Nuclear norm, $||A||\_{S_1} = \sum_{i=1}^{\min(m,n)} |\sigma_i(A)| = ||A||_{\text{nuc}}$
 > 2. $p = 2$: The Frobenius norm, $||A||\_{S_2} = \left(\sum_{i=1}^{\min(m,n)} |\sigma_i(A)|^2\right)^{\frac{1}{2}} = ||A||\_F$
 > 3. $p = \infty$: The Spectral norm, $||A||\_{S_{\infty}} = \max_{i} \sigma_i(A) = ||A||\_{2 \to 2}$
 
-A special case is when $p = 2$, and so we have the Frobenius norm. Equipping $\mathcal{W}$ with this norm gives us the standard Euclidean manifold, which is Riemannian. However, Proposition (4) below still applies.
+A special case is when $p = 2$, and so we have the Frobenius norm. Equipping $\mathcal{W}$ with this norm gives us the standard Euclidean manifold, which is Riemannian. However, Propositions (6) and (7) below still applies.
 
-And to find the dualizers for the Schatten-$p$ norms, we will use the following inequality.
+And to find the dualizers for the Schatten-$p$ norms, we will use the following inequality,
 
-> **Theorem 3 (von Neumann's Trace Inequality).** Let $A, B \in \mathbb{R}^{m \times n}$. Then the following inequality holds,
-$$\text{tr}(A^TB) \leq \sum_{i=1}^{\min(m,n)} \sigma_i(A) \sigma_i(B),$$
-where $\\{\sigma_i(A)\\}$ and $\\{\sigma_i(B)\\}$ are the singular values of $A$ and $B$, respectively. And equality holds if and only if $A$ and $B$ share singular vectors.
+> **Theorem 5 (von Neumann's Trace Inequality).** Let $A, B \in \mathbb{R}^{m \times n}$. Then the following inequality holds,
+> $$\text{tr}(A^TB) \leq \sum_{i=1}^{\min(m,n)} \sigma_i(A) \sigma_i(B),$$
+> where $\sigma(A) = (\sigma_1(A), \ldots, \sigma_{\min(m,n)}(A))$ and $\sigma(B) = (\sigma_1(B), \ldots, \sigma_{\min(m,n)}(B))$ are the singular values of $A$ and $B$, respectively. And equality holds if and only if $A$ and $B$ share singular vectors. If so, then,
+> $$
+\begin{align*}
+    \text{tr}(A^TB) &= \sum_{i=1}^{\min(m,n)} \sigma_i(A) \sigma_i(B)\\\\
+    \langle A, B\rangle_F &= \langle \sigma(A), \sigma(B) \rangle_F
+\end{align*}
+$$
 
-### 5.1. Dualizers for Schatten-$p$ Norms
+### 5.1. Dualizers for Elementwise $p$-Norms and Schatten-$p$ Norms
 
-Here, we derive the dualizer for an arbitrary Schatten-$p$ norm $\|\|\cdot\|\|\_{S_p}$.
-
-> **Proposition 4.** The dualizer for the Schatten-$p$ norm is:
-$$\text{dualizer}\_{||\cdot||\_{S_p}}(X) = U \frac{\text{diag}\left(\sigma\_1(X)^{q-1}, \ldots, \sigma\_{\min(m,n)}(X)^{q-1}\right)}{||X||\_{S_q}^{q-1}} V^T$$
-where $\frac{1}{p} + \frac{1}{q} = 1$, and $X = U\Sigma V^T$ is the singular value decomposition of $X \in T_W\mathcal{W}$ at $W \in \mathcal{W}$. Note that this dualizer is independent of $W$.
-
+> **Proposition 7.** Given $p = [1, \infty]$, the dualizer for the Schatten-$p$ norm is:
+$$
+\text{dualizer}\_{||\cdot||\_{S_p}}(X) = \begin{cases}
+    U \frac{\text{diag}\left(\sigma\_1(X)^{q-1}, \ldots, \sigma\_{\min(m,n)}(X)^{q-1}\right)}{||X||\_{S_q}^{q-1}} V^T & \text{if } 1 \leq p < \infty\\\\
+    UV^T & \text{if } p = \infty
+\end{cases}
+$$
+where $\frac{1}{p} + \frac{1}{q} = 1$, and $X = U\Sigma V^T$ is the singular value decomposition of $X \in \mathbb{R}^{m \times n}$.
+> 
 > **Proof:** For a given $X \in T_W\mathcal{W}$ at $W \in \mathcal{W}$, let $T^\* \in T_W\mathcal{W}$ be,
 $$
 \begin{align*}
@@ -450,15 +506,20 @@ $$
 \end{align*}
 $$
 Then from von Neumann's Trace Inequality, we know that $T^\*$ must share singular vectors with $X$ and that,
-$$T^* = \arg\max\_{\substack{T \in T_W\mathcal{W}\\\\ \|\|T\|\|\_{S_p} = 1}} \sum\_{i=1}^{\min(m,n)} \sigma_i(X) \sigma_i(T)$$
-Thus, our optimization problem reduces to
-$$\arg\max\_{\\{\sigma_i(T)\\}} \sum\_{i=1}^{\min(m,n)} \sigma\_i(X) \sigma_i(T) \quad\text{s.t.}\quad \sum\_{i=1}^{\min(m,n)} \sigma\_{i}(T)^p = 1$$
+$$
+\begin{align*}
+    T^* &= \arg\max\_{\substack{T \in T_W\mathcal{W}\\\\ \|\|T\|\|\_{S_p} = 1}} \sum\_{i=1}^{\min(m,n)} \sigma_i(X) \sigma_i(T)\\\\
+    T^* &= \arg\max\_{\substack{T \in T_W\mathcal{W}\\\\ \|\|\sigma(T)\|\|\_{p} = 1}} \langle \sigma(X), \sigma(T) \rangle_F
+\end{align*}
+$$
+Thus, our optimization problem reduces to,
+$$\arg\max\_{\sigma(T)} \sum\_{i=1}^{\min(m,n)} \sigma\_i(X) \sigma_i(T) \quad\text{s.t.}\quad \sum\_{i=1}^{\min(m,n)} \sigma\_{i}(T)^p = 1$$
 And solving via Lagrange multipliers, we have,
 $$\sigma_i(T) = \frac{\sigma_i(X)^{q-1}}{||X||\_{S_q}^{q-1}}$$
-which is indepdent of $W$. Hence,
+where $\frac{1}{p} + \frac{1}{q} = 1$. Note that this is indepdent of $W$. Hence,
 $$T^* = \text{dualizer}\_{||\cdot||\_{S_p}}(X) = U \frac{\text{diag}\left(\sigma\_1(X)^{q-1}, \ldots, \sigma\_{\min(m,n)}(X)^{q-1}\right)}{||X||\_{S_q}^{q-1}} V^T\quad\blacksquare$$
 
-### 5.2. Stochastic Gradient Descent and Muon as Special Cases
+### 5.2. Stochastic Gradient Descent and Muon as Special Cases of Steepest Descent under Schatten-$p$ Norms
 
 **5.2.1. Recovering SGD.** Let $p = 2$, and so we have $q = 2$ and $||\cdot||\_{S_2} = ||\cdot||\_F$. Thus for $\nabla \mathcal{L}(W)\_\xi \in T_W\mathcal{W}$ at $W \in \mathcal{W}$, we have,
 $$
@@ -490,9 +551,9 @@ To support this, we show that the (1) variance of dualized singular values, and 
 
 **5.3.1. On the variance of dualized singular values**
 
-> **Proposition 5.** The variance of the dualized singular values under the Schatten-$p$ Norm converges quadratically to $0$ as $p$ approaches $\infty$.
+> **Proposition 8.** The variance of the dualized singular values under the Schatten-$p$ Norm converges quadratically to $0$ as $p$ approaches $\infty$.
 
-> **Proof:** Let $t_i$ be the $i$-th dualized singular value. From Proposition 4 earlier, we have
+> **Proof:** Let $t_i$ be the $i$-th dualized singular value. From Proposition 7 earlier, we have
 $$
 \begin{align*}
     t_i &= \left(\frac{\sigma_i(\nabla L(W))}{\|\|\nabla L(W)\|\|\_{S_q}}\right)^{q-1}\\\\
@@ -554,7 +615,7 @@ Many thanks to Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their 
 ## References
 
 1. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
-2. Keller Jordan and Yuchen Jin and Vlado Boza and You Jiacheng and Franz Cesista and Laker Newhouse and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. URL https://kellerjordan.github.io/posts/muon/
+2. Keller Jordan and Jeremy Bernstein and Brendan Rappazzo and @fernbear.bsky.social and Boza Vlado and You Jiacheng and Franz Cesista and Braden Koszarsky and @Grad62304977 (2024). modded-nanogpt: Speedrunning the NanoGPT baseline. URL https://github.com/KellerJordan/modded-nanogpt/
 3. Diederik P. Kingma, Jimmy Ba (2014). Adam: A Method for Stochastic Optimization. URL https://arxiv.org/abs/1412.6980
 4. Moonshot AI Team (2025). Muon is Scalable for LLM Training. URL https://arxiv.org/abs/2502.16982
 5. Jeremy Bernstein and Laker Newhouse. “Old optimizer, new norm: An anthology.” arXiv preprint arXiv:2409.20325 (2024).
@@ -563,20 +624,22 @@ Many thanks to Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their 
 8. Greg Yang, James B. Simon, Jeremy Bernstein (2024). A Spectral Condition for Feature Learning. URL https://arxiv.org/abs/2310.17813
 9. Xi-Lin Li (2015). Preconditioned Stochastic Gradient Descent. URL https://arxiv.org/abs/1512.04202
 10. Xi-Lin Li (2018). Preconditioner on Matrix Lie Group for SGD. URL https://arxiv.org/abs/1809.10232
-12. Omead Pooladzandi, Xi-Lin Li (2024). Curvature-Informed SGD via General Purpose Lie-Group Preconditioners. URL https://arxiv.org/abs/2402.04553
-13. P.-A. Absil, R. Mahony, and Rodolphe Sepulchre (2008). Optimization Algorithms on Matrix Manifolds. Princeton University Press.
-14. David E Carlson, Edo Collins, Ya-Ping Hsieh, Lawrence Carin, Volkan Cevher. Preconditioned Spectral Descent for Deep Learning. In Advances in Neural Information Processing Systems 28 (NIPS 2015), 2015. URL https://proceedings.neurips.cc/paper_files/paper/2015/hash/f50a6c02a3fc5a3a5d4d9391f05f3efc-Abstract.html
-15. Thomas Flynn. The duality structure gradient descent algorithm: Analysis and applications to neural networks. arXiv:1708.00523, 2017. URL https://arxiv.org/abs/1708.00523
-16. Hunter, D. R. and Lange, K. (2004). A tutorial on MM algorithms. The American Statistician, 58(1):30–37.
-17. Elhage, et al., "Toy Models of Superposition", Transformer Circuits Thread, 2022.
-18. Lucas Prieto, Melih Barsbey, Pedro A.M. Mediano, Tolga Birdal (2025). Grokking at the Edge of Numerical Stability. URL https://arxiv.org/abs/2501.04697
-19. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
-20. Rohan Anil et al. “Scalable second order optimization for deep learning.” arXiv preprint arXiv:2002.09018 (2020).
-21. Surya, S., Duvvuri, Devvrit, F., Anil, R., Hsieh, C., & Dhillon, I.S. (2024). Combining Axes Preconditioners through Kronecker Approximation for Deep Learning. International Conference on Learning Representations.
-22. Franz Louis Cesista (2025). {CASPR} Without Accumulation is {M}uon. URL https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/
-23. Rohan Anil. “Just some fun linear algebra.” X post, 6 Oct. 2024, Available at: https://x.com/_arohan_/status/1843050297985466565.
-24. Dmitry Kovalev (2025). Understanding Gradient Orthogonalization for Deep Learning via Non-Euclidean Trust-Region Optimization. Available at: https://arxiv.org/abs/2503.12645
-25. Lee, Jaehoon, et al. “Wide Neural Networks of Any Depth Evolve as Linear Models under Gradient Descent.” Journal of Statistical Mechanics: Theory and Experiment, vol. 2020, no. 12, Dec. 2020, p. 124002. Crossref, https://doi.org/10.1088/1742-5468/abc62b.
-26. Jesus, Ricardo J., et al. “Effect of Initial Configuration of Weights on Training and Function of Artificial Neural Networks.” Mathematics, vol. 9, no. 18, Sept. 2021, p. 2246. Crossref, https://doi.org/10.3390/math9182246.
-27. Aryan Mokhtari, Hamed Hassani, Amin Karbasi (2018). Stochastic Conditional Gradient Methods: From Convex Minimization to Submodular Maximization. URL https://arxiv.org/abs/1804.09554
-28. David E. Rumelhart, Geoffrey E. Hinton and Ronald J. Williams (1986). Learning representations by back-propagating errors. URL https://www.nature.com/articles/323533a0
+11. Omead Pooladzandi, Xi-Lin Li (2024). Curvature-Informed SGD via General Purpose Lie-Group Preconditioners. URL https://arxiv.org/abs/2402.04553
+12. P.-A. Absil, R. Mahony, and Rodolphe Sepulchre (2008). Optimization Algorithms on Matrix Manifolds. Princeton University Press.
+13. David E Carlson, Edo Collins, Ya-Ping Hsieh, Lawrence Carin, Volkan Cevher. Preconditioned Spectral Descent for Deep Learning. In Advances in Neural Information Processing Systems 28 (NIPS 2015), 2015. URL https://proceedings.neurips.cc/paper_files/paper/2015/hash/f50a6c02a3fc5a3a5d4d9391f05f3efc-Abstract.html
+14. Thomas Flynn. The duality structure gradient descent algorithm: Analysis and applications to neural networks. arXiv:1708.00523, 2017. URL https://arxiv.org/abs/1708.00523
+15. Hunter, D. R. and Lange, K. (2004). A tutorial on MM algorithms. The American Statistician, 58(1):30–37.
+16. Elhage, et al., "Toy Models of Superposition", Transformer Circuits Thread, 2022.
+17. Lucas Prieto, Melih Barsbey, Pedro A.M. Mediano, Tolga Birdal (2025). Grokking at the Edge of Numerical Stability. URL https://arxiv.org/abs/2501.04697
+18. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
+19. Rohan Anil et al. “Scalable second order optimization for deep learning.” arXiv preprint arXiv:2002.09018 (2020).
+20. Surya, S., Duvvuri, Devvrit, F., Anil, R., Hsieh, C., & Dhillon, I.S. (2024). Combining Axes Preconditioners through Kronecker Approximation for Deep Learning. International Conference on Learning Representations.
+21. Franz Louis Cesista (2025). {CASPR} Without Accumulation is {M}uon. URL https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/
+22. Rohan Anil. “Just some fun linear algebra.” X post, 6 Oct. 2024, Available at: https://x.com/_arohan_/status/1843050297985466565.
+23. Dmitry Kovalev (2025). Understanding Gradient Orthogonalization for Deep Learning via Non-Euclidean Trust-Region Optimization. Available at: https://arxiv.org/abs/2503.12645
+24. Lee, Jaehoon, et al. “Wide Neural Networks of Any Depth Evolve as Linear Models under Gradient Descent.” Journal of Statistical Mechanics: Theory and Experiment, vol. 2020, no. 12, Dec. 2020, p. 124002. Crossref, https://doi.org/10.1088/1742-5468/abc62b.
+25. Jesus, Ricardo J., et al. “Effect of Initial Configuration of Weights on Training and Function of Artificial Neural Networks.” Mathematics, vol. 9, no. 18, Sept. 2021, p. 2246. Crossref, https://doi.org/10.3390/math9182246.
+26. Aryan Mokhtari, Hamed Hassani, Amin Karbasi (2018). Stochastic Conditional Gradient Methods: From Convex Minimization to Submodular Maximization. URL https://arxiv.org/abs/1804.09554
+27. David E. Rumelhart, Geoffrey E. Hinton and Ronald J. Williams (1986). Learning representations by back-propagating errors. URL https://www.nature.com/articles/323533a0
+28. Tim Salimans, Jonathan Ho, Xi Chen, Szymon Sidor, Ilya Sutskever (2017). Evolution Strategies as a Scalable Alternative to Reinforcement Learning. https://arxiv.org/abs/1703.03864
+29. Cornelius V. Braun, Robert T. Lange, Marc Toussaint (2024). Stein Variational Evolution Strategies. URL https://arxiv.org/abs/2410.10390
