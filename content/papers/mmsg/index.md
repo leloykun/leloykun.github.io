@@ -11,8 +11,6 @@ cover:
     relative: true
 ---
 
-![cover](cover.png)
-
 Authors: [Franz Louis Cesista](mailto:franzlouiscesista@gmail.com)
 
 Arxiv: [Abstract](https://arxiv.org/abs/2406.11403)
