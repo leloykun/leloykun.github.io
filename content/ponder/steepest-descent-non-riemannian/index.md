@@ -37,7 +37,7 @@ This work is a selective survey of latest advancements in deep learning optimiza
 
 We consider the following optimization problem,
 $$\begin{equation} \arg\min_{W \in \bm{\mathcal{W}}} \mathcal{L}(W), \end{equation}$$
-where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable objective function, and $\bm{\mathcal{W}}$ is a real-valued, finite-dimensional, matrix manifold equipped with a norm $||\cdot||$ chosen a priori. If the norm admits a metric, then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian (Finsler) manifold. Thus, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *classes* of optimizers, preconditioners and dualizers, which we will discuss in the following sections.
+where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable objective function, and $\bm{\mathcal{W}}$ is a real-valued, finite-dimensional, matrix manifold equipped with a norm $||\cdot||$ chosen a priori. If the norm is induced by an inner product (i.e., the parallelogram law holds), then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian manifold. Thus, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *flavors* of optimizers, preconditioners and dualizers, which we will discuss in the following sections.
 
 In practice, $\mathcal{L}$ often does not have a simple, closed-form solution, so we resort to iterative methods of the form,
 $$W_{t+1} = W_{t} - \lambda \widehat{\Delta W}\_t,$$
