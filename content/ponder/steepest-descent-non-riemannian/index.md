@@ -22,7 +22,7 @@ A new optimizer called Muon (Jordan et al., 2024a) has recently been shown to ou
 
 In deep learning, the goal is find a *function* that maps input data to output data such that a certain optimization objective $\mathcal{L}$ (called "loss function") is minimized. We parametrize this function with a set of weights $\\{W_l\\}$ that are typically matrix-valued. However, previous work on deep learning optimization algorithms typically ignore the matrix-structure and functional nature of these weights. A common strategy involves flattening the weights into a vector and treating them as such while others flatten then unflatten the weights in some intermediate step (Kingma et al., 2014; Li, 2015; Gupta et al., 2018; Surya et al., 2024; Pooladzandi et al., 2024). Worse, this is also prevalent in related fields such as evolutionary algorithms research (Salimans et al., 2017; Braun et al., 2024), among others.
 
-And as demonstrated by Jordan et al. (2024a) on small-scale language model training, and Moonshot AI Team (2025) on larger-scale language model training, a simple change of perspective from a weights-as-vectors to a weights-as-matrices perspective can lead to significant improvements in training efficiency. Thus, following the work of Berstein et al. (2024), we argue--and demonstrate--that the underlying geometry of the weights are crucial to training performance and that we can reason, from first principles, about the properties of the geometry in which our weights (should) "live" in.
+And as demonstrated by Jordan et al. (2024a) on small-scale language model training, and Moonshot AI Team (2025) on larger-scale language model training, a simple change of perspective from a weights-as-vectors to a weights-as-matrices perspective can lead to significant improvements in training efficiency. Thus, following the work of Large et al. (2024) and Berstein et al. (2024), we argue--and demonstrate--that the underlying geometry of the weights are crucial to training performance and that we can reason, from first principles, about the properties of the geometry in which our weights (should) "live" in.
 
 This work is a selective survey of latest advancements in deep learning optimization research, with a focus on new developments in late 2024 and early 2025. However, we also make several novel contributions:
 1. In Sections 1 and 3, we formalize Steepest Descent in Riemannian and non-Riemannian manifolds, and how different choices of norms lead to different classes of deep learning optimization algorithms.
@@ -379,8 +379,8 @@ where $U\Sigma V^T$ is the singular value decomposition (SVD) of $X$.
 Thus, one can interpret Muon's update rule as simply the matrix sign function applied to $\partial\mathcal{L}(W_t)\_{\text{coord}}$. And if we let $G_t = \partial\mathcal{L}(W_t)\_{\text{coord}}$ and $P\_{W_t} = (G_t G_t^T)^{-1/2}$, then we arrive at a preconditioner form of Muon's update rule,
 $$
 \begin{align*}
-    W_{t+1} &= W_t - \lambda P_{W_t} \partial\mathcal{L}(W_t)\_{\text{coord}}\\\\
-        &= W_t - \lambda (\partial\mathcal{L}(W_t)\_{\text{coord}} \partial\mathcal{L}(W_t)\_{\text{coord}}^T)^{-1/2} \partial\mathcal{L}(W_t)\_{\text{coord}}\\\\
+    W_{t+1} &= W_t - \lambda P_{W_t} G_t\\\\
+        &= W_t - \lambda (G_t G_t^T)^{-1/2} G_t\\\\
     W_{t+1} &= W_t - \lambda UV^T
 \end{align*}
 $$
@@ -390,7 +390,7 @@ $$
 $$L_t := L_{t-1} + G_t G_t^T, \quad\quad R_t := R_{t-1} + G_t^T G_t$$
 $$\Delta W_t = L^{-1/4}_t G_t R^{-1/4}_t$$
 
-As previously noted by Bernstein et al. (2024) and Anil (2024), Shampoo reduces to Muon if we disable the updates on the left and right preconditioners. That is, let $G_t = U\Sigma V^T$ be the singular value decomposition (SVD) of $G_t$ and let
+As first noted by Bernstein (2024a), Shampoo reduces to Muon if we disable the updates on the left and right preconditioners. That is, let $G_t = U\Sigma V^T$ be the singular value decomposition (SVD) of $G_t$ and let
 $$
 L_t := G_t G_t^T\quad\quad R_t := G_t^T G_t
 $$
@@ -609,7 +609,7 @@ As we can see in the following plot, the raw gradients have very low-stable rank
 
 One can interpret this as, for some large enough $p$, the dualized gradient is already very close to being "maximal" in a sense. And increasing $p$ further would only offer rapidly diminishing returns.
 
-A side-effect of this is that it allows the model parameters to "escape" the small region around the initialization and explore the parameter space more effectively, contrary to prior work on SGD and Adam optimizers (Lee et al., 2020; Jesus et al., 2021). This phenomenon is known as *weight erasure* (Bernstein, 2024).
+A side-effect of this is that it allows the model parameters to "escape" the small region around the initialization and explore the parameter space more effectively, contrary to prior work on SGD and Adam optimizers (Lee et al., 2020; Jesus et al., 2021). This phenomenon is known as *weight erasure* (Bernstein, 2024b).
 
 ![](../steepest-descent-schatten-p/weight-erasure.png)
 
@@ -640,26 +640,28 @@ Many thanks to Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their 
 4. Moonshot AI Team (2025). Muon is Scalable for LLM Training. URL https://arxiv.org/abs/2502.16982
 5. Jeremy Bernstein and Laker Newhouse. “Old optimizer, new norm: An anthology.” arXiv preprint arXiv:2409.20325 (2024).
 6. Jeremy Bernstein, Laker Newhouse (2024). Modular Duality in Deep Learning. URL https://arxiv.org/abs/2410.21265
-7. Jeremy Bernstein (2024). "Weight erasure." Available at: https://docs.modula.systems/examples/weight-erasure/
-8. Greg Yang, James B. Simon, Jeremy Bernstein (2024). A Spectral Condition for Feature Learning. URL https://arxiv.org/abs/2310.17813
-9. Xi-Lin Li (2015). Preconditioned Stochastic Gradient Descent. URL https://arxiv.org/abs/1512.04202
-10. Xi-Lin Li (2018). Preconditioner on Matrix Lie Group for SGD. URL https://arxiv.org/abs/1809.10232
-11. Omead Pooladzandi, Xi-Lin Li (2024). Curvature-Informed SGD via General Purpose Lie-Group Preconditioners. URL https://arxiv.org/abs/2402.04553
-12. P.-A. Absil, R. Mahony, and Rodolphe Sepulchre (2008). Optimization Algorithms on Matrix Manifolds. Princeton University Press.
-13. David E Carlson, Edo Collins, Ya-Ping Hsieh, Lawrence Carin, Volkan Cevher. Preconditioned Spectral Descent for Deep Learning. In Advances in Neural Information Processing Systems 28 (NIPS 2015), 2015. URL https://proceedings.neurips.cc/paper_files/paper/2015/hash/f50a6c02a3fc5a3a5d4d9391f05f3efc-Abstract.html
-14. Thomas Flynn. The duality structure gradient descent algorithm: Analysis and applications to neural networks. arXiv:1708.00523, 2017. URL https://arxiv.org/abs/1708.00523
-15. Hunter, D. R. and Lange, K. (2004). A tutorial on MM algorithms. The American Statistician, 58(1):30–37.
-16. Elhage, et al., "Toy Models of Superposition", Transformer Circuits Thread, 2022.
-17. Lucas Prieto, Melih Barsbey, Pedro A.M. Mediano, Tolga Birdal (2025). Grokking at the Edge of Numerical Stability. URL https://arxiv.org/abs/2501.04697
-18. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
-19. Rohan Anil et al. “Scalable second order optimization for deep learning.” arXiv preprint arXiv:2002.09018 (2020).
-20. Surya, S., Duvvuri, Devvrit, F., Anil, R., Hsieh, C., & Dhillon, I.S. (2024). Combining Axes Preconditioners through Kronecker Approximation for Deep Learning. International Conference on Learning Representations.
-21. Franz Louis Cesista (2025). {CASPR} Without Accumulation is {M}uon. URL https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/
-22. Rohan Anil. “Just some fun linear algebra.” X post, 6 Oct. 2024, Available at: https://x.com/_arohan_/status/1843050297985466565.
-23. Dmitry Kovalev (2025). Understanding Gradient Orthogonalization for Deep Learning via Non-Euclidean Trust-Region Optimization. Available at: https://arxiv.org/abs/2503.12645
-24. Lee, Jaehoon, et al. “Wide Neural Networks of Any Depth Evolve as Linear Models under Gradient Descent.” Journal of Statistical Mechanics: Theory and Experiment, vol. 2020, no. 12, Dec. 2020, p. 124002. Crossref, https://doi.org/10.1088/1742-5468/abc62b.
-25. Jesus, Ricardo J., et al. “Effect of Initial Configuration of Weights on Training and Function of Artificial Neural Networks.” Mathematics, vol. 9, no. 18, Sept. 2021, p. 2246. Crossref, https://doi.org/10.3390/math9182246.
-26. Aryan Mokhtari, Hamed Hassani, Amin Karbasi (2018). Stochastic Conditional Gradient Methods: From Convex Minimization to Submodular Maximization. URL https://arxiv.org/abs/1804.09554
-27. David E. Rumelhart, Geoffrey E. Hinton and Ronald J. Williams (1986). Learning representations by back-propagating errors. URL https://www.nature.com/articles/323533a0
-28. Tim Salimans, Jonathan Ho, Xi Chen, Szymon Sidor, Ilya Sutskever (2017). Evolution Strategies as a Scalable Alternative to Reinforcement Learning. https://arxiv.org/abs/1703.03864
-29. Cornelius V. Braun, Robert T. Lange, Marc Toussaint (2024). Stein Variational Evolution Strategies. URL https://arxiv.org/abs/2410.10390
+7. Jeremy Bernstein (2024). Spectral perspective on Shampoo. X post. URL https://x.com/jxbz/status/1819846348130418706
+8. Jeremy Bernstein (2024). "Weight erasure." Available at: https://docs.modula.systems/examples/weight-erasure/
+9. Tim Large, Yang Liu, Minyoung Huh, Hyojin Bahng, Phillip Isola, Jeremy Bernstein (2024). Scalable Optimization in the Modular Norm. URL https://arxiv.org/abs/2405.14813
+10. Greg Yang, James B. Simon, Jeremy Bernstein (2024). A Spectral Condition for Feature Learning. URL https://arxiv.org/abs/2310.17813
+11. Xi-Lin Li (2015). Preconditioned Stochastic Gradient Descent. URL https://arxiv.org/abs/1512.04202
+12. Xi-Lin Li (2018). Preconditioner on Matrix Lie Group for SGD. URL https://arxiv.org/abs/1809.10232
+13. Omead Pooladzandi, Xi-Lin Li (2024). Curvature-Informed SGD via General Purpose Lie-Group Preconditioners. URL https://arxiv.org/abs/2402.04553
+14. P.-A. Absil, R. Mahony, and Rodolphe Sepulchre (2008). Optimization Algorithms on Matrix Manifolds. Princeton University Press.
+15. David E Carlson, Edo Collins, Ya-Ping Hsieh, Lawrence Carin, Volkan Cevher. Preconditioned Spectral Descent for Deep Learning. In Advances in Neural Information Processing Systems 28 (NIPS 2015), 2015. URL https://proceedings.neurips.cc/paper_files/paper/2015/hash/f50a6c02a3fc5a3a5d4d9391f05f3efc-Abstract.html
+16. Thomas Flynn. The duality structure gradient descent algorithm: Analysis and applications to neural networks. arXiv:1708.00523, 2017. URL https://arxiv.org/abs/1708.00523
+17. Hunter, D. R. and Lange, K. (2004). A tutorial on MM algorithms. The American Statistician, 58(1):30–37.
+18. Elhage, et al., "Toy Models of Superposition", Transformer Circuits Thread, 2022.
+19. Lucas Prieto, Melih Barsbey, Pedro A.M. Mediano, Tolga Birdal (2025). Grokking at the Edge of Numerical Stability. URL https://arxiv.org/abs/2501.04697
+20. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
+21. Rohan Anil et al. “Scalable second order optimization for deep learning.” arXiv preprint arXiv:2002.09018 (2020).
+22. Surya, S., Duvvuri, Devvrit, F., Anil, R., Hsieh, C., & Dhillon, I.S. (2024). Combining Axes Preconditioners through Kronecker Approximation for Deep Learning. International Conference on Learning Representations.
+23. Franz Louis Cesista (2025). {CASPR} Without Accumulation is {M}uon. URL https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/
+24. Rohan Anil. “Just some fun linear algebra.” X post, 6 Oct. 2024, Available at: https://x.com/_arohan_/status/1843050297985466565.
+25. Dmitry Kovalev (2025). Understanding Gradient Orthogonalization for Deep Learning via Non-Euclidean Trust-Region Optimization. Available at: https://arxiv.org/abs/2503.12645
+26. Lee, Jaehoon, et al. “Wide Neural Networks of Any Depth Evolve as Linear Models under Gradient Descent.” Journal of Statistical Mechanics: Theory and Experiment, vol. 2020, no. 12, Dec. 2020, p. 124002. Crossref, https://doi.org/10.1088/1742-5468/abc62b.
+27. Jesus, Ricardo J., et al. “Effect of Initial Configuration of Weights on Training and Function of Artificial Neural Networks.” Mathematics, vol. 9, no. 18, Sept. 2021, p. 2246. Crossref, https://doi.org/10.3390/math9182246.
+28. Aryan Mokhtari, Hamed Hassani, Amin Karbasi (2018). Stochastic Conditional Gradient Methods: From Convex Minimization to Submodular Maximization. URL https://arxiv.org/abs/1804.09554
+29. David E. Rumelhart, Geoffrey E. Hinton and Ronald J. Williams (1986). Learning representations by back-propagating errors. URL https://www.nature.com/articles/323533a0
+30. Tim Salimans, Jonathan Ho, Xi Chen, Szymon Sidor, Ilya Sutskever (2017). Evolution Strategies as a Scalable Alternative to Reinforcement Learning. https://arxiv.org/abs/1703.03864
+31. Cornelius V. Braun, Robert T. Lange, Marc Toussaint (2024). Stein Variational Evolution Strategies. URL https://arxiv.org/abs/2410.10390
