@@ -85,7 +85,7 @@ params:
         disableScrollBarStyle: true
     cover:
         hidden: false
-        hiddenInList: false
+        hiddenInList: true
         hiddenInSingle: false
     label:
         text: "Franz Louis Cesista"

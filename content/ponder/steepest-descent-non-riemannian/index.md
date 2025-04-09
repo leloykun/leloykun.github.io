@@ -36,7 +36,7 @@ This work is a selective survey of latest advancements in deep learning optimiza
 ## 1. Preliminaries
 
 We consider the following optimization problem,
-$$\begin{equation} \arg\min_{W \in \bm{\mathcal{W}}} \mathcal{L}(W), \end{equation}$$
+$$\begin{equation} \min_{W \in \bm{\mathcal{W}}} \mathcal{L}(W), \end{equation}$$
 where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable objective function, and $\bm{\mathcal{W}}$ is a real-valued, finite-dimensional, matrix manifold equipped with a norm $||\cdot||$ chosen a priori. If the norm is induced by an inner product (i.e., the parallelogram law holds), then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian manifold. Thus, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *flavors* of optimizers, preconditioners and dualizers, which we will discuss in the following sections.
 
 In practice, $\mathcal{L}$ often does not have a simple, closed-form solution, so we resort to iterative methods of the form,
@@ -63,15 +63,30 @@ We also often do not have access to the exact differential. However, either thro
 \end{align*}
 $$
 > where $\xi$ is a random variable sampled from a  distribution $D$, $\sigma > 0$ is a positive variance parameter, and $||\cdot||_F = \sqrt{\langle \cdot, \cdot \rangle_F}$ is the corresponding Frobenius norm.
+> Note that in the Riemannian case, the above are equivalent to,
+> $$
+\begin{align*}
+    &\mathbb{E}\_{\xi \sim D}[\nabla\mathcal{L}(W; \xi)] = \nabla\mathcal{L}(W) && \forall W \in \bm{\mathcal{W}}\\\\
+    &\mathbb{E}\_{\xi \sim D}[||\nabla\mathcal{L}(W; \xi) - \nabla\mathcal{L}(W) ||_F^2] \leq \hat{\sigma}^2 && \forall W \in \bm{\mathcal{W}}
+\end{align*}
+$$
+> where $\nabla\mathcal{L}(W)$ is the "true" gradient of $\mathcal{L}$ at $W$, $\nabla\mathcal{L}(W; \xi) = G_W^{-1}\partial\mathcal{L}(W; \xi)\_{\text{coord}}$ is the equivalent stochastic estimator of the gradient, $\hat{\sigma} = \sigma(\max\_{W \in \mathcal{W}}||G_W||_F) > 0$ is the adjusted variance parameter, and $G_W$ is the metric tensor at $W \in \bm{\mathcal{W}}$.
 
 We also make the following standard continuity assumption on the differential $\partial\mathcal{L}(\cdot)$ (Mokhtari et al., 2018; Kovalev, 2025),
 > **Assumption 2:** The differential $\partial\mathcal{L}(\cdot)\_{\text{coord}}$ is Lipschitz continuous with respect to the norm $||\cdot||$ with Lipschitz constant $L > 0$. That is, for all $W \in \bm{\mathcal{W}}$,
-$$
+> $$
 \begin{equation}
     ||\partial\mathcal{L}(W + \Delta W)\_{\text{coord}} - \partial\mathcal{L}(W)\_{\text{coord}}||^\dagger \leq L||\Delta W|| \quad \forall \Delta W \in T_W\bm{\mathcal{W}}
 \end{equation}
 $$
-where $||\cdot||^\dagger$ is the dual norm of $||\cdot||$.
+> where $||\cdot||^\dagger$ is the dual norm of $||\cdot||$.
+> Note that in the Riemannian case, this is equivalent to,
+> $$
+\begin{equation}
+    ||\nabla\mathcal{L}(W + \Delta W) - \nabla\mathcal{L}(W)||^\dagger \leq \hat{L}||\Delta W|| \quad \forall \Delta W \in T_W\bm{\mathcal{W}}
+\end{equation}
+$$
+> where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$, $\hat{L} = L(\max\_{W \in \mathcal{W}}||G_W||^\dagger) > 0$, and $G_W$ is the metric tensor at $W \in \bm{\mathcal{W}}$.
 
 And in the following sections, we will also discuss optimizers that precondition the differentials,
 
@@ -102,9 +117,15 @@ $$
     \mathcal{U}(\Delta W; W) = \mathcal{L}(W) + \langle \partial\mathcal{L}(W)\_{\text{coord}}, \Delta W \rangle_F + \frac{\lambda}{2}||\Delta W||^2
 \end{equation}
 $$
-for some norm $||\cdot||$. Using standard arguments, we can show that,
-$$\mathcal{L}(W + \Delta W) \leq \mathcal{U}(\Delta W; W)$$
-for all $\Delta W \in T_W\bm{\mathcal{W}}$ as long as $\lambda \leq L$ (Hunter et al., 2004).
+for some norm $||\cdot||$. Note that in the Riemannian case, the above is equivalent to the more standard presentation,
+$$
+\begin{equation}
+    \mathcal{U}(\Delta W; W) = \mathcal{L}(W) + \langle \nabla\mathcal{L}(W), \Delta W \rangle + \frac{\lambda}{2}||\Delta W||^2
+\end{equation}
+$$
+where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$. Using standard arguments, we can show that,
+$$\mathcal{L}(W + \Delta W) \leq \mathcal{U}(\Delta W; W),\quad\quad\Delta W \in T_W\bm{\mathcal{W}}$$
+as long as $\lambda \leq L$ (Hunter et al., 2004), where $L$ is the Lipschitz constant from Assumption 2.
 
 A natural strategy to (iteratively) minimize $\mathcal{L}$ from point $W \in \mathcal{W}$ then is to (iteratively) minimize the majorant $\mathcal{U}(\cdot; W)$. And as discussed by Carlson et al. (2015), the spectral norm gives us a very tight upper bound and is thus a good choice. In fact, the spectral norm gives the tightest bound among all the Schatten-$p$ norms (the Frobenius norm included). And just as importantly, Equation (5) above has a simple, closed-form solution for the spectral norm as we will discuss in Section 4.
 
