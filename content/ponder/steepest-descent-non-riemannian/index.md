@@ -70,7 +70,7 @@ $$
     &\mathbb{E}\_{\xi \sim D}[||\nabla\mathcal{L}(W; \xi) - \nabla\mathcal{L}(W) ||_F^2] \leq \hat{\sigma}^2 && \forall W \in \bm{\mathcal{W}}
 \end{align*}
 $$
-> where $\nabla\mathcal{L}(W)$ is the "true" gradient of $\mathcal{L}$ at $W$, $\nabla\mathcal{L}(W; \xi) = G_W^{-1}\partial\mathcal{L}(W; \xi)\_{\text{coord}}$ is the equivalent stochastic estimator of the gradient, $\hat{\sigma} = \sigma(\max\_{W \in \mathcal{W}}||G_W||_F) > 0$ is the adjusted variance parameter, and $G_W$ is the metric tensor at $W \in \bm{\mathcal{W}}$.
+> where $\nabla\mathcal{L}(W)$ is the "true" gradient of $\mathcal{L}$ at $W$, $\nabla\mathcal{L}(W; \xi) = G_W^{-1}\partial\mathcal{L}(W; \xi)\_{\text{coord}}$ is the equivalent stochastic estimator of the gradient, $\hat{\sigma} = \sigma(\max\_{W \in \mathcal{W}}||G_W^{-1}||_F) > 0$ is the adjusted variance parameter, and $G_W$ is the metric tensor at $W \in \bm{\mathcal{W}}$.
 
 We also make the following standard continuity assumption on the differential $\partial\mathcal{L}(\cdot)$ (Mokhtari et al., 2018; Kovalev, 2025),
 > **Assumption 2:** The differential $\partial\mathcal{L}(\cdot)\_{\text{coord}}$ is Lipschitz continuous with respect to the norm $||\cdot||$ with Lipschitz constant $L > 0$. That is, for all $W \in \bm{\mathcal{W}}$,
@@ -86,7 +86,7 @@ $$
     ||\nabla\mathcal{L}(W + \Delta W) - \nabla\mathcal{L}(W)||^\dagger \leq \hat{L}||\Delta W|| \quad \forall \Delta W \in T_W\bm{\mathcal{W}}
 \end{equation}
 $$
-> where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$, $\hat{L} = L(\max\_{W \in \mathcal{W}}||G_W||^\dagger) > 0$, and $G_W$ is the metric tensor at $W \in \bm{\mathcal{W}}$.
+> where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$, $\hat{L} = L(\max\_{W \in \mathcal{W}}||G_W^{-1}||^\dagger) > 0$, and $G_W$ is the metric tensor at $W \in \bm{\mathcal{W}}$.
 
 And in the following sections, we will also discuss optimizers that precondition the differentials,
 
