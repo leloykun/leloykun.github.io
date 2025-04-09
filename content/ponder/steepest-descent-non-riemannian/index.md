@@ -619,7 +619,7 @@ A side-effect of this is that it allows the model parameters to "escape" the sma
 
 ## Acknowledgements
 
-Many thanks to Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their feedback on this work. I have been (and still is) trying to incorporate their feedback into this work. And also to Jeremy Bernstein and Keller Jordan for conversations on optimization and machine learning, in general.
+Many thanks to Jeremy Bernstein, Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their feedback on this work. I have been (and still is) trying to incorporate their feedback into this work. Also many thanks to Keller Jordan for developing Muon in the first place and for conversations on optimization and machine learning, in general.
 
 ## How to Cite
 
