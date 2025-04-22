@@ -35,11 +35,186 @@ This work is a selective survey of latest advancements in deep learning optimiza
 
 ## 1. Preliminaries
 
-### 1.1. Objective
+### 1.1. Differential Matrix Manifolds
+
+{{< collapse summary="Show Section 1.2. Differential Geometry Terminology" >}}
+
+We follow the work of Absil et al. (2008) for the following definitions for differentiable matrix manifolds and their properties. Note that these definitions are actually isomorphic to standard definitions in differential geometry (since $\mathbb{R}^{m \times n} \cong \mathbb{R}^{mn}$), except we highlight the fact that we are working with matrix-valued points and matrix-valued update directions.
+
+> **Definition 1 (Differentiable Matrix Manifold).** A **differentiable matrix manifold** of dimension $m \times n$ is a tuple $(\mathcal{W}, \mathcal{A})$ where $\mathcal{W}$ is a second-countable, Hausdorff topological space of matrix-valued points, and $\mathcal{A} = \\{(U_i, \varphi_i)\\}\_{i \in I}$ is a collection (atlas) of charts such that:
+> 1. Each $U_i \subseteq \mathcal{W}$ is an open set, and $\varphi_i: U_i \to \mathbb{R}^{m \times n}$ is a homeomorphism (i.e., a continuous bijection with continuous inverse).
+> 2. The open sets $U_i$ cover $\mathcal{W}$, i.e., $\mathcal{W} \subseteq \bigcup\_{i \in I} U_i$.
+> 3. The transition maps $\varphi_{ij} = \varphi_j \circ \varphi_i^{-1}: \varphi_i(U_i \cap U_j) \to \varphi_j(U_i \cap U_j)$ are smooth (i.e., infinitely differentiable) for all $i, j \in I$ such that $U_i \cap U_j \neq \emptyset$.
+
+Note that $\mathcal{W}$ being second-countable and Hausdorff will not be relevant for this work, but is included for completeness.
+
+> **Definition 2 (Differentiable Functions).** A function $f: \mathcal{W} \to \mathbb{R}$ is said to be differentiable at a point $p \in \mathcal{W}$ if and only if,
+> $$f \circ \varphi_i^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}$$
+> is differentiable at $\varphi_i(p)$ for some chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$.
+
+Note that since the transition maps $\varphi_{ji} = \varphi_i \circ \varphi_j^{-1}$ of a differentiable manifold are smooth, then by the Chain Rule this is equivalent to $f \circ \varphi_j^{-1}$ being differentiable at $\varphi_j(p)$ for all charts $(U_j, \varphi_j) \in \mathcal{A}$ such that $p \in U_j$. I.e.,
+$$f \circ \varphi_j^{-1} = \underbrace{f \circ \varphi_i^{-1}}\_{\text{differentiable}} \circ \underbrace{\varphi_i \circ \varphi_j^{-1}}\_{\text{differentiable}}$$
+Thus the differentiability of $f$ at $p \in \mathcal{W}$ is independent of the choice of chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$.
+
+> **Definition 3 (Curves).** Let $p \in \mathcal{W}$. A **curve** $\gamma$ at $p$ is a function $\gamma: \mathbb{R} \to \mathcal{W}$ with $\gamma(0) = p$ which is differentiable in the sense that its composition with any chart $\varphi_i$ is differentiable,
+> $$\varphi_i \circ \gamma: \mathbb{R} \to \mathbb{R}^{m \times n}.$$
+
+Again, since the transition maps $\varphi_{ij} = \varphi_j \circ \varphi_i^{-1}$ are smooth, then by the Chain Rule this is equivalent to $\varphi_j \circ \gamma$ being differentiable at $p$ for all charts $(U_j, \varphi_j) \in \mathcal{A}$ such that $p \in U_j$. I.e.,
+$$\varphi_j \circ \gamma = \underbrace{\varphi_j \circ \varphi_i^{-1}}\_{\text{differentiable}} \circ \underbrace{\varphi_i \circ \gamma}\_{\text{differentiable}}$$
+
+> **Definition 4 (Directional Derivative).** Given a differentiable function $f$, the **directional derivative** of $f$ at $p \in \mathcal{W}$ in the direction of a curve $\gamma$ is defined as,
+> $$\begin{align*}
+    Df(p)[\gamma] &= \frac{d}{dt} (\underbrace{f \circ \gamma}\_{\mathbb{R} \to \mathbb{R}})(t)\bigg|\_{t=0}\newline
+    Df(p)[\gamma] &= \frac{d}{dt} (\underbrace{f \circ \varphi_i^{-1}}\_{\mathbb{R}^{m \times n} \to \mathbb{R}} \circ \underbrace{\varphi_i \circ \gamma}\_{\mathbb{R} \to \mathbb{R}^{m \times n}})(t) \bigg|\_{t=0}
+\end{align*}$$
+> for any chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$. Note that this derivative is well-defined because it is simply a derivative of a composition of differentiable functions defined in the usual Euclidean space. Additionally, the choice of chart does not matter because the differentiability of $f$ and $\gamma$ at $p$ are both chart-independent.
+
+> **Definition 5 (Tangent Vectors and Tangent Spaces).** A **tangent vector** at $p \in \mathcal{W}$ is an *equivalence class* of curves $\gamma$ with $\gamma(0) = p$ where two curves $\gamma_1$ and $\gamma_2$ are said to be equivalent if and only if,
+> $$\frac{d}{dt}(\underbrace{\varphi_i \circ \gamma_1}\_{\mathbb{R} \to \mathbb{R}^{m \times n}})(t) \bigg|\_{t=0} = \frac{d}{dt}(\underbrace{\varphi_i \circ \gamma_2}\_{\mathbb{R} \to \mathbb{R}^{m \times n}})(t)\bigg|\_{t=0}$$ for any chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$. Again, the choice of chart does not matter.
+>
+> The **tangent space** at $p \in \mathcal{W}$ is the set of all tangent vectors at $p$ and is denoted by $T_p\mathcal{W}$. This space forms an $m \times n$-dimensional vector space over $\mathbb{R}$.
+
+> **Definition 6 (Differentials and Cotangent Spaces).** Let $X \in T_p\mathcal{W}$ be a tangent vector at $p \in \mathcal{W}$ and $f$ be a differentiable function near $p$, then differentiating f along any curve in the equivalence class defining $X$ gives a well-defined directional derivative along $X$:
+> $$Xf(p) := \frac{d}{dt}(\underbrace{f \circ \gamma}\_{\mathbb{R} \to \mathbb{R}})(t)\bigg|\_{t = 0}$$
+> which is independent of the choice of curve $\gamma$ in the equivalence class defining $X$. We then define the **differential** of $f$ at $p$ as the linear functional $Df(p)[\cdot]: T_p\mathcal{W} \to \mathbb{R}$ given by,
+> $$Df(p)[X] = Xf(p)$$
+>
+> The **cotangent space** at $p \in \mathcal{W}$ then is defined as the set of all differentials at $p$ and is denoted by $T^*\_p\mathcal{W}$. Note that this space also forms an $m \times n$-dimensional vector space over $\mathbb{R}$.
+
+> **Definition 7 (Canonical Pairing between Tangent and Cotangent Spaces).** Let $\\{e_{ij}\\}\_{1\leq i\leq m, 1\leq j\leq n}$ be the standard basis of $\mathbb{R}^{m \times n}$ where $e_{ij} \in \mathbb{R}^{m \times n}$ is the matrix with $1$ at the $(i, j)$-th entry and $0$ elsewhere. And at every point $p \in \mathcal{W}$, define,
+> $$\begin{align*}
+    \frac{\partial f}{\partial x^{ij}} &:= Df(p)[e_{ij}]\newline
+    \partial f(p) &:= \begin{bmatrix}
+    \frac{\partial f}{\partial x^{11}} & \ldots & \frac{\partial f}{\partial x^{1n}} \newline
+    \vdots & \ddots & \vdots \newline
+    \frac{\partial f}{\partial x^{m1}} & \ldots & \frac{\partial f}{\partial x^{mn}}
+\end{bmatrix}
+\end{align*}$$
+> where $\partial f(p) \in T^\*\_p\mathcal{W}$ is referred to as the coordinate representation of the differential $Df(p)[\cdot]: T_p\mathcal{W} \to \mathbb{R}$. Then for any tangent vector $X \in T_p\mathcal{W} \subseteq \mathbb{R}^{m \times n}$, we have,
+> $$\begin{align*}
+    Df(p)[X] &= \sum_{i=1}^m \sum_{j=1}^n \frac{\partial f}{\partial x^{ij}} X^{ij}\newline
+    Df(p)[X] &= \langle \partial f(p), X \rangle_F
+\end{align*}$$
+> where $\langle \cdot, \cdot \rangle_F$ is the Frobenius inner product. This pairing of a tangent vector $X \in T_p\mathcal{W}$ and a differential $\partial f(p) \in T^*\_p\mathcal{W}$ that results in a real number is called the **canonical pairing** between the tangent and cotangent spaces at $p \in \mathcal{W}$.
+
+Since the tangent spaces $T_p\mathcal{W}$ are vector spaces, we can define a notion of "length" on them. This notion of length is formalized by the concept of a norm. Some, but not all, norms can also be induced by an inner product which formalizes the notion of "angle" between two directions.
+
+> **Definition 8 (Norm).** A norm $||\cdot||$ on a (real matrix-valued) vector space $V$ is a function $||\cdot||: V \to \mathbb{R}$ that satisfies the following properties:
+> 1. **Non-negativity:** $||x|| \geq 0$ for all $x \in V$, and $||x|| = 0$ if and only if $x = 0$.
+> 2. **Homogeneity:** $||ax|| = |a| \cdot ||x||$ for all $x \in V$ and $a \in \mathbb{R}$.
+> 3. **Triangle Inequality:** $||x + y|| \leq ||x|| + ||y||$ for all $x, y \in V$.
+
+If the norm depends on the point $p \in \mathcal{W}$, we denote it by $||\cdot||_p$.
+
+> **Definition 9 (Inner Product).** An inner product on a (real) vector space $V$ is a bilinear form $\langle \cdot, \cdot \rangle: V \times V \rightarrow \mathbb{R}$ that satisfies the following properties:
+> 1. **Bilinearity:** $\langle ax + by, z \rangle = a\langle x, z \rangle + b\langle y, z \rangle$ for all $x, y, z \in V$ and $a, b \in \mathbb{R}$.
+> 2. **Symmetry:** $\langle x, y \rangle = \langle y, x \rangle$ for all $x, y \in V$.
+> 3. **Positive Definiteness:** $\langle x, x \rangle > 0$ for all $x \in V$ such that $x \neq 0$.
+> 4. **Non-degeneracy:** $\langle x, y \rangle = 0$ for all $y \in V$ implies $x = 0$.
+>
+> Every inner product has a corresponding matrix form $G_*$ such that $\langle x, y \rangle = x^T G\_{\*} y$ for all $x, y \in V$. The inner product also induces a norm $||\cdot||$ on $V$ defined by $||x|| = \sqrt{\langle x, x \rangle}$ for all $x \in V$.
+
+However, not all norms are induced by an inner product. For example, the spectral norm $||\cdot||\_{2 \to 2}$ is not induced by an inner product. The parallelogram law is a necessary and sufficient condition for the existence of an inner product that induces the norm (Jordan et al., 1935).
+
+> **Definition 10 (Parallelogram Law).** A norm $||\cdot||$ on a (real matrix-valued) vector space $V$ is said to satisfy the parallelogram law if, for all $x, y \in V$, we have,
+> $$||x + y||^2 + ||x - y||^2 = 2||x||^2 + 2||y||^2.$$
+
+Note that we can vary the norm or inner product on the tangent spaces $T_p\mathcal{W}$ at each point $p \in \mathcal{W}$,
+
+> **Definition 11 (Riemannian Metric).** Suppose that we equip the tangent spaces $T_p\mathcal{W}$ at each point $p \in \mathcal{W}$ with an inner product $\langle \cdot, \cdot \rangle_p$. Let $g$ be a function such that,
+> $$g(p, X, Y) = g_p(X, Y) = \langle X, Y \rangle\_{G_p} \qquad \forall p\in\mathcal{W}; X,Y\in T_p\mathcal{W}$$
+> We say that $g$ is a **Riemannian metric** on $\mathcal{W}$ if it smoothly various along $p$.
+
+> **Definition 12 (Riemannian Gradient).** Let $Df(p)[\cdot]: T_p\mathcal{W} \to \mathbb{R}$ be the differential of a differentiable function $f$ at $p \in \mathcal{W}$. The **Riemannian gradient** of $f$ at $p$ is defined as the *unique* tangent vector $\nabla f(p) \in T_p\mathcal{W}$ such that,
+> $$Df(p)[X] = g_p(\nabla f(p), X) \qquad \forall X \in T_p\mathcal{W}$$
+
+Finally, we can now formally define Riemannian and non-Riemannian differentiable matrix manifolds,
+
+> **Definition 13 (Riemannian and Non-Riemannian Differentiable Matrix Manifolds).** Given a differentiable matrix manifold $(\mathcal{W}, \mathcal{A})$ whose tangent spaces $T_p\mathcal{W}$ are equipped with a norm $||\cdot||_p$, we say that it is a **Riemannian manifold** if the norm $||\cdot||_p$ is induced by an inner product $\langle \cdot, \cdot \rangle_p$ (i.e., the Parallelogram Law holds) and the inner product varies smoothly along $p$. Otherwise, it is a **non-Riemannian manifold**.
+
+Note that if the norm $||\cdot||_p$ smoothly varies along $p \in \mathcal{W}$, then it is also common to refer to the manifold as a *Finsler Manifold* (Flynn, 2017). However, we will not use this terminology in this work.
+
+{{< /collapse >}}
+
+### 1.2. Deep Learning
+
+{{< collapse summary="Show Section 1.3. Deep Learning Terminology" >}}
+
+> **Definition 14 (Neural Networks).** A neural network is a parametrized function $f: \mathbb{R}^{d_0} \to \mathbb{R}^{d_L}$ defined by composing linear and non-linear transformations according to a directed acyclic graph (DAG) structure. Here, we focus on neural networks parametrized by matrix-valued weights $\\{W^l\\}\_{l=1}^L$ where $W^l \in \mathbb{R}^{d\_{l} \times d\_{l-1}}$ is the weight matrix and $d_l$ is the dimension of hidden (vector) representations at the $l$-th layer, respectively. The input to the network is a vector $x_0 \in \mathbb{R}^{d_0}$, and the output is a vector $x_L \in \mathbb{R}^{d_L}$.
+
+The weights of a neural network are often initialized randomly, and then updated iteratively using an optimizer to minimize an objective function $\mathcal{L}$. In practice, we often define $\mathcal{L}$ to be the expected "loss" of a neural network $f$ according to some differentiable "loss function" $loss: \mathbb{R}^{d_L} \times \mathbb{R}^{d_L} \to \mathbb{R}$ that measures the distance between the "predicted" output $x_L \in \mathbb{R}^{d_L}$ and the "expected" output $y \in \mathbb{R}^{d_L}$ over some dataset $\mathcal{D} \subseteq \mathbb{R}^{d_0} \times \mathbb{R}^{d_L}$ of input-output pairs. I.e., we have,
+$$\mathcal{L}(\\{W^l\\}\_{l=1}^L) = \mathbb{E}\_{(x^i, y^i) \sim \mathcal{D}}[loss(f(x^i | \\{W^l\\}\_{l=1}^L), y^i)]$$
+To simplify matters, we also often optimize each weight independently of each other. And so we have,
+$$\mathcal{L}^l: \mathcal{W} \to \mathbb{R},$$
+for each weight $W^l$. We drop the superscript $l$ when it is clear from the context.
+
+> **Definition 15 (Backpropagation).** Backpropagation is an application of the chain rule to compute the differentials of $\mathcal{L}$ at each weight $W^l$ in a neural network, given only access to the differential(s) at later layers. For example, suppose we have a linear layer $y = Wx$ where $x \in \mathcal{n}, y \in \mathcal{m}, W \in \mathcal{m \times n}$ and that we initially have access to,
+> $$\frac{\partial\mathcal{L}}{\partial y} = \begin{bmatrix}
+    \frac{\partial\mathcal{L}}{\partial y_1}\newline
+    \vdots\newline
+    \frac{\partial\mathcal{L}}{\partial y_m}
+\end{bmatrix}$$
+> By the chain rule, we can compute the differential of $\mathcal{L}$ at $W$ as follows,
+> $$\begin{align*}
+    \frac{\partial\mathcal{L}}{\partial W} &= \frac{\partial\mathcal{L}}{\partial y} \cdot \frac{\partial y}{\partial W} = \frac{\partial\mathcal{L}}{\partial y} \cdot x^T\newline
+    \frac{\partial\mathcal{L}}{\partial W} &= \begin{bmatrix}
+        \frac{\partial\mathcal{L}}{\partial W_{11}} & \ldots & \frac{\partial\mathcal{L}}{\partial W_{1n}}\newline
+        \vdots & \ddots & \vdots\newline
+        \frac{\partial\mathcal{L}}{\partial W_{m1}} & \ldots & \frac{\partial\mathcal{L}}{\partial W_{mn}}
+    \end{bmatrix} = \begin{bmatrix}
+        \frac{\partial\mathcal{L}}{\partial y_1} x_1 & \ldots & \frac{\partial\mathcal{L}}{\partial y_1} x_n\newline
+        \vdots & \ddots & \vdots\newline
+        \frac{\partial\mathcal{L}}{\partial y_m} x_1 & \ldots & \frac{\partial\mathcal{L}}{\partial y_m} x_n
+    \end{bmatrix}
+\end{align*}$$
+> Likewise, we can compute the differential of $\mathcal{L}$ at $x$ as follows,
+> $$\begin{align*}
+    \frac{\partial\mathcal{L}}{\partial x} &= \frac{\partial y}{\partial x} \cdot \frac{\partial\mathcal{L}}{\partial y} = W^T \cdot \frac{\partial\mathcal{L}}{\partial y}\newline
+    \frac{\partial\mathcal{L}}{\partial x} &= \begin{bmatrix}
+        \frac{\partial\mathcal{L}}{\partial x_1}\newline
+        \vdots\newline
+        \frac{\partial\mathcal{L}}{\partial x_n}
+    \end{bmatrix} = W^T \cdot \begin{bmatrix}
+        \frac{\partial\mathcal{L}}{\partial y_1}\newline
+        \vdots\newline
+        \frac{\partial\mathcal{L}}{\partial y_m}
+    \end{bmatrix}
+\end{align*}$$
+> We can then use $\frac{\partial\mathcal{L}}{\partial x}$ to calculate the differentials at the previous layer, and so on, until we reach the input layer. This is the essence of backpropagation.
+
+An important matter we want to highlight is that, despite the terminology used in deep learning literature, backpropagation only gives us the *differentials*, and *not the gradients* of the loss function $\mathcal{L}$ at each weight $W^l$.
+
+> **Definition 16 (Optimizers).** A (deep learning) optimizer is an algorithm that *iteratively* adjust a model's parameters $W_t \in \mathcal{W}$ in order to minimize an objective function $\mathcal{L}: \mathcal{W} \to \mathbb{R}$. Optimizers are often *stateful*, meaning that they maintain a set of statistics $S_t \in \mathcal{S}$ on the previous parameters and differentials (or gradients) they have seen so far. Optimizers that do not maintain any state (or equivalently, maintains an empty set $S_t = \emptyset$ for all $t$) are called *stateless* optimizers.
+> 
+> At every training step $t$, the optimizer receives a stochastic estimate of the differential $\partial\mathcal{L}(W\_t; \xi) \in T^*\_{W\_t}\mathcal{W}$ at the current point $W\_t \in \mathcal{W}$, and uses it to update the model parameters $W\_t$ to $W\_{t+1} \in \mathcal{W}$ and optimizer state $S_t$ to $S_{t+1} \in \mathcal{S}$ using a function $opt$ (called the "update rule") defined a priori,
+>
+> $$opt: \mathcal{W} \times \mathcal{S} \times T^*\mathcal{W}\rightarrow \mathcal{W} \times \mathcal{S}.$$
+> Optimizers are characterized by their update rules. I.e., two optimizers are said to be equivalent if they have the same update function $opt$.
+
+> **Definition 17 (Preconditioning).** In an optimizer, a preconditioner $\mathcal{P}(\cdot; W_t): T^\*\_{W_t}\mathcal{W} \rightarrow T\_{W_t}\mathcal{W}$ is a (possibly point-dependent) linear transform that maps the coordinate representation of the differential we have access to $\partial\mathcal{L}(W_t; \xi) \in T^\*\_{W_t}\mathcal{W}$ to a descent direction in the tangent space $\widehat{U}\_t \in T\_{W_t}\mathcal{W}$. That is, at any $W_t \in \mathcal{W}$, we have a matrix $P\_{W_t}$ such that,
+> $$\widehat{U}\_t = \mathcal{P}(\partial\mathcal{L}(W_t; \xi); W_t) = -P_{W_t} \partial\mathcal{L}(W_t; \xi)$$
+> $$W_{t+1} = W_t - \lambda P_{W_t} \partial\mathcal{L}\_\xi(W_t).$$
+>
+> It is also common to assume that we can decompose $P\_{W_t}$ into a Kronecker product $P\_{W_t} = L\_{W_t} \otimes R\_{W_t}$ (Li, 2015; Gupta et al., 2018, Surya et al., 2024), such that our update rule becomes,
+> $$
+\begin{align*}
+    \widehat{U}\_t &= -P_{W_t} \partial\mathcal{L}(W_t; \xi)\newline
+    \widehat{U}\_t &= -\left( L_{W_t} \otimes R_{W_t} \right) \partial\mathcal{L}(W_t; \xi)\newline
+    \widehat{U}\_t &= -L_{W_t} \partial\mathcal{L}(W_t; \xi) R_{W_t}
+\end{align*}
+$$
+> $$W_{t+1} = W_t - \lambda L_{W_t} \partial\mathcal{L}(W_t) R_{W_t}.$$
+> We call $L_W$ and $R_W$ as the left and right preconditioners, respectively.
+
+{{< /collapse >}}
+
+### 1.3. Optimization Objective
 
 We consider the following optimization problem,
 $$\begin{equation} \arg\min_{W \in \bm{\mathcal{W}}} \mathcal{L}(W), \end{equation}$$
-where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable objective function, and $\bm{\mathcal{W}}$ is a real-valued, finite-dimensional, differentiable matrix manifold whose tangent spaces are equipped with a norm $||\cdot||$ chosen a priori. If the norm is induced by an inner product (i.e., the parallelogram law holds), then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian manifold. And as we will show in the succeeding sections, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *flavors* of deep learning optimizers, preconditioners and dualizers, depending on whether $\bm{\mathcal{W}}$ is Riemannian or non-Riemannian.
+where $\mathcal{L}(\cdot): \bm{\mathcal{W}} \rightarrow \mathbb{R}$ is a bounded-below and differentiable objective function, and $\bm{\mathcal{W}}$ is a real-valued, finite-dimensional, differentiable matrix manifold whose tangent spaces are equipped with a norm $||\cdot||$ chosen a priori.
+
+If the norm is induced by a smoothly-varying inner product (i.e., the parallelogram law holds), then $\bm{\mathcal{W}}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian manifold. And as we will show in the succeeding sections, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *flavors* of deep learning optimizers, preconditioners and dualizers, depending on whether $\bm{\mathcal{W}}$ is Riemannian or non-Riemannian.
 
 In practice, $\mathcal{L}$ often does not have a simple, closed-form solution, so we resort to iterative methods of the form,
 $$W_{t+1} = W_{t} + \lambda \widehat{U}\_t,$$
@@ -47,7 +222,7 @@ where $W_t, W_{t+1} \in \mathcal{W}$ are the "current" and "updated" points at s
 
 There are multiple ways to estimate the optimal update direction $\widehat{U}_t$ at each step $t$. And in deep learning literature, it is common to use (approximate) second-order methods involving the Hessian of $\mathcal{L}$ at $W_t$. However, computing this Hessian is often intractable and/or computationally expensive. Thus, researchers often resort to approximating it via assumptions on its structure. And different assumptions lead to different deep learning optimizers. E.g., diagonal structure assumption leads to Adam (Kingma et al., 2014), while Kronecker product structure leads to PSGD, Shampoo, KFAC (Li, 2015; Gupta et al., 2018; Martens et al., 2015), and etcetera. We argue that these assumptions are hard to justify from a first-principles basis, and that a more natural to follow the direction of Steepest Descent on the manifold $\bm{\mathcal{W}}$ instead.
 
-> **Definition 1 (Steepest Descent).** Let $D\mathcal{L}(W_t)[\cdot]: T_{W\_t}\mathcal{W} \rightarrow \mathbb{R}$ be the differential of $\mathcal{L}$ at $W\_t$. Given that we equip the tangent spaces of $\mathcal{W}$ with the norm $||\cdot||$, the direction of Steepest Descent at $W\_t$ is given by,
+> **Definition 18 (Steepest Descent).** Let $D\mathcal{L}(W_t)[\cdot]: T_{W\_t}\mathcal{W} \rightarrow \mathbb{R}$ be the differential of $\mathcal{L}$ at $W\_t$. Given that we equip the tangent spaces of $\mathcal{W}$ with the norm $||\cdot||$, the direction of Steepest Descent at $W\_t$ is given by,
 > $$\begin{equation}
     \widehat{U}_t = \arg\min\_{\substack{\Delta W \in T\_{W\_t}\mathcal{W}\newline ||\Delta W|| = 1}} D\mathcal{L}(W_t)[\Delta W],
 \end{equation}$$
@@ -94,118 +269,6 @@ $$
 \end{equation}
 $$
 > where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$, $\hat{L} = L(\max\_{W \in \mathcal{W}}||G_W^{-1}||^\dagger) > 0$, and $G_W$ is the metric tensor at $W \in \bm{\mathcal{W}}$.
-
-### 1.2. Differential Geometry Terminology
-
-{{< collapse summary="Show Section 1.2. Differential Geometry Terminology" >}}
-
-> **Definition 2 (Differentiable (Matrix) Manifold).** A **differentiable manifold** of dimension $n$ is a tuple $(\mathcal{M}, \mathcal{A})$ where $\mathcal{M}$ is a second-countable, Hausdorff topological space, and $\mathcal{A} = \\{(U_i, \varphi_i)\\}\_{i \in I}$ is a collection (atlas) of charts such that:
-> 1. Each $U_i \subseteq \mathcal{M}$ is an open set, and $\varphi_i: U_i \to \mathbb{R}^n$ is a homeomorphism (i.e., a continuous bijection with continuous inverse).
-> 2. The open sets $U_i$ cover $\mathcal{M}$, i.e., $\mathcal{M} \subseteq \bigcup\_{i \in I} U_i$.
-> 3. The transition maps $\varphi_{ij} = \varphi_j \circ \varphi_i^{-1}: \varphi_i(U_i \cap U_j) \to \varphi_j(U_i \cap U_j)$ are smooth (i.e., infinitely differentiable) for all $i, j \in I$ such that $U_i \cap U_j \neq \emptyset$.
->
-> Note that $\mathcal{M}$ being second-countable and Hausdorff will not be relevant for this work, but is included for completeness.
-> 
-> A (differentiable) **matrix manifold** is simply a manifold with matrix-valued points. I.e., $\mathcal{M}, U_i \subseteq \mathbb{R}^{m \times n}$ and the charts $\varphi_i: \mathbb{R}^{m \times n} \to \mathbb{R}^{mn}$ are the trivial flattening map which concatenates the columns of a matrix into a single vector. We emphasize this because this work focuses on matrix-valued weights in neural networks.
-
-> **Definition 3 (Differentiable Functions).** A function $f: \mathcal{M} \to \mathbb{R}$ is said to be differentiable at a point $p \in \mathcal{M}$ if and only if,
-> $$f \circ \varphi_i^{-1}: \mathbb{R}^n \to \mathbb{R}$$
-> is differentiable at $\varphi_i(p)$ for some chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$.
-
-Note that since the transition maps $\varphi_{ji} = \varphi_i \circ \varphi_j^{-1}$ of a differentiable manifold are smooth, then by the Chain Rule this is equivalent to $f \circ \varphi_j^{-1}$ being differentiable at $\varphi_j(p)$ for all charts $(U_j, \varphi_j) \in \mathcal{A}$ such that $p \in U_j$. I.e.,
-$$f \circ \varphi_j^{-1} = \underbrace{f \circ \varphi_i^{-1}}\_{\text{differentiable}} \circ \underbrace{\varphi_i \circ \varphi_j^{-1}}\_{\text{differentiable}}$$
-Thus the differentiability of $f$ at $p \in \mathcal{M}$ is independent of the choice of chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$.
-
-> **Definition 4 (Curves).** Let $p \in \mathcal{M}$. A **curve** $\gamma$ at $p$ is a function $\gamma: [0, 1] \to \mathcal{M}$ with $\gamma(0) = p$ which is differentiable in the sense that
-> $$\varphi_i \circ \gamma: [0, 1] \to \mathbb{R}^n$$
-> is differentiable at $p$ for any chart $\varphi_i$.
-
-Again, since the transition maps $\varphi_{ij} = \varphi_j \circ \varphi_i^{-1}$ are smooth, then by the Chain Rule this is equivalent to $\varphi_j \circ \gamma$ being differentiable at $p$ for all charts $(U_j, \varphi_j) \in \mathcal{A}$ such that $p \in U_j$. I.e.,
-$$\varphi_j \circ \gamma = \underbrace{\varphi_j \circ \varphi_i^{-1}}\_{\text{differentiable}} \circ \underbrace{\varphi_i \circ \gamma}\_{\text{differentiable}}$$
-
-> **Definition 5 (Directional Derivative).** Given a differentiable function $f$, the **directional derivative** of $f$ at $p \in \mathcal{M}$ in the direction of a curve $\gamma$ is defined as,
-> $$\begin{align*}
-    Df(p)[\gamma] &= \frac{d}{dt} (\underbrace{f \circ \gamma}\_{[0, 1] \to \mathbb{R}})(t)\bigg|\_{t=0}\newline
-    Df(p)[\gamma] &= \frac{d}{dt} (\underbrace{f \circ \varphi_i^{-1}}\_{\mathbb{R}^n \to \mathbb{R}} \circ \underbrace{\varphi_i \circ \gamma}\_{[0, 1] \to \mathbb{R}^n})(t) \bigg|\_{t=0}
-\end{align*}$$
-> for any chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$. Note that this derivative is well-defined because it is simply a derivative of a composition of differentiable functions defined in the usual Euclidean space. Additionally, the choice of chart does not matter because the differentiability of $f$ and $\gamma$ at $p$ are both chart-independent.
-
-> **Definition 6 (Tangent Vectors and Tangent Spaces).** A **tangent vector** at $p \in \mathcal{M}$ is an *equivalence class* of curves $\gamma$ with $\gamma(0) = p$ where two curves $\gamma_1$ and $\gamma_2$ are said to be equivalent if and only if,
-> $$\frac{d}{dt}(\underbrace{\varphi_i \circ \gamma_1}\_{[0, 1] \to \mathbb{R}^n})(t) \bigg|\_{t=0} = \frac{d}{dt}(\underbrace{\varphi_i \circ \gamma_2}\_{[0, 1] \to \mathbb{R}^n})(t)\bigg|\_{t=0}$$ for any chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$. Again, the choice of chart does not matter.
->
-> The **tangent space** at $p \in \mathcal{M}$ is the set of all tangent vectors at $p$ and is denoted by $T_p\mathcal{M}$. This space forms a vector space over $\mathbb{R}^n$.
-
-> **Definition 7 (Differentials and Cotangent Spaces).** Let $X \in T_p\mathcal{M}$ be a tangent vector at $p \in \mathcal{M}$ and $f$ be a differentiable function near $p$, then differentiating f along any curve in the equivalence class defining $X$ gives a well-defined directional derivative along $X$:
-> $$Xf(p) := \frac{d}{dt}(\underbrace{f \circ \gamma}\_{[0, 1] \to \mathbb{R}})(t)\bigg|\_{t = 0}$$
-> which is independent of the choice of curve $\gamma$ in the equivalence class defining $X$. We then define the **differential** of $f$ at $p$ as the linear functional $Df(p)[\cdot]: T_p\mathcal{M} \to \mathbb{R}$ given by,
-> $$Df(p)[X] = Xf(p)$$
->
-> The **cotangent space** at $p \in \mathcal{M}$ then is defined as the set of all differentials at $p$ and is denoted by $T^*\_p\mathcal{M}$. Note that this space forms a vector space over $\mathbb{R}^n$.
-
-Since the tangent spaces $T_p\mathcal{M}$ are vector spaces, we can define a notion of "length" on them. This notion of length is formalized by the concept of a norm. Some, but not all, norms can also be induced by an inner product which formalizes the notion of "angle" between two directions.
-
-> **Definition 8 (Norm).** A norm $||\cdot||$ on a (real-valued) vector space $V \in \mathbb{R}^n$ is a function $||\cdot||: V \to \mathbb{R}$ that satisfies the following properties:
-> 1. **Non-negativity:** $||x|| \geq 0$ for all $x \in V$, and $||x|| = 0$ if and only if $x = 0$.
-> 2. **Homogeneity:** $||ax|| = |a| \cdot ||x||$ for all $x \in V$ and $a \in \mathbb{R}$.
-> 3. **Triangle Inequality:** $||x + y|| \leq ||x|| + ||y||$ for all $x, y \in V$.
-
-> **Definition 9 (Inner Product).** An inner product on a (real-valued) vector space $V \in \mathbb{R}^n$ is a bilinear form $\langle \cdot, \cdot \rangle: V \times V \rightarrow \mathbb{R}$ that satisfies the following properties:
-> 1. **Bilinearity:** $\langle ax + by, z \rangle = a\langle x, z \rangle + b\langle y, z \rangle$ for all $x, y, z \in V$ and $a, b \in \mathbb{R}$.
-> 2. **Symmetry:** $\langle x, y \rangle = \langle y, x \rangle$ for all $x, y \in V$.
-> 3. **Positive Definiteness:** $\langle x, x \rangle > 0$ for all $x \in V$ such that $x \neq 0$.
-> 4. **Non-degeneracy:** $\langle x, y \rangle = 0$ for all $y \in V$ implies $x = 0$.
->
-> Every inner product has a corresponding (symmetric) positive-definite metric tensor $G \in \mathbb{R}^{n \times n}$ such that,
-> $$\langle x, y \rangle = x^T G y$$
-> for all $x, y \in V$. The inner product also induces a norm $||\cdot||$ on $V$ defined by $||x|| = \sqrt{\langle x, x \rangle}$ for all $x \in V$. The inner product is unique up to a positive scalar multiple.
-
-However, not all norms are induced by an inner product. For example, the spectral norm $||\cdot||\_{2 \to 2}$ is not induced by an inner product. The parallelogram law is a necessary and sufficient condition for the existence of an inner product that induces the norm.
-
-> **Definition 10 (Parallelogram Law).** A norm $||\cdot||$ on a vector space $V$ is said to satisfy the parallelogram law if, for all $x, y \in V$, we have,
-> $$||x + y||^2 + ||x - y||^2 = 2||x||^2 + 2||y||^2.$$
-> The parallelogram law is a necessary and sufficient condition for the existence of an inner product on $V$ that induces the norm $||\cdot||$.
-
-Finally, we can now formally define Riemannian and non-Riemannian differentiable matrix manifolds,
-
-> **Definition 11 (Riemannian and Non-Riemannian Differentiable Matrix Manifolds).** Given a differentiable matrix manifold $(\mathcal{M}, \mathcal{A})$, we say that it is a **Riemannian manifold** if the tangent spaces $T_p\mathcal{M}$ are equipped with a norm $||\cdot||$ that is induced by an inner product (i.e., the Parallelogram Law holds). Otherwise, it is a **non-Riemannian manifold**.
-
-{{< /collapse >}}
-
-### 1.3. Deep Learning Terminology
-
-{{< collapse summary="Show Section 1.3. Deep Learning Terminology" >}}
-
-> **Definition 12 (Neural Networks).** A neural network is a parametrized function $f: \mathbb{R}^{d_0} \to \mathbb{R}^{d_L}$ defined by composing linear and non-linear transformations according to a directed acyclic graph (DAG) structure. Here, we focus on neural networks parametrized by matrix-valued weights $\\{W^l\\}\_{l=1}^L$ where $W^l \in \mathbb{R}^{d\_{l} \times d\_{l-1}}$ is the weight matrix and $d_l$ is the dimension of hidden (vector) representations at the $l$-th layer, respectively. The input to the network is a vector $x_0 \in \mathbb{R}^{d_0}$, and the output is a vector $x_L \in \mathbb{R}^{d_L}$.
-
-The weights of a neural network are often initialized randomly, and then updated iteratively using an optimizer to minimize an objective function $\mathcal{L}$. In practice, we often define $\mathcal{L}$ to be the expected "loss" of a neural network $f$ according to some differentiable "loss function" $loss: \mathbb{R}^{d_L} \times \mathbb{R}^{d_L} \to \mathbb{R}$ that measures the distance between the "predicted" output $x_L \in \mathbb{R}^{d_L}$ and the "expected" output $y \in \mathbb{R}^{d_L}$ over some dataset $\mathcal{D} \subseteq \mathbb{R}^{d_0} \times \mathbb{R}^{d_L}$ of input-output pairs. I.e., we have,
-$$\mathcal{L}(\\{W^l\\}\_{l=1}^L) = \mathbb{E}\_{(x^i, y^i) \sim \mathcal{D}}[loss(f(x^i | \\{W^l\\}\_{l=1}^L), y^i)]$$
-To simplify matters, we also often optimize each weight independently of each other. And so we have,
-$$\mathcal{L}^l: \mathcal{W} \to \mathbb{R},$$
-for each weight $W^l$. We drop the superscript $l$ when it is clear from the context.
-
-> **Definition 13 (Optimizers).** A (deep learning) optimizer is an algorithm that *iteratively* adjust a model's parameters $W_t \in \mathcal{W}$ in order to minimize an objective function $\mathcal{L}: \mathcal{W} \to \mathbb{R}$. Optimizers are often *stateful*, meaning that they maintain a set of statistics $S_t \in \mathcal{S}$ on the previous parameters and differentials (or gradients) they have seen so far. Optimizers that do not maintain any state (or equivalently, maintains an empty set $S_t = \emptyset$ for all $t$) are called *stateless* optimizers.
-> 
-> At every training step $t$, the optimizer receives a stochastic estimate of the differential $\partial\mathcal{L}(W\_t; \xi) \in T^*\_{W\_t}\mathcal{W}$ at the current point $W\_t \in \mathcal{W}$, and uses it to update the model parameters $W\_t$ to $W\_{t+1} \in \mathcal{W}$ and optimizer state $S_t$ to $S_{t+1} \in \mathcal{S}$ using a function $opt$ (called the "update rule") defined a priori,
->
-> $$opt: \mathcal{W} \times \mathcal{S} \times T^*\mathcal{W}\rightarrow \mathcal{W} \times \mathcal{S}.$$
-> Optimizers are characterized by their update rules. I.e., two optimizers are said to be equivalent if they have the same update function $opt$.
-
-> **Definition 14 (Preconditioning).** In an optimizer, a preconditioner $\mathcal{P}(\cdot; W_t): T^\*\_{W_t}\mathcal{W} \rightarrow T\_{W_t}\mathcal{W}$ is a (possibly point-dependent) linear transform that maps the coordinate representation of the differential we have access to $\partial\mathcal{L}(W_t; \xi) \in T^\*\_{W_t}\mathcal{W}$ to a descent direction in the tangent space $\widehat{U}\_t \in T\_{W_t}\mathcal{W}$. That is, at any $W_t \in \mathcal{W}$, we have a matrix $P\_{W_t}$ such that,
-> $$\widehat{U}\_t = \mathcal{P}(\partial\mathcal{L}(W_t; \xi); W_t) = -P_{W_t} \partial\mathcal{L}(W_t; \xi)$$
-> $$W_{t+1} = W_t - \lambda P_{W_t} \partial\mathcal{L}\_\xi(W_t).$$
->
-> It is also common to assume that we can decompose $P\_{W_t}$ into a Kronecker product $P\_{W_t} = L\_{W_t} \otimes R\_{W_t}$ (Li, 2015; Gupta et al., 2018, Surya et al., 2024), such that our update rule becomes,
-> $$
-\begin{align*}
-    \widehat{U}\_t &= -P_{W_t} \partial\mathcal{L}(W_t; \xi)\newline
-    \widehat{U}\_t &= -\left( L_{W_t} \otimes R_{W_t} \right) \partial\mathcal{L}(W_t; \xi)\newline
-    \widehat{U}\_t &= -L_{W_t} \partial\mathcal{L}(W_t; \xi) R_{W_t}
-\end{align*}
-$$
-> $$W_{t+1} = W_t - \lambda L_{W_t} \partial\mathcal{L}(W_t) R_{W_t}.$$
-> We call $L_W$ and $R_W$ as the left and right preconditioners, respectively.
-
-{{< /collapse >}}
 
 ## 2. Why do Steepest Descent Under the Spectral Norm?
 
@@ -782,3 +845,4 @@ Many thanks to Jeremy Bernstein, Omead Pooladzandi, Simo Ryu, and Antonio Silvet
 30. Tim Salimans, Jonathan Ho, Xi Chen, Szymon Sidor, Ilya Sutskever (2017). Evolution Strategies as a Scalable Alternative to Reinforcement Learning. https://arxiv.org/abs/1703.03864
 31. Cornelius V. Braun, Robert T. Lange, Marc Toussaint (2024). Stein Variational Evolution Strategies. URL https://arxiv.org/abs/2410.10390
 32. James Martens, Roger Grosse (2020). Optimizing Neural Networks with Kronecker-factored Approximate Curvature. URL https://arxiv.org/abs/1503.05671
+33. Jordan, P. ; Neumann, J. V. (1935). On Inner Products in Linear, Metric Spaces
