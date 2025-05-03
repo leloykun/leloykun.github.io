@@ -20,9 +20,9 @@ A new optimizer called Muon (Jordan et al., 2024a) has recently been shown to ou
 
 ## 0. Introduction
 
-In deep learning, the goal is find a *function* that maps input data to output data such that a certain optimization objective $\mathcal{L}$ (called "loss function") is minimized. We parametrize this function with a set of weights $\\{W^l\\}_{l=1}^L$ that are typically matrix-valued. However, previous work on deep learning optimization algorithms typically ignore the matrix-structure and functional nature of these weights. A common strategy involves flattening the weights into a vector and treating them as such while others flatten then unflatten the weights in some intermediate step (Kingma et al., 2014; Li, 2015; Gupta et al., 2018; Surya et al., 2024; Pooladzandi et al., 2024). Worse, this is also prevalent in related fields such as evolutionary algorithms research (Salimans et al., 2017; Braun et al., 2024), among others.
+In deep learning, the goal is to find a *function* that maps input data to output data so that a certain optimization objective $\mathcal{L}$ is minimized. We parametrize this function with a set of weights $\\{W^l\\}_{l=1}^L$ that are typically matrix valued. However, previous work on deep learning optimization algorithms typically ignores the matrix-structure and functional nature of these weights. A common strategy involves flattening the weights in a vector and treating them as such, while others flatten and then unflatten the weights in some intermediate step (Kingma et al., 2014; Li, 2015; Gupta et al., 2018; Surya et al., 2024; Pooladzandi et al., 2024). Worse, this is also prevalent in related fields such as evolutionary algorithms research (Salimans et al., 2017; Braun et al., 2024), among others.
 
-And as demonstrated by Jordan et al. (2024a) on small-scale language model training, and Moonshot AI Team (2025) on larger-scale language model training, a simple change of perspective from a weights-as-vectors to a weights-as-matrices perspective can lead to significant improvements in training efficiency. Thus, following the work of Large et al. (2024) and Berstein et al. (2024), we argue--and demonstrate--that the underlying geometry of the weights are crucial to training performance and that we can reason, from first principles, about the properties of the geometry in which our weights (should) "live" in.
+And, as demonstrated by Jordan et al. (2024a) in small-scale language model training, and Moonshot AI Team (2025) in larger-scale language model training, a simple change of perspective from a weights-as-vectors to a weights-as-matrices perspective can lead to significant improvements in training efficiency. Thus, following the work of Large et al. (2024) and Bernstein et al. (2024), we argue--and demonstrate--that the underlying geometry of the weights are crucial to training performance and that we can reason, from first principles, about the properties of the geometry in which our weights (should) "live" in.
 
 This work is a selective survey of latest advancements in deep learning optimization research, with a focus on new developments in late 2024 and early 2025. However, we also make several novel contributions:
 1. In Sections 1 and 3, we formalize Steepest Descent in Riemannian and non-Riemannian manifolds, and how different choices of norms lead to different classes of deep learning optimization algorithms.
@@ -35,13 +35,13 @@ This work is a selective survey of latest advancements in deep learning optimiza
 
 ## 1. Preliminaries
 
-### 1.1. Differential Matrix Manifolds
+### 1.1. Differentiable Matrix Manifolds
 
-{{< collapse summary="Show Section 1.2. Differential Geometry Terminology" >}}
+{{< collapse summary="Show Section 1.1 Differentiable Matrix Manifolds" >}}
 
-We follow the work of Absil et al. (2008) for the following definitions for differentiable matrix manifolds and their properties. Note that these definitions are actually isomorphic to standard definitions in differential geometry (since $\mathbb{R}^{m \times n} \cong \mathbb{R}^{mn}$), except we highlight the fact that we are working with matrix-valued points and matrix-valued update directions.
+We follow the work of Absil et al. (2008) for the following definitions for differentiable matrix manifolds and their properties. Note that these definitions are actually equivalent to standard definitions in differential geometry (since $\mathbb{R}^{m \times n} \cong \mathbb{R}^{mn}$), except that we highlight the fact that we are working with matrix-valued points and matrix-valued update directions.
 
-> **Definition 1 (Differentiable Matrix Manifold).** A **differentiable matrix manifold** of dimension $m \times n$ is a tuple $(\mathcal{W}, \mathcal{A})$ where $\mathcal{W}$ is a second-countable, Hausdorff topological space of matrix-valued points, and $\mathcal{A} = \\{(U_i, \varphi_i)\\}\_{i \in I}$ is a collection (atlas) of charts such that:
+> **Definition 1 (Differentiable Matrix Manifold).** A **differentiable matrix manifold** of dimension $mn$ is a tuple $(\mathcal{W}, \mathcal{A})$ where $\mathcal{W}$ is a second-countable, Hausdorff topological space of matrix-valued points, and $\mathcal{A} = \\{(U_i, \varphi_i)\\}\_{i \in I}$ is a collection (atlas) of charts such that:
 > 1. Each $U_i \subseteq \mathcal{W}$ is an open set, and $\varphi_i: U_i \to \mathbb{R}^{m \times n}$ is a homeomorphism (i.e., a continuous bijection with continuous inverse).
 > 2. The open sets $U_i$ cover $\mathcal{W}$, i.e., $\mathcal{W} \subseteq \bigcup\_{i \in I} U_i$.
 > 3. The transition maps $\varphi_{ij} = \varphi_j \circ \varphi_i^{-1}: \varphi_i(U_i \cap U_j) \to \varphi_j(U_i \cap U_j)$ are smooth (i.e., infinitely differentiable) for all $i, j \in I$ such that $U_i \cap U_j \neq \emptyset$.
@@ -59,7 +59,7 @@ Thus the differentiability of $f$ at $p \in \mathcal{W}$ is independent of the c
 > **Definition 3 (Curves).** Let $p \in \mathcal{W}$. A **curve** $\gamma$ at $p$ is a function $\gamma: \mathbb{R} \to \mathcal{W}$ with $\gamma(0) = p$ which is differentiable in the sense that its composition with any chart $\varphi_i$ is differentiable,
 > $$\varphi_i \circ \gamma: \mathbb{R} \to \mathbb{R}^{m \times n}.$$
 
-Again, since the transition maps $\varphi_{ij} = \varphi_j \circ \varphi_i^{-1}$ are smooth, then by the Chain Rule this is equivalent to $\varphi_j \circ \gamma$ being differentiable at $p$ for all charts $(U_j, \varphi_j) \in \mathcal{A}$ such that $p \in U_j$. I.e.,
+Again, since the transition maps $\varphi_{ij} = \varphi_j \circ \varphi_i^{-1}$ are smooth, then by the Chain Rule this is equivalent to $\varphi_j \circ \gamma$ being differentiable for all charts $(U_j, \varphi_j) \in \mathcal{A}$ such that $p \in U_j$. I.e.,
 $$\varphi_j \circ \gamma = \underbrace{\varphi_j \circ \varphi_i^{-1}}\_{\text{differentiable}} \circ \underbrace{\varphi_i \circ \gamma}\_{\text{differentiable}}$$
 
 > **Definition 4 (Directional Derivative).** Given a differentiable function $f$, the **directional derivative** of $f$ at $p \in \mathcal{W}$ in the direction of a curve $\gamma$ is defined as,
@@ -69,12 +69,16 @@ $$\varphi_j \circ \gamma = \underbrace{\varphi_j \circ \varphi_i^{-1}}\_{\text{d
 \end{align*}$$
 > for any chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$. Note that this derivative is well-defined because it is simply a derivative of a composition of differentiable functions defined in the usual Euclidean space. Additionally, the choice of chart does not matter because the differentiability of $f$ and $\gamma$ at $p$ are both chart-independent.
 
+Now, to move along the manifold, we need to define a notion of "direction" from a point $p \in \mathcal{W}$. This is formalized by the concept of a tangent vector. And together with all the tangent vectors at $p$, we can define a tangent (vector) space at $p$,
+
 > **Definition 5 (Tangent Vectors and Tangent Spaces).** A **tangent vector** at $p \in \mathcal{W}$ is an *equivalence class* of curves $\gamma$ with $\gamma(0) = p$ where two curves $\gamma_1$ and $\gamma_2$ are said to be equivalent if and only if,
 > $$\frac{d}{dt}(\underbrace{\varphi_i \circ \gamma_1}\_{\mathbb{R} \to \mathbb{R}^{m \times n}})(t) \bigg|\_{t=0} = \frac{d}{dt}(\underbrace{\varphi_i \circ \gamma_2}\_{\mathbb{R} \to \mathbb{R}^{m \times n}})(t)\bigg|\_{t=0}$$ for any chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$. Again, the choice of chart does not matter.
 >
-> The **tangent space** at $p \in \mathcal{W}$ is the set of all tangent vectors at $p$ and is denoted by $T_p\mathcal{W}$. This space forms an $m \times n$-dimensional vector space over $\mathbb{R}$.
+> The **tangent space** at $p \in \mathcal{W}$ is the set of all tangent vectors at $p$ and is denoted by $T_p\mathcal{W}$. This space forms an $mn$-dimensional vector space over $\mathbb{R}$.
 
-> **Definition 6 (Differentials and Cotangent Spaces).** Let $X \in T_p\mathcal{W}$ be a tangent vector at $p \in \mathcal{W}$ and $f$ be a differentiable function near $p$, then differentiating f along any curve in the equivalence class defining $X$ gives a well-defined directional derivative along $X$:
+Since we are trying to optimize a differentiable function, it is useful to define a notion of "directional derivative" along a tangent vector. This is formalized by the concept of differentials which is a linear functional that maps tangent vectors (or "directions") to a real number measuring the "rate of change" along that direction. These differentials are also called *covectors* and the space of all differentials at $p \in \mathcal{W}$, denoted by $T^*\_p\mathcal{W}$, forms a vector space called the *cotangent space* at $p \in \mathcal{W}$,
+
+> **Definition 6 (Differentials and Cotangent Spaces).** Let $X \in T_p\mathcal{W}$ be a tangent vector at $p \in \mathcal{W}$ and $f$ be a differentiable function near $p$, then differentiating $f$ along any curve in the equivalence class defining $X$ gives a well-defined directional derivative along $X$:
 > $$Xf(p) := \frac{d}{dt}(\underbrace{f \circ \gamma}\_{\mathbb{R} \to \mathbb{R}})(t)\bigg|\_{t = 0}$$
 > which is independent of the choice of curve $\gamma$ in the equivalence class defining $X$. We then define the **differential** of $f$ at $p$ as the linear functional $Df(p)[\cdot]: T_p\mathcal{W} \to \mathbb{R}$ given by,
 > $$Df(p)[X] = Xf(p)$$
@@ -123,7 +127,7 @@ Note that we can vary the norm or inner product on the tangent spaces $T_p\mathc
 
 > **Definition 11 (Riemannian Metric).** Suppose that we equip the tangent spaces $T_p\mathcal{W}$ at each point $p \in \mathcal{W}$ with an inner product $\langle \cdot, \cdot \rangle_p$. Let $g$ be a function such that,
 > $$g(p, X, Y) = g_p(X, Y) = \langle X, Y \rangle\_{G_p} \qquad \forall p\in\mathcal{W}; X,Y\in T_p\mathcal{W}$$
-> We say that $g$ is a **Riemannian metric** on $\mathcal{W}$ if it smoothly various along $p$.
+> We say that $g$ is a **Riemannian metric** on $\mathcal{W}$ if it smoothly varies along $p$.
 
 > **Definition 12 (Riemannian Gradient).** Let $Df(p)[\cdot]: T_p\mathcal{W} \to \mathbb{R}$ be the differential of a differentiable function $f$ at $p \in \mathcal{W}$. The **Riemannian gradient** of $f$ at $p$ is defined as the *unique* tangent vector $\nabla f(p) \in T_p\mathcal{W}$ such that,
 > $$Df(p)[X] = g_p(\nabla f(p), X) \qquad \forall X \in T_p\mathcal{W}$$
@@ -138,7 +142,7 @@ Note that if the norm $||\cdot||_p$ smoothly varies along $p \in \mathcal{W}$, t
 
 ### 1.2. Deep Learning
 
-{{< collapse summary="Show Section 1.3. Deep Learning Terminology" >}}
+{{< collapse summary="Show Section 1.2. Deep Learning" >}}
 
 > **Definition 14 (Neural Networks).** A neural network is a parametrized function $f: \mathbb{R}^{d_0} \to \mathbb{R}^{d_L}$ defined by composing linear and non-linear transformations according to a directed acyclic graph (DAG) structure. Here, we focus on neural networks parametrized by matrix-valued weights $\\{W^l\\}\_{l=1}^L$ where $W^l \in \mathbb{R}^{d\_{l} \times d\_{l-1}}$ is the weight matrix and $d_l$ is the dimension of hidden (vector) representations at the $l$-th layer, respectively. The input to the network is a vector $x_0 \in \mathbb{R}^{d_0}$, and the output is a vector $x_L \in \mathbb{R}^{d_L}$.
 
