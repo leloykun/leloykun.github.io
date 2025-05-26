@@ -11,9 +11,9 @@ taxonomies:
 
 menu:
     main:
-        # - name: CV
-        #   url: cv.pdf
-        #   weight: 1
+        - name: CV
+          url: cv.pdf
+          weight: 1
         - name: Papers
           url: papers/
           weight: 2
@@ -60,8 +60,8 @@ params:
         imageHeight: 160
         imageTitle: Franz Louis Cesista
         buttons:
-            # - name: CV
-            #   url: cv.pdf
+            - name: CV
+              url: cv.pdf
             - name: Papers
               url: papers/
             - name: Personal Projects
