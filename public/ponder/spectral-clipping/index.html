@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Numerically Stable Spectral Clipping Via Newton-Schulz Iteration | Franz Louis Cesista</title>
+<meta name="keywords" content="Machine Learning, Optimizers, Architecture-Optimizer Codesign">
+<meta name="description" content="A small step towards hardware-architecture-optimizer codesign in deep learning.">
+<meta name="author" content="Franz Louis Cesista">
+<link rel="canonical" href="https://leloykun.github.io/ponder/spectral-clipping/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.253701e64acde2b382c010121092cc581e3817c116fed20d9655c14fd77bfad9.css" integrity="sha256-JTcB5krN4rOCwBASEJLMWB44F8EW/tINllXBT9d7&#43;tk=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://leloykun.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://leloykun.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://leloykun.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://leloykun.github.io/apple-touch-icon.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://leloykun.github.io/ponder/spectral-clipping/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript><meta property="og:title" content="Numerically Stable Spectral Clipping Via Newton-Schulz Iteration" />
+<meta property="og:description" content="A small step towards hardware-architecture-optimizer codesign in deep learning." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://leloykun.github.io/ponder/spectral-clipping/" />
+<meta property="og:image" content="https://leloykun.github.io/ponder/spectral-clipping/spectral_clipping.png" /><meta property="article:section" content="ponder" />
+<meta property="article:published_time" content="2025-06-05T00:00:00+00:00" />
+<meta property="article:modified_time" content="2025-06-05T00:00:00+00:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://leloykun.github.io/ponder/spectral-clipping/spectral_clipping.png" />
+<meta name="twitter:title" content="Numerically Stable Spectral Clipping Via Newton-Schulz Iteration"/>
+<meta name="twitter:description" content="A small step towards hardware-architecture-optimizer codesign in deep learning."/>
+<meta name="twitter:site" content="@leloykun"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Ponder",
+      "item": "https://leloykun.github.io/ponder/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Numerically Stable Spectral Clipping Via Newton-Schulz Iteration",
+      "item": "https://leloykun.github.io/ponder/spectral-clipping/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Numerically Stable Spectral Clipping Via Newton-Schulz Iteration",
+  "name": "Numerically Stable Spectral Clipping Via Newton-Schulz Iteration",
+  "description": "A small step towards hardware-architecture-optimizer codesign in deep learning.",
+  "keywords": [
+    "Machine Learning", "Optimizers", "Architecture-Optimizer Codesign"
+  ],
+  "articleBody": "Introduction Here I’ll discuss a numerically stable way to perform spectral clipping, i.e., clipping the singular values of a matrix to a certain range. This is useful in deep learning because it allows us to control the ‘growth’ of our weights and weight updates, enabling faster and stabler feature learning. As discussed in a previous post,\nIf we want the Euclidean norm of our features and feature updates to ‘grow’ with the model size, then the Spectral norm of our weights and weight updates must also ‘grow’ with the model size.\nThere are multiple ways to control the spectral norm of our (matrix-structured) weights and weight updates. One is to “pull” all of the singular values to some target value chosen a priori. This is what the Muon optimizer already does, but only on the weight updates: it takes the raw gradient and tries to “pull” its as many of its singular values to $\\sqrt{\\frac{d_{out}}{d_{in}}}$. This guarantees that the update step merely changes the activation RMS-norm of that layer by at most $1$ unit. We could also apply this process to the weights after every update step to guarantee that the weight norms would not blow up, but constraining the weight space to the Stiefel manifold is too strong of a constraint. We discuss more of this in our upcoming Neurips preprint. For now, we will focus on Spectral Clipping:\nDefinition 1 (Spectral Clipping). Let $W \\in \\mathbb{R}^{m \\times n}$ and $W = U \\Sigma V^T$ be its singular value decomposition where $\\Sigma = (\\sigma_1, \\ldots, \\sigma_{min(m,n)})$ are the singular values of $W$. Then we define Spectral Clipping as the following matrix function, $$\\texttt{spectral\\_clip}(W; \\sigma_{max}) = U \\texttt{clip}_{[-\\sigma_{max}, \\sigma_{max}]}(\\Sigma) V^T$$ where $\\sigma_{max} \\in (0, \\infty)$ is some hyperparameter that controls the spectral norm of the resulting matrix and $\\texttt{clip}_{[\\sigma_{min}, \\sigma_{max}]}: \\mathbb{R} \\to \\mathbb{R}$ is applied element-wise,\n$$\\texttt{clip}_{[\\sigma_{min}, \\sigma_{max}]}(x) = \\begin{cases} \\sigma_{min} \u0026 \\texttt{if } x \u003c \\sigma_{min} \\\\ x \u0026 \\texttt{if } \\sigma_{min} \\leq x \\leq \\sigma_{max} \\\\ \\sigma_{max} \u0026 \\texttt{if } \\sigma_{max} \u003c x \\end{cases}$$\nNote that we chose the $\\texttt{clip}$ function above to be odd and symmetric because this allows us to use optimization tricks on computing matrix functions that only work on such functions. We will discuss more about this in the next sections.\nTowards hardware-architecture-optimizer codesign In deep learning, we not only have to be mindful of architecture-optimizer codesign but also hardware-software codesign. That is, architectural and optimizer choices and how we implement them have to be hardware-aware so that we can squeeze as much performance as we can from our GPUs/TPUs.\nFor example, the naive way to compute Spectral Clipping is to directly compute the SVD, clip the singular values we get from it, then reconstruct the matrix using the clipped singular values. A JAX implementation would look like this:\ndef naive_spectral_clip(W: jax.Array, sigma_max: float=1.): U, S, Vt = jnp.linalg.svd(W, full_matrices=False) S_clipped = jnp.clip(S, min=-sigma_max, max=sigma_max) return U @ jnp.diag(S_clipped) @ Vt W = jax.random.normal(key, (m, n)) / 35. W_clipped = naive_spectral_clip(W, sigma_max=1.) However, this is not recommended because computing the SVD directly (1) does not take advantage of the GPUs’ tensor cores and (2) requires higher numerical precision, typically 32-bit float types. These not only slow things down but also increase precious memory usage, making it hard to scale to larger models.\nIdeally, we want to only use operations that (1) have fast implementations on GPUs/TPUs and (2) are stable under lower numerical precision, e.g., 16-bit, 8-bit, even 4-bit float types. So, elementwise operations like matrix addition and scalar multiplication, matrix multiplication, matrix-vector products, among others are preferred, but not operations like matrix inversions or SVD decomposition, etc. With the proper coefficients, (semi-)orthogonalization via Newton-Schulz iteration for computing the matrix sign function has also been shown to be fast and numerically stable under lower precision (Jordan et al., 2024), thus we can use that here.\nFinding a suitable surrogate function for $\\texttt{clip}$ This is the fun part.\nSo, how do we compute spectral clipping while only using simple, but fast \u0026 numerically stable operations? First, let’s list the operations we can actually use and consider how they act on the matrix itself and its singular values. There are more operations we can use that aren’t listed here, but these would suffice for our problem.\nOperation Matrix Form Action on Singular Values Scalar multiplication $cW$ $c\\Sigma$ Application of polynomial function $\\texttt{p}(\\cdot)$ $\\texttt{p}(W)$ $\\texttt{p}(\\Sigma)$ Application of matrix sign function $\\texttt{msign}(W)$ $\\texttt{sign}(\\Sigma)$ Let’s reconstruct the $\\mathbb{R} \\to \\mathbb{R}$ clipping on the singular values with these elementary functions first, then let’s use it to construct the matrix form. Here we take advantage of the following identities: $$\\begin{align} |x| \u0026= x \\cdot \\texttt{sign}(x) \\\\ \\texttt{clip}_{[-1, 1]}(x) \u0026= \\frac{|1+x| - |1-x|}{2} \\\\ \\texttt{clip}_{[\\sigma_{min}, \\sigma_{max}]}(x) \u0026= \\sigma_{max} \\cdot \\texttt{clip}(x / \\sigma_{max}, -1, 1) \\end{align}$$ These can easily be verified via elementary algebra. If you’re not convinced, see the figure below: Combining Equations (1) and (2), we get, $$\\begin{equation}\\texttt{clip}_{[-1, 1]}(x) = \\frac{(1+x) \\texttt{sign}(1+x) - (1-x) \\texttt{sign}(1-x)}{2}\\end{equation}$$\nLifting to matrix form Naively lifting Equation (4) above to matrix form as in the following does not work:\n$$\\begin{equation}\\frac{(1+W) \\texttt{msign}(I+W) - (I-W) \\texttt{msign}(1-W)}{2}\\end{equation}$$\nWhy? Because $\\texttt{msign}$ is only “aware” of the singular values of $I \\pm W$, not $W$ itself. And so this matrix function does not properly “act” on the singular values of $W$ as we want it to.\nHowever, recall that we constructed $\\texttt{clip}$ to be an odd function. This allows us to Higham’s anti-block-diagonal trick (Higham, 2008) to lift the scalar function to matrix form.\nTheorem 2 (Higham’s Anti-Block-Diagonal Trick). Let $g: \\mathbb{R} \\to \\mathbb{R}$ be an odd analytic scalar function, $W \\in \\mathbb{R}^{m \\times n}$, and construct the block matrix $S \\in \\mathbb{R}^{(m+n) \\times (m+n)}$ as, $$S := \\begin{bmatrix} 0 \u0026 W \\\\ W^T \u0026 0 \\end{bmatrix}$$ and let $g(S)$ as the primary matrix function defined from the scalar function $g$. Then, $$g(S) = \\begin{bmatrix} 0 \u0026 g(W) \\\\ g(W^T) \u0026 0 \\end{bmatrix}$$ and hence, $$g(W) = [g(S)]_{12}$$\nSetting $g = \\texttt{clip}_{[-1, 1]}$ and applying Theorem 2, we can now properly construct $\\texttt{spectral\\_clip}(\\cdot; 1)$ as follows: $$\\begin{equation}\\texttt{spectral\\_clip}(W; 1) = \\left[ \\frac{(1+S) \\texttt{msign}(I+S) - (I-S) \\texttt{msign}(1-S)}{2} \\right]_{12}\\end{equation}$$ and following Equation (3), we can generalize this to any $\\sigma_{max} \u003e 0$ as follows, $$\\begin{equation}\\texttt{spectral\\_clip}(W; \\sigma_{max}) = \\sigma_{max} \\cdot \\texttt{spectral\\_clip}(W / \\sigma_{max}; 1) \\end{equation}$$\nThe following code implements this in JAX,\ndef _spectral_clip(W: jax.Array): m, n = W.shape I = jnp.eye(m + n) S = jnp.block([[jnp.zeros((m, m)), W], [W.T, jnp.zeros((n, n))]]) gS = (1/2) * ((I + S) @ _orthogonalize(I + S) - (I - S) @ _orthogonalize(I - S)) return gS[:m, m:] # read off the top-right block def spectral_clip(W: jax.Array, sigma_max: float=1.): return sigma_max * _spectral_clip(W / sigma_max) where _orthogonalize_via_newton_schulz above implements Jordan’s (2024) Newton-Schulz iteration for computing the matrix sign function. Note however that we’re calling _orthogonalize_via_newton_schulz twice here, which is not ideal. Luckily, there’s a neat trick that allows us to compute it only once.\nOptimizing the implementation via abstract algebra First, notice that both $$I + S = \\begin{bmatrix} I_m \u0026 W \\\\ W^T \u0026 I_n \\end{bmatrix}\\qquad I - S = \\begin{bmatrix} I_m \u0026 -W \\\\ -W^T \u0026 I_n \\end{bmatrix}$$ are block matrices of the form $$\\begin{bmatrix} P \u0026 Q \\\\ Q^T \u0026 R \\end{bmatrix}$$ where $P, R$ are symmetric matrices and $Q$ is an arbitrary matrix. It is a well-known result that such matrices form a linear sub-algebra $\\mathcal{A}$, i.e., they are closed under addition, scalar multiplication, and matrix multiplication. This means that applying any polynomial function to these matrices will yield another matrix of the same form. And since we’re calculating the matrix sign function with Newton-Schulz iteration, which is a composition of polynomial functions, its result must also be of the same form.\nAnother neat property we can take advantage of is that flipping the signs of the anti-diagonal blocks gets preserved under application of matrix polynomials.\nProposition 3 (Parity w.r.t. $Q \\to -Q$ when applying odd matrix polynomial $\\texttt{p}(\\cdot)$). Let $A \\in \\mathcal{A}$ such that, $$A = \\begin{bmatrix} P \u0026 Q \\\\ Q^T \u0026 R \\end{bmatrix}$$ and let, $$\\begin{bmatrix} \\widetilde{P} \u0026 \\widetilde{Q} \\\\ \\widetilde{Q}^T \u0026 \\widetilde{R} \\end{bmatrix} = \\texttt{p}(A) = \\texttt{p}\\left(\\begin{bmatrix} P \u0026 Q \\\\ Q^T \u0026 R \\end{bmatrix}\\right).$$ Then, $$\\begin{bmatrix} \\widetilde{P} \u0026 -\\widetilde{Q} \\\\ -\\widetilde{Q}^T \u0026 \\widetilde{R} \\end{bmatrix} = \\texttt{p}\\left(\\begin{bmatrix} P \u0026 -Q \\\\ -Q^T \u0026 R \\end{bmatrix}\\right).$$\nCrux of the proof: Flipping the sign of the anti-diagonal blocks gets preserved under addition, scalar multiplication, and matrix multiplication, $$\\begin{bmatrix} 1 \u0026 -1 \\\\ -1 \u0026 1 \\end{bmatrix}\\begin{bmatrix} 1 \u0026 -1 \\\\ -1 \u0026 1 \\end{bmatrix} \\equiv \\begin{bmatrix} 1 \u0026 -1 \\\\ -1 \u0026 1 \\end{bmatrix}$$\nThus we have, $$\\begin{align} \\begin{bmatrix} P^* \u0026 Q^* \\\\ Q^{*T} \u0026 R^{*} \\end{bmatrix} \u0026= \\texttt{\\_orthogonalize\\_via\\_newton\\_schulz}(I + S) \\\\ \\begin{bmatrix} P^{*} \u0026 -Q^{*} \\\\ -Q^{*T} \u0026 R^{*} \\end{bmatrix} \u0026= \\texttt{\\_orthogonalize\\_via\\_newton\\_schulz}(I - S) \\end{align}$$ for some symmetric $P^{*} \\in \\mathbb{R}^{m \\times m}$, $R^{*} \\in \\mathbb{R}^{n \\times n}$, and $Q^{*} \\in \\mathbb{R}^{m \\times n}$. And combining these with Equation 6, we get,\n$$\\begin{align} \\texttt{spectral\\_clip}(W; 1) \u0026= \\left[\\frac{\\begin{bmatrix} I_m \u0026 W \\\\ W^T \u0026 I_n \\end{bmatrix} \\begin{bmatrix} P^{*} \u0026 Q^{*} \\\\ Q^{*T} \u0026 R^{*} \\end{bmatrix} - \\begin{bmatrix} I_m \u0026 -W \\\\ -W^T \u0026 I_n \\end{bmatrix} \\begin{bmatrix} P^{*} \u0026 -Q^{*} \\\\ -Q^{*T} \u0026 R^{*} \\end{bmatrix}}{2}\\right]_{12}\\\\ \u0026= \\left[\\frac{\\begin{bmatrix} P^{*} + WQ^{*T} \u0026 Q^{*} + WR^{*} \\\\ W^TP^{*}+Q^{*T} \u0026 W^TQ^{*} + R^{*} \\end{bmatrix} - \\begin{bmatrix} P^{*} + WQ^{*T} \u0026 -(Q^{*} + WR^{*}) \\\\ -(W^TP^{*}+Q^{*T}) \u0026 W^TQ^{*} + R^{*} \\end{bmatrix}}{2}\\right]_{12}\\\\ \u0026= \\begin{bmatrix} 0 \u0026 Q^{*} + WR^{*} \\\\ W^TP^{*}+Q^{*T} \u0026 0 \\end{bmatrix}_{12} \\\\ \\texttt{spectral\\_clip}(W; 1) \u0026= Q^{*} + WR^{*} \\\\ \\texttt{spectral\\_clip}(W; \\sigma_{max}) \u0026= \\sigma_{max} \\cdot Q^{*} + WR^{*} \\end{align}$$\nThis means that we only need to call _orthogonalize_via_newton_schulz once, and simply read off the blocks to compute the final result, leading to massive speedups. Also note that the diagonal blocks in Equation (12) are zero, which is what we expect from Theorem 2.\nIn JAX, this looks like the following:\ndef _spectral_clip(W: jax.Array): m, n = W.shape I = jnp.eye(m + n) S = jnp.block([[jnp.zeros((m, m)), W], [W.T, jnp.zeros((n, n))]]) OS = _orthogonalize_via_newton_schulz(S) Q, R = OS[:m, m:], OS[m:, m:] return Q + W @ R def spectral_clip(W: jax.Array, sigma_max: float=1.): return sigma_max * _spectral_clip(W / sigma_max, 1) And a codegolf version would be,\ndef spectral_clip_minimal(W: jax.Array, sigma_max: float=1., ortho_dtype=jnp.float32): OH = _orthogonalize(jnp.block([[jnp.eye(W.shape[0]), W / sigma_max], [W.T / sigma_max, jnp.eye(W.shape[1])]]).astype(ortho_dtype)).astype(W.dtype) return sigma_max*OH[:W.shape[0], W.shape[0]:] + W @ OH[W.shape[0]:, W.shape[0]:] Taking advantage of symmetry [Under Construction] This section is still under construction. The crux is that we don’t actually need to materialize the entire $(m + n) \\times (m + n)$ block matrix $S$ in memory and then do Newton-Schulz on it. Instead, we can maintain only the current $P$, $Q$, and $R$ blocks in memory, and handle matrix multiplications with extra care.\nExperimental results [Under Construction] This section is also still under construction.\nHere\n[NanoGPT Speedrun results will be added here]\nReferences Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/ ",
+  "wordCount" : "1822",
+  "inLanguage": "en",
+  "image":"https://leloykun.github.io/ponder/spectral-clipping/spectral_clipping.png","datePublished": "2025-06-05T00:00:00Z",
+  "dateModified": "2025-06-05T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "Franz Louis Cesista"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://leloykun.github.io/ponder/spectral-clipping/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Franz Louis Cesista",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://leloykun.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BWCGBRX8G1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-BWCGBRX8G1');
+</script>
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: "\\begin{equation}", right: "\\end{equation}", display: true},
+            {left: "\\begin{equation*}", right: "\\end{equation*}", display: true},
+            {left: "\\begin{align}", right: "\\end{align}", display: true},
+            {left: "\\begin{align*}", right: "\\end{align*}", display: true},
+            {left: "\\begin{alignat}", right: "\\end{alignat}", display: true},
+            {left: "\\begin{gather}", right: "\\end{gather}", display: true},
+            {left: "\\begin{CD}", right: "\\end{CD}", display: true},
+          ],
+          throwOnError : false
+        });
+    });
+</script>
+ 
+
+
+</head>
+
+<body class="" id="top">
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://leloykun.github.io/" accesskey="h" title="Franz Louis Cesista">
+                <img src="https://leloykun.github.io/favicon.ico" alt="" aria-label="logo"
+                    height="18"
+                    width="18">Franz Louis Cesista</a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://leloykun.github.io/cv.pdf" title="CV">
+                    <span>CV</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/papers/" title="Papers">
+                    <span>Papers</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/personal-projects/" title="Personal Projects">
+                    <span>Personal Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://leloykun.github.io/ponder/" title="Ponder (Posts)">
+                    <span>Ponder (Posts)</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+    <main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Numerically Stable Spectral Clipping Via Newton-Schulz Iteration
+    </h1>
+    <div class="post-meta"><span title='2025-06-05 00:00:00 +0000 UTC'>June 5, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista
+
+</div>
+  </header> 
+<figure class="entry-cover">
+            <img loading="eager"
+                srcset='https://leloykun.github.io/ponder/spectral-clipping/spectral_clipping_hu_47e1909a06cc08b7.png 360w,https://leloykun.github.io/ponder/spectral-clipping/spectral_clipping_hu_f56323bad445440d.png 480w,https://leloykun.github.io/ponder/spectral-clipping/spectral_clipping_hu_31d3266a06cea028.png 720w,https://leloykun.github.io/ponder/spectral-clipping/spectral_clipping.png 790w'
+                src="https://leloykun.github.io/ponder/spectral-clipping/spectral_clipping.png"
+                sizes="(min-width: 768px) 720px, 100vw"
+                width="790" height="390"
+                alt="Cover">
+        
+</figure><div class="toc">
+    <details  open>
+        <summary accesskey="c">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#towards-hardware-architecture-optimizer-codesign">Towards hardware-architecture-optimizer codesign</a>
+      <ul>
+        <li><a href="#finding-a-suitable-surrogate-function-for-textttclip">Finding a suitable surrogate function for $\texttt{clip}$</a></li>
+        <li><a href="#lifting-to-matrix-form">Lifting to matrix form</a></li>
+        <li><a href="#optimizing-the-implementation-via-abstract-algebra">Optimizing the implementation via abstract algebra</a></li>
+        <li><a href="#taking-advantage-of-symmetry-under-construction">Taking advantage of symmetry [Under Construction]</a></li>
+        <li><a href="#experimental-results-under-construction">Experimental results [Under Construction]</a></li>
+      </ul>
+    </li>
+    <li><a href="#references">References</a></li>
+  </ul>
+</nav>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h2 id="introduction">Introduction<a hidden class="anchor" aria-hidden="true" href="#introduction">#</a></h2>
+<p>Here I&rsquo;ll discuss a numerically stable way to perform spectral clipping, i.e., clipping the singular values of a matrix to a certain range. This is useful in deep learning because it allows us to control the &lsquo;growth&rsquo; of our weights and weight updates, enabling faster and stabler feature learning. As discussed in a <a href="../steepest-descent-non-riemannian/#22-feature-learning-perspective">previous post</a>,</p>
+<blockquote>
+<p>If we want the Euclidean norm of our features and feature updates to &lsquo;grow&rsquo; with the model size,
+then the <em>Spectral norm</em> of our weights and weight updates must also &lsquo;grow&rsquo; with the model size.</p></blockquote>
+<p>There are multiple ways to control the spectral norm of our (matrix-structured) weights and weight updates. One is to &ldquo;pull&rdquo; <strong>all</strong> of the singular values to some target value chosen a priori. This is what the Muon optimizer already does, but only on the weight updates: it takes the raw gradient and tries to &ldquo;pull&rdquo; its as many of its singular values to $\sqrt{\frac{d_{out}}{d_{in}}}$. This guarantees that the update step merely changes the activation RMS-norm of that layer by at most $1$ unit. We <em>could</em> also apply this process to the weights after every update step to guarantee that the weight norms <em>would not</em> blow up, but constraining the weight space to the Stiefel manifold is too strong of a constraint. We discuss more of this in our upcoming Neurips preprint. For now, we will focus on Spectral Clipping:</p>
+<blockquote>
+<p><strong>Definition 1 (Spectral Clipping)</strong>. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its singular value decomposition where $\Sigma = (\sigma_1, \ldots, \sigma_{min(m,n)})$ are the singular values of $W$. Then we define Spectral Clipping as the following matrix function,
+$$\texttt{spectral\_clip}(W; \sigma_{max}) = U \texttt{clip}_{[-\sigma_{max}, \sigma_{max}]}(\Sigma) V^T$$
+where $\sigma_{max} \in (0, \infty)$ is some hyperparameter that controls the spectral norm of the resulting matrix and $\texttt{clip}_{[\sigma_{min}, \sigma_{max}]}: \mathbb{R} \to \mathbb{R}$ is applied element-wise,</p>
+<p>$$\texttt{clip}_{[\sigma_{min}, \sigma_{max}]}(x) = \begin{cases}
+\sigma_{min} &amp; \texttt{if } x &lt; \sigma_{min} \\
+x &amp; \texttt{if } \sigma_{min} \leq x \leq \sigma_{max} \\
+\sigma_{max} &amp; \texttt{if } \sigma_{max} &lt; x
+\end{cases}$$</p></blockquote>
+<p>Note that we chose the $\texttt{clip}$ function above to be <em>odd</em> and symmetric because this allows us to use optimization tricks on computing matrix functions that only work on such functions. We will discuss more about this in the next sections.</p>
+<h2 id="towards-hardware-architecture-optimizer-codesign">Towards hardware-architecture-optimizer codesign<a hidden class="anchor" aria-hidden="true" href="#towards-hardware-architecture-optimizer-codesign">#</a></h2>
+<p>In deep learning, we not only have to be mindful of architecture-optimizer codesign but also hardware-software codesign. That is, architectural and optimizer choices and how we implement them have to be hardware-aware so that we can squeeze as much performance as we can from our GPUs/TPUs.</p>
+<p>For example, the naive way to compute Spectral Clipping is to directly compute the SVD, clip the singular values we get from it, then reconstruct the matrix using the clipped singular values. A JAX implementation would look like this:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#00a">def</span> <span style="color:#0a0">naive_spectral_clip</span>(W: jax.Array, sigma_max: <span style="color:#0aa">float</span>=<span style="color:#099">1.</span>):
+</span></span><span style="display:flex;"><span>    U, S, Vt = jnp.linalg.svd(W, full_matrices=<span style="color:#00a">False</span>)
+</span></span><span style="display:flex;"><span>    S_clipped = jnp.clip(S, <span style="color:#0aa">min</span>=-sigma_max, <span style="color:#0aa">max</span>=sigma_max)
+</span></span><span style="display:flex;"><span>    <span style="color:#00a">return</span> U @ jnp.diag(S_clipped) @ Vt
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>W = jax.random.normal(key, (m, n)) / <span style="color:#099">35.</span>
+</span></span><span style="display:flex;"><span>W_clipped = naive_spectral_clip(W, sigma_max=<span style="color:#099">1.</span>)
+</span></span></code></pre></div><p>However, this is not recommended because computing the SVD directly (1) does not take advantage of the GPUs&rsquo; tensor cores and (2) requires higher numerical precision, typically 32-bit float types. These not only slow things down but also increase precious memory usage, making it hard to scale to larger models.</p>
+<p>Ideally, we want to <em>only</em> use operations that (1) have fast implementations on GPUs/TPUs and (2) are stable under lower numerical precision, e.g., 16-bit, 8-bit, even 4-bit float types. So, elementwise operations like matrix addition and scalar multiplication, matrix multiplication, matrix-vector products, among others are preferred, but not operations like matrix inversions or SVD decomposition, etc. With the proper coefficients, (semi-)orthogonalization via Newton-Schulz iteration for computing the matrix sign function has also been shown to be fast and numerically stable under lower precision (Jordan et al., 2024), thus we can use that here.</p>
+<h3 id="finding-a-suitable-surrogate-function-for-textttclip">Finding a suitable surrogate function for $\texttt{clip}$<a hidden class="anchor" aria-hidden="true" href="#finding-a-suitable-surrogate-function-for-textttclip">#</a></h3>
+<p>This is the fun part.</p>
+<p>So, how do we compute spectral clipping while only using simple, but fast &amp; numerically stable operations? First, let&rsquo;s list the operations we can actually use and consider how they act on the matrix itself and its singular values. There are more operations we can use that aren&rsquo;t listed here, but these would suffice for our problem.</p>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left"><strong>Operation</strong></th>
+          <th style="text-align: center"><strong>Matrix Form</strong></th>
+          <th style="text-align: center"><strong>Action on Singular Values</strong></th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left">Scalar multiplication</td>
+          <td style="text-align: center">$cW$</td>
+          <td style="text-align: center">$c\Sigma$</td>
+      </tr>
+      <tr>
+          <td style="text-align: left">Application of polynomial function $\texttt{p}(\cdot)$</td>
+          <td style="text-align: center">$\texttt{p}(W)$</td>
+          <td style="text-align: center">$\texttt{p}(\Sigma)$</td>
+      </tr>
+      <tr>
+          <td style="text-align: left">Application of matrix sign function</td>
+          <td style="text-align: center">$\texttt{msign}(W)$</td>
+          <td style="text-align: center">$\texttt{sign}(\Sigma)$</td>
+      </tr>
+  </tbody>
+</table>
+<p>Let&rsquo;s reconstruct the $\mathbb{R} \to \mathbb{R}$ clipping on the singular values with these elementary functions first, then let&rsquo;s use it to construct the matrix form. Here we take advantage of the following identities:
+$$\begin{align}
+|x| &amp;= x \cdot \texttt{sign}(x) \\
+\texttt{clip}_{[-1, 1]}(x) &amp;= \frac{|1+x| - |1-x|}{2} \\
+\texttt{clip}_{[\sigma_{min}, \sigma_{max}]}(x) &amp;= \sigma_{max} \cdot \texttt{clip}(x / \sigma_{max}, -1, 1)
+\end{align}$$
+These can easily be verified via elementary algebra. If you&rsquo;re not convinced, see the figure below:
+<img loading="lazy" src="/ponder/spectral-clipping/clip_abs_trick.png#center">
+Combining Equations (1) and (2), we get,
+$$\begin{equation}\texttt{clip}_{[-1, 1]}(x) = \frac{(1+x) \texttt{sign}(1+x) - (1-x) \texttt{sign}(1-x)}{2}\end{equation}$$</p>
+<h3 id="lifting-to-matrix-form">Lifting to matrix form<a hidden class="anchor" aria-hidden="true" href="#lifting-to-matrix-form">#</a></h3>
+<p>Naively lifting Equation (4) above to matrix form as in the following does not work:</p>
+<p>$$\begin{equation}\frac{(1+W) \texttt{msign}(I+W) - (I-W) \texttt{msign}(1-W)}{2}\end{equation}$$</p>
+<p><img loading="lazy" src="/ponder/spectral-clipping/clip_lifting_trap.png#center"></p>
+<p>Why? Because $\texttt{msign}$ is only &ldquo;aware&rdquo; of the singular values of $I \pm W$, not $W$ itself. And so this matrix function does not properly &ldquo;act&rdquo; on the singular values of $W$ as we want it to.</p>
+<hr>
+<p>However, recall that we constructed $\texttt{clip}$ to be an <em>odd</em> function. This allows us to Higham&rsquo;s anti-block-diagonal trick (Higham, 2008) to lift the scalar function to matrix form.</p>
+<blockquote>
+<p><strong>Theorem 2 (Higham&rsquo;s Anti-Block-Diagonal Trick)</strong>. Let $g: \mathbb{R} \to \mathbb{R}$ be an odd analytic scalar function, $W \in \mathbb{R}^{m \times n}$, and construct the block matrix $S \in \mathbb{R}^{(m+n) \times (m+n)}$ as,
+$$S := \begin{bmatrix}
+0 &amp; W \\
+W^T &amp; 0
+\end{bmatrix}$$
+and let $g(S)$ as the primary matrix function defined from the scalar function $g$.
+Then,
+$$g(S) = \begin{bmatrix}
+0 &amp; g(W) \\
+g(W^T) &amp; 0
+\end{bmatrix}$$
+and hence,
+$$g(W) = [g(S)]_{12}$$</p></blockquote>
+<p>Setting $g = \texttt{clip}_{[-1, 1]}$ and applying Theorem 2, we can now properly construct $\texttt{spectral\_clip}(\cdot; 1)$ as follows:
+$$\begin{equation}\texttt{spectral\_clip}(W; 1) = \left[ \frac{(1+S) \texttt{msign}(I+S) - (I-S) \texttt{msign}(1-S)}{2} \right]_{12}\end{equation}$$
+and following Equation (3), we can generalize this to any $\sigma_{max} &gt; 0$ as follows,
+$$\begin{equation}\texttt{spectral\_clip}(W; \sigma_{max}) = \sigma_{max} \cdot \texttt{spectral\_clip}(W / \sigma_{max}; 1) \end{equation}$$</p>
+<p>The following code implements this in JAX,</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#00a">def</span> <span style="color:#0a0">_spectral_clip</span>(W: jax.Array):
+</span></span><span style="display:flex;"><span>    m, n = W.shape
+</span></span><span style="display:flex;"><span>    I = jnp.eye(m + n)
+</span></span><span style="display:flex;"><span>    S = jnp.block([[jnp.zeros((m, m)), W], [W.T, jnp.zeros((n, n))]])
+</span></span><span style="display:flex;"><span>    gS = (<span style="color:#099">1</span>/<span style="color:#099">2</span>) * ((I + S) @ _orthogonalize(I + S) - (I - S) @ _orthogonalize(I - S))
+</span></span><span style="display:flex;"><span>    <span style="color:#00a">return</span> gS[:m, m:]  <span style="color:#aaa;font-style:italic"># read off the top-right block</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#00a">def</span> <span style="color:#0a0">spectral_clip</span>(W: jax.Array, sigma_max: <span style="color:#0aa">float</span>=<span style="color:#099">1.</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#00a">return</span> sigma_max * _spectral_clip(W / sigma_max)
+</span></span></code></pre></div><p>where <code>_orthogonalize_via_newton_schulz</code> above implements Jordan&rsquo;s (2024) Newton-Schulz iteration for computing the matrix sign function. Note however that we&rsquo;re calling <code>_orthogonalize_via_newton_schulz</code> twice here, which is not ideal. Luckily, there&rsquo;s a neat trick that allows us to compute it only once.</p>
+<h3 id="optimizing-the-implementation-via-abstract-algebra">Optimizing the implementation via abstract algebra<a hidden class="anchor" aria-hidden="true" href="#optimizing-the-implementation-via-abstract-algebra">#</a></h3>
+<p>First, notice that both
+$$I + S = \begin{bmatrix}
+I_m &amp; W \\
+W^T &amp; I_n
+\end{bmatrix}\qquad I - S = \begin{bmatrix}
+I_m &amp; -W \\
+-W^T &amp; I_n
+\end{bmatrix}$$
+are block matrices of the form
+$$\begin{bmatrix}
+P &amp; Q \\
+Q^T &amp; R
+\end{bmatrix}$$
+where $P, R$ are symmetric matrices and $Q$ is an arbitrary matrix. It is a well-known result that such matrices form a linear sub-algebra $\mathcal{A}$, i.e., they are closed under addition, scalar multiplication, and matrix multiplication. This means that applying any polynomial function to these matrices will yield another matrix of the same form. And since we&rsquo;re calculating the matrix sign function with Newton-Schulz iteration, which is a composition of polynomial functions, its result must also be of the same form.</p>
+<p>Another neat property we can take advantage of is that flipping the signs of the anti-diagonal blocks gets preserved under application of matrix polynomials.</p>
+<blockquote>
+<p><strong>Proposition 3 (Parity w.r.t. $Q \to -Q$ when applying odd matrix polynomial $\texttt{p}(\cdot)$)</strong>.
+Let $A \in \mathcal{A}$ such that, $$A = \begin{bmatrix}
+P &amp; Q \\
+Q^T &amp; R
+\end{bmatrix}$$
+and let,
+$$\begin{bmatrix}
+\widetilde{P} &amp; \widetilde{Q} \\
+\widetilde{Q}^T &amp; \widetilde{R}
+\end{bmatrix} = \texttt{p}(A) = \texttt{p}\left(\begin{bmatrix}
+P &amp; Q \\
+Q^T &amp; R
+\end{bmatrix}\right).$$
+Then,
+$$\begin{bmatrix}
+\widetilde{P} &amp; -\widetilde{Q} \\
+-\widetilde{Q}^T &amp; \widetilde{R}
+\end{bmatrix} = \texttt{p}\left(\begin{bmatrix}
+P &amp; -Q \\
+-Q^T &amp; R
+\end{bmatrix}\right).$$</p></blockquote>
+<blockquote>
+<p><strong>Crux of the proof:</strong> Flipping the sign of the anti-diagonal blocks gets preserved under addition, scalar multiplication, and matrix multiplication, $$\begin{bmatrix}
+1 &amp; -1 \\
+-1 &amp; 1
+\end{bmatrix}\begin{bmatrix}
+1 &amp; -1 \\
+-1 &amp; 1
+\end{bmatrix}
+\equiv \begin{bmatrix}
+1 &amp; -1 \\
+-1 &amp; 1
+\end{bmatrix}$$</p></blockquote>
+<p>Thus we have,
+$$\begin{align}
+\begin{bmatrix}
+P^* &amp; Q^* \\
+Q^{*T} &amp; R^{*}
+\end{bmatrix} &amp;= \texttt{\_orthogonalize\_via\_newton\_schulz}(I + S) \\
+\begin{bmatrix}
+P^{*} &amp; -Q^{*} \\
+-Q^{*T} &amp; R^{*}
+\end{bmatrix} &amp;= \texttt{\_orthogonalize\_via\_newton\_schulz}(I - S)
+\end{align}$$
+for some symmetric $P^{*} \in \mathbb{R}^{m \times m}$, $R^{*} \in \mathbb{R}^{n \times n}$, and $Q^{*} \in \mathbb{R}^{m \times n}$. And combining these with Equation 6, we get,</p>
+<p>$$\begin{align}
+\texttt{spectral\_clip}(W; 1) &amp;= \left[\frac{\begin{bmatrix}
+I_m &amp; W \\
+W^T &amp; I_n
+\end{bmatrix}
+\begin{bmatrix}
+P^{*} &amp; Q^{*} \\
+Q^{*T} &amp; R^{*}
+\end{bmatrix} - \begin{bmatrix}
+I_m &amp; -W \\
+-W^T &amp; I_n
+\end{bmatrix}
+\begin{bmatrix}
+P^{*} &amp; -Q^{*} \\
+-Q^{*T} &amp; R^{*}
+\end{bmatrix}}{2}\right]_{12}\\
+&amp;= \left[\frac{\begin{bmatrix}
+P^{*} + WQ^{*T} &amp; Q^{*} + WR^{*} \\
+W^TP^{*}+Q^{*T} &amp; W^TQ^{*} + R^{*}
+\end{bmatrix} - \begin{bmatrix}
+P^{*} + WQ^{*T} &amp; -(Q^{*} + WR^{*}) \\
+-(W^TP^{*}+Q^{*T}) &amp; W^TQ^{*} + R^{*}
+\end{bmatrix}}{2}\right]_{12}\\
+&amp;= \begin{bmatrix}
+0 &amp; Q^{*} + WR^{*} \\
+W^TP^{*}+Q^{*T} &amp; 0
+\end{bmatrix}_{12} \\
+\texttt{spectral\_clip}(W; 1) &amp;= Q^{*} + WR^{*} \\
+\texttt{spectral\_clip}(W; \sigma_{max}) &amp;= \sigma_{max} \cdot Q^{*} + WR^{*}
+\end{align}$$</p>
+<p>This means that we only need to call <code>_orthogonalize_via_newton_schulz</code> once, and simply read off the blocks to compute the final result, leading to massive speedups. Also note that the diagonal blocks in Equation (12) are zero, which is what we expect from Theorem 2.</p>
+<p>In JAX, this looks like the following:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#00a">def</span> <span style="color:#0a0">_spectral_clip</span>(W: jax.Array):
+</span></span><span style="display:flex;"><span>    m, n = W.shape
+</span></span><span style="display:flex;"><span>    I = jnp.eye(m + n)
+</span></span><span style="display:flex;"><span>    S = jnp.block([[jnp.zeros((m, m)), W], [W.T, jnp.zeros((n, n))]])
+</span></span><span style="display:flex;"><span>    OS = _orthogonalize_via_newton_schulz(S)
+</span></span><span style="display:flex;"><span>    Q, R = OS[:m, m:], OS[m:, m:]
+</span></span><span style="display:flex;"><span>    <span style="color:#00a">return</span> Q + W @ R
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#00a">def</span> <span style="color:#0a0">spectral_clip</span>(W: jax.Array, sigma_max: <span style="color:#0aa">float</span>=<span style="color:#099">1.</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#00a">return</span> sigma_max * _spectral_clip(W / sigma_max, <span style="color:#099">1</span>)
+</span></span></code></pre></div><p>And a codegolf version would be,</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#00a">def</span> <span style="color:#0a0">spectral_clip_minimal</span>(W: jax.Array, sigma_max: <span style="color:#0aa">float</span>=<span style="color:#099">1.</span>, ortho_dtype=jnp.float32):
+</span></span><span style="display:flex;"><span>    OH = _orthogonalize(jnp.block([[jnp.eye(W.shape[<span style="color:#099">0</span>]), W / sigma_max], [W.T / sigma_max, jnp.eye(W.shape[<span style="color:#099">1</span>])]]).astype(ortho_dtype)).astype(W.dtype)
+</span></span><span style="display:flex;"><span>    <span style="color:#00a">return</span> sigma_max*OH[:W.shape[<span style="color:#099">0</span>], W.shape[<span style="color:#099">0</span>]:] + W @ OH[W.shape[<span style="color:#099">0</span>]:, W.shape[<span style="color:#099">0</span>]:]
+</span></span></code></pre></div><h3 id="taking-advantage-of-symmetry-under-construction">Taking advantage of symmetry [Under Construction]<a hidden class="anchor" aria-hidden="true" href="#taking-advantage-of-symmetry-under-construction">#</a></h3>
+<p>This section is still under construction. The crux is that we don&rsquo;t actually need to materialize the entire $(m + n) \times (m + n)$ block matrix $S$ in memory <em>and then</em> do Newton-Schulz on it. Instead, we can maintain only the current $P$, $Q$, and $R$ blocks in memory, and handle matrix multiplications with extra care.</p>
+<h3 id="experimental-results-under-construction">Experimental results [Under Construction]<a hidden class="anchor" aria-hidden="true" href="#experimental-results-under-construction">#</a></h3>
+<p>This section is also still under construction.</p>
+<hr>
+<p>Here</p>
+<p><img loading="lazy" src="/ponder/spectral-clipping/spectral_clipping.png#center"></p>
+<p><img loading="lazy" src="/ponder/spectral-clipping/spectral_clipping_2.png#center"></p>
+<hr>
+<p>[NanoGPT Speedrun results will be added here]</p>
+<h2 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h2>
+<ol>
+<li>Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: <a href="https://kellerjordan.github.io/posts/muon/" target="_blank">https://kellerjordan.github.io/posts/muon/</a></li>
+</ol>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://leloykun.github.io/tags/machine-learning/">Machine Learning</a></li>
+      <li><a href="https://leloykun.github.io/tags/optimizers/">Optimizers</a></li>
+      <li><a href="https://leloykun.github.io/tags/architecture-optimizer-codesign/">Architecture-Optimizer Codesign</a></li>
+    </ul>
+
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Numerically Stable Spectral Clipping Via Newton-Schulz Iteration on x"
+            href="https://x.com/intent/tweet/?text=Numerically%20Stable%20Spectral%20Clipping%20Via%20Newton-Schulz%20Iteration&amp;url=https%3a%2f%2fleloykun.github.io%2fponder%2fspectral-clipping%2f&amp;hashtags=MachineLearning%2cOptimizers%2cArchitecture-OptimizerCodesign">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Numerically Stable Spectral Clipping Via Newton-Schulz Iteration on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fleloykun.github.io%2fponder%2fspectral-clipping%2f&amp;title=Numerically%20Stable%20Spectral%20Clipping%20Via%20Newton-Schulz%20Iteration&amp;summary=Numerically%20Stable%20Spectral%20Clipping%20Via%20Newton-Schulz%20Iteration&amp;source=https%3a%2f%2fleloykun.github.io%2fponder%2fspectral-clipping%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Numerically Stable Spectral Clipping Via Newton-Schulz Iteration on reddit"
+            href="https://reddit.com/submit?url=https%3a%2f%2fleloykun.github.io%2fponder%2fspectral-clipping%2f&title=Numerically%20Stable%20Spectral%20Clipping%20Via%20Newton-Schulz%20Iteration">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Numerically Stable Spectral Clipping Via Newton-Schulz Iteration on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fleloykun.github.io%2fponder%2fspectral-clipping%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Numerically Stable Spectral Clipping Via Newton-Schulz Iteration on whatsapp"
+            href="https://api.whatsapp.com/send?text=Numerically%20Stable%20Spectral%20Clipping%20Via%20Newton-Schulz%20Iteration%20-%20https%3a%2f%2fleloykun.github.io%2fponder%2fspectral-clipping%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Numerically Stable Spectral Clipping Via Newton-Schulz Iteration on telegram"
+            href="https://telegram.me/share/url?text=Numerically%20Stable%20Spectral%20Clipping%20Via%20Newton-Schulz%20Iteration&amp;url=https%3a%2f%2fleloykun.github.io%2fponder%2fspectral-clipping%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Numerically Stable Spectral Clipping Via Newton-Schulz Iteration on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=Numerically%20Stable%20Spectral%20Clipping%20Via%20Newton-Schulz%20Iteration&u=https%3a%2f%2fleloykun.github.io%2fponder%2fspectral-clipping%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2025 <a href="https://leloykun.github.io/">Franz Louis Cesista</a></span> ·     
+    <span>
+    Powered by 
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/pmichaillat/hugo-website/" rel="noopener" target="_blank">a modified version</a>
+         of 
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+</html>

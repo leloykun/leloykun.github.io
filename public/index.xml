@@ -6,8 +6,15 @@
     <description>Recent content on Franz Louis Cesista</description>
     <generator>Hugo -- 0.145.0</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 03 Apr 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 05 Jun 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Numerically Stable Spectral Clipping Via Newton-Schulz Iteration</title>
+      <link>https://leloykun.github.io/ponder/spectral-clipping/</link>
+      <pubDate>Thu, 05 Jun 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/spectral-clipping/</guid>
+      <description>A small step towards hardware-architecture-optimizer codesign in deep learning.</description>
+    </item>
     <item>
       <title>Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds</title>
       <link>https://leloykun.github.io/ponder/steepest-descent-non-riemannian/</link>
