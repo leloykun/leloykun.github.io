@@ -68,7 +68,7 @@ Let's reconstruct the $\mathbb{R} \to \mathbb{R}$ clipping on the singular value
 $$\begin{align}
     |x| &= x \cdot \texttt{sign}(x) \\\\
     \texttt{clip}\_{[-1, 1]}(x) &= \frac{|1+x| - |1-x|}{2} \\\\
-    \texttt{clip}\_{[\sigma\_{min}, \sigma\_{max}]}(x) &= \sigma_{max} \cdot \texttt{clip}(x / \sigma_{max}, -1, 1)
+    \texttt{clip}\_{[\sigma\_{min}, \sigma\_{max}]}(x) &= \sigma_{max} \cdot \texttt{clip}\_{[-1, 1]}(x / \sigma_{max})
 \end{align}$$
 These can easily be verified via elementary algebra. If you're not convinced, see the figure below:
 ![](clip_abs_trick.png#center)
@@ -186,7 +186,7 @@ $$\begin{align}
         -Q^{\*T} & R^{\*}
     \end{bmatrix} &= \texttt{\\_orthogonalize\\_via\\_newton\\_schulz}(I - S)
 \end{align}$$
-for some symmetric $P^{\*} \in \mathbb{R}^{m \times m}$, $R^{\*} \in \mathbb{R}^{n \times n}$, and $Q^{\*} \in \mathbb{R}^{m \times n}$. And combining these with Equation 6, we get,
+for some $Q^{\*} \in \mathbb{R}^{m \times n}$ and symmetric $P^{\*} \in \mathbb{R}^{m \times m}$, $R^{\*} \in \mathbb{R}^{n \times n}$. And combining these with Equation 6, we get,
 
 $$\begin{align}
     \texttt{spectral\\_clip}(W; 1) &= \left[\frac{\begin{bmatrix}
