@@ -225,10 +225,9 @@ In JAX, this looks like the following:
 ```python
 def _spectral_clip(W: jax.Array):
     m, n = W.shape
-    I = jnp.eye(m + n)
-    S = jnp.block([[jnp.zeros((m, m)), W], [W.T, jnp.zeros((n, n))]])
-    OS = _orthogonalize_via_newton_schulz(S)
-    Q, R = OS[:m, m:], OS[m:, m:]
+    H = jnp.block([[jnp.eye(m), W], [W.T, jnp.eye(n)]])
+    OH = _orthogonalize_via_newton_schulz(H)
+    Q, R = OH[:m, m:], OH[m:, m:]
     return Q + W @ R
 
 def spectral_clip(W: jax.Array, sigma_max: float=1.):
