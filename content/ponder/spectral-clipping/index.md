@@ -95,7 +95,7 @@ To get the proper matrix form of Equation $\eqref{4}$, we need to:
 1. Replace $I$ with a matrix that has ones as its singular values and shares the same singular vectors as $W$ so that our matrix function preserves the singular vectors of $W$.
 2. Guarantee that the output matrix has the same dimensions as $W$.
 
-For #1, it has to be $UV^T$, where $U$ and $V$ are the left and right singular vectors of $W$, respectively. But to compute $UV^T$, we need to compute $\texttt{msign}(I+W)$ first. And so we get,
+For #1, it has to be $UV^T$, where $U$ and $V$ are the left and right singular vectors of $W$, respectively. But to compute $UV^T$, we need to compute $\texttt{msign}(W)$ first. And so we get,
 $$\frac{(\texttt{msign}(W)+W) \texttt{msign}(\texttt{msign}(W)+W)^T - (\texttt{msign}(W)-W) \texttt{msign}(\texttt{msign}(W)-W)^T}{2}$$
 
 For #2, first notice that the above is equivalent to,
