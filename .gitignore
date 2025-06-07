@@ -1,3 +1,5 @@
 .DS_Store
 .hugo_build.lock
 notes.ipynb
+content/**/*.ipynb
+public/**/*.ipynb

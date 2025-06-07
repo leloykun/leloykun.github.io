@@ -63,28 +63,288 @@
 </script>
 
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd" crossorigin="anonymous"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
+  integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeYb+TwlBVMrlgLqwRjRtGZiK7ww" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"
+  integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz82sBx1X7kSx2ATBDIyd" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+  integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous"
   onload="renderMathInElement(document.body);"></script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        renderMathInElement(document.body, {
-          delimiters: [
-            {left: '$$', right: '$$', display: true},
-            {left: '$', right: '$', display: false},
-            {left: "\\begin{equation}", right: "\\end{equation}", display: true},
-            {left: "\\begin{equation*}", right: "\\end{equation*}", display: true},
-            {left: "\\begin{align}", right: "\\end{align}", display: true},
-            {left: "\\begin{align*}", right: "\\end{align*}", display: true},
-            {left: "\\begin{alignat}", right: "\\end{alignat}", display: true},
-            {left: "\\begin{gather}", right: "\\end{gather}", display: true},
-            {left: "\\begin{CD}", right: "\\end{CD}", display: true},
-          ],
-          throwOnError : false
-        });
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$', right: '$', display: false },
+        { left: "\\begin{equation}", right: "\\end{equation}", display: true },
+        { left: "\\begin{equation*}", right: "\\end{equation*}", display: true },
+        { left: "\\begin{align}", right: "\\end{align}", display: true },
+        { left: "\\begin{align*}", right: "\\end{align*}", display: true },
+        { left: "\\begin{alignat}", right: "\\end{alignat}", display: true },
+        { left: "\\begin{gather}", right: "\\end{gather}", display: true },
+        { left: "\\begin{CD}", right: "\\end{CD}", display: true },
+      ],
+      throwOnError: false,
+      trust: (context) => ['\\htmlId', '\\href'].includes(context.command),
+      macros: {
+        "\\eqref": "\\href{###1}{(\\text{#1})}",
+        "\\ref": "\\href{###1}{\\text{#1}}",
+        "\\label": "\\htmlId{#1}{}"
+      }
     });
+  });
+</script>
+
+<script>
+  var sTag;
+  var labelTagArr = [];
+  window.addEventListener("load", function () {
+    try {
+      
+      
+      
+      var demo = document.querySelector("#demo");
+      
+      
+      demo.innerHTML = demo.innerHTML.replace(/\n/g, " ").replaceAll('&', "notAmpersand");
+      
+      demo.innerHTML = demo.innerHTML.replaceAll('eq:', "eq-cln-");
+      
+      var numberedEnvironmentsArr = ['equation', 'align', 'gather', 'alignat'];
+      
+      var eqrefNum = 0;
+      
+      var aTagArr = [];
+      
+      
+      var eqnPattern = /(\\begin\{(.*?)\}(.*?)\\end\{\2\})/gm;
+      
+      
+      
+      
+      
+      var eqnIndex = 0;
+      while (eqnMatches = eqnPattern.exec(demo.innerHTML)) {
+        var arrayFromEqnMatches = Array.from(eqnMatches);
+        
+        var eqn = arrayFromEqnMatches[0];
+        
+        var env = arrayFromEqnMatches[2];
+        
+        var eqnTxt = arrayFromEqnMatches[3];
+        
+        var countSlashes = (eqnTxt.match(/\\\\/gi) || []).length;
+        var countLabels = (eqnTxt.match(/\\label/gi) || []).length;
+        var countNonumbers = (eqnTxt.match(/\\nonumber/gi) || []).length;
+        var countTags = (eqnTxt.match(/\\tag/gi) || []).length;
+        var countSplits = (eqnTxt.match(/\\begin\{split\}/gi) || []).length;
+        if (
+          (!numberedEnvironmentsArr.includes(env)) ||
+          (countSplits > 0 && countSlashes == countSplits) ||
+          (countSlashes == 0 && countLabels == 0 && countNonumbers == 0 && countTags == 0 && countSplits == 0)
+        ) {
+          
+        } else if (
+          (countTags == 1 && countNonumbers < countSlashes) ||
+          (countTags == 0 && countSlashes + 1 > countLabels + countNonumbers)
+        ) {
+          
+          var sTag = document.createElement('span');
+          sTag.classList.add('dunProcess');
+          sTag.innerHTML = eqn.replaceAll('\\\\', "\\\\
+").replace('\\end', "
+            \\end");
+                demo.innerHTML = demo.innerHTML.replace(eqn, sTag.outerHTML);
+        }
+        
+        if (numberedEnvironmentsArr.includes(env)) {
+          eqrefNum++;
+        }
+        
+        
+        
+        
+        
+        var labelTagPattern = /((\\tag)|(\\label))\{([^}]+)\}/gm;
+        
+        var labelTagMatches = eqn.matchAll(labelTagPattern);
+        var labelTag, labelTagTxt, labelTagType;
+        labelTagArr[eqnIndex] = [];
+        aTagArr[eqnIndex] = [];
+        
+        labelTagMatches.forEach(function (labelTagMatch, i) {
+          labelTag = labelTagMatch[0];
+          labelTagType = labelTagMatch[1].slice(1);
+          labelTagTxt = labelTagMatch[4];
+          
+          labelTagArr[eqnIndex].push(labelTagTxt);
+          if (labelTagType == "label") {
+            if (labelTagArr[eqnIndex].length > 1) {
+              eqrefNum++;
+            }
+            aTagHref = '#ktx-' + labelTagTxt;
+          } else if (labelTagType == "tag") {
+            aTagHref = '#ktx-' + labelTagTxt;
+          }
+          
+          
+          if (eqn.indexOf('\\begin{split}') > -1) {
+            eqrefNum--;
+          }
+          
+          var aTag = document.createElement('a');
+          aTag.href = aTagHref
+          var anchorTxt;
+          if (numberedEnvironmentsArr.includes(env) && labelTagType == "label") {
+            anchorTxt = eqrefNum;
+          } else {
+            anchorTxt = labelTagTxt;
+          }
+          if (demo.innerHTML.indexOf("\\eqref{" + labelTagTxt + "}") > -1) {
+            aTag.innerText = '(' + anchorTxt + ')';
+            
+            aTagArr[eqnIndex].push(["\\eqref{" + labelTagTxt + "}", aTag.outerHTML]);
+          }
+          if (demo.innerHTML.indexOf("\\ref{" + labelTagTxt + "}") > -1) {
+            aTag.innerText = anchorTxt;
+            
+            aTagArr[eqnIndex].push(["\\ref{" + labelTagTxt + "}", aTag.outerHTML]);
+          }
+
+        }); 
+        
+        eqnIndex++;
+      } 
+
+      
+      demo.innerHTML = demo.innerHTML.replaceAll('notAmpersand', '&');
+
+
+      
+      var eqrefPattern = /\\eqref\{([^}]+)\}/gm;
+      var eqrefMatches = demo.innerHTML.matchAll(eqrefPattern);
+      for (let eqrefMatch of eqrefMatches) {
+        if (
+          demo.innerHTML.indexOf('\\label{' + eqrefMatch[1]) > -1
+          || demo.innerHTML.indexOf('\\tag{' + eqrefMatch[1]) > -1
+        ) {
+          
+        } else {
+          var sTag = document.createElement('span');
+          sTag.classList.add('missing');
+          sTag.innerHTML = "no equation matching this \\eqref{" + eqrefMatch[1] + "}";
+          
+          if (!!sTag) {
+            demo.innerHTML = demo.innerHTML.replace(eqrefMatch[0], sTag.outerHTML);
+          }
+        }
+      }
+      
+      labelTagArr.forEach(function (labelTags, i) {
+        labelTags.forEach(function (labelTag, j) {
+          if (labelTag != "ellippolar") {
+            demo.innerHTML = demo.innerHTML.replaceAll('\\label{' + labelTag + '}', '');
+          }
+        });
+      });
+
+      
+      
+      var objArr = [{
+        left: "$",
+        right: "$",
+        display: !1
+      }, {
+        left: "\\(",
+        right: "\\)",
+        display: !1
+      }, {
+        left: "\\[",
+        right: "\\]",
+        display: !0
+      }];
+      var displayEnvsArr = ["\$\$", "align", "align*", "alignat", "CD", "equation", "equation*", "gather", "matrix", "pmatrix", "Vmatrix"];
+      displayEnvsArr.forEach(function (env) {
+        objArr.push({
+          left: "\\begin{" + env + "}",
+          right: "\\end{" + env + "}",
+          display: !0
+        });
+      });
+      
+      renderMathInElement(demo, {
+        delimiters: objArr,
+        ignoredClasses: ['dunProcess'],
+        throwOnError: false
+      });
+      
+      var katexDisplays = document.querySelectorAll('.katex-display');
+      katexDisplays.forEach(function (katexDisplay, i) {
+        if (labelTagArr[i].length == 1) {
+          
+          
+          katexDisplay.id = 'ktx-' + labelTagArr[i];
+        } else if (labelTagArr[i].length > 1) {
+          
+          
+          
+          
+          var eqnNums = katexDisplay.querySelectorAll('.eqn-num');
+          eqnNums.forEach(function (eqnNum, j) {
+            eqnNum.id = "ktx-" + labelTagArr[i][j];
+          });
+        }
+      });
+      
+      aTagArr.forEach(function (aTags, i) {
+        if (aTags) {
+          aTags.forEach(function (aTagPair, j) {
+            demo.innerHTML = demo.innerHTML.replaceAll(aTagPair[0], aTagPair[1]);
+          });
+        }
+      });
+      
+      var theAtags = document.querySelectorAll('a[href*="#ktx-');
+      theAtags.forEach(function (theAtag) {
+        theAtag.addEventListener('click', function (e) {
+          e.preventDefault();
+          document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+          });
+        });
+      });
+    } catch (e) {
+      if (e instanceof katex.ParseError) {
+        
+        html = ("Error in LaTeX '" + texString + "': " + e.message)
+          .replace(/&/g, "&").replace(
+        } else {
+        throw e; 
+      }
+    }
+    addOverflowXauto();
+  });
+  
+  var addOverflowXauto = function () {
+    var browserWidth = Math.max(
+      document.body.scrollWidth,
+      document.documentElement.scrollWidth,
+      document.body.offsetWidth,
+      document.documentElement.offsetWidth,
+      document.documentElement.clientWidth
+    );
+    var eles = document.querySelectorAll(".katex");
+    eles.forEach(function (ele) {
+      var thisEleWidth = ele.scrollWidth;
+      if (thisEleWidth > browserWidth && !ele.parentNode.classList.contains('overflowXauto')) {
+        ele.parentNode.classList.add('overflowXauto');
+      }
+    });
+  }
+  window.addEventListener('resize', function () {
+    addOverflowXauto();
+  });
 </script>
  
 
