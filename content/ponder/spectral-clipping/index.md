@@ -6,7 +6,7 @@ author: "Franz Louis Cesista"
 description: "A small step towards hardware-architecture-optimizer codesign in deep learning."
 summary: "A small step towards hardware-architecture-optimizer codesign in deep learning."
 cover:
-    image: spectral_clipping.png
+    image: clip_lifting_trap_fix.png
     alt: "Cover"
     relative: true
 # editPost:
@@ -22,17 +22,22 @@ Here I'll discuss a numerically stable way to perform spectral clipping, i.e., c
 
 There are multiple ways to control the spectral norm of our (matrix-structured) weights and weight updates. One is to "pull" **all** of the singular values to some target value chosen a priori. This is what the Muon optimizer already does, but only on the weight updates: it takes the raw gradient and tries to "pull" its as many of its singular values to $\sqrt{\frac{d_{out}}{d_{in}}}$. This guarantees that the update step merely changes the activation RMS-norm of that layer by at most $1$ unit. We *could* also apply this process to the weights after every update step to guarantee that the weight norms *would not* blow up, but constraining the weight space to the Stiefel manifold is too strong of a constraint. We discuss more of this in our upcoming Neurips preprint. For now, we will focus on Spectral Clipping:
 
-> **Definition 1 (Spectral Clipping)**. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its singular value decomposition where $\Sigma = (\sigma\_1, \ldots, \sigma\_{min(m,n)})$ are the singular values of $W$. Then we define Spectral Clipping as the following matrix function,
-> $$\texttt{spectral\\_clip}(W; \sigma\_{max}) = U \texttt{clip}\_{[-\sigma\_{max}, \sigma\_{max}]}(\Sigma) V^T$$
-> where $\sigma\_{max} \in (0, \infty)$ is some hyperparameter that controls the spectral norm of the resulting matrix and $\texttt{clip}\_{[\sigma\_{min}, \sigma\_{max}]}: \mathbb{R} \to \mathbb{R}$ is applied element-wise,
+> **Definition 1 (Spectral Clipping)**. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its singular value decomposition where $\Sigma = (\sigma\_1, \ldots, \sigma\_{min(m,n)})$ are the singular values of $W$. Then we define Spectral Clipping as the following matrix function $\texttt{spectral\\_clip}\_{[\sigma\_{min}, \sigma\_{max}]}: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$,
+> $$\begin{equation}\texttt{spectral\\_clip}\_{[\sigma\_{min}, \sigma\_{max}]}(W) = U \texttt{clip}\_{[\sigma\_{min}, \sigma\_{max}]}(\Sigma) V^T\label{1}\end{equation}$$
+> where $\sigma\_{min}, \sigma\_{max} \in [0, \infty)$ are hyperparameters that control the minimum and maximum attainable singular values of the resulting matrix and $\texttt{clip}\_{[\alpha, \beta]}: \mathbb{R} \to \mathbb{R}$ is applied element-wise on the singular values of $W$,
 > 
-> $$\texttt{clip}\_{[\sigma\_{min}, \sigma\_{max}]}(x) = \begin{cases}
-\sigma_{min} & \texttt{if } x < \sigma_{min} \\\\
-x & \texttt{if } \sigma_{min} \leq x \leq \sigma_{max} \\\\
-\sigma_{max} & \texttt{if } \sigma_{max} < x
-\end{cases}$$
+> $$\begin{equation}\texttt{clip}\_{[\alpha, \beta]}(x) = \begin{cases}
+\alpha & \texttt{if } x < \alpha \\\\
+x & \texttt{if } \alpha \leq x \leq \beta \\\\
+\beta & \texttt{if } \beta < x
+\end{cases}\end{equation}$$
+> where $\alpha, \beta \in \mathbb{R} \cup \\{-\infty, \infty\\}$ and $\alpha \leq \beta$.
 
-Note that we chose the $\texttt{clip}$ function above to be *odd* and symmetric because this allows us to use optimization tricks on computing matrix functions that only work on such functions. We will discuss more about this in the next sections.
+Note that since the singular values of a matrix are guaranteed to be non-negative, $\texttt{clip}$ above does not need to be bidirectional. And setting $\alpha \leq 0$ and/or $\beta = \infty$ massively simpifies our (matrix) function, resulting in efficiency gains,
+- $\texttt{clip}\_{[\leq 0, \beta]}(x) = \min(x, \beta)$; and
+- $\texttt{clip}\_{[\alpha, \infty]}(x) = \max(x, \alpha)$ which is simply the (shifted-)$\texttt{ReLU}$.
+
+In practice, the former would suffice for constraining the weights of neural networks. However, we will keep both parameters $\alpha, \beta$ in this work for generality and in case one would need to constrain the weights to always be full rank to prevent the activations from collapsing in dimension.
 
 ## Towards hardware-architecture-optimizer codesign
 
@@ -40,13 +45,10 @@ In deep learning, we not only have to be mindful of architecture-optimizer codes
 
 For example, the naive way to compute Spectral Clipping is to directly compute the SVD, clip the singular values we get from it, then reconstruct the matrix using the clipped singular values. A JAX implementation would look like this:
 ```python
-def naive_spectral_clip(W: jax.Array, sigma_max: float=1.):
+def naive_spectral_clip(W: jax.Array, sigma_min: float=-1., sigma_max: float=1.):
     U, S, Vt = jnp.linalg.svd(W, full_matrices=False)
-    S_clipped = jnp.clip(S, min=-sigma_max, max=sigma_max)
+    S_clipped = jnp.clip(S, min=sigma_min, max=sigma_max)
     return U @ jnp.diag(S_clipped) @ Vt
-
-W = jax.random.normal(key, (m, n)) / 35.
-W_clipped = naive_spectral_clip(W, sigma_max=1.)
 ```
 However, this is not recommended because computing the SVD directly (1) does not take advantage of the GPUs' tensor cores and (2) requires higher numerical precision, typically 32-bit float types. These not only slow things down but also increase precious memory usage, making it hard to scale to larger models.
 
@@ -64,81 +66,187 @@ So, how do we compute spectral clipping while only using simple, but fast & nume
 | Application of polynomial function $\texttt{p}(\cdot)$ |   $\texttt{p}(W)$   |     $\texttt{p}(\Sigma)$      |
 | Application of matrix sign function                    | $\texttt{msign}(W)$ |    $\texttt{sign}(\Sigma)$    |
 
-Let's reconstruct the $\mathbb{R} \to \mathbb{R}$ clipping on the singular values with these elementary functions first, then let's use it to construct the matrix form. Here we take advantage of the following identities:
-$$\begin{align}
-    |x| &= x \cdot \texttt{sign}(x) \\\\
-    \texttt{clip}\_{[-1, 1]}(x) &= \frac{|1+x| - |1-x|}{2} \\\\
-    \texttt{clip}\_{[\sigma\_{min}, \sigma\_{max}]}(x) &= \sigma_{max} \cdot \texttt{clip}\_{[-1, 1]}(x / \sigma_{max})
-\end{align}$$
-These can easily be verified via elementary algebra. If you're not convinced, see the figure below:
-![](clip_abs_trick.png#center)
-Combining Equations (1) and (2), we get,
-$$\begin{equation}\texttt{clip}\_{[-1, 1]}(x) = \frac{(1+x) \texttt{sign}(1+x) - (1-x) \texttt{sign}(1-x)}{2}\label{4}\end{equation}$$
+Let's reconstruct the $\mathbb{R} \to \mathbb{R}$ clipping on the singular values with these elementary functions first, then let's use it to construct the matrix form. Here we take advantage of the following identity,
+$$\begin{equation}|x| = x \cdot \texttt{sign}(x)\end{equation}$$
+With this, we can now construct $\texttt{clip}$ as follows,
 
-### Lifting to matrix form (the naive way)
+![](clip_abs_trick.png#center)
+
+> **Proposition 2 (Computing $\texttt{clip}$ via $\texttt{sign}$).** Let $\alpha, \beta \in \mathbb{R} \cup \\{-\infty, \infty\\}$ and $\texttt{clip}: \mathbb{R} \to \mathbb{R}$ be the clipping function defined in Definition 1. Then,
+> $$\begin{equation}\texttt{clip}\_{[\alpha, \beta]}(x) = \frac{\alpha + \beta + (\alpha - x)\texttt{sign}(\alpha - x) - (\beta - x)\texttt{sign}(\beta - x)}{2}\label{4}\end{equation}$$
+
+> **Proof:** It would suffice to show that,
+> $$\begin{equation}\texttt{clip}\_{[\alpha, \beta]}(x) = \frac{\alpha + \beta + |\alpha - x| - |\beta - x|}{2}\end{equation}$$
+> For this, we can simply check case-by-case,
+> |             $x$             | $\left \| \alpha - x\right \| $ | $\left \| \beta - x\right \| $ | $\frac{\alpha + \beta +  \| \alpha - x \| - \| \beta - x \| }{2}$ |
+> | :-------------------------: | :-----------------------------: | :----------------------------: | :---------------------------------------------------------------: |
+> |        $x < \alpha$         |          $\alpha - x$           |          $\beta - x$           |                             $\alpha$                              |
+> | $\alpha \leq x \leq \beta $ |          $x - \alpha$           |          $\beta - x$           |                                $x$                                |
+> |         $\beta < x$         |          $x - \alpha$           |          $x - \beta$           |                              $\beta$                              |
+> 
+> Combining Equations (3) and (5) then gives us Equation $\eqref{4}$. $\blacksquare$
+
+### Lifting to matrix form (the naive & incorrect way)
 
 ![](clip_lifting_trap.png#center)
 
-A naive way to lift Equation $\eqref{4}$ above to matrix form is to simply replace the scalars with matrices and the scalar (sub-)functions with their corresponding matrix form, i.e., replace $x$ with $W$, $1$ with $I$, and $\texttt{sign}(\cdot)$ with $\texttt{msign}(\cdot)$. This gives us the following matrix function,
+A naive way to lift Equation $\eqref{4}$ above to matrix form is to simply replace the variables, scalar constants, and scalar (sub-)functions with their corresponding matrix form, i.e., replace $x$ with $W$, $1$ with $I$, and $\texttt{sign}(\cdot)$ with $\texttt{msign}(\cdot)$. This gives us the following matrix function,
 
-$$f(W) = \frac{(I+W) \texttt{msign}(I+W)^T - (I-W) \texttt{msign}(I-W)^T}{2}$$
+$$\begin{align}
+    \texttt{f}(W) &= (1/2) \cdot [(\alpha + \beta)I + (\alpha I - W) \texttt{msign}(\alpha I - W)^T\nonumber\\\\
+    &\qquad\qquad\qquad\qquad\\;\\;- (\beta I - W) \texttt{msign}(\beta I - W)^T]
+\end{align}$$
 
-However, as communicated to me by You Jiacheng & Su Jianlin, this does not work because $I$ may not share the same singular vectors as $W$. See figure below.
+However, as communicated to me by You Jiacheng & Su Jianlin, this does not work (see figure above) because $I$ may not share the same singular vectors as $W$.
 
-Another problem is that $f$ does not preserve the dimensions of the input matrix $W$. This is trivial to check.
+Another problem is that $\texttt{f}$ does not preserve the dimensions of the input matrix $W$. To see this, note that both $\alpha I - W$ and $\texttt{msign}(\alpha I - W)$ have shape $m \times n$ and so $(\alpha I - W) \texttt{msign}(\alpha I - W)^T$ must have shape $m \times m$. The same is true for the other term.
+
+$$\begin{aligned}
+    \texttt{f}(W) &= (1/2) \cdot [(\alpha + \beta)I_{\color{red}{m \times m}} + (\alpha I - W) \texttt{msign}(\alpha I - W)^T\\\\
+    &\qquad\qquad\qquad\qquad\qquad- \underbrace{\underbrace{(\beta I - W)}_{m \times n} \underbrace{\texttt{msign}(\beta I - W)^T}\_{n \times m}}\_{\color{red}{m \times m}}]
+\end{aligned}$$
 
 ### Lifting to matrix form (the proper way)
 
 ![](clip_lifting_trap_fix.png#center)
 
-To get the proper matrix form of Equation $\eqref{4}$, we need to:
-1. Replace $I$ with a matrix that has ones as its singular values and shares the same singular vectors as $W$ so that our matrix function preserves the singular vectors of $W$.
-2. Guarantee that the output matrix has the same dimensions as $W$.
+To properly lift Equation $\eqref{4}$ to matrix form, let's combine it with Equation $\eqref{1}$,
+$$\begin{align}
+    \texttt{spectral\\_clip}\_{[\alpha, \beta]}(W)
+        &= U \texttt{clip}\_{[\alpha, \beta]}(\Sigma) V^T\nonumber\\\\
+        &= U \frac{(\alpha + \beta) I + (\alpha I - \Sigma)\texttt{sign}(\alpha I - \Sigma) - (\beta I - \Sigma)\texttt{sign}(\beta I - \Sigma)}{2} V^T\nonumber\\\\
+        &= (1/2) \cdot [(\alpha + \beta) UV^T\nonumber\\\\
+        &\qquad\qquad+ U (\alpha I - \Sigma ) \texttt{sign}(\alpha I - \Sigma) V^T\nonumber\\\\
+        &\qquad\qquad- U (\beta I - \Sigma ) \texttt{sign}(\beta I - \Sigma) V^T]\nonumber\\\\
+        &= (1/2) \cdot [(\alpha + \beta) UV^T\nonumber\\\\
+        &\qquad\qquad+ U (\alpha I - \Sigma ) (V^TV) \texttt{sign}(\alpha I - \Sigma) (U^TU) V^T\nonumber\\\\
+        &\qquad\qquad- U (\beta I - \Sigma ) (V^TV) \texttt{sign}(\beta I - \Sigma) (U^TU) V^T]\nonumber\\\\
+        &= (1/2) \cdot [(\alpha + \beta) UV^T\nonumber\\\\
+        &\qquad\qquad+ (\alpha UV^T - U\Sigma V^T) (V \texttt{sign}(\alpha I - \Sigma) U^T)(UV^T)\nonumber\\\\
+        &\qquad\qquad- (\beta UV^T - U\Sigma V^T)  (V \texttt{sign}(\beta I - \Sigma) U^T)(UV^T)]\nonumber\\\\
+        &= (1/2) \cdot [(\alpha + \beta) UV^T\nonumber\\\\
+        &\qquad\qquad+ (\alpha UV^T - U\Sigma V^T) (U \texttt{sign}(\alpha I - \Sigma) V^T)^T(UV^T)\nonumber\\\\
+        &\qquad\qquad- (\beta UV^T - U\Sigma V^T)  (U \texttt{sign}(\beta I - \Sigma) V^T)^T(UV^T)]\nonumber\\\\
+        &= (1/2) \cdot [(\alpha + \beta) UV^T\nonumber\\\\
+        &\qquad\qquad+ (\alpha UV^T - U\Sigma V^T) \texttt{msign}(\alpha UV^T - U\Sigma V^T)^T(UV^T)\nonumber\\\\
+        &\qquad\qquad- (\beta UV^T - U\Sigma V^T)  \texttt{msign}(\beta UV^T - U\Sigma V^T)^T(UV^T)]\nonumber\\\\
+        &= (1/2) \cdot [(\alpha + \beta) \texttt{msign}(W)\nonumber\\\\
+        &\qquad\qquad+ (\alpha \cdot\texttt{msign}(W) - W) \texttt{msign}(\alpha \cdot\texttt{msign}(W) - W)^T\texttt{msign}(W)\nonumber\\\\
+        &\qquad\qquad- (\beta  \cdot\texttt{msign}(W) - W) \texttt{msign}(\beta  \cdot\texttt{msign}(W) - W)^T\texttt{msign}(W)]\nonumber\\\\
+    \texttt{spectral\\_clip}\_{[\alpha, \beta]}(W)
+        &= (1/2) \cdot [(\alpha + \beta)I\nonumber\\\\
+        &\qquad\qquad+ (\alpha \cdot\texttt{msign}(W) - W) \texttt{msign}(\alpha \cdot\texttt{msign}(W) - W)^T\nonumber\\\\
+        &\qquad\qquad- (\beta  \cdot\texttt{msign}(W) - W) \texttt{msign}(\beta  \cdot\texttt{msign}(W) - W)^T\nonumber\\\\
+        &\qquad\qquad]\\;\texttt{msign}(W)\label{7}
+\end{align}$$
 
-For #1, it has to be $UV^T$, where $U$ and $V$ are the left and right singular vectors of $W$, respectively. But to compute $UV^T$, we need to compute $\texttt{msign}(W)$ first. And so we get,
-$$\frac{(\texttt{msign}(W)+W) \texttt{msign}(\texttt{msign}(W)+W)^T - (\texttt{msign}(W)-W) \texttt{msign}(\texttt{msign}(W)-W)^T}{2}$$
-
-For #2, first notice that the above is equivalent to,
-$$\begin{align*}
-    &= \frac{(UV^T+U\Sigma V^T) \texttt{msign}(UV^T+U\Sigma V^T)^T - (UV^T-U\Sigma V^T) \texttt{msign}(UV^T-U\Sigma V^T)^T}{2} \\\\
-    &= \frac{(U(\mathbb{1}+\Sigma) V^T) \texttt{msign}(U(\mathbb{1}+\Sigma)V^T)^T - (U(\mathbb{1}-\Sigma)V^T) \texttt{msign}(U(\mathbb{1}-\Sigma)V^T)^T}{2} \\\\
-    &= \frac{U(\mathbb{1}+\Sigma) V^T V \texttt{sign}(\mathbb{1}+\Sigma) U^T - U(\mathbb{1}-\Sigma) V^T V \texttt{sign}(\mathbb{1}-\Sigma) U^T}{2} \\\\
-    &= U\texttt{clip}\_{[-1, 1]}(\Sigma)U^T \\\\
-\end{align*}$$
-
-Thus to fix this, all we need to do is to (right-)multiply $UV^T = \texttt{msigm}(W)$. And viola, we can now construct $\texttt{spectral\\_clip}(W; 1)$ as follows,
-
-$$\begin{equation}\footnotesize\texttt{spectral\\_clip}(W; 1) = \frac{(\texttt{msign}(W)+W) \texttt{msign}(\texttt{msign}(W)+W)^T - (\texttt{msign}(W)-W) \texttt{msign}(\texttt{msign}(W)-W)^T}{2}\texttt{msigm}(W)\end{equation}$$
-and following Equation (3), we can generalize this to any $\sigma\_{max} > 0$ as follows,
-$$\texttt{spectral\\_clip}(W; \sigma\_{max}) = \sigma\_{max} \cdot \texttt{spectral\\_clip}(W / \sigma\_{max}; 1)$$
-
-A sample implementation in JAX would be,
+And viola, we're done. The following code implements this in JAX,
 ```python
-def _spectral_clip(W: jax.Array):
+def spectral_clip(W: jax.Array, alpha: float=-1., beta: float=1.):
     if flip := W.shape[0] > W.shape[1]:
         W = W.T
     OW = _orthogonalize_via_newton_schulz(W)
     result = (1/2) * (
-        (OW + W) @ _orthogonalize_via_newton_schulz(OW + W).T
-        - (OW - W) @ _orthogonalize_via_newton_schulz(OW - W).T
-    )
-    result @= OW
+        (alpha + beta) * jnp.eye(W.shape[0])
+        + (alpha * OW - W) @ _orthogonalize_via_newton_schulz(alpha * OW - W).T
+        - (beta * OW - W) @ _orthogonalize_via_newton_schulz(beta * OW - W).T
+    ) @ OW
     if flip:
         result = result.T
     return result
-
-def spectral_clip(W: jax.Array, sigma_max: float=1.):
-    return sigma_max * _spectral_clip(W / sigma_max)
 ```
 where `_orthogonalize_via_newton_schulz` above implements Jordan's (2024) Newton-Schulz iteration for computing the matrix sign function. Note that we're calling `_orthogonalize_via_newton_schulz` thrice here, which is not ideal.
 
-## An alternative approach
+## Variants and optimizations
 
-> **Update:** Following this work, Su (2025) & You (2025) have proposed more efficient ways to compute spectral clipping without having to construct the anti-block-diagonal matrices below. Their approach involves computing nested computations of the matrix sign function.
+### Sanity check: orthogonalization and scaling
 
-Recall that we constructed $\texttt{clip}$ to be an *odd* function. This allows us to Higham's anti-block-diagonal trick (Higham, 2008) to lift the scalar function to matrix form.
+As a simple test-case, let's verify that setting the lower and upper bounds to be equal results in orthogonalization and scaling of the input matrix, i.e., $\texttt{spectral\\_clip}\_{[\sigma, \sigma]}(W) = \sigma \cdot \texttt{msign}(W)$. From Equation $\eqref{7}$, we have,
 
-> **Theorem 2 (Higham's Anti-Block-Diagonal Trick)**. Let $g: \mathbb{R} \to \mathbb{R}$ be an odd analytic scalar function, $W \in \mathbb{R}^{m \times n}$, and construct the block matrix $S \in \mathbb{R}^{(m+n) \times (m+n)}$ as,
+$$\begin{aligned}
+    \texttt{spectral\\_clip}\_{[\sigma, \sigma]}(W)
+        &= (1/2) \cdot [(\sigma + \sigma)I\nonumber\\\\
+        &\qquad\qquad\cancel{+ (\sigma \cdot\texttt{msign}(W) - W) \texttt{msign}(\sigma \cdot\texttt{msign}(W) - W)^T}\nonumber\\\\
+        &\qquad\qquad\cancel{- (\sigma  \cdot\texttt{msign}(W) - W) \texttt{msign}(\sigma  \cdot\texttt{msign}(W) - W)^T}\nonumber\\\\
+        &\qquad\qquad]\\;\texttt{msign}(W)\\\\
+    \texttt{spectral\\_clip}\_{[\sigma, \sigma]}(W) &= \sigma \cdot \texttt{msign}(W)\quad\blacksquare
+\end{aligned}$$
+
+### Unbounded below: Spectral Hardcapping
+
+![](spectral_hardcap.png#center)
+
+> Note: Su (2025) calls this "Singular Value Clipping" or "SVC" while our upcoming paper calls this "Spectral Hardcapping".
+
+Singular values are guaranteed to be non-negative, so if we only want to bound the singular values from above, we can simply set $\alpha = 0$ in Equation $\eqref{4}$, i.e.,
+$$\begin{align}
+    \texttt{clip}\_{[0, \beta]}(x) &= \frac{0 + \beta + (0 - x)\texttt{sign}(0 - x) - (\beta - x)\texttt{sign}(\beta - x)}{2}\nonumber\\\\
+    \texttt{clip}\_{[0, \beta]}(x) &= \frac{\beta + x - (\beta - x)\texttt{sign}(\beta - x)}{2}
+\end{align}$$
+Setting $\beta = 1$ recovers Su's (2025) and You's (2025) results. And following the approach above, we get,
+$$\begin{aligned}
+    \texttt{spectral\\_hardcap}(W; \beta)
+        &= \texttt{spectral\\_clip}\_{[0, \beta]}(W)\\\\
+    \texttt{spectral\\_hardcap}(W; \beta)
+        &= (1/2) \cdot [\beta \cdot \texttt{msign}(W) + W\\\\
+        &\qquad\qquad- (\beta  \cdot\texttt{msign}(W) - W) \texttt{msign}(\beta  \cdot\texttt{msign}(W) - W)^T \texttt{msign}(W)]
+\end{aligned}$$
+
+The following code implements this in JAX,
+```python
+def spectral_hardcap(W: jax.Array, beta: float=1.):
+    if flip := W.shape[0] > W.shape[1]:
+        W = W.T
+    OW = _orthogonalize_via_newton_schulz(W)
+    aW = beta * OW - W
+    result = (1/2) * (beta*OW + W - aW @ _orthogonalize_via_newton_schulz(aW).T @ OW)
+    if flip:
+        result = result.T
+    return result
+```
+We are now only calling `_orthogonalize_via_newton_schulz` twice here.
+
+### Unbounded above: Spectral (Shifted-)ReLU
+
+![](spectral_relu.png#center)
+
+If we only want to bound the singular values from below, we set $\beta = +\infty$ in Equation $\eqref{4}$. First note that for a fixed $x \in [0, \infty)$,
+$$\lim_{\beta \to +\infty} \texttt{sign}(\beta - x) = +1$$
+Thus,
+$$\begin{align}
+    \texttt{clip}\_{[\alpha, +\infty]}(x)
+        &= \lim_{\beta \to +\infty}\frac{\alpha + \beta + (\alpha - x)\texttt{sign}(\alpha - x) - (\beta - x)\texttt{sign}(\beta - x)}{2}\nonumber\\\\
+    \texttt{clip}\_{[\alpha, +\infty]}(x) &= \frac{\alpha + x + (\alpha - x)\texttt{sign}(\alpha - x)}{2}
+\end{align}$$
+And following the approach above, we get,
+$$\begin{aligned}
+    \texttt{spectral\\_relu}(W; \alpha)
+        &= \texttt{spectral\\_clip}\_{[\alpha, +\infty]}(W)\\\\
+    \texttt{spectral\\_relu}(W; \alpha)
+        &= (1/2) \cdot [\alpha \cdot \texttt{msign}(W) + W\\\\
+        &\qquad\qquad+ (\alpha  \cdot\texttt{msign}(W) - W) \texttt{msign}(\alpha  \cdot\texttt{msign}(W) - W)^T \texttt{msign}(W)]
+\end{aligned}$$
+
+The following code implements this in JAX,
+```python
+def spectral_relu(W: jax.Array, alpha: float=1.):
+    if flip := W.shape[0] > W.shape[1]:
+        W = W.T
+    OW = _orthogonalize_via_newton_schulz(W)
+    aW = alpha * OW - W
+    result = (1/2) * (alpha*OW + W + aW @ _orthogonalize_via_newton_schulz(aW).T @ OW)
+    if flip:
+        result = result.T
+    return result
+```
+
+## An alternative approach: Higham's Anti-Block-Diagonal Trick
+
+![](spectral_clip_abd_vs_nested_tight.gif#center)
+
+In the previous sections, we apply our matrix function directly on $W$ resulting in nested applications of $\texttt{msign}$. Here, we will instead use Higham's anti-block-diagonal trick (Higham, 2008). This allows us to compute `_orthogonalize_via_newton_schulz` only once, reducing the complexity of the operations albeit at the cost of more compute and memory usage. This trick may not be practical in most settings, but the reduced complexity of the operations may be worth it when designing linear attention mechanisms with the spectral clipping function as a "sub-network". A neat property is that this would allow us to naturally scale test-time compute by scaling the number of steps in `_orthogonalize_via_newton_schulz`.
+
+> **Theorem 3 (Higham's Anti-Block-Diagonal Trick)**. Let $g: \mathbb{R} \to \mathbb{R}$ be an odd analytic scalar function, $W \in \mathbb{R}^{m \times n}$, and construct the block matrix $S \in \mathbb{R}^{(m+n) \times (m+n)}$ as,
 > $$S := \begin{bmatrix}
     0 & W \\\\
     W^T & 0
@@ -152,8 +260,17 @@ Recall that we constructed $\texttt{clip}$ to be an *odd* function. This allows 
 > and hence,
 > $$g(W) = [g(S)]_{12}$$
 
-Setting $g = \texttt{clip}\_{[-1, 1]}$ and applying Theorem 2, we can construct $\texttt{spectral\\_clip}(\cdot; 1)$ as follows,
-$$\begin{equation}\texttt{spectral\\_clip}(W; 1) = \left[ \frac{(1+S) \texttt{msign}(I+S) - (I-S) \texttt{msign}(1-S)}{2} \right]\_{12}\end{equation}$$
+Note that, for this trick to work, our scalar function $\texttt{clip}_{[\alpha, \beta]}$ has to be *odd*. Thus we will impose the following constraint,
+$$\alpha = -\beta.$$
+Also note that,
+$$\texttt{clip}\_{[-\sigma\_{max}, \sigma\_{max}]}(x) = \sigma\_{max} \cdot \texttt{clip}\_{[-1, 1]}(x / \sigma\_{max})$$
+and thus it would suffice to construct $\texttt{spectral\\_clip}\_{[-1, 1]}(\cdot)$ first,
+$$\begin{equation}
+    \texttt{spectral\\_clip}\_{[-\sigma\_{max}, \sigma\_{max}]}(W) = \sigma\_{max}\cdot\texttt{spectral\\_clip}\_{[-1, 1]}(W / \sigma\_{max}).
+\end{equation}$$
+
+Now, applying Theorem 3 with $g = \texttt{clip}\_{[-1, 1]}$ gives us,
+$$\begin{equation}\texttt{spectral\\_clip}\_{[-1, 1]}(W) = \left[ \frac{(I+S) \texttt{msign}(I+S) - (I-S) \texttt{msign}(I-S)}{2} \right]\_{12}\end{equation}$$
 
 The following code implements this in JAX,
 ```python
@@ -171,7 +288,7 @@ def spectral_clip(W: jax.Array, sigma_max: float=1.):
     return sigma_max * _spectral_clip(W / sigma_max)
 ```
 
-Note that we're calling `_orthogonalize_via_newton_schulz` twice here, which is not ideal either. Luckily, there's a neat trick that allows us to compute it only once.
+Note that we are still calling `_orthogonalize_via_newton_schulz` twice here, which is not ideal either. Luckily, there's a neat trick that allows us to compute it only once.
 
 ### Optimizing the implementation via abstract algebra
 
@@ -192,7 +309,7 @@ where $P, R$ are symmetric matrices and $Q$ is an arbitrary matrix. It is a well
 
 Another neat property we can take advantage of is that flipping the signs of the anti-diagonal blocks gets preserved under application of matrix polynomials.
 
-> **Proposition 3 (Parity w.r.t. $Q \to -Q$ when applying odd matrix polynomial $\texttt{p}(\cdot)$)**.
+> **Proposition 3 (Parity w.r.t. $Q \to -Q$ when applying matrix polynomial $\texttt{p}(\cdot)$)**.
 > Let $A \in \mathcal{A}$ such that, $$A = \begin{bmatrix}
     P & Q \\\\
     Q^T & R
@@ -237,10 +354,10 @@ $$\begin{align}
         -Q^{\*T} & R^{\*}
     \end{bmatrix} &= \texttt{\\_orthogonalize\\_via\\_newton\\_schulz}(I - S)
 \end{align}$$
-for some $Q^{\*} \in \mathbb{R}^{m \times n}$ and symmetric $P^{\*} \in \mathbb{R}^{m \times m}$, $R^{\*} \in \mathbb{R}^{n \times n}$. And combining these with Equation 6, we get,
+for some $Q^{\*} \in \mathbb{R}^{m \times n}$ and symmetric $P^{\*} \in \mathbb{R}^{m \times m}$, $R^{\*} \in \mathbb{R}^{n \times n}$. Together with Equation 11, we get,
 
 $$\begin{align}
-    \texttt{spectral\\_clip}(W; 1) &= \left[\frac{\begin{bmatrix}
+    \texttt{spectral\\_clip}\_{[-1, 1]}(W) &= \scriptsize\frac{1}{2}\left[\begin{bmatrix}
         I_m & W \\\\
         W^T & I_n
     \end{bmatrix}
@@ -254,23 +371,22 @@ $$\begin{align}
     \begin{bmatrix}
         P^{\*} & -Q^{\*} \\\\
         -Q^{*T} & R^{\*}
-    \end{bmatrix}}{2}\right]\_{12}\\\\
-    &= \left[\frac{\begin{bmatrix}
+    \end{bmatrix}\right]\_{12}\\\\
+    &= \scriptsize \frac{1}{2} \left[\begin{bmatrix}
         P^{\*} + WQ^{\*T} & Q^{\*} + WR^{\*} \\\\
         W^TP^{\*}+Q^{\*T} & W^TQ^{\*} + R^{\*}
     \end{bmatrix} - \begin{bmatrix}
         P^{\*} + WQ^{\*T} & -(Q^{\*} + WR^{\*}) \\\\
         -(W^TP^{\*}+Q^{\*T}) & W^TQ^{\*} + R^{\*}
-    \end{bmatrix}}{2}\right]\_{12}\\\\
-    &= \begin{bmatrix}
+    \end{bmatrix}\right]\_{12}\\\\
+    &= \scriptsize\begin{bmatrix}
         0 & Q^{\*} + WR^{\*} \\\\
         W^TP^{\*}+Q^{\*T} & 0
     \end{bmatrix}\_{12} \\\\
-    \texttt{spectral\\_clip}(W; 1) &= Q^{\*} + WR^{\*} \\\\
-    \texttt{spectral\\_clip}(W; \sigma\_{max}) &= \sigma\_{max} \cdot Q^{\*} + WR^{\*}
+    \texttt{spectral\\_clip}\_{[-1, 1]}(W) &= Q^{\*} + WR^{\*}
 \end{align}$$
 
-This means that we only need to call `_orthogonalize_via_newton_schulz` once, and simply read off the blocks to compute the final result, leading to massive speedups. Also note that the diagonal blocks in Equation (12) are zero, which is what we expect from Theorem 2.
+This means that we only need to call `_orthogonalize_via_newton_schulz` once, and simply read off the blocks to compute the final result, leading to massive speedups. Also note that the diagonal blocks in Equation (12) are zero, which is what we expect from Theorem 3.
 
 In JAX, this looks like the following:
 ```python
@@ -292,23 +408,54 @@ def spectral_clip_minimal(W: jax.Array, sigma_max: float=1., ortho_dtype=jnp.flo
     return sigma_max*OH[:W.shape[0], W.shape[0]:] + W @ OH[W.shape[0]:, W.shape[0]:]
 ```
 
-### Taking advantage of symmetry [Under Construction]
+### Taking advantage of symmetry
 
-This section is still under construction. The crux is that we don't actually need to materialize the entire $(m + n) \times (m + n)$ block matrix $S$ in memory *and then* do Newton-Schulz on it. Instead, we can maintain only the current $P$, $Q$, and $R$ blocks in memory, and handle matrix multiplications with extra care.
+The crux is that since both $I + S$ and $I - S$ are in the sub-algebra $\mathcal{A}$, Newton-Schulz iteration must preserve their block structure. Thus, we do not actually need to materialize the entire $(m + n) \times (m + n)$ block matrices. And note that,
+
+$$\begin{aligned}
+    \begin{bmatrix}
+        P_i   & Q_i\\\\
+        Q_i^T & R_i
+    \end{bmatrix}\begin{bmatrix}
+        P_j   & Q_j\\\\
+        Q_j^T & R_j
+    \end{bmatrix}^T &= \begin{bmatrix}
+        P_i P_j   + Q_i Q_j^T & P_i Q_j   + Q_i R_j\\\\
+        Q_i^T P_j + R_i Q_j^T & Q_i^T Q_j + R_i R_j
+    \end{bmatrix}
+\end{aligned}$$
+Thus we can implement the (blocked) matrix multiplications as,
+```pyton
+@jax.jit
+def block_matmul(
+    P1: jax.Array, Q1: jax.Array, R1: jax.Array,
+    P2: jax.Array, Q2: jax.Array, R2: jax.Array,
+) -> Tuple[jax.Array, jax.Array, jax.Array]:
+    P = P1 @ P2   + Q1 @ Q2.T
+    Q = P1 @ Q2   + Q1 @ R2
+    R = Q1.T @ Q2 + R1 @ R2
+    return P, Q, R
+```
+and implement one step of Newton-Schulz iteration as,
+```python
+def newton_schulz_iter(
+    P: jax.Array, Q: jax.Array, R: jax.Array,
+    a: float, b: float, c: float,
+):
+    I_P = a * jnp.eye(P.shape[0], dtype=P.dtype)
+    I_R = a * jnp.eye(R.shape[0], dtype=R.dtype)
+    P2, Q2, R2 = block_matmul(P, Q, R, P, Q, R)
+    P4, Q4, R4 = block_matmul(P2, Q2, R2, P2, Q2, R2)
+    Ppoly = I_P + b * P2 + c * P4
+    Qpoly =       b * Q2 + c * Q4
+    Rpoly = I_R + b * R2 + c * R4
+    return block_matmul(P, Q, R, Ppoly, Qpoly, Rpoly)
+```
+We then initialize the blocks as $P_0 = I_{m}$, $Q_0 = \pm W$, and $R_0 = I_m$, apply Newton-Schulz iteration as described above to get $(P^\*, Q^\*, R^\*)$, and finally return $Q^\* + WR^\*$. This should give efficiency gains vs. the naive implementation.
 
 ## Experimental results [Under Construction]
 
 This section is also still under construction.
-
----
-
-Here
-
-![](spectral_clipping.png#center)
-
-![](spectral_clipping_2.png#center)
-
----
 
 [NanoGPT Speedrun results will be added here]
 
@@ -331,6 +478,6 @@ Many thanks to Rohan Anil for initiating a [discussion thread on the topic on Tw
 
 1. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
 2. Higham, Nicholas J. (2008). Functions of Matrices: Theory and Computation. SIAM.
-3. Jianlin Su (2025). Calculation of mclip (singular value clipping) via msign. Available at: https://kexue.fm/archives/11006
+3. Jianlin Su (2025). Calculation of spectral\\_clip (singular value clipping) via msign. Available at: https://kexue.fm/archives/11006
 4. Jiacheng You (2025). On a more efficient way to compute spectral clipping via nested matrix sign functions. Available at: https://x.com/YouJiacheng/status/1931029612102078749
 5. Arthur Breitman (2025). On using the matrix sign function for spectral clipping. Available at: https://x.com/ArthurB/status/1929958284754330007

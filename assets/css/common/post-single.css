@@ -50,11 +50,11 @@
 }
 
 .post-content h3 {
-    font-size: 19px;    
+    font-size: 19px;
 }
 
 .post-content h4 {
-    font-size: 15px;    
+    font-size: 15px;
     font-weight: var(--semibold);
     text-transform: uppercase;
     color: var(--gray);
@@ -76,7 +76,7 @@
 .post-meta a,
 .toc a:hover {
     box-shadow: 0 2px 0 var(--darkcolor);
-    color: currentColor; 
+    color: currentColor;
 }
 
 .post-content a code {
@@ -100,7 +100,7 @@
 .post-content ol,
 .post-content ul {
     padding-inline-start: 20px;
-    margin-left: var(--marginleft); 
+    margin-left: var(--marginleft);
 }
 
 .post-content li {
@@ -132,12 +132,14 @@
     padding-inline-start: 10px;
 }
 
-.post-content dd ~ dd,
-.post-content dt ~ dt {
+.post-content dd~dd,
+.post-content dt~dt {
     margin-top: 10px;
 }
 
 .post-content table {
+    margin-left: auto;
+    margin-right: auto;
     margin-bottom: var(--content-gap);
 }
 
@@ -153,8 +155,8 @@
     text-align: start;
     font-size: 14px;
     font-weight: var(--semibold);
-    text-transform: uppercase;
-    color: var(--gray);
+    /*text-transform: uppercase;*/
+    color: var(--black);
     border-bottom: 2px solid var(--tertiary);
 }
 
@@ -173,7 +175,7 @@
     direction: ltr;
 }
 
-.post-content li > .highlight {
+.post-content li>.highlight {
     margin-inline-end: 0;
 }
 
@@ -251,14 +253,14 @@
     text-align: center;
 }
 
-.post-content figure > figcaption {
+.post-content figure>figcaption {
     color: var(--primary);
     font-size: 16px;
     font-weight: bold;
     margin: 8px 0 16px;
 }
 
-.post-content figure > figcaption > p {
+.post-content figure>figcaption>p {
     color: var(--secondary);
     font-size: 14px;
     font-weight: normal;
@@ -431,10 +433,12 @@ img.in-text {
     margin: auto;
 }
 
-a[href^="#fn:"], a[href^="#fnref:"] {
-     box-shadow: 0 0px 0 var(--darkcolor);
+a[href^="#fn:"],
+a[href^="#fnref:"] {
+    box-shadow: 0 0px 0 var(--darkcolor);
 }
 
-a[href^="#fn:"]:hover, a[href^="#fnref:"]:hover {
+a[href^="#fn:"]:hover,
+a[href^="#fnref:"]:hover {
     color: var(--darkcolor);
 }
