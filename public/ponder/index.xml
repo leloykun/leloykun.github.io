@@ -9,7 +9,7 @@
     <lastBuildDate>Thu, 05 Jun 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/ponder/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Numerically Stable Spectral Clipping Via Newton-Schulz Iteration</title>
+      <title>Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration</title>
       <link>https://leloykun.github.io/ponder/spectral-clipping/</link>
       <pubDate>Thu, 05 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/ponder/spectral-clipping/</guid>

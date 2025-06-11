@@ -57,7 +57,7 @@
     font-size: 15px;
     font-weight: var(--semibold);
     text-transform: uppercase;
-    color: var(--gray);
+    color: var(--darkgray);
 }
 
 .post-content h5 {
