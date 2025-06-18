@@ -309,10 +309,18 @@ And while it is unbounded above by itself, we can still use it to bound the spec
 \end{aligned}$$
 > Hence $\sigma\_{\text{eq}}$ is indeed an equilibrium point. $\quad\blacksquare$
 
+Lastly, note that as we decay the learning rate to zero throughout training, the equilibrium point approaches $\beta$,
+$$\sigma^*\_{\text{eq}} = \lim_{\eta \to 0} \beta + \frac{\eta}{\lambda} = \beta$$
+Thus, unlike standard weight decay, we do not have to worry about the weights collapsing to zero as we dial down the learning rate. But if one wants the equilibrium point to be independent of the learning rate, one can simply set $\lambda_\text{coupled} = \eta\lambda$ and the new equilibrium point becomes,
+$$\sigma\_{\text{eq,coupled}} = \beta + \frac{1}{\lambda}$$
+
 In JAX, this can be implemented as follows,
 ```python
 def spectral_clipped_weight_decay(W: jax.Array, beta: float=1., lamb: float=0.5):
     return (1-lamb) * W + lamb * spectral_hardcap(W, beta)
+
+def spectral_clipped_coupled_weight_decay(W: jax.Array, beta: float=1., lamb: float=0.5, learning_rate):
+    return spectral_clipped_weight_decay(W, beta, lamb * learning_rate)
 ```
 
 ## 4. An alternative approach: Higham's Anti-Block-Diagonal Trick
