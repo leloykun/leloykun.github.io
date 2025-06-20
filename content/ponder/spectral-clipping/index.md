@@ -276,7 +276,7 @@ $$\begin{aligned}
     \texttt{spectral\\_clipped\\_weight\\_decay}\_{\lambda,\beta}(W) &= (1-\lambda) W + \lambda\cdot\texttt{spectral\\_hardcap}\_\beta(W)
 \end{aligned}$$
 
-And while it is unbounded above by itself, we can still use it to bound the spectral norm of the weights--assuming that we constrain the weight updates as discussed in previous sections. Liu et al. (2025) and Pethick et al. (2025) have previously derived an equilibrium point for standard weight decay with the Muon optimizer, i.e., it "pulls" the weight norms towards $\frac{1}{\lambda}$. In our upcoming paper, we briefly discuss a more general way to derive such equilibrium points for various weight constraints. Here, we use the same trick to derive the equilibrium point for Spectral Clipped Weight Decay.
+And while it is unbounded above by itself, we can still use it to bound the spectral norm of the weights--assuming that we constrain the weight updates as discussed in previous sections. Liu et al. (2025), Pethick et al. (2025), and Liu (2025) have previously derived an equilibrium point for standard (decoupled) weight decay with the Muon optimizer, i.e., it "pulls" the weight norms towards $\frac{1}{\lambda}$. In our upcoming paper, we briefly discuss a more general way to derive such equilibrium points for various weight constraints. Here, we use the same trick to derive the equilibrium point for Spectral Clipped Weight Decay.
 
 > **Claim 4 (Equilibrium Point of Spectral Clipped Weight Decay)**. Let $\eta \in (0, \infty)$ be the learning rate, $\lambda \in (0, 1]$ be the decay term, and $\beta \in (0, \infty)$ be the singular value threshold above which we start applying the decay term. Additionally, suppose that the weight updates are constrained to have norm $||\Delta W|| \leq \eta$. Then Spectral Clipped Weight Decay has an equilibrium point $\sigma_{\text{eq}}$,
 > $$\begin{aligned}
@@ -336,7 +336,6 @@ And while it is unbounded above by itself, we can still use it to bound the spec
 \end{aligned}$$
 > and we can verify that it is indeed an equilibrium point similarly to the first case.
 
-
 Note that as we decay the learning rate to zero throughout training, the equilibrium point approaches $\beta$,
 
 $$\sigma^*\_{\text{eq}} = \lim\_{\eta \to 0} \begin{cases}
@@ -347,9 +346,7 @@ $$\sigma^*\_{\text{eq}} = \lim\_{\eta \to 0} \begin{cases}
 Thus, unlike standard weight decay, we do not have to worry about the weights collapsing to zero as we dial down the learning rate. But if we want the equilibrium point to be independent of the learning rate, we have to go with the second case above where we project first then take a gradient step and set $\lambda_\text{decoupled} = \eta\lambda$ and the new equilibrium point becomes,
 $$\sigma\_{\text{eq,decoupled}} = \beta + \frac{1}{\lambda}$$
 
-Lastly, unlike standard decoupled weight decay which has equilibrium point,
-$$\sigma^{\text{standard wd}}\_{\text{eq,decoupled}} = \frac{1}{\lambda}$$
-spectral clipped weight decay allows us to have much tigher weight norm bounds without being too aggressive with the decay. For example, to have an equilibrium point of $\sigma\_{\text{eq,decoupled}} = 1$, we have to set $\lambda = 1$ for standard decoupled weight decay, which quickly pulls the weights to zero. On the other hand, with spectral clipped weight decay, we can simply set $\beta = 1$ and let the learning rate decay to zero throughout training, which is what we already do in practice anyway. This allows us to set $\lambda$ to a much smaller value, minimizing performance degradation while still keeping the weight norms in check.
+Lastly, note that spectral clipped weight decay allows us to have much tighter weight norm bounds without being too aggressive with the decay. For example, to have an equilibrium point of $\sigma\_{\text{eq,decoupled}} = 1$, we have to set $\lambda = 1$ for standard decoupled weight decay, which quickly pulls the weights to zero. On the other hand, with spectral clipped weight decay, we can simply set $\beta = 1$ and let the learning rate decay to zero throughout training, which is what we already do in practice anyway. This allows us to set $\lambda$ to a much smaller value, minimizing performance degradation while still keeping the weight norms in check.
 
 In JAX, this can be implemented as follows,
 ```python
@@ -691,13 +688,14 @@ Many thanks to Rohan Anil for initiating a [discussion thread on the topic on Tw
 6. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
 7. Jianlin Su (2025). Higher-order muP: A more concise but more intelligent spectral condition scaling. URL https://kexue.fm/archives/10795
 8. Jingyuan Liu, Jianlin Su, Xingcheng Yao, Zhejun Jiang, Guokun Lai, Yulun Du, Yidao Qin, Weixin Xu, Enzhe Lu, Junjie Yan, Yanru Chen, Huabin Zheng, Yibo Liu, Shaowei Liu, Bohong Yin, Weiran He, Han Zhu, Yuzhi Wang, Jianzhou Wang, Mengnan Dong, Zheng Zhang, Yongsheng Kang, Hao Zhang, Xinran Xu, Yutao Zhang, Yuxin Wu, Xinyu Zhou, Zhilin Yang (2025). Muon is Scalable for LLM Training. URL https://arxiv.org/abs/2502.16982
-9. Higham, Nicholas J. (2008). Functions of Matrices: Theory and Computation. SIAM.
-10. Jianlin Su (2025). Calculation of spectral_clip (singular value clipping) via msign. Available at: https://kexue.fm/archives/11006
-11. Jiacheng You (2025). On a more efficient way to compute spectral clipping via nested matrix sign functions. Available at: https://x.com/YouJiacheng/status/1931029612102078749
-12. Arthur Breitman (2025). On using the matrix sign function for spectral clipping. Available at: https://x.com/ArthurB/status/1929958284754330007
-13. Alethea Power, Yuri Burda, Harri Edwards, Igor Babuschkin, Vedant Misra (2022). Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets. URL https://arxiv.org/abs/2201.02177
-14. Lucas Prieto, Melih Barsbey, Pedro A.M. Mediano, Tolga Birdal (2025). Grokking at the Edge of Numerical Stability. URL https://arxiv.org/abs/2501.04697
-15. Amund Tveit, Bjørn Remseth, Arve Skogvold (2025). Muon Optimizer Accelerates Grokking. https://arxiv.org/abs/2504.16041
-16. Jeremy Bernstein and Laker Newhouse. “Old optimizer, new norm: An anthology.” arXiv preprint arXiv:2409.20325 (2024).
-17. Zixuan Chen, Xialin He, Yen-Jen Wang, Qiayuan Liao, Yanjie Ze, Zhongyu Li, S. Shankar Sastry, Jiajun Wu, Koushil Sreenath, Saurabh Gupta, Xue Bin Peng (2024). Learning Smooth Humanoid Locomotion through Lipschitz-Constrained Policies. URL https://arxiv.org/abs/2410.11825
-18. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
+9. Qiang Liu (2025). Muon is a Nuclear Lion King. URL https://www.cs.utexas.edu/~lqiang/lionk/html/intro.html
+10. Higham, Nicholas J. (2008). Functions of Matrices: Theory and Computation. SIAM.
+11. Jianlin Su (2025). Calculation of spectral_clip (singular value clipping) via msign. Available at: https://kexue.fm/archives/11006
+12. Jiacheng You (2025). On a more efficient way to compute spectral clipping via nested matrix sign functions. Available at: https://x.com/YouJiacheng/status/1931029612102078749
+13. Arthur Breitman (2025). On using the matrix sign function for spectral clipping. Available at: https://x.com/ArthurB/status/1929958284754330007
+14. Alethea Power, Yuri Burda, Harri Edwards, Igor Babuschkin, Vedant Misra (2022). Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets. URL https://arxiv.org/abs/2201.02177
+15. Lucas Prieto, Melih Barsbey, Pedro A.M. Mediano, Tolga Birdal (2025). Grokking at the Edge of Numerical Stability. URL https://arxiv.org/abs/2501.04697
+16. Amund Tveit, Bjørn Remseth, Arve Skogvold (2025). Muon Optimizer Accelerates Grokking. https://arxiv.org/abs/2504.16041
+17. Jeremy Bernstein and Laker Newhouse. “Old optimizer, new norm: An anthology.” arXiv preprint arXiv:2409.20325 (2024).
+18. Zixuan Chen, Xialin He, Yen-Jen Wang, Qiayuan Liao, Yanjie Ze, Zhongyu Li, S. Shankar Sastry, Jiajun Wu, Koushil Sreenath, Saurabh Gupta, Xue Bin Peng (2024). Learning Smooth Humanoid Locomotion through Lipschitz-Constrained Policies. URL https://arxiv.org/abs/2410.11825
+19. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
