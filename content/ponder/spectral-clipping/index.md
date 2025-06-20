@@ -403,8 +403,8 @@ def _spectral_clip(W: jax.Array):
     I = jnp.eye(m + n)
     S = jnp.block([[jnp.zeros((m, m)), W], [W.T, jnp.zeros((n, n))]])
     gS = (1/2) * (
-        (I + S) @ _orthogonalize_via_newton_schulz (I + S)
-        - (I - S) @ _orthogonalize_via_newton_schulz (I - S)
+        (I + S) @ _orthogonalize_via_newton_schulz(I + S)
+        - (I - S) @ _orthogonalize_via_newton_schulz(I - S)
     )
     return gS[:m, m:]  # read off the top-right block
 
@@ -465,8 +465,8 @@ This is a standard result. To see why,
         0 & -I_n
     \end{bmatrix}
     \begin{bmatrix}
-        \widetilde{P} & -\widetilde{Q} \\\\
-        -\widetilde{Q}^T & \widetilde{R}
+        \widetilde{P} & \widetilde{Q} \\\\
+        \widetilde{Q}^T & \widetilde{R}
     \end{bmatrix}
     \begin{bmatrix}
         I_m & 0 \\\\
@@ -476,8 +476,8 @@ This is a standard result. To see why,
         0 & -I_n
     \end{bmatrix}
     \begin{bmatrix}
-        P & -Q \\\\
-        -Q^T & R
+        P & Q \\\\
+        Q^T & R
     \end{bmatrix}
     \begin{bmatrix}
         I_m & 0 \\\\
@@ -553,7 +553,7 @@ def spectral_clip(W: jax.Array, sigma_max: float=1.):
 And a codegolf version would be,
 ```python
 def spectral_clip_minimal(W: jax.Array, sigma_max: float=1., ortho_dtype=jnp.float32):
-    OH = _orthogonalize_via_newton_schulz (jnp.block([[jnp.eye(W.shape[0]), W / sigma_max], [W.T / sigma_max, jnp.eye(W.shape[1])]]).astype(ortho_dtype)).astype(W.dtype)
+    OH = _orthogonalize_via_newton_schulz(jnp.block([[jnp.eye(W.shape[0]), W / sigma_max], [W.T / sigma_max, jnp.eye(W.shape[1])]]).astype(ortho_dtype)).astype(W.dtype)
     return sigma_max*OH[:W.shape[0], W.shape[0]:] + OH[:W.shape[0], :W.shape[0]] @ W
     # return sigma_max*OH[:W.shape[0], W.shape[0]:] + W @ OH[W.shape[0]:, W.shape[0]:]
 ```
@@ -592,16 +592,16 @@ def newton_schulz_iter(
     P: jax.Array, Q: jax.Array, R: jax.Array,
     a: float, b: float, c: float,
 ):
-    I_P = a * jnp.eye(P.shape[0], dtype=P.dtype)
-    I_R = a * jnp.eye(R.shape[0], dtype=R.dtype)
+    I_P = jnp.eye(P.shape[0], dtype=P.dtype)
+    I_R = jnp.eye(R.shape[0], dtype=R.dtype)
     P2, Q2, R2 = block_matmul(P, Q, R, P, Q, R)
     P4, Q4, R4 = block_matmul(P2, Q2, R2, P2, Q2, R2)
-    Ppoly = I_P + b * P2 + c * P4
-    Qpoly =       b * Q2 + c * Q4
-    Rpoly = I_R + b * R2 + c * R4
+    Ppoly = a * I_P + b * P2 + c * P4
+    Qpoly =           b * Q2 + c * Q4
+    Rpoly = a * I_R + b * R2 + c * R4
     return block_matmul(P, Q, R, Ppoly, Qpoly, Rpoly)
 ```
-We then initialize the blocks as $P_0 = I_{m}$, $Q_0 = W$, and $R_0 = I_m$, apply Newton-Schulz iteration as described above to get $(\widetilde{P}, \widetilde{Q}, \widetilde{R})$, and finally return $\widetilde{Q} + W\widetilde{R}$ or $\widetilde{Q} + \widetilde{P} W$. This should give efficiency gains vs. the naive implementation.
+We then initialize the blocks as $P_0 = I_{m}$, $Q_0 = W$, and $R_0 = I_m$, apply Newton-Schulz iteration as described above to get $(\widetilde{P}, \widetilde{Q}, \widetilde{R})$, and finally return $\widetilde{Q} + W\widetilde{R}$ or $\widetilde{Q} + \widetilde{P} W$. This gives us efficiency gains vs. the naive implementation.
 
 ## 5. Runtime analysis
 
@@ -624,7 +624,9 @@ This section is still under construction.
 
 ### 6.1. Anti-Block-Diagonal Trick leads to more numerically stable Spectral Hardcapping
 
-In Section (4) we made the claim that the nested implementation of spectral hardcapping is numerically unstable on large inputs. To verify this claim, we randomly generate matrices of size $1024 \times 4096$ (the size of a MLP projection layer in the NanoGPT-medium speedrun) with various spectral norms, pass them to $\texttt{spectral\\_hardcap}\_{\beta=1}$ using the various implementations, and report the spectral norms of the results. We label the blockwise implementation discussed in Section (4.3) as the "Sparse Anti-Block-Diagonal Trick" and the fully-materialized version as the "Dense Anti-Block-Diagonal Trick".
+In Section (4) we made the claim that the nested implementation of spectral hardcapping is numerically unstable on large inputs. To verify this claim, we randomly generate matrices of size $1024 \times 4096$ (the size of a MLP projection layer in the NanoGPT-medium speedrun) with various spectral norms, pass them to $\texttt{spectral\\_hardcap}\_{\beta=1}$ using the various implementations, and report the spectral norms of the results.
+
+We label the fully-materialized implementation discussed in Section (4.2) as the "Dense Anti-Block-Diagonal Trick" and the blockwise implementation discussed in Section (4.3) as the "Sparse Anti-Block-Diagonal Trick".
 
 ![](spectral_hardcap_comparison_tight.gif#center)
 
