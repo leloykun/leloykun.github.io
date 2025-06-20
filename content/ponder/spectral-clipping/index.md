@@ -337,7 +337,7 @@ And while it is unbounded above by itself, we can still use it to bound the spec
 > and we can verify that it is indeed an equilibrium point similarly to the first case.
 
 
-Lastly, note that as we decay the learning rate to zero throughout training, the equilibrium point approaches $\beta$,
+Note that as we decay the learning rate to zero throughout training, the equilibrium point approaches $\beta$,
 
 $$\sigma^*\_{\text{eq}} = \lim\_{\eta \to 0} \begin{cases}
     \beta + \frac{1-\lambda}{\lambda}\eta\\\\
@@ -346,6 +346,10 @@ $$\sigma^*\_{\text{eq}} = \lim\_{\eta \to 0} \begin{cases}
 
 Thus, unlike standard weight decay, we do not have to worry about the weights collapsing to zero as we dial down the learning rate. But if we want the equilibrium point to be independent of the learning rate, we have to go with the second case above where we project first then take a gradient step and set $\lambda_\text{decoupled} = \eta\lambda$ and the new equilibrium point becomes,
 $$\sigma\_{\text{eq,decoupled}} = \beta + \frac{1}{\lambda}$$
+
+Lastly, unlike standard decoupled weight decay which has equilibrium point,
+$$\sigma^{\text{standard wd}}\_{\text{eq,decoupled}} = \frac{1}{\lambda}$$
+spectral clipped weight decay allows us to have much tigher weight norm bounds without being too aggressive with the decay. For example, to have an equilibrium point of $\sigma\_{\text{eq,decoupled}} = 1$, we have to set $\lambda = 1$ for standard decoupled weight decay, which quickly pulls the weights to zero. On the other hand, with spectral clipped weight decay, we can simply set $\beta = 1$ and let the learning rate decay to zero throughout training, which is what we already do in practice anyway. This allows us to set $\lambda$ to a much smaller value, minimizing performance degradation while still keeping the weight norms in check.
 
 In JAX, this can be implemented as follows,
 ```python

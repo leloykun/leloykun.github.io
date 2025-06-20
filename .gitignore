@@ -3,4 +3,5 @@
 notes.ipynb
 content/**/*.ipynb
 public/**/*.ipynb
-content/ponder/*/temp/*
+content/ponder/*/temp/
+public/ponder/*/temp/
