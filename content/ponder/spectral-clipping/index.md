@@ -632,7 +632,7 @@ Observe that both the sparse and dense versions properly cap the spectral norms 
 
 ### 6.2. Weight constraints accelerate grokking (and improves robustness)
 
-![](weight_constraints_grokking.png#center)
+![](weight_constraints_grokking_2.png#center)
 
 > Note: we used an unreleased updated version of the Modula library (Bernstein et al., 2024) for this work. We will update this post with a link to experimt codes once the library is released.
 
@@ -653,11 +653,11 @@ All weights are stored in `bfloat16` and all operations are done in `bfloat16` a
 
 #### 6.2.2. Results
 
-The models fail to grok within 1K steps without the use of projection maps or weight constraints, which is consistent with previous results. They also fail to grok with the matrix sign function as the projection map, indicating that constraining the weights to the Stiefel manifold is too strong of a constraint.
+Without projection maps or weight constraints, the models fail to grok on both tasks with 1K steps, which is consistent with previous results (Prieto et al., 2025). They also fail to grok with the matrix sign function as the projection map, suggesting that constraining the weights to the Stiefel manifold is too strong of a constraint.
 
-Interestingly, simply capping the RMS norms of the embeddings already allows the models to grok and rapidly at that: the median steps-to-grok for both tasks are 345 and 334.5 steps, respectively. The downside is that the models have three orders of magnitude larger Lipschitz bounds, making them *very* sensitive to the inputs. We now treat this as our baseline.
+Interestingly, simply capping the RMS norms of the embeddings already allows the models to grok and rapidly at that: the median steps-to-grok for both the add-mod-133 and mul-mod-113 tasks are 227 and 233 steps, respectively. The downside is that the models have four to five orders of magnitude larger Lipschitz bounds, making them *very* sensitive to the inputs. We now treat this as our baseline.
 
-Finally, spectral normalization, spectral hardcapping, and spectral clipped weight decay all also allow the models to grok consistently within 1K steps. Larger $\lambda$ leads to lower-Lipschitz (i.e., more stable) models that grok relatively slower and vice versa. Another interesting observation is that with $\lambda = \frac{1}{3}$, the models not only grok faster compared to baseline, but also have much lower Lipschitz bounds, on par with stronger constraints.
+Finally, spectral normalization, spectral hardcapping, and spectral clipped weight decay all also allow the models to grok consistently on both tasks within 1K steps. For spectral clipped weight decay, in particular, larger $\lambda$ leads to lower-Lipschitz (i.e., more stable) models that grok relatively slower and smaller $\lambda$ leads to higher-Lipschitz (i.e., less stable) models that grok relatively faster. And this trade-off between stability of the trained model and speed-to-grok seems to be predictable.
 
 ### 6.3 NanoGPT Speedrun results [Under Construction]
 
