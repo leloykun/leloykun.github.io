@@ -264,70 +264,110 @@ We are now only calling `_orthogonalize_via_newton_schulz` twice here.
 Here we combine weight decay and spectral hardcapping by only applying the 'decay' term $\lambda$ to the singular values above a certain threshold $\beta$,
 
 $$\begin{aligned}
-    \texttt{spectral\\_clipped\\_weight\\_decay}\_{\lambda,\beta}(W) &= U\text{diag}\left(\begin{cases}
-    \sigma_i & \texttt{if } \sigma_i \leq \beta \\\\
-    (1-\lambda)\sigma_i + \lambda\beta & \texttt{if } \sigma_i > \beta \\\\
-    \end{cases}\right)V^T\\\\
+\texttt{clipped\\_weight\\_decay}\_{\lambda,\beta}(x) &= (1-\lambda)x + \lambda\cdot\texttt{clip}\_{[0, \beta]}(x)\\\\
+\texttt{clipped\\_weight\\_decay}\_{\lambda,\beta}(x) &= \begin{cases}
+    x & \texttt{if } x \leq \beta\\\\
+    (1-\lambda)x + \lambda\beta & \texttt{if } x > \beta \\\\
+    \end{cases}
+\end{aligned}$$
+and,
+$$\begin{aligned}
+    \texttt{spectral\\_clipped\\_weight\\_decay}\_{\lambda,\beta}(W) &= U \texttt{clipped\\_weight\\_decay}\_{\lambda,\beta}(\Sigma) V^T\\\\
     \texttt{spectral\\_clipped\\_weight\\_decay}\_{\lambda,\beta}(W) &= (1-\lambda) W + \lambda\cdot\texttt{spectral\\_hardcap}\_\beta(W)
 \end{aligned}$$
 
-And while it is unbounded above by itself, we can still use it to bound the spectral norm of the weights--assuming that we constrain the weight updates as discussed in previous sections. Liu et al., (2025) has previously derived an equilibrium point for standard weight decay with the Muon optimizer, i.e., it "pulls" the weight norms towards $\frac{1}{\lambda}$. In our upcoming paper, we briefly discuss a more general way to derive such equilibrium points for various weight constraints. Here, we use the same trick to derive the equilibrium point for Spectral Clipped Weight Decay.
+And while it is unbounded above by itself, we can still use it to bound the spectral norm of the weights--assuming that we constrain the weight updates as discussed in previous sections. Liu et al. (2025) and Pethick et al. (2025) have previously derived an equilibrium point for standard weight decay with the Muon optimizer, i.e., it "pulls" the weight norms towards $\frac{1}{\lambda}$. In our upcoming paper, we briefly discuss a more general way to derive such equilibrium points for various weight constraints. Here, we use the same trick to derive the equilibrium point for Spectral Clipped Weight Decay.
 
 > **Claim 4 (Equilibrium Point of Spectral Clipped Weight Decay)**. Let $\eta \in (0, \infty)$ be the learning rate, $\lambda \in (0, 1]$ be the decay term, and $\beta \in (0, \infty)$ be the singular value threshold above which we start applying the decay term. Additionally, suppose that the weight updates are constrained to have norm $||\Delta W|| \leq \eta$. Then Spectral Clipped Weight Decay has an equilibrium point $\sigma_{\text{eq}}$,
-> $$\sigma\_{\text{eq}} = \beta + \frac{\eta}{\lambda}$$
+> $$\begin{aligned}
+    \sigma\_{\text{eq}} = \begin{cases}
+        \beta + \frac{1-\lambda}{\lambda}\eta & \texttt{if } \text{we take a gradient step first then project}\\\\
+        \beta + \frac{\eta}{\lambda} & \texttt{if } \text{we project first then take a gradient step}
+    \end{cases}
+\end{aligned}$$
 > which it "pulls" the spectral norm of the weights towards.
 
-> **Proof**. Note that after every update step, we have,
+> **Proof**. Let's consider the first case where we take a gradient step first then project,
+> $$W\_{t+1} = \texttt{spectral\\_clipped\\_weight\\_decay}\_{\lambda,\beta}(W\_t + \Delta W\_t)$$
+> By the subadditivity of norms, we have $||W_t + \Delta W_t|| \leq ||W_t|| + ||\Delta W_t|| \leq ||W_t|| + \eta$. Thus, we can bound the spectral norm of the weights after every update step,
 > $$\begin{aligned}
-    ||W_{t+1}|| &= ||\texttt{spectral\\_clipped\\_weight\\_decay}\_{\lambda,\beta}(W_t) + \Delta W|| \\\\
-    ||W\_{t+1}|| &\leq ||\texttt{spectral\\_clipped\\_weight\\_decay}\_{\lambda,\beta}(W_t)|| + \eta\\\\
+    \sigma'\_{\max} &\leq \texttt{clipped\\_weight\\_decay}\_{\lambda,\beta}(\sigma\_{\max} + \eta)\\\\
     \sigma'\_{\max} &\leq \begin{cases}
-        \sigma\_{\max} + \eta & \texttt{if } \sigma\_{\max} \leq \beta\\\\
-        (1-\lambda)\sigma\_{\max} + \lambda\beta + \eta & \texttt{if } \sigma\_{\max} > \beta
+        \sigma\_{\max} + \eta & \texttt{if } \sigma\_{\max} + \eta \leq \beta\\\\
+        (1-\lambda)(\sigma\_{\max} + \eta) + \lambda\beta & \texttt{if } \sigma\_{\max} + \eta > \beta
     \end{cases}
 \end{aligned}$$
 > Equality is achieved at $\sigma\_{\text{eq}}$ where,
 > $$\begin{aligned}
     \sigma\_{\text{eq}} &= \begin{cases}
-        \sigma\_{\text{eq}} + \eta & \texttt{if } \sigma\_{\text{eq}} \leq \beta\\\\
-        (1-\lambda)\sigma\_{\text{eq}} + \lambda\beta + \eta & \texttt{if } \sigma\_{\text{eq}} > \beta
+        \sigma\_{\text{eq}} + \eta & \texttt{if } \sigma\_{\text{eq}} + \eta \leq \beta\\\\
+        (1-\lambda)(\sigma\_{\text{eq}} + \eta) + \lambda\beta & \texttt{if } \sigma\_{\text{eq}} + \eta > \beta
     \end{cases}\\\\
-    \sigma\_{\text{eq}} &= (1-\lambda)\sigma\_{\text{eq}} + \lambda\beta + \eta\\\\
-    \sigma\_{\text{eq}} &= \beta + \frac{\eta}{\lambda}
+    \sigma\_{\text{eq}} &= (1-\lambda)\sigma\_{\text{eq}} + (1-\lambda)\eta + \lambda\beta\\\\
+    \sigma\_{\text{eq}} &= \beta + \frac{1-\lambda}{\lambda}\eta
 \end{aligned}$$
 > And notice that singular values larger than $\sigma\_{\text{eq}}$ decreases after every update step,
 > $$\begin{aligned}
-    \text{update}(\sigma\_{\text{eq}} + \epsilon) &= (1-\lambda)(\sigma\_{\text{eq}} + \epsilon) + \lambda\beta + \eta\\\\
-    &= \sigma\_{\text{eq}} + (1-\lambda)\epsilon\\\\
+    \text{update}(\sigma\_{\text{eq}} + \epsilon) &= (1-\lambda)(\sigma\_{\text{eq}} + \eta + \epsilon) + \lambda\beta\\\\
+    &= \underbrace{(1-\lambda)(\sigma\_{\text{eq}} + \eta) + \lambda\beta}\_{\sigma\_{\text{eq}}} + (1-\lambda)\epsilon\\\\
     \text{update}(\sigma\_{\text{eq}} + \epsilon) &< \sigma\_{\text{eq}} + \epsilon
 \end{aligned}$$
-> while singular values smaller than $\sigma\_{\text{eq}}$ increases,
+> since $1-\lambda < 1$, while singular values smaller than $\sigma\_{\text{eq}}$ increases,
 > $$\begin{aligned}
-    \text{update}(\sigma\_{\text{eq}} - \epsilon) &= (1-\lambda)(\sigma\_{\text{eq}} - \epsilon) + \lambda\beta + \eta\\\\
+    \text{update}(\sigma\_{\text{eq}} - \epsilon) &= (1-\lambda)(\sigma\_{\text{eq}} + \eta - \epsilon) + \lambda\beta\\\\
     &= \sigma\_{\text{eq}} - (1-\lambda)\epsilon\\\\
     \text{update}(\sigma\_{\text{eq}} - \epsilon) &> \sigma\_{\text{eq}} - \epsilon
 \end{aligned}$$
-> Hence $\sigma\_{\text{eq}}$ is indeed an equilibrium point. $\quad\blacksquare$
+> Hence $\sigma\_{\text{eq}}$ is indeed an equilibrium point.
+> 
+> As for the second case where we project first then take a gradient step, we have,
+> $$\begin{aligned}
+    W\_{t+1} &= \texttt{spectral\\_clipped\\_weight\\_decay}\_{\lambda,\beta}(W\_t) + \Delta W\_t\\\\
+    \sigma'\_{\max} &\leq \texttt{clipped\\_weight\\_decay}\_{\lambda,\beta}(\sigma\_{\max}) + \eta\\\\
+    \sigma'\_{\max} &\leq \begin{cases}
+        \sigma\_{\max} + \eta & \texttt{if } \sigma\_{\max} \leq \beta\\\\
+        (1-\lambda)\sigma\_{\max} + \lambda\beta + \eta & \texttt{if } \sigma\_{\max} > \beta
+    \end{cases}
+\end{aligned}$$
+> And so we have the equilibrium point,
+> $$\begin{aligned}
+    \sigma\_{\text{eq}} &= (1-\lambda)\sigma\_{\text{eq}} + \lambda\beta + \eta\\\\
+    \sigma\_{\text{eq}} &= \beta + \frac{\eta}{\lambda}
+\end{aligned}$$
+> and we can verify that it is indeed an equilibrium point similarly to the first case.
+
 
 Lastly, note that as we decay the learning rate to zero throughout training, the equilibrium point approaches $\beta$,
-$$\sigma^*\_{\text{eq}} = \lim_{\eta \to 0} \beta + \frac{\eta}{\lambda} = \beta$$
-Thus, unlike standard weight decay, we do not have to worry about the weights collapsing to zero as we dial down the learning rate. But if one wants the equilibrium point to be independent of the learning rate, one can simply set $\lambda_\text{coupled} = \eta\lambda$ and the new equilibrium point becomes,
-$$\sigma\_{\text{eq,coupled}} = \beta + \frac{1}{\lambda}$$
+
+$$\sigma^*\_{\text{eq}} = \lim\_{\eta \to 0} \begin{cases}
+    \beta + \frac{1-\lambda}{\lambda}\eta\\\\
+    \beta + \frac{\eta}{\lambda}
+\end{cases} = \beta$$
+
+Thus, unlike standard weight decay, we do not have to worry about the weights collapsing to zero as we dial down the learning rate. But if we want the equilibrium point to be independent of the learning rate, we have to go with the second case above where we project first then take a gradient step and set $\lambda_\text{decoupled} = \eta\lambda$ and the new equilibrium point becomes,
+$$\sigma\_{\text{eq,decoupled}} = \beta + \frac{1}{\lambda}$$
 
 In JAX, this can be implemented as follows,
 ```python
 def spectral_clipped_weight_decay(W: jax.Array, beta: float=1., lamb: float=0.5):
     return (1-lamb) * W + lamb * spectral_hardcap(W, beta)
 
-def spectral_clipped_coupled_weight_decay(W: jax.Array, beta: float=1., lamb: float=0.5, learning_rate):
+def spectral_clipped_decoupled_weight_decay(W: jax.Array, beta: float=1., lamb: float=0.5, learning_rate):
     return spectral_clipped_weight_decay(W, beta, lamb * learning_rate)
 ```
 
-## 4. An alternative approach: Higham's Anti-Block-Diagonal Trick
+## 4. An alternative approach via Higham's Anti-Block-Diagonal Trick
 
 ![](spectral_clip_abd_vs_nested_tight.gif#center)
 
-In the previous sections, we apply our matrix function directly on $W$ resulting in nested applications of $\texttt{msign}$. Here, we will instead use Higham's anti-block-diagonal trick (Higham, 2008). This allows us to compute $\texttt{msign}$ only once, reducing the complexity of the operations albeit at the cost of more compute and memory usage. This trick may not be practical in most settings, but the reduced complexity of the operations may be worth it when designing linear attention mechanisms with the spectral clipping function as a "sub-network". A neat property is that this would allow us to naturally scale test-time compute by scaling the number of steps in $\texttt{msign}$.
+In the previous sections, we apply our matrix function directly on $W$ resulting in nested applications of $\texttt{msign}$. However, this causes numerical issues because the errors from the inner $\texttt{msign}$ get amplified by the outer $\texttt{msign}$. Furthermore, spectral relu and spectral hardcapping fails entirely on inputs with large eigenvalues. This is because the $\frac{1}{2}W$ term has to be 'cancelled' out by the other terms which are composed of lower-precision matrix multiplications, thus tiny errors result in larger discrepancies in the final result.
+
+
+Here, we will instead use Higham's anti-block-diagonal trick (Higham, 2008). This allows us to compute $\texttt{msign}$ only once, reducing the complexity of the operations and numerical inaccuracies albeit at the cost of more compute and memory usage. Although 3-4x more costly than the nested approach, it may be worth it when we want to:
+1. Use it as the dualizer in our optimizer as a replacement for Muon's orthogonalization step. The (spectral) norm of the gradients spikes during training for various reasons, and so having a more numerically stable implementation at larger scales is preferred; and
+2. Design linear attention mechanisms with the spectral clipping function as a "sub-network". A neat property is that this would allow us to naturally scale test-time compute by scaling the number of steps in $\texttt{msign}$.
+
+### 4.1. Symmetric spectral clipping
 
 > **Theorem 5 (Higham's Anti-Block-Diagonal Trick)**. Let $g: \mathbb{R} \to \mathbb{R}$ be an odd analytic scalar function, $W \in \mathbb{R}^{m \times n}$, and construct the block matrix $S \in \mathbb{R}^{(m+n) \times (m+n)}$ as,
 > $$S := \begin{bmatrix}
@@ -373,7 +413,7 @@ def spectral_clip(W: jax.Array, sigma_max: float=1.):
 
 Note that we are still calling `_orthogonalize_via_newton_schulz` twice here, which is not ideal either. Luckily, there's a neat trick that allows us to compute it only once.
 
-### 4.1. Optimizing the implementation via abstract algebra
+### 4.2. Optimizing the implementation via abstract algebra
 
 First, notice that both 
 $$I + S = \begin{bmatrix}
@@ -517,7 +557,7 @@ def spectral_clip_minimal(W: jax.Array, sigma_max: float=1., ortho_dtype=jnp.flo
     # return sigma_max*OH[:W.shape[0], W.shape[0]:] + W @ OH[W.shape[0]:, W.shape[0]:]
 ```
 
-### 4.2. Taking advantage of symmetry
+### 4.3. Taking advantage of symmetry
 
 The crux is that since both $I + S$ and $I - S$ are in the sub-algebra $\mathcal{A}$, Newton-Schulz iteration must preserve their block structure. Thus, we do not actually need to materialize the entire $(m + n) \times (m + n)$ block matrices. And note that,
 
@@ -571,7 +611,7 @@ From Jordan et al. (2024), computing the matrix sign function on a $m \times n$ 
 | $\texttt{msign}$ via Newton-Schulz                                                            |               $1$                |        $6Tnm^2$ |                                                   0.98% |
 | $\texttt{spectral\\_clip}\_{[\alpha, \beta]}$<br>(via nested $\texttt{msign}$ in Section (2)) |               $3$                | $(18T + 6)nm^2$ |                                                   3.13% |
 | $\texttt{spectral\\_relu}$                                                                    |               $2$                | $(12T + 4)nm^2$ |                                                   2.08% |
-| $\texttt{spectral\\_hardcap}$                                                                 |               $2$                | $(12T + 4)nm^2$ |                                                   2.08% |
+| $\texttt{spectral\\_hardcap}$<br>(Su's version)                                               |               $2$                | $(12T + 4)nm^2$ |                                                   2.08% |
 | $\texttt{spectral\\_clipped\\_weight\\_decay}$                                                |               $2$                | $(12T + 4)nm^2$ |                                                   2.08% |
 | $\texttt{spectral\\_clip}\_{[-\beta, \beta]}$<br>(via full-matrix anti-block-diagonal trick)  |   $1$<br>$(m+n) \times (m+n)$    |     $6T(n+m)^3$ |                                                   7.81% |
 | $\texttt{msign}$ via block-wise Newton-Schulz                                                 |         $1$ (block-wise)         |        $36Tn^3$ |                                                       - |
@@ -581,7 +621,15 @@ From Jordan et al. (2024), computing the matrix sign function on a $m \times n$ 
 
 This section is still under construction.
 
-### 6.1. Weight constraints accelerate grokking (and improves robustness)
+### 6.1. Anti-Block-Diagonal Trick leads to more numerically stable Spectral Hardcapping
+
+In Section (4) we made the claim that the nested implementation of spectral hardcapping is numerically unstable on large inputs. To verify this claim, we randomly generate matrices of size $1024 \times 4096$ (the size of a MLP projection layer in the NanoGPT-medium speedrun) with various spectral norms, pass them to $\texttt{spectral\\_hardcap}\_{\beta=1}$ using the various implementations, and report the spectral norms of the results. We label the blockwise implementation discussed in Section (4.3) as the "Sparse Anti-Block-Diagonal Trick" and the fully-materialized version as the "Dense Anti-Block-Diagonal Trick".
+
+![](spectral_hardcap_comparison_tight.gif#center)
+
+Observe that both the sparse and dense versions properly cap the spectral norms at 1, as expected. However, the nested version starts to fail even on inputs with spectral norms as small as 100. The approximation does get better with more Newton-Schulz iterations, but we may need an exponential number of iterations to get the desired result for larger inputs.
+
+### 6.2. Weight constraints accelerate grokking (and improves robustness)
 
 ![](weight_constraints_grokking.png#center)
 
@@ -594,7 +642,7 @@ Now if the uncontrolled growth of the weight norms is part of the reason why mod
 
 Our preliminary results here suggest that the answer is yes.
 
-#### 6.1.1. Experimental setup
+#### 6.2.1. Experimental setup
 
 We will largely follow the setup of Prieto et al.'s (2025) grokking experiments on the addition-modulo-113 ($y=(a + b) \\% 113$) and multiplication-modulo-113 ($y=ab \\% 113$) tasks. In all our experiment runs, we use 2-layer MLPs with width 200, embedding dimension of 113, and GeLU activations. We concatenate the embeddings of the inputs $a$ and $b$, resulting in an input dimension of 226, which we then pass to the succeeding linear layers.
 
@@ -602,7 +650,7 @@ Using the Modula library (Bernstein et al., 2024) for parametrizing neural netwo
 
 All weights are stored in `bfloat16` and all operations are done in `bfloat16` as well, to simulate more realistic training conditions.
 
-#### 6.1.2. Results
+#### 6.2.2. Results
 
 The models fail to grok within 1K steps without the use of projection maps or weight constraints, which is consistent with previous results. They also fail to grok with the matrix sign function as the projection map, indicating that constraining the weights to the Stiefel manifold is too strong of a constraint.
 
@@ -610,7 +658,7 @@ Interestingly, simply capping the RMS norms of the embeddings already allows the
 
 Finally, spectral normalization, spectral hardcapping, and spectral clipped weight decay all also allow the models to grok consistently within 1K steps. Larger $\lambda$ leads to lower-Lipschitz (i.e., more stable) models that grok relatively slower and vice versa. Another interesting observation is that with $\lambda = \frac{1}{3}$, the models not only grok faster compared to baseline, but also have much lower Lipschitz bounds, on par with stronger constraints.
 
-### 6.2 NanoGPT Speedrun results [Under Construction]
+### 6.3 NanoGPT Speedrun results [Under Construction]
 
 [NanoGPT Speedrun results will be added here]
 
@@ -648,3 +696,4 @@ Many thanks to Rohan Anil for initiating a [discussion thread on the topic on Tw
 15. Amund Tveit, Bjørn Remseth, Arve Skogvold (2025). Muon Optimizer Accelerates Grokking. https://arxiv.org/abs/2504.16041
 16. Jeremy Bernstein and Laker Newhouse. “Old optimizer, new norm: An anthology.” arXiv preprint arXiv:2409.20325 (2024).
 17. Zixuan Chen, Xialin He, Yen-Jen Wang, Qiayuan Liao, Yanjie Ze, Zhongyu Li, S. Shankar Sastry, Jiajun Wu, Koushil Sreenath, Saurabh Gupta, Xue Bin Peng (2024). Learning Smooth Humanoid Locomotion through Lipschitz-Constrained Policies. URL https://arxiv.org/abs/2410.11825
+18. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
