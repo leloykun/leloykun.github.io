@@ -520,10 +520,10 @@ $$\begin{align}
         -\widetilde{Q}^T & \widetilde{R}
     \end{bmatrix}\right]\_{12}\nonumber\\\\
     &= \frac{1}{2} \left[\begin{bmatrix}
-        \widetilde{P} + WQ^{\*T} & \widetilde{Q} + W\widetilde{R} \\\\
+        \widetilde{P} + W\widetilde{Q}^T & \widetilde{Q} + W\widetilde{R} \\\\
         W^T\widetilde{P}+\widetilde{Q}^T & W^T\widetilde{Q}^T + \widetilde{R}
     \end{bmatrix} - \begin{bmatrix}
-        \widetilde{P} + WQ^{\*T} & -(\widetilde{Q} + W\widetilde{R}) \\\\
+        \widetilde{P} + W\widetilde{Q}^T & -(\widetilde{Q} + W\widetilde{R}) \\\\
         -(W^T\widetilde{P}+\widetilde{Q}^T) & W^T\widetilde{Q}^T + \widetilde{R}
     \end{bmatrix}\right]\_{12}\nonumber\\\\
     &= \begin{bmatrix}
