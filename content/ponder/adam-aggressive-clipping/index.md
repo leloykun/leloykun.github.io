@@ -18,7 +18,7 @@ Here we will show that Adam with aggressive gradient value/norm clipping is esse
 
 ## Smoothed SignSGD and Smoothed NormSGD
 
-Unlike Signum which applies momentum first before taking the sign, Smoothed SignSGD applies the sign first before applying momentum.
+Smoothed SignSGD and Smoothed NormSGD are special cases of ALMOND (Averaged LMO directioNal Descent) optimizers by Pethick et al. (2025). Unlike Signum which applies momentum first before taking the sign, Smoothed SignSGD applies the sign first before applying momentum.
 > **Definition 1 (Smoothed SignSGD).** Let $\eta > 0$ be the learning rate, $\beta \in [0, 1)$ be the momentum coefficient, and $G_t$ be the gradient at time step $t$. The update rule for Smoothed SignSGD is given by:
 > $$\begin{align}
 M_{t}^{\text{sssgd}} &= \beta M_{t-1}^{\text{sssgd}} + (1 - \beta) \text{sign}(G_t) \\\\
@@ -145,3 +145,19 @@ and let's pick an arbitrary entry $G_{t,i,j}$. Like before, if the signs of the 
 ### Why do Smoothed SignSGD and Smoothed NormSGD do well with higher learning rates?
 
 (Smoothed) SignSGD and NormSGD destroy the magnitude information of the gradients. So picking a higher learning rate is, in a sense, a way to compensate for the lost magnitude information. The momentum also stabilizes the updates, so we can afford to pick a higher learning rate without worrying about overshooting that much.
+
+## How to Cite
+
+```bibtex
+@misc{cesista2025adamaggressiveclipping,
+  author = {Franz Louis Cesista},
+  title = {"Adam with Agressive Gradient Clipping ≈ Smoothed SignSGD/NormSGD"},
+  year = {2025},
+  url = {http://leloykun.github.io/ponder/adam-aggressive-clipping/},
+}
+```
+
+## References
+
+1. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
+2. 
