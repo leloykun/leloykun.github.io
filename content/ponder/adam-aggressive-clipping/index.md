@@ -120,7 +120,7 @@ V_{t}^{\text{adam}}
 where
 $$S_t = \frac{1 - \beta_2}{1 - \beta_2^t} \sum_{k=0}^{t-1}\beta_2^k\left(\frac{G_{t-k}}{||G_{t-k}||}\right)^2$$
 
-For an arbitrary index $i,j$, notice that $G_{t-k,i,j} / ||G_{t-k}|| \leq 1$ for all $k$. The (entrywise) sum in the RHS then is minimized when $G_{t-k,i,j} = 0$ for all $k$. And the sum is maximized when $G_{t-k,i,j} / ||G_{t-k}|| = 1$ for all $k$. Together, we have:
+For an arbitrary index $i,j$, notice that $|G_{t-k,i,j}| / ||G_{t-k}|| \leq 1$ for all $k$. The (entrywise) sum in the RHS then is minimized when $G_{t-k,i,j} = 0$ for all $k$. And the sum is maximized when $|G_{t-k,i,j}| / ||G_{t-k}|| = 1$ for all $k$. Together, we have:
 $$0 \leq S_{t,i,j} \leq \frac{1 - \beta_2}{1 - \beta_2^t} \sum_{k=0}^{t-1}\beta_2^k = \frac{1 - \beta_2}{1 - \beta_2^t} \left( \frac{1 - \beta_2^t}{1 - \beta_2} \right) = 1$$
 
 The (Adam) update direction then becomes:
