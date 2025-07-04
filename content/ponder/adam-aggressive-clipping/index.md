@@ -91,7 +91,7 @@ Let's go back to Equation (2):
 $$M_{t}^{\text{sssgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\text{sign}(G_{t-k})$$
 and let's pick an arbitrary entry $G_{t,i,j}$. Notice that if the signs of the recent $G_{t,i,j}$s flip too much, then the $\beta^0$, $\beta^1$, $\beta^2$, ... terms effectively cancel each other out. Thus that entry will not contribute to the update. On the other hand, if the signs of the recent $G_{t,i,j}$s are aligned, then $M_{t,i,j}^{\text{sssgd}} \to \pm 1$. What this means is that for a given entry, the weights only get updated if the signs of the recent gradients are aligned.
 
-## Adam with aggressive gradient *norm* clipping is essentially equivalent Smoothed NormSGD
+## Adam with aggressive gradient *norm* clipping is essentially equivalent to Smoothed NormSGD
 
 Unlike the previous case, here we apply the clipping on the norm of the gradient. That is, for a given threshold $\alpha > 0$, we have:
 $$G\_{t}^{\text{clipped}} = \begin{cases}
