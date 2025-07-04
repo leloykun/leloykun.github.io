@@ -160,4 +160,5 @@ and let's pick an arbitrary entry $G_{t,i,j}$. Like before, if the signs of the 
 ## References
 
 1. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
-2. 
+2. Diederik P. Kingma, Jimmy Ba (2014). Adam: A Method for Stochastic Optimization. URL https://arxiv.org/abs/1412.6980
+3. Jeremy Bernstein, Yu-Xiang Wang, Kamyar Azizzadenesheli, Anima Anandkumar (2018). signSGD: Compressed Optimisation for Non-Convex Problems. URL https://arxiv.org/abs/1802.04434
