@@ -9,12 +9,12 @@ summary: "Why does Adam with aggressive gradient value/norm clipping have sparse
 #     image: cover.jpg
 #     alt: "Cover"
 #     relative: true
-# editPost:
-#     URL: "https://x.com/leloykun/status/1883634169902952655"
-#     Text: "Crossposted from X (formerly Twitter)"
+editPost:
+    URL: "https://x.com/leloykun/status/1941067659157913625"
+    Text: "Crossposted on X (formerly Twitter)"
 ---
 
-Here we will show that Adam with aggressive gradient value/norm clipping is essentially equivalent to a smoothed version of SignSGD/NormSGD. We will also explain why the commulative updates are sparse and why it does well with higher learning rates.
+[@kalomaze recently shared an interesting observation](https://x.com/kalomaze/status/1940424032119316813) that Adam with aggressive gradient clipping induces update sparsity while maintaining good performance (and at higher learning rates). Here we will show that Adam with aggressive gradient value/norm clipping is essentially equivalent to a smoothed version of SignSGD/NormSGD. We will also explain why the commulative updates are sparse and why it does well with higher learning rates.
 
 ## Smoothed SignSGD and Smoothed NormSGD
 
@@ -159,6 +159,7 @@ and let's pick an arbitrary entry $G_{t,i,j}$. Like before, if the signs of the 
 
 ## References
 
-1. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
-2. Diederik P. Kingma, Jimmy Ba (2014). Adam: A Method for Stochastic Optimization. URL https://arxiv.org/abs/1412.6980
-3. Jeremy Bernstein, Yu-Xiang Wang, Kamyar Azizzadenesheli, Anima Anandkumar (2018). signSGD: Compressed Optimisation for Non-Convex Problems. URL https://arxiv.org/abs/1802.04434
+1. @kalomaze (2025). On Adam with aggressive gradient clipping causing sparse updates. URL https://x.com/kalomaze/status/1940424032119316813
+2. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
+3. Diederik P. Kingma, Jimmy Ba (2014). Adam: A Method for Stochastic Optimization. URL https://arxiv.org/abs/1412.6980
+4. Jeremy Bernstein, Yu-Xiang Wang, Kamyar Azizzadenesheli, Anima Anandkumar (2018). signSGD: Compressed Optimisation for Non-Convex Problems. URL https://arxiv.org/abs/1802.04434
