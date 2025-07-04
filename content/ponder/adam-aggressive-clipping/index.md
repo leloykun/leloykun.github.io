@@ -127,9 +127,9 @@ The (Adam) update direction then becomes:
 $$\begin{align*}
 U_t &= \frac{M_t^{\text{adam}} / (1 - \beta_1^t)}{\sqrt{V_t^{\text{adam}} / (1 - \beta_2^t)}} \\\\
     &= \frac{\alpha M_t^{\text{snsgd}} / (1 - \beta_1^t)}{\sqrt{\alpha^2(1 - \beta_2^t) S_t / (1 - \beta_2^t)}} \\\\
-U_t &= \frac{1}{(1 - \beta_1^t)S_t} M_t^{\text{snsgd}}
+U_t &= \frac{1}{(1 - \beta_1^t)\sqrt{S_t}} M_t^{\text{snsgd}}
 \end{align*}$$
-And if we make the further assumption that the gradients are isotopic, or more intuitively speaking, the gradients statistically do not 'change' over time, then we can treat $S_t$ as a constant. Thus,
+Note that the $\alpha$ terms also cancel out. And if we make the further assumption that the gradients are isotopic, or more intuitively speaking, the gradients statistically do not 'change' over time, then we can treat $S_t$ as a constant. Thus,
 $$U_t \to \text{constant}\cdot M_t^{\text{snsgd}}\qquad\text{as}\qquad t \to \infty$$
 Hence Adam with aggressive gradient norm clipping is essentially just Smoothed NormSGD.
 
