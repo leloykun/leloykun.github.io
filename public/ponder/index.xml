@@ -4,14 +4,21 @@
     <title>Ponder on Franz Louis Cesista</title>
     <link>https://leloykun.github.io/ponder/</link>
     <description>Recent content in Ponder on Franz Louis Cesista</description>
-    <generator>Hugo -- 0.145.0</generator>
+    <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 05 Jun 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 03 Jul 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/ponder/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Adam with Agressive Gradient Clipping ≈ Smoothed SignSGD/NormSGD</title>
+      <link>https://leloykun.github.io/ponder/adam-aggressive-clipping/</link>
+      <pubDate>Thu, 03 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/adam-aggressive-clipping/</guid>
+      <description>Why does Adam with aggressive gradient value/norm clipping have sparse updates and do well with higher learning rates? Here we show that it is essentially equivalent to a smoothed version of SignSGD/NormSGD.</description>
+    </item>
     <item>
       <title>Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration</title>
       <link>https://leloykun.github.io/ponder/spectral-clipping/</link>
-      <pubDate>Thu, 05 Jun 2025 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 23 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/ponder/spectral-clipping/</guid>
       <description>A small step towards hardware-architecture-optimizer codesign in deep learning.</description>
     </item>
