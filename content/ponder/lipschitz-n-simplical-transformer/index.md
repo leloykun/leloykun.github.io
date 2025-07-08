@@ -232,8 +232,8 @@ For the $\Delta^2 A$ term, let's take the derivative of Equation (12) towards $\
 
 $$\begin{aligned}
     \\| \Delta^2 A \\|\_{\infty RMS}
-        &\leq \\| \nabla^2 \texttt{softmax}(S)[\Delta S, \tilde{\Delta} S] \\|\_{\infty RMS} \\| \Delta S \\|\_{\infty RMS} \\| \tilde{\Delta} S \\|\_{\infty RMS}\\\\
-        &\quad+ \cancel{\\| \nabla \texttt{softmax}(S)[\Delta S] \\|\_{\infty RMS}} \\| \Delta^2 S \\|\_{\infty RMS}\\\\
+        &\leq \\| \nabla^2 \texttt{softmax}(S)[\Delta S, \tilde{\Delta} S] \\|\_{\infty -op} \\| \Delta S \\|\_{\infty RMS} \\| \tilde{\Delta} S \\|\_{\infty RMS}\\\\
+        &\quad+ \cancel{\\| \nabla \texttt{softmax}(S)[\Delta S] \\|\_{\infty -op}} \\| \Delta^2 S \\|\_{\infty RMS}\\\\
     \\| \Delta^2 A \\|\_{\infty RMS}
         &\leq \tilde{L}\_{\texttt{softmax}} \\| \Delta S \\|\_{\infty RMS} \\| \tilde{\Delta} S \\|\_{\infty RMS} + \\| \Delta^2 S \\|\_{\infty RMS}\\\\
 \end{aligned}$$
@@ -284,6 +284,7 @@ $$\begin{align}
         &\leq \frac{1}{d^{(n-1)/2}}  \sum_{1 \leq t < s \leq n} \left\\| \Delta v^{(t)} \circ \tilde{\Delta} v^{(s)} \circ \prod\_{r=1,r\neq t,r\neq s}^n \circ v^{(r)} \right\\|\_{\infty RMS} \nonumber\\\\
         &\leq \frac{d}{d^{(n-1)/2}}  \sum_{1 \leq t < s \leq n} \\| \Delta v^{(t)} \\|\_{\infty RMS} \\| \tilde{\Delta} v^{(s)} \\|\_{\infty RMS} \left\\| \prod\_{r=1,r\neq t,r\neq s}^n \circ v^{(r)} \right\\|\_{\infty RMS} \nonumber\\\\
         &\leq \cancel{\frac{dd^{(n-3)/2}}{d^{(n-1)/2}}} \sum_{1 \leq t < s \leq n} \\| \Delta v^{(t)} \\|\_{\infty RMS} \\| \tilde{\Delta} v^{(s)} \\|\_{\infty RMS} \nonumber\\\\
+    \\| \Delta^2 W \\|\_{\infty RMS}
         &\leq \left( \sum\_{t=1}^n \\| \Delta v^{(t)} \\|\_{\infty RMS} \right) \left( \sum\_{t=1}^n \\| \tilde{\Delta} v^{(t)} \\|\_{\infty RMS} \right)
 \end{align}$$
 
@@ -312,6 +313,17 @@ Note however that for $n = 1$, we have to set the scaling factor $s_1 = \frac{1}
 The main benefit of having low (and width-independent) sensitivity and sharpness really is that it allows us to have larger update step sizes without worrying about suddenly exploding or vanishing activations and gradients. Additionally, bounding the sensitivity allows us to control how much the gradients change as they pass through the module via backpropagation--the smaller the sensitivity, the smaller the change in the gradients. And bounding the sharpness allows us to have more trust in the momentum term more knowing that gradient spikes would rarely happen, if at all. These gradient spikes notoriously 'break' the momentum term at larger traning runs, especially near the end of training.
 
 Lastly, this could also be useful in distributed training setups where gradient all-reduces are expensive and thus sparsifying the gradients before sending them over the network is a must (Douillard et al., 2024; Thérien et al., 2025). Problem arises when the gradients have outliers, requiring us to use more expensive quantization schemes to avoid losing information. But having control over the gradient norms should allow us to eliminate such outliers and get low-precision (and thus low-communication) training basically "for free".
+
+## How to Cite
+
+```bibtex
+@misc{cesista2025sensitivitysharpnessnsimplicalattention,
+  author = {Franz Louis Cesista},
+  title = {"Sensitivity and Sharpness of n-Simplical Attention"},
+  year = {2025},
+  url = {https://leloykun.github.io/ponder/lipschitz-n-simplical-transformer/},
+}
+```
 
 ## References
 
