@@ -14,6 +14,8 @@ summary: "Towards a maximal update parameterization of n-simplical attention"
 #     Text: "Crossposted on X (formerly Twitter)"
 ---
 
+> This is still a Work in Progress (WIP). I've decided to publish this earlier than planned to get feedback and iterate quickly. If you spot any mistakes, please don't hesitate to let me know! Email me at franzlouiscesista@gmail.com or tag me on X ([@leloykun](https://x.com/leloykun)).
+
 ## Introduction
 
 A team from Meta have recently shown that 2-simplical attention improves the exponent in the scaling laws vs. vanilla attention (Roy et al., 2025; Clift et al., 2019, Vaswani et al., 2017). This means that while it may not be as good or even worse than vanilla attention flops-vs-loss-wise at smaller scales, the trade-off gets better as the model scales up. This would be useful in e.g. large-scale reasoning-LLM training runs where context lengths could blow up to millions, even billions of tokens. It is also very Bitter Lesson-pilled: compute exponentially scales over time and having a compute sponge which we can pour more compute into and get better results is great.
@@ -141,6 +143,8 @@ by construction. And so we only need to derive $\\| \Delta A \\|\_{\infty RMS}$ 
 
 ---
 
+> ${\color{red}\text{NOTE: This part is under review.}}$ It might be more appropriate to choose the $\infty\text{-op}$ operator norm for the $\Delta A$ and $\Delta S$ terms.
+
 As for the $\Delta A$ term, by the chain-rule, we have,
 $$\begin{equation}\\| \Delta A \\|\_{\infty RMS} \leq \\| \nabla \texttt{softmax}(S)[\Delta S] \\|\_{\infty -op} \\| \Delta S \\|\_{\infty RMS}\end{equation}$$
 and since the softmax is 1-Lipschitz with respect to the $\infty RMS$ norm with our parameterization, we have,
@@ -227,6 +231,8 @@ $$\begin{align}
 We have already derived $\\| \Delta A \\|\_{\infty RMS}$ and $\\| \Delta W \\|\_{\infty RMS}$ in the previous section. And for $\\| \tilde{\Delta} A \\|\_{\infty RMS}$ and $\\| \tilde{\Delta} W \\|\_{\infty RMS}$, it would suffice to replace $\Delta$ with $\tilde{\Delta}$ in the previous derivations. Again, we also have $\\| W \\|\_{\infty RMS} \leq 1$ and $ \\| A \\|\_{\infty RMS} \leq 1$ by construction. So, we only need to derive $\\| \Delta^2 A \\|\_{\infty RMS}$ and $\\| \Delta^2 W \\|\_{\infty RMS}$.
 
 ---
+
+> ${\color{red}\text{NOTE: This part is under review.}}$ It might be more appropriate to choose the $\infty\text{-op}$ operator norm for the $\Delta^2 A$ and $\Delta^2 S$ terms.
 
 For the $\Delta^2 A$ term, let's take the derivative of Equation (12) towards $\tilde{\Delta}$,
 
