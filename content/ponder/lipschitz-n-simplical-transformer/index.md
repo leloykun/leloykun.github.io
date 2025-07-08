@@ -159,7 +159,7 @@ Thus,
 
 $$\begin{aligned}
     \\| \Delta S \\|\_{\infty RMS}
-        &\leq \frac{1}{d^{(n+1)/2}} \\| \Delta q \\|\_{2} \left \\| \prod\_{t=1}^n \circ k^{(t)} \right\\|\_{2} + \frac{d}{d^{(n+1)/2}} \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{2} \left\\| q \circ \prod_{s=1,s\neq t}^n \circ k^{(s)} \right\\|\_{2}\\\\
+        &\leq \frac{1}{d^{(n+1)/2}} \\| \Delta q \\|\_{\infty 2} \left \\| \prod\_{t=1}^n \circ k^{(t)} \right\\|\_{\infty 2} + \frac{d}{d^{(n+1)/2}} \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty 2} \left\\| q \circ \prod_{s=1,s\neq t}^n \circ k^{(s)} \right\\|\_{\infty 2}\\\\
         &\leq \frac{d}{d^{(n+1)/2}} \\| \Delta q \\|\_{\infty RMS} \left \\| \prod\_{t=1}^n \circ k^{(t)} \right\\|\_{\infty RMS}\\\\
         &\quad + \frac{d}{d^{(n+1)/2}} \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \left\\| q \circ \prod_{s=1,s\neq t}^n \circ k^{(s)} \right\\|\_{\infty RMS}\\\\
         &\leq \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \left( \\| \Delta q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right)\\\\
@@ -251,9 +251,9 @@ Thus,
 
 $$\begin{aligned}
     \\| \Delta^2 S \\|\_{\infty RMS}
-        &\leq \frac{1}{d^{(n+1)/2}} \\| \Delta q \\|\_{2} \sum\_{t=1}^n \left\\| \tilde{\Delta} k^{(t)} \circ \prod\_{s=1,s\neq t}^n \circ k^{(s)} \right\\|\_{2} \\\\
-        &\quad + \frac{1}{d^{(n+1)/2}} \\| \tilde{\Delta} q \\|\_{2} \sum_{t=1}^{n} \left\\| \Delta k^{(t)} \circ \prod\_{s=1,s\neq t}^n \circ k^{(s)} \right\\|\_{2} \\\\
-        &\quad + \frac{1}{d^{(n+1)/2}} \\| q \\|\_{2} \sum_{1 \leq t < s \leq n} \left\\| \Delta k^{(t)} \circ \tilde{\Delta} k^{(s)} \circ \prod\_{r=1,r\neq t,r\neq s}^n \circ k^{(r)} \right\\|\_{2} \\\\
+        &\leq \frac{1}{d^{(n+1)/2}} \\| \Delta q \\|\_{\infty 2} \sum\_{t=1}^n \left\\| \tilde{\Delta} k^{(t)} \circ \prod\_{s=1,s\neq t}^n \circ k^{(s)} \right\\|\_{\infty 2} \\\\
+        &\quad + \frac{1}{d^{(n+1)/2}} \\| \tilde{\Delta} q \\|\_{\infty 2} \sum_{t=1}^{n} \left\\| \Delta k^{(t)} \circ \prod\_{s=1,s\neq t}^n \circ k^{(s)} \right\\|\_{\infty 2} \\\\
+        &\quad + \frac{1}{d^{(n+1)/2}} \\| q \\|\_{\infty 2} \sum_{1 \leq t < s \leq n} \left\\| \Delta k^{(t)} \circ \tilde{\Delta} k^{(s)} \circ \prod\_{r=1,r\neq t,r\neq s}^n \circ k^{(r)} \right\\|\_{\infty 2} \\\\
         &\leq \frac{d^{3/2}}{d^{(n+1)/2}} \\| \Delta q \\|\_{\infty RMS} \sum\_{t=1}^n \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \left\\| \prod\_{s=1,s\neq t}^n \circ k^{(s)} \right\\|\_{\infty RMS} \\\\
         &\quad + \frac{d^{3/2}}{d^{(n+1)/2}} \\| \tilde{\Delta} q \\|\_{\infty RMS} \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \left\\| \prod\_{s=1,s\neq t}^n \circ k^{(s)} \right\\|\_{\infty RMS} \\\\
         &\quad + \frac{d^{2}}{d^{(n+1)/2}} \cancel{\\| q \\|\_{\infty RMS}} \sum_{1 \leq t < s \leq n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \\| \tilde{\Delta} k^{(s)} \\|\_{\infty RMS} \left\\| \prod\_{r=1,r\neq t,r\neq s}^n \circ k^{(r)} \right\\|\_{\infty RMS} \\\\
