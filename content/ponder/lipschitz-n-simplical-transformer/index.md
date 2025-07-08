@@ -123,7 +123,7 @@ We wish to show that the n-simplical attention is unit sensitive for unit RMS no
 > **Claim 8:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $t$, the n-simplical attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any perturbation $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \in \mathcal{X}$, we have,
 > $$\begin{aligned}
     \\| \nabla F \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}
-        &\leq \\| (\Delta q, \Delta k^{[1:n]}, \Delta v^{[1:n]}) \\|\_{\infty RMS} \\\\
+        &\leq \\| (\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \\|\_{\infty RMS} \\\\
         &\leq \\| \Delta q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta v^{(t)} \\|\_{\infty RMS}\\\\
 \end{aligned}$$
 
@@ -197,7 +197,7 @@ $$\begin{aligned}
     \\| \nabla F \diamond \langle \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} \rangle \\|\_{\infty RMS}
         &\leq \\| \Delta q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta v^{(t)} \\|\_{\infty RMS}\\\\
     \\| \nabla F \diamond \langle \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} \rangle \\|\_{\infty RMS}
-        &\leq \\| (q, k^{[1:n]}, v^{[1:n]}) \\|\_{\infty RMS}
+        &\leq \\| (q, k^{(1:n)}, v^{(1:n)}) \\|\_{\infty RMS}
 \end{aligned}$$
 
 Hence, n-simplical attention is unit sensitive under the $\infty RMS$ operator norm as claimed.
@@ -209,7 +209,7 @@ Next, we wish to show that the n-simplical attention is $(1+\tilde{L}\_{\texttt{
 > **Claim 9:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $t$, the n-simplical attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any pair of perturbations $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}), (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \in \mathcal{X}$, we have,
 > $$\begin{aligned}
     &\\| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \diamond \nabla F \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}\\\\
-        &\qquad\qquad \leq (1+\tilde{L}\_{\texttt{softmax}})\\| (\Delta q, \Delta k^{[1:n]}, \Delta v^{[1:n]}) \\|\_{\infty RMS} \\| (\tilde{\Delta} q, \tilde{\Delta} k^{[1:n]}, \tilde{\Delta} v^{[1:n]}) \\|\_{\infty RMS} \\\\
+        &\qquad\qquad \leq (1+\tilde{L}\_{\texttt{softmax}})\\| (\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \\|\_{\infty RMS} \\| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \\|\_{\infty RMS} \\\\
         &\qquad\qquad \leq (1+\tilde{L}\_{\texttt{softmax}})\left(\\| \Delta q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} v^{(t)} \\|\_{\infty RMS}\right)\\\\
         &\qquad\qquad\qquad\qquad\qquad\quad \times \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} v^{(t)} \\|\_{\infty RMS}\right)
 \end{aligned}$$
@@ -293,7 +293,7 @@ $$\begin{align}
 Combining Equations (18), (20), and (22) then gives us,
 
 $$\begin{aligned}
-    &\\| \langle \tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)} \rangle \diamond \nabla^2 F \diamond \langle \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} \rangle \\|\_{\infty RMS} \\\\
+    &\\| ( \tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)} ) \diamond \nabla^2 F \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS} \\\\
         &\quad \leq (1 + \tilde{L}\_{\texttt{softmax}}) \left( \\| \Delta q \\|\_{\infty RMS} + \sum\_{t=1}^n \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left( \\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^n \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right)\\\\
         &\qquad + \left( \\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right) \left( \sum\_{t=1}^{n} \\| \Delta v^{(t)} \\|\_{\infty RMS} \right) \\\\
         &\qquad + \left( \\| \Delta q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left( \sum\_{t=1}^{n} \\| \tilde{\Delta} v^{(t)} \\|\_{\infty RMS} \right) \\\\
@@ -329,7 +329,7 @@ Lastly, this could also be useful in distributed training setups where gradient 
 
 1. Aurko Roy, Timothy Chou, Sai Surya Duvvuri, Sijia Chen, Jiecao Yu, Xiaodong Wang, Manzil Zaheer, Rohan Anil (2025). Fast and Simplex: 2-Simplicial Attention in Triton. URL https://arxiv.org/abs/2507.02754v1
 2. James Clift, Dmitry Doryn, Daniel Murfet, James Wallbridge (2019). Logic and the -Simplicial Transformer. URL https://arxiv.org/abs/1909.00668
-3. Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., ... & Polosukhin, I. (2017). Attention is all you need. URL https://arxiv.org/abs/1706.03762
+3. Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, Illia Polosukhin (2017). Attention is all you need. URL https://arxiv.org/abs/1706.03762
 4. Tim Large, Yang Liu, Minyoung Huh, Hyojin Bahng, Phillip Isola, Jeremy Bernstein (2024). Scalable Optimization in the Modular Norm. URL https://arxiv.org/abs/2405.14813
 5. Benjamin Thérien, Xiaolong Huang, Irina Rish, Eugene Belilovsky (2025). MuLoCo: Muon is a practical inner optimizer for DiLoCo. URL https://arxiv.org/abs/2505.23725
 6. Arthur Douillard, Qixuan Feng, Andrei A. Rusu, Rachita Chhaparia, Yani Donchev, Adhiguna Kuncoro, Marc'Aurelio Ranzato, Arthur Szlam, Jiajun Shen (2024). DiLoCo: Distributed Low-Communication Training of Language Models. URL https://arxiv.org/abs/2311.08105
