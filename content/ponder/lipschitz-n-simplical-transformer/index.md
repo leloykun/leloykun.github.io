@@ -136,7 +136,7 @@ $$\begin{align}
 \end{align}$$
 
 We have already shown earlier that,
-$$\\| W \\|\_{\infty RMS} = \\| A \\|\_{\infty RMS} = 1$$
+$$\\| W \\|\_{\infty RMS} \leq 1 \qquad\text{ and }\qquad \\| A \\|\_{\infty RMS} \leq 1$$
 by construction. And so we only need to derive $\\| \Delta A \\|\_{\infty RMS}$ and $\\| \Delta W \\|\_{\infty RMS}$.
 
 ---
@@ -186,7 +186,7 @@ $$\begin{align}
         &\leq \frac{1}{d^{(n-1)/2}}  \sum\_{t=1}^{n} \left\\| \Delta v^{(t)} \circ \prod\_{s=1,s\neq t}^n \circ v^{(s)} \right\\|\_{\infty RMS}\nonumber\\\\
         &\leq \frac{\sqrt{d}}{d^{(n-1)/2}}  \sum\_{t=1}^{n} \\| \Delta v^{(t)} \\|\_{\infty RMS} \left\\| \prod\_{s=1,s\neq t}^n \circ v^{(s)} \right\\|\_{\infty RMS} &\text{(from Proposition 5)}\nonumber\\\\
         &\leq \cancel{\frac{d^{1/2}d^{(n-2)/2}}{d^{(n-1)/2}}}  \sum\_{t=1}^{n} \\| \Delta v^{(t)} \\|\_{\infty RMS}&\text{(from Lemma 6)}\nonumber\\\\
-    \\| \Delta W \\|\_{\infty RMS} &= \sum\_{t=1}^{n} \\| \Delta v^{(t)} \\|\_{\infty RMS}
+    \\| \Delta W \\|\_{\infty RMS} &\leq \sum\_{t=1}^{n} \\| \Delta v^{(t)} \\|\_{\infty RMS}
 \end{align}$$
 
 ---
@@ -224,7 +224,7 @@ $$\begin{align}
         &\qquad\qquad\quad + \\| \Delta A \\|\_{\infty RMS} \\| \tilde{\Delta} W \\|\_{\infty RMS} + \cancel{\\| A \\|\_{\infty RMS}} \\| \Delta^2 W \\|\_{\infty RMS} \\\\
 \end{align}$$
 
-We have already derived $\\| \Delta A \\|\_{\infty RMS}$ and $\\| \Delta W \\|\_{\infty RMS}$ in the previous section. And for $\\| \tilde{\Delta} A \\|\_{\infty RMS}$ and $\\| \tilde{\Delta} W \\|\_{\infty RMS}$, it would suffice to replace $\Delta$ with $\tilde{\Delta}$ in the previous derivations. Again, we also have $\\| W \\|\_{\infty RMS} = \\| A \\|\_{\infty RMS} = 1$ by construction. So, we only need to derive $\\| \Delta^2 A \\|\_{\infty RMS}$ and $\\| \Delta^2 W \\|\_{\infty RMS}$.
+We have already derived $\\| \Delta A \\|\_{\infty RMS}$ and $\\| \Delta W \\|\_{\infty RMS}$ in the previous section. And for $\\| \tilde{\Delta} A \\|\_{\infty RMS}$ and $\\| \tilde{\Delta} W \\|\_{\infty RMS}$, it would suffice to replace $\Delta$ with $\tilde{\Delta}$ in the previous derivations. Again, we also have $\\| W \\|\_{\infty RMS} \leq 1$ and $ \\| A \\|\_{\infty RMS} \leq 1$ by construction. So, we only need to derive $\\| \Delta^2 A \\|\_{\infty RMS}$ and $\\| \Delta^2 W \\|\_{\infty RMS}$.
 
 ---
 
