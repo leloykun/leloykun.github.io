@@ -153,9 +153,9 @@ $$\begin{align}
         &\leq \\| \Delta A \\|\_{\infty -op} \\| V \\|\_{\infty RMS} + \\| A \\|\_{\infty -op} \\| \Delta V \\|\_{\infty RMS}\\\\
 \end{align}$$
 
-We have already shown earlier that,
+By construction we have,
 $$\\| V \\|\_{\infty RMS} \leq 1 \qquad\text{ and }\qquad \\| A \\|\_{\infty -op} = 1$$
-by construction. And so we only need to derive $\\| \Delta A \\|\_{\infty -op}$ and $\\| \Delta V \\|\_{\infty RMS}$.
+And so we only need to derive $\\| \Delta A \\|\_{\infty -op}$ and $\\| \Delta V \\|\_{\infty RMS}$.
 
 ---
 
@@ -183,7 +183,7 @@ $$\begin{equation}
 
 ---
 
-Following Large et al.'s proof (2024), a direct calculation of the norm of $\Delta A$ yields,
+Following Large et al.'s proof (2024), a direct calculation of $\Delta A$ yields,
 
 $$\begin{equation}
     \Delta A\_{iJ}
@@ -197,16 +197,16 @@ $$\begin{align}
     \\| \Delta A\_{iJ} \\|\_{\infty -op}
         &= \max\_i \sum\_J \| \Delta A\_{iJ} \| \nonumber\\\\
         &= \max\_i \sum\_J \left| \frac{1}{d^{(n+1)/2}} A\_{iJ} \langle \Delta q\_i, [A, K]\_{iJ} \rangle + \frac{1}{d^{(n+1)/2}} A\_{iJ} \langle q\_i, [A, \Delta K]\_{iJ} \rangle \right| \nonumber\\\\
-        &= \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} \| \langle \Delta q\_i, [A, K]\_{iJ} \rangle \|
-            + \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} \| \langle q\_i, [A, \Delta K]\_{iJ} \rangle \| \nonumber\\\\
+        &= \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} \| \langle \Delta q\_i, [A, K]\_{iJ} \rangle \| \nonumber\\\\
+            &\quad+ \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} \| \langle q\_i, [A, \Delta K]\_{iJ} \rangle \| \nonumber\\\\
         &\leq \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} \\| \Delta q\_i \\|\_{2} \left\\| [A, K]\_{iJ} \right\\|\_{2} \nonumber\\\\
-            &\quad+ \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} \\| q\_i \\|\_{2} \left\\| [A, \Delta K]\_{iJ} \right\\|\_{2} \qquad\text{(from Cauchy-Schwarz)} \nonumber\\\\
+            &\quad+ \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} \\| q\_i \\|\_{2} \left\\| [A, \Delta K]\_{iJ} \right\\|\_{2} &\text{(from Cauchy-Schwarz)} \nonumber\\\\
         &\leq \frac{d}{d^{(n+1)/2}} \max\_i \\| \Delta q\_i \\|\_{RMS} \sum\_J A\_{iJ} \left\\| [A, K]\_{iJ} \right\\|\_{RMS} \nonumber\\\\
-            &\quad+ \frac{d}{d^{(n+1)/2}} \max\_i \cancel{\\| q\_i \\|\_{RMS}} \sum\_J A\_{iJ} \left\\| [A, \Delta K]\_{iJ} \right\\|\_{RMS} \qquad\text{(from Proposition 5)} \nonumber\\\\
+            &\quad+ \frac{d}{d^{(n+1)/2}} \max\_i \cancel{\\| q\_i \\|\_{RMS}} \sum\_J A\_{iJ} \left\\| [A, \Delta K]\_{iJ} \right\\|\_{RMS} &\text{(from Proposition 5)} \nonumber\\\\
         &\leq \frac{d}{d^{(n+1)/2}} \max\_i \\| \Delta q\_i \\|\_{RMS} \max\_J \left\\| K\_{J} \right\\|\_{RMS} \nonumber\\\\
-            &\quad+ \frac{d}{d^{(n+1)/2}} \max\_J \left\\| \Delta K\_{J} \right\\|\_{RMS} \nonumber\\\\
+            &\quad+ \frac{d}{d^{(n+1)/2}} \max\_J \left\\| \Delta K\_{J} \right\\|\_{RMS} &\text{(from Proposition 8)}  \nonumber\\\\
         &\leq \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \max\_i \\| \Delta q\_i \\|\_{RMS}
-            + \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \sum\_{t=1}^{n} \max\_J \left\\| \Delta k^{(t)}\_{J} \right\\|\_{RMS} \qquad\text{(from Lemma 6 and Equation 15)} \nonumber\\\\
+            + \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \sum\_{t=1}^{n} \max\_J \left\\| \Delta k^{(t)}\_{J} \right\\|\_{RMS} &\text{(from Lemma 6 and Equation 15)} \nonumber\\\\
     \\| \Delta A\_{iJ} \\|\_{\infty -op}
         &\leq \\| \Delta q\_i \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS}
 \end{align}$$
