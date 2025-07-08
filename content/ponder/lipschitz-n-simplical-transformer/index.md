@@ -75,14 +75,14 @@ $$\\| x \\|\_{\infty RMS} = \max\_{1 \leq i \leq T} \\| x\_i \\|\_{RMS} = \max\_
 
 More generally for $x \in \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n}\times d}$,
 $$\\| x \\|\_{\infty RMS} = \max_{I} \\| x\_I \\|\_{RMS} = \max\_{I} \frac{1}{\sqrt{d}} \sqrt{\sum\_{j=1}^d x_{Ij}^2}$$
-where $I$ is a tuple of indices $I = (i\_1, i\_2, \ldots, i\_n)$ where $1 \leq i_t \leq T$.
+where $I$ is a tuple of indices $I = (i\_1, i\_2, \ldots, i\_n)$ and $1 \leq i_t \leq T$.
 
 And because of the softmax, it is also natural to equip the $T \times T$ attention scores and probability matrices with the $\infty\text{-op}$ operator norm, which is defined as follows,
 $$\\| B \\|\_{\infty -op} = \max_{1 \leq i \leq T} \sum_{j=1}^T | B_{ij} |$$
 
 For higher-order $\overbrace{T\times\ldots\times T}^{n}$ attention scores and probability tensors, we generalize this as,
 $$\\| B \\|\_{\infty -op} = \max_{1 \leq i \leq T} \sum_{J} | B_{iJ} |$$
-where $J$ is a tuple of indices $J = (j\_1, j\_2, \ldots, j\_n)$ where $1 \leq j_t \leq T$. We apply the sum over all indices except the first because we do the same for softmax.
+where $J$ is a tuple of indices $J = (j\_1, j\_2, \ldots, j\_n)$ and $1 \leq j_t \leq T$. We apply the sum over all indices except the first because we do the same for softmax.
 
 Finally, observe that,
 $$\\| Bx \\|\_{\infty RMS} \leq \\| B \\|\_{\infty -op} \\| x \\|\_{\infty RMS}$$
@@ -123,8 +123,9 @@ The proof follows directly from Proposition 5.
 
 Following Large et al. (2024), we use the following shorthard which is crucial for our proofs below.
 
-> **Definition 7 (Bracket notation):** Let $B$ be a $\underbrace{T \times T \times \ldots \times T}\_{n+1}$ tensor and $x$ be a $\underbrace{T \times T \times \ldots \times T}\_{n}\times d$. Then,
+> **Definition 7 (Bracket notation):** Let $B$ be a $\underbrace{T \times T \times \ldots \times T}\_{n+1}$ tensor and $x$ be a $\underbrace{T \times T \times \ldots \times T}\_{n}\times d$ tensor. Then,
 > $$[B, x]\_{iJ} := x\_J - \sum\_M B\_{iM}x\_{M}$$
+> where $M \neq J$ is a tuple of indices $M = (m\_1, m\_2, \ldots, m\_n)$ and $1 \leq m_t \leq T$
 
 > **Proposition 8 (Crucial inequalities regarding $[B, x]$):** For any $\underbrace{T \times T \times \ldots \times T}\_{n+1}$ tensor $B$ with non-negative entries and $\sum\_J B\_{iJ} = 1$ for all $i$,
 > $$\begin{aligned}
@@ -348,7 +349,7 @@ and that,
 $$\begin{aligned}
     \max\_i \left\\| \sum\_{M} (\tilde{\Delta} A)\_{iM} \Delta K\_M \right\\|\_{RMS}
         &\leq \\| \tilde{\Delta} A \\|\_{\infty -op} \\| \Delta K \\|\_{\infty RMS} \nonumber\\\\
-        &\leq d^{(n-1)/2} \\| \Delta K \\|\_{\infty RMS} \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS}\right)
+        &\leq d^{(n-1)/2} \left(\sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS}\right)
 \end{aligned}$$
 
 Thus,
