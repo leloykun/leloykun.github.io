@@ -6,8 +6,15 @@
     <description>Recent content in Optimizers on Franz Louis Cesista</description>
     <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 03 Jul 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 06 Jul 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/tags/optimizers/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Sensitivity and Sharpness of n-Simplical Attention</title>
+      <link>https://leloykun.github.io/ponder/lipschitz-n-simplical-transformer/</link>
+      <pubDate>Sun, 06 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/lipschitz-n-simplical-transformer/</guid>
+      <description>Towards a maximal update parameterization of n-simplical attention</description>
+    </item>
     <item>
       <title>Adam with Agressive Gradient Clipping ≈ Smoothed SignSGD/NormSGD</title>
       <link>https://leloykun.github.io/ponder/adam-aggressive-clipping/</link>

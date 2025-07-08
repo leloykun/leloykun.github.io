@@ -1,106 +1,107 @@
-baseURL: "https://leloykun.github.io" 
+baseURL: "https://leloykun.github.io"
 title: Franz Louis Cesista
 pagination.pagerSize: 20
+paginate: 30
 theme: PaperMod
 
 enableInlineShortcodes: true
 enableRobotsTXT: true
 
 taxonomies:
-    tag: tags
+  tag: tags
 
 menu:
-    main:
-        - name: CV
-          url: cv.pdf
-          weight: 1
-        - name: Papers
-          url: papers/
-          weight: 2
-        - name: Personal Projects
-          url: personal-projects/
-          weight: 3
-        - name: Ponder (Posts)
-          url: ponder/
-          weight: 4
+  main:
+    - name: CV
+      url: cv.pdf
+      weight: 1
+    - name: Papers
+      url: papers/
+      weight: 2
+    - name: Personal Projects
+      url: personal-projects/
+      weight: 3
+    - name: Ponder (Posts)
+      url: ponder/
+      weight: 4
 
 params:
-    description: "Mathematician | Machine Learning (AI) Research Scientist"
-    author: Franz Louis Cesista
-    googleAnalyticsID: "G-BWCGBRX8G1"
-    DateFormat: "January 2, 2006"
-    defaultTheme: light
-    hideFooter: false
-    disableThemeToggle: true
-    ShowShareButtons: true
-    ShowReadingTime: false
-    disableSpecial1stPost: false
-    disableAnchoredHeadings: false
-    ShowPostNavLinks: true
-    ShowBreadCrumbs: false
-    ShowCodeCopyButtons: true
-    ShowAllPagesInArchive: false
-    MainSections: ["Papers", "Personal Projects", "Ponder (Posts)"]
-    ShowToc: true
-    disableScrollToTop: false
-    TocOpen: true
-    ShowWordCount: false
-    UseHugoToc: true
-    comments: false
-    math: true
-    profileMode:
-        enabled: true
-        title: <span style="color:#011F5B">Franz Louis Cesista</span>
-        subtitle:
-            Building things 👨‍🍳🚀 • prev **Machine Learning (AI) Research Scientist, Full-Stack Software Engineer, & Data Engineer** at [Expedock Software Inc.](https://expedock.com) • <span style="color:#011F5B">**2x IOI & 2x ICPC World Finalist**</span> • Mathematics at the [Ateneo de Manila University](https://www.ateneo.edu/)<br><br>
+  description: "Mathematician | Machine Learning (AI) Research Scientist"
+  author: Franz Louis Cesista
+  googleAnalyticsID: "G-BWCGBRX8G1"
+  DateFormat: "January 2, 2006"
+  defaultTheme: light
+  hideFooter: false
+  disableThemeToggle: true
+  ShowShareButtons: true
+  ShowReadingTime: false
+  disableSpecial1stPost: false
+  disableAnchoredHeadings: false
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: false
+  ShowCodeCopyButtons: true
+  ShowAllPagesInArchive: false
+  MainSections: ["Papers", "Personal Projects", "Ponder (Posts)"]
+  ShowToc: true
+  disableScrollToTop: false
+  TocOpen: true
+  ShowWordCount: false
+  UseHugoToc: true
+  comments: false
+  math: true
+  profileMode:
+    enabled: true
+    title: <span style="color:#011F5B">Franz Louis Cesista</span>
+    subtitle:
+      Building things 👨‍🍳🚀 • prev **Machine Learning (AI) Research Scientist, Full-Stack Software Engineer, & Data Engineer** at [Expedock Software Inc.](https://expedock.com) • <span style="color:#011F5B">**2x IOI & 2x ICPC World Finalist**</span> • Mathematics at the [Ateneo de Manila University](https://www.ateneo.edu/)<br><br>
 
-            NanoGPT Speedrunning • Geometric Deep Learning • Interleaved Large Multimodal Models • Information Retrieval • Structured Generation
-        imageUrl: "picture.png"
-        imageWidth: 160
-        imageHeight: 160
-        imageTitle: Franz Louis Cesista
-        buttons:
-            - name: CV
-              url: cv.pdf
-            - name: Papers
-              url: papers/
-            - name: Personal Projects
-              url: personal-projects/
-            - name: Ponder (Posts)
-              url: ponder/
-    socialIcons:
-        - name: Email
-          url: mailto:franzlouiscesista@gmail.com
-        - name: GitHub
-          url: https://github.com/leloykun
-        - name: LinkedIn
-          url: https://www.linkedin.com/in/franzcesista/
-        - name: Twitter
-          url: https://twitter.com/leloykun
-        - name: Substack
-          url: https://ponder.substack.com
-    social:
-        twitter: leloykun
-    assets:
-        disableScrollBarStyle: true
-    cover:
-        hidden: false
-        hiddenInList: true
-        hiddenInSingle: false
-    label:
-        text: "Franz Louis Cesista"
-        icon: favicon.ico
-        iconHeight: 18
-    env: production
+      NanoGPT Speedrunning • Geometric Deep Learning • Interleaved Large Multimodal Models • Information Retrieval • Structured Generation
+    imageUrl: "picture.png"
+    imageWidth: 160
+    imageHeight: 160
+    imageTitle: Franz Louis Cesista
+    buttons:
+      - name: CV
+        url: cv.pdf
+      - name: Papers
+        url: papers/
+      - name: Personal Projects
+        url: personal-projects/
+      - name: Ponder (Posts)
+        url: ponder/
+  socialIcons:
+    - name: Email
+      url: mailto:franzlouiscesista@gmail.com
+    - name: GitHub
+      url: https://github.com/leloykun
+    - name: LinkedIn
+      url: https://www.linkedin.com/in/franzcesista/
+    - name: Twitter
+      url: https://twitter.com/leloykun
+    - name: Substack
+      url: https://ponder.substack.com
+  social:
+    twitter: leloykun
+  assets:
+    disableScrollBarStyle: true
+  cover:
+    hidden: false
+    hiddenInList: true
+    hiddenInSingle: false
+  label:
+    text: "Franz Louis Cesista"
+    icon: favicon.ico
+    iconHeight: 18
+  env: production
 
 markup:
-    goldmark:
-        renderer:
-            unsafe: true
-    highlight:
-        guessSyntax: true
-        style: autumn 
-    tableOfContents:
-        endLevel: 3
-        ordered: false
-        startLevel: 2
+  goldmark:
+    renderer:
+      unsafe: true
+  highlight:
+    guessSyntax: true
+    style: autumn
+  tableOfContents:
+    endLevel: 3
+    ordered: false
+    startLevel: 2
