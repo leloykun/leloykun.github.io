@@ -1,7 +1,5 @@
 baseURL: "https://leloykun.github.io"
 title: Franz Louis Cesista
-pagination.pagerSize: 20
-paginate: 30
 theme: PaperMod
 
 enableInlineShortcodes: true
@@ -93,6 +91,8 @@ params:
     icon: favicon.ico
     iconHeight: 18
   env: production
+pagination:
+  pagerSize: 30
 
 markup:
   goldmark:

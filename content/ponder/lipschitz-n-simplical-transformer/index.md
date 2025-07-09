@@ -14,11 +14,9 @@ summary: "Towards a maximal update parameterization of n-simplical attention"
 #     Text: "Crossposted on X (formerly Twitter)"
 ---
 
-> This is still a Work in Progress (WIP). I've decided to publish this earlier than planned to get feedback and iterate quickly. If you spot any mistakes, please don't hesitate to let me know! Email me at franzlouiscesista@gmail.com or tag me on X ([@leloykun](https://x.com/leloykun)).
-
 ## Introduction
 
-A team from Meta have recently shown that 2-simplical attention improves the exponent in the scaling laws vs. vanilla attention (Roy et al., 2025; Clift et al., 2019, Vaswani et al., 2017). This means that while it may not be as good or even worse than vanilla attention flops-vs-loss-wise at smaller scales, the trade-off gets better as the model scales up. This would be useful in e.g. large-scale reasoning-LLM training runs where context lengths could blow up to millions, even billions of tokens. It is also very Bitter Lesson-pilled: compute exponentially scales over time and having a compute sponge which we can pour more compute into and get better results is great.
+A team from Meta have recently shown that 2-simplical attention improves the exponent in the scaling laws vs. vanilla attention (Roy et al., 2025; Clift et al., 2019, Vaswani et al., 2017). This means that while it may be worse than vanilla attention flops-vs-loss-wise at smaller scales, the trade-off gets better and better at larger scales. This could also be useful for e.g. large-scale reasoning-LLM training runs where context lengths could blow up to millions, even billions of tokens. It is also very Bitter Lesson-pilled: compute exponentially scales over time and having a compute sponge which we can pour more compute into and get better results is great.
 
 And if we are to scale this up, we have to consider two questions:
 1. If 2-simplical attention is better than (vanilla) 1-simplical attention at scale, then would $n$-simplical attention be better than 2-simplical attention for $n \geq 3$?
