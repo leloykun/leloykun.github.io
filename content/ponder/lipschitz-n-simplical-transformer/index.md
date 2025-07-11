@@ -127,8 +127,8 @@ Following Large et al. (2024), we use the following shorthard which is crucial f
 
 > **Proposition 8 (Crucial inequalities regarding $[B, x]$):** For any $\underbrace{T \times T \times \ldots \times T}\_{n+1}$ tensor $B$ with non-negative entries and $\sum\_J B\_{iJ} = 1$ for all $i$,
 > $$\begin{aligned}
-    \sum\_{J} B\_{iJ} \\| [B, x]\_{iJ} \\| &\leq \\max\_J \| x\_J \\| \\\\
-    \sum\_{J} B\_{iJ} \\| [B, x]\_{iJ} \\|^2 &\leq \\max\_J \| x\_J \\|^2 \\\\
+    \sum\_{J} B\_{iJ} \\| [B, x]\_{iJ} \\| &\leq \\max\_J \\| x\_J \\| \\\\
+    \sum\_{J} B\_{iJ} \\| [B, x]\_{iJ} \\|^2 &\leq \\max\_J \\| x\_J \\|^2 \\\\
     \sum\_{J} B\_{iJ} \\| [B, x]\_{iJ} \\| \\| [B, y]\_{iJ} \\| &\leq (\\max\_J \\| x\_J \\|)(\max\_J \\| y\_J \\|) \\\\
 \end{aligned}$$
 
