@@ -207,7 +207,7 @@ $$\begin{align}
         &\leq \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \max\_i \\| \Delta q\_i \\|\_{RMS}
             + \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \sum\_{t=1}^{n} \max\_J \left\\| \Delta k^{(t)}\_{J} \right\\|\_{RMS} &\text{(from Lemma 6 and Equation 15)} \nonumber\\\\
     \\| \Delta A\_{iJ} \\|\_{\infty -op}
-        &\leq \\| \Delta q\_i \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS}
+        &\leq \\| \Delta q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS}
 \end{align}$$
 
 ---
@@ -292,11 +292,11 @@ $$\begin{align}
     &\\| \text{ [term 1] } + \text{ [term 2] } \\|\_{\infty -op} \nonumber \\\\
         &\qquad\leq \max\_i\sum\_J \left|\frac{1}{d^{(n+1)/2}} A\_{iJ} \langle \Delta q\_i, [A, \tilde{\Delta} K]\_{iJ} \rangle
             + \frac{1}{d^{(n+1)/2}} A\_{iJ} \langle \tilde{\Delta} q\_i, [ A, \Delta K]\_{iJ} \rangle \right| \nonumber \\\\
-        &\qquad\leq \frac{1}{d^{(n-1)/2}} \\| \Delta q\_i \\|\_{\infty RMS} \\| \tilde{\Delta} K \\|\_{\infty RMS}
-            + \frac{1}{d^{(n-1)/2}} \\| \tilde{\Delta} q\_i \\|\_{\infty RMS} \\| \Delta K \\|\_{\infty RMS} \nonumber \\\\
-        &\qquad\leq \cancel{\frac{d^{(n-1)/2}}{d^{(n-1)/2}}} \\| \tilde{\Delta} q\_i \\|\_{\infty RMS} \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} + \cancel{\frac{d^{(n-1)/2}}{d^{(n-1)/2}}} \\| \Delta q\_i \\|\_{\infty RMS} \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \nonumber \\\\
+        &\qquad\leq \frac{1}{d^{(n-1)/2}} \\| \Delta q \\|\_{\infty RMS} \\| \tilde{\Delta} K \\|\_{\infty RMS}
+            + \frac{1}{d^{(n-1)/2}} \\| \tilde{\Delta} q \\|\_{\infty RMS} \\| \Delta K \\|\_{\infty RMS} \nonumber \\\\
+        &\qquad\leq \cancel{\frac{d^{(n-1)/2}}{d^{(n-1)/2}}} \\| \tilde{\Delta} q \\|\_{\infty RMS} \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} + \cancel{\frac{d^{(n-1)/2}}{d^{(n-1)/2}}} \\| \Delta q \\|\_{\infty RMS} \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \nonumber \\\\
     &\\| \text{ [term 1] } + \text{ [term 2] } \\|\_{\infty -op} \nonumber \\\\
-        &\qquad\leq \left(\\| \Delta q\_i \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left(\\| \tilde{\Delta} q\_i \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right)
+        &\qquad\leq \left(\\| \Delta q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right)
 \end{align}$$
 
 As for the third term,
@@ -313,23 +313,21 @@ $$\begin{align}
         &\leq \cancel{\frac{(d^{(n-1)/2})^2}{d^{n-1}}} \max\_i \\| \tilde{\Delta} q\_i \\|\_{RMS} \\| \Delta q\_i \\|\_{RMS} \nonumber\\\\
             &\quad+ \cancel{\frac{(d^{(n-1)/2})^2}{d^{n-1}}}\max\_i \\| \Delta q\_i \\|\_{RMS} \sum\_{t=1}^n \max\_{J} \\| \tilde{\Delta} k\_{J}^{(t)} \\|\_{RMS}  \nonumber\\\\
     \\| \text{ [term 3] } \\|\_{\infty -op}
-        &\leq \\| \tilde{\Delta} q\_i \\|\_{\infty RMS} \\| \Delta q\_i \\|\_{\infty RMS}
-            + \\| \Delta q\_i \\|\_{\infty RMS} \sum\_{t=1}^n \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \nonumber\\\\
+        &\leq \\| \Delta q \\|\_{\infty RMS} \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^n \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS}\right) \nonumber\\\\
 \end{align}$$
 
 Similarly for the fourth term,
 
 $$\begin{equation}
     \\| \text{ [term 4] } \\|\_{\infty -op}
-        \leq \\| \tilde{\Delta} q\_i \\|\_{\infty RMS} \sum\_{t=1}^n \\| \Delta k^{(t)} \\|\_{\infty RMS}
-            + \left(\sum\_{t=1}^n \\| \Delta k^{(t)} \\|\_{\infty RMS} \right)\left( \sum\_{t=1}^n \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right) \nonumber \\\\
+        \leq \left(\sum\_{t=1}^n \\| \Delta k^{(t)} \\|\_{\infty RMS} \right)\left( \\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^n \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right) \nonumber \\\\
 \end{equation}$$
 
 Thus,
 
 $$\begin{align}
     &\\| \text{ [term 3] } + \text{ [term 4] } \\|\_{\infty -op} \nonumber \\\\
-        &\qquad\leq \left(\\| \Delta q\_i \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left(\\| \tilde{\Delta} q\_i \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right)
+        &\qquad\leq \left(\\| \Delta q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right)
 \end{align}$$
 
 As for the fifth term, first observe that,
@@ -355,7 +353,7 @@ $$\begin{align}
     \\| \text{ [term 5] } \\|\_{\infty -op}
         &= \max\_i \sum\_J \left\| \frac{1}{d^{(n+1)/2}} A\_{iJ} \langle \Delta q\_i, -\sum\_M(\tilde{\Delta} A)\_{iM}K\_M \rangle \right\| \nonumber \\\\
         &\leq \frac{d}{d^{(n+1)/2}} \max\_i \\| \Delta q\_i \\|\_{RMS} \left\\| \sum\_{M} (\tilde{\Delta} A)\_{iM} K\_M \right\\|\_{RMS} \cancel{\sum\_J A\_{iJ}} \nonumber \\\\
-        &\leq \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \\| \Delta q\_i \\|\_{\infty RMS} \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS}\right) \nonumber
+        &\leq \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \\| \Delta q \\|\_{\infty RMS} \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS}\right) \nonumber
 \end{align}$$
 
 Similarly for the sixth term,
@@ -369,12 +367,12 @@ Thus,
 
 $$\begin{align}
     &\\| \text{ [term 5] } + \text{ [term 6] } \\|\_{\infty -op} \nonumber \\\\
-        &\qquad\leq \left(\\| \Delta q\_i \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left(\\| \tilde{\Delta} q\_i \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right)
+        &\qquad\leq \left(\\| \Delta q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right)
 \end{align}$$
 
 Taking them all together then yields,
 $$\begin{equation}
-    \\| \Delta^2 A \\|\_{\infty -op} \leq 3\left(\\| \Delta q\_i \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left(\\| \tilde{\Delta} q\_i \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right)
+    \\| \Delta^2 A \\|\_{\infty -op} \leq 3\left(\\| \Delta q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right)
 \end{equation}$$
 
 ---
