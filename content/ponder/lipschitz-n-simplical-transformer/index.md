@@ -14,6 +14,12 @@ summary: "Towards a maximal update parameterization of n-simplical attention"
 #     Text: "Crossposted on X (formerly Twitter)"
 ---
 
+> If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]
+
+[sponsor-badge]: https://img.shields.io/badge/🤝-Sponsor%20me-1da1f2?logo=github&style=flat-square
+[sponsor-link]: https://github.com/sponsors/leloykun
+
+
 ## Introduction
 
 A team from Meta have recently shown that 2-simplical attention improves the exponent in the scaling laws vs. vanilla attention (Roy et al., 2025; Clift et al., 2019, Vaswani et al., 2017). This means that while it may be worse than vanilla attention flops-vs-loss-wise at smaller scales, the trade-off gets better and better at larger scales. This could also be useful for e.g. large-scale reasoning-LLM training runs where context lengths could blow up to millions, even billions of tokens. It is also very Bitter Lesson-pilled: compute exponentially scales over time and having a compute sponge which we can pour more compute into and get better results is great.
@@ -42,14 +48,14 @@ In this blog post, we will focus on the latter, however we will consider $n$-sim
 
 More formally, what we mean by activation norms being "stable" is that tiny changes in the inputs should not cause unexpectedly large changes in the outputs. We call this property *module sensitivity*. Likewise, we want the gradients to not blow up either, i.e. tiny changes in the inputs should not cause unexpectedly large changes in the gradients. We call this property *module sharpness*. And following Large et al. (2024), we formalize module sensitivity and sharpness as follows,
 
-> **Definition 2 (Sensitivity):** Let $M$ be a module on $(\mathcal{X}, \mathcal{Y}, \mathcal{W})$ where $\mathcal{X}$ is the input space with norm $\\|\cdot\\|\_{\mathcal{X}}$, $\mathcal{Y}$ is the output space with norm $\\|\cdot\\|\_\mathcal{Y}$, and $\mathcal{W}$ is the parameter space. We define $M$ to be $\sigma$-sensitive if,
+> **Definition 2 (Sensitivity):** Let $\texttt{M}$ be a module on $(\mathcal{X}, \mathcal{Y}, \mathcal{W})$ where $\mathcal{X}$ is the input space with norm $\\|\cdot\\|\_{\mathcal{X}}$, $\mathcal{Y}$ is the output space with norm $\\|\cdot\\|\_\mathcal{Y}$, and $\mathcal{W}$ is the parameter space. We define $\texttt{M}$ to be $\sigma$-sensitive if,
 > $$\begin{equation}
-    \\| \nabla M(w, x) \diamond \Delta x \\|\_{\mathcal{Y}} \leq \sigma \\| \Delta x \\|\_{\mathcal{X}} \qquad\forall w \in \mathcal{W}; x, \Delta x \in \mathcal{X}
+    \\| \nabla \texttt{M}(w, x) \diamond \Delta x \\|\_{\mathcal{Y}} \leq \sigma \\| \Delta x \\|\_{\mathcal{X}} \qquad\forall w \in \mathcal{W}; x, \Delta x \in \mathcal{X}
 \end{equation}$$
 
-> **Definition 3 (Sharpness):** Let $M$ be a module on $(\mathcal{X}, \mathcal{Y}, \mathcal{W})$ where $\mathcal{X}$ is the input space with norm $\\|\cdot\\|\_{\mathcal{X}}$, $\mathcal{Y}$ is the output space with norm $\\|\cdot\\|\_\mathcal{Y}$, and $\mathcal{W}$ is the parameter space. We define $M$ to be $\gamma$-sharp if,
+> **Definition 3 (Sharpness):** Let $\texttt{M}$ be a module on $(\mathcal{X}, \mathcal{Y}, \mathcal{W})$ where $\mathcal{X}$ is the input space with norm $\\|\cdot\\|\_{\mathcal{X}}$, $\mathcal{Y}$ is the output space with norm $\\|\cdot\\|\_\mathcal{Y}$, and $\mathcal{W}$ is the parameter space. We define $\texttt{M}$ to be $\gamma$-sharp if,
 > $$\begin{equation}
-    \\| \tilde{\Delta} x \diamond \nabla^2 M(w, x) \diamond \Delta x \\|\_{\mathcal{Y}} \leq \gamma \\| \Delta x \\|\_{\mathcal{X}} \\| \tilde{\Delta} x \\|\_{\mathcal{X}} \qquad\forall w \in \mathcal{W}; x, \Delta x, \tilde{\Delta} x \in \mathcal{X}
+    \\| \tilde{\Delta} x \diamond \nabla^2 \texttt{M}(w, x) \diamond \Delta x \\|\_{\mathcal{Y}} \leq \gamma \\| \Delta x \\|\_{\mathcal{X}} \\| \tilde{\Delta} x \\|\_{\mathcal{X}} \qquad\forall w \in \mathcal{W}; x, \Delta x, \tilde{\Delta} x \in \mathcal{X}
 \end{equation}$$
 
 Note that if $\mathcal{X}$ and $\mathcal{Y}$ are normed vector spaces, then the sensitivity bounds the (forward) Lipschitz constant of the module, and the sharpness bounds the (backward) *gradient* Lipschitz constant. Having unit sensitivity means that a small change in the input can only cause at most as much change in the output. Likewise, having unit sharpness means that a small change in the input can only cause at most as much change in the gradient.
@@ -94,7 +100,7 @@ $$\begin{align}
     S &= s_1 \left\langle q, K \right\rangle \qquad & s_1 &= \frac{1}{d^{(n+1)/2}} \\\\
     A &= \texttt{softmax}\left(S + \texttt{mask}\right) \\\\
     V &= s_2 \prod\_{t=1}^n \circ v^{(t)} \qquad & s_2 &= \frac{1}{d^{(n-1)/2}}\\\\
-    F\_{iJ} &= A\_{iJ} V\_J
+    \texttt{F}\_{iJ} &= A\_{iJ} V\_J
 \end{align}$$
 
 We chose the scaling factor $s_2 = \frac{1}{d^{(n-1)/2}}$ so that $\\| V \\|\_{\infty RMS} \leq 1$ for unit RMS norm values. This follows directly from Lemma 6 below. As for the scaling factor $s_1 = \frac{1}{d^{(n+1)/2}}$, we chose it so that the sensitivity and sharpness bounds we derive in our proofs below are width-independent.
@@ -131,6 +137,7 @@ Following Large et al. (2024), we use the following shorthard which is crucial f
     \sum\_{J} B\_{iJ} \\| [B, x]\_{iJ} \\|^2 &\leq \\max\_J \\| x\_J \\|^2 \\\\
     \sum\_{J} B\_{iJ} \\| [B, x]\_{iJ} \\| \\| [B, y]\_{iJ} \\| &\leq (\\max\_J \\| x\_J \\|)(\max\_J \\| y\_J \\|) \\\\
 \end{aligned}$$
+> All three inequalities can be proven via standard probability theory.
 
 ## Sensitivity of n-Simplical Attention
 
@@ -138,7 +145,7 @@ We wish to show that the n-simplical attention is unit sensitive for unit RMS no
 
 > **Claim 9:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $t$, the n-simplical attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any perturbation $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \in \mathcal{X}$, we have,
 > $$\begin{aligned}
-    \\| \nabla F \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}
+    \\| \nabla \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}
         &\leq \\| (\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \\|\_{\infty RMS} \\\\
         &\leq \\| \Delta q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta v^{(t)} \\|\_{\infty RMS}\\\\
 \end{aligned}$$
@@ -146,8 +153,8 @@ We wish to show that the n-simplical attention is unit sensitive for unit RMS no
 To prove this, let's first take the derivative of $\texttt{F}$ towards $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)})$,
 
 $$\begin{align}
-    \nabla F \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) &= (\Delta A) V + A (\Delta V) \\\\
-    \\| \nabla F \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}
+    \nabla \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) &= (\Delta A) V + A (\Delta V) \\\\
+    \\| \nabla \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}
         &\leq \\| (\Delta A) V \\|\_{\infty RMS} + \\| A (\Delta V) \\|\_{\infty RMS}\nonumber\\\\
         &\leq \\| \Delta A \\|\_{\infty -op} \\| V \\|\_{\infty RMS} + \\| A \\|\_{\infty -op} \\| \Delta V \\|\_{\infty RMS}\\\\
 \end{align}$$
@@ -215,9 +222,9 @@ $$\begin{align}
 Combining Inequalities (12), (14), and (17) then yields,
 
 $$\begin{aligned}
-    \\| \nabla F \diamond \langle \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} \rangle \\|\_{\infty RMS}
+    \\| \nabla \texttt{F} \diamond \langle \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} \rangle \\|\_{\infty RMS}
         &\leq \\| \Delta q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta v^{(t)} \\|\_{\infty RMS}\\\\
-    \\| \nabla F \diamond \langle \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} \rangle \\|\_{\infty RMS}
+    \\| \nabla \texttt{F} \diamond \langle \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} \rangle \\|\_{\infty RMS}
         &\leq \\| (q, k^{(1:n)}, v^{(1:n)}) \\|\_{\infty RMS}
 \end{aligned}$$
 
@@ -229,20 +236,20 @@ Next, we wish to show that the n-simplical attention is $3$-sharp for unit RMS n
 
 > **Claim 10:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $t$, the n-simplical attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any pair of perturbations $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}), (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \in \mathcal{X}$, we have,
 > $$\begin{aligned}
-    &\\| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \diamond \nabla^2 F \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}\\\\
+    &\\| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \diamond \nabla^2 \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}\\\\
         &\qquad\qquad \leq 3\\| (\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \\|\_{\infty RMS} \\| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \\|\_{\infty RMS} \\\\
         &\qquad\qquad \leq 3\left(\\| \Delta q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} v^{(t)} \\|\_{\infty RMS}\right)\\\\
         &\qquad\qquad\qquad \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} v^{(t)} \\|\_{\infty RMS}\right)
 \end{aligned}$$
 > To simplify notation, let's define,
-> $$\Delta^2 F := (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \diamond \nabla^2 F \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} )$$
+> $$\Delta^2 \texttt{F} := (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \diamond \nabla^2 \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} )$$
 
 To prove this, let's first take the derivative of Equation (11) towards $(\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)})$,
 
 $$\begin{align}
-    \Delta^2 F
+    \Delta^2 \texttt{F}
         &= (\Delta^2 A) V + (\tilde{\Delta} A) (\Delta V) + (\Delta A) (\tilde{\Delta} V) + A (\Delta^2 V) \nonumber\\\\
-    \\| \Delta^2 F\\|\_{\infty RMS}
+    \\| \Delta^2 \texttt{F}\\|\_{\infty RMS}
         &\leq \\| (\Delta^2 A) V \\|\_{\infty RMS} + \\| (\tilde{\Delta} A) (\Delta V) \\|\_{\infty RMS} \nonumber\\\\
         &\quad+ \\| (\Delta A) (\tilde{\Delta} V) \\|\_{\infty RMS} + \\| A (\Delta^2 V) \\|\_{\infty RMS} \nonumber\\\\
         &\leq \\| \Delta^2 A \\|\_{\infty -op} \cancel{\\| V \\|\_{\infty RMS}} + \\| \tilde{\Delta} A \\|\_{\infty -op} \\| \Delta V \\|\_{\infty RMS} \nonumber\\\\
@@ -380,14 +387,14 @@ $$\begin{equation}
 Combining Equations (18), (20), and (24) then gives us,
 
 $$\begin{aligned}
-    \\| \Delta^2 F \\|\_{\infty RMS}
+    \\| \Delta^2 \texttt{F} \\|\_{\infty RMS}
         &\leq 3 \left( \\| \Delta q \\|\_{\infty RMS} + \sum\_{t=1}^n \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left( \\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^n \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right)\\\\
         &\qquad + \left( \\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} \right) \left( \sum\_{t=1}^{n} \\| \Delta v^{(t)} \\|\_{\infty RMS} \right) \\\\
         &\qquad + \left( \\| \Delta q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} \right) \left( \sum\_{t=1}^{n} \\| \tilde{\Delta} v^{(t)} \\|\_{\infty RMS} \right) \\\\
         &\qquad + \left( \sum\_{t=1}^n \\| \Delta v^{(t)} \\|\_{\infty RMS} \right) \left( \sum\_{t=1}^n \\| \tilde{\Delta} v^{(t)} \\|\_{\infty RMS} \right) \\\\
         &\leq 3 \left( \\| \Delta q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \Delta v^{(t)} \\|\_{\infty RMS} \right) \\\\
         &\qquad \left( \\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} + \sum_{t=1}^{n} \\| \tilde{\Delta} v^{(t)} \\|\_{\infty RMS} \right) \\\\
-    \\| \Delta^2 F \\|\_{\infty RMS}
+    \\| \Delta^2 \texttt{F} \\|\_{\infty RMS}
         &\leq 3 \\| (\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \\|\_{\infty RMS} \\| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \\|\_{\infty RMS}
 \end{aligned}$$
 
@@ -415,6 +422,11 @@ Lastly, this could also be used to parametrize a continuous n-simplical attentio
   url = {https://leloykun.github.io/ponder/lipschitz-n-simplical-transformer/},
 }
 ```
+
+> If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]
+
+[sponsor-badge]: https://img.shields.io/badge/🤝-Sponsor%20me-1da1f2?logo=github&style=flat-square
+[sponsor-link]: https://github.com/sponsors/leloykun
 
 ## References
 

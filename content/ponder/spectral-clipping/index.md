@@ -14,6 +14,11 @@ editPost:
     Text: "Crossposted on X (formerly Twitter)"
 ---
 
+> If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]
+
+[sponsor-badge]: https://img.shields.io/badge/🤝-Sponsor%20me-1da1f2?logo=github&style=flat-square
+[sponsor-link]: https://github.com/sponsors/leloykun
+
 ## 1. Introduction
 
 Here I'll discuss a fast, numerically stable, and (auto-)differentiable way to perform spectral clipping, i.e., clipping the singular values of a matrix to a certain range. This is useful in deep learning because it allows us to control the 'growth' of our weights and weight updates, enabling faster and stabler feature learning (Yang et al., 2024; Large et al., 2024). As discussed in a [previous post](../steepest-descent-non-riemannian/#22-feature-learning-perspective),
@@ -770,6 +775,11 @@ Many thanks to Rohan Anil for initiating a [discussion thread on the topic on Tw
   url = {http://leloykun.github.io/ponder/spectral-clipping/},
 }
 ```
+
+> If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]
+
+[sponsor-badge]: https://img.shields.io/badge/🤝-Sponsor%20me-1da1f2?logo=github&style=flat-square
+[sponsor-link]: https://github.com/sponsors/leloykun
 
 ## References
 

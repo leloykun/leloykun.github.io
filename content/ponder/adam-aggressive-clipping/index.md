@@ -14,6 +14,11 @@ editPost:
     Text: "Crossposted on X (formerly Twitter)"
 ---
 
+> If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]
+
+[sponsor-badge]: https://img.shields.io/badge/🤝-Sponsor%20me-1da1f2?logo=github&style=flat-square
+[sponsor-link]: https://github.com/sponsors/leloykun
+
 [@kalomaze recently shared an interesting observation](https://x.com/kalomaze/status/1940424032119316813) that Adam with aggressive gradient clipping induces update sparsity while maintaining good performance (and at higher learning rates). Here we will show that Adam with aggressive gradient value/norm clipping is essentially equivalent to a smoothed version of SignSGD/NormSGD. We will also explain why the commulative updates are sparse and why it does well with higher learning rates.
 
 ## Smoothed SignSGD and Smoothed NormSGD
@@ -156,6 +161,11 @@ and let's pick an arbitrary entry $G_{t,i,j}$. Like before, if the signs of the 
   url = {http://leloykun.github.io/ponder/adam-aggressive-clipping/},
 }
 ```
+
+> If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]
+
+[sponsor-badge]: https://img.shields.io/badge/🤝-Sponsor%20me-1da1f2?logo=github&style=flat-square
+[sponsor-link]: https://github.com/sponsors/leloykun
 
 ## References
 
