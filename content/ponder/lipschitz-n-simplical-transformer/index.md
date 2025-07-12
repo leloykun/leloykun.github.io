@@ -9,9 +9,9 @@ summary: "Towards a maximal update parameterization of n-simplical attention"
 #     image: cover.jpg
 #     alt: "Cover"
 #     relative: true
-# editPost:
-#     URL: "https://x.com/leloykun/status/1941067659157913625"
-#     Text: "Crossposted on X (formerly Twitter)"
+editPost:
+    URL: "https://x.com/leloykun/status/1943779237942768015"
+    Text: "Crossposted on X (formerly Twitter)"
 ---
 
 > If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]
