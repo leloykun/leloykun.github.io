@@ -36,7 +36,12 @@ In this blog post, we will focus on the latter, however we will consider $n$-sim
         &= {\color{blue}s_2} \texttt{softmax}\left({\color{blue}s_1} \langle q, k^{(1)}, k^{(2)}, \ldots, k^{(n)} \rangle + \texttt{mask}\right) ( v^{(1)} \circ v^{(2)} \circ \ldots \circ v^{(n)} )\\\\
         &= {\color{blue}s_2} \texttt{softmax}\left({\color{blue}s_1} \left\langle q, \left( \prod\_{t=1}^n \circ k^{(t)} \right) \right\rangle + \texttt{mask}\right) \left( \prod\_{t=1}^n \circ v^{(t)} \right)
 \end{aligned}$$
-> where $\texttt{softmax}(\cdot)$ is applied to all indices except the first and $\circ$ is the Hadamard (elementwise) product over the $d$-dimension. Note that the operation $\left(\prod\_{t=1}^n \circ\right)$ produces an $n+1$-dimensional tensor, $n$ from the sequence dimensions of the keys/values and one from the $d$-dimension. That is, we only reduce the last index.
+> where,
+> * $\texttt{softmax}(\cdot): \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n+1}} \to \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n+1}}$ is applied to all indices except the first,
+> * $\circ: \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n}\times d} \times \mathbb{R}^{\overbrace{T\times\ldots\times T}^{m}\times d} \to \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n+m}\times d}$ is the Hadamard (elementwise) product over the $d$-dimension, and
+> * $\langle \cdot, \cdot \rangle: \mathbb{R}^{n \times d} \times \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n}\times d} \to \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n+1}}$ is the dot product over the $d$-dimension.
+> 
+> Note that the operation $\left(\prod\_{t=1}^n \circ\right)$ produces an $(n+1)$-dimensional tensor, $n$ from the sequence dimensions of the keys/values and one from the $d$-dimension. That is, we only reduce the last index.
 >
 > Examples:
 > 1. Vanilla Attention (Vaswani et al., 2017), $$\texttt{F}(q, k, v) = \texttt{softmax}\left(\frac{1}{\sqrt{d}} qk^T + \texttt{mask}\right) v$$
@@ -107,6 +112,8 @@ We chose the scaling factor $s_2 = \frac{1}{d^{(n-1)/2}}$ so that $\\| V \\|\_{\
 
 > **Proposition 5 (RMS norm of hadamard product of vectors):** Let $x, y \in \mathbb{R}^d$ be vectors. Then the RMS norm of their hadamard product is bounded by the RMS norms of the individual vectors,
 > $$\begin{equation}\\| x \circ y \\|\_{RMS} \leq \sqrt{d} \\| x \\|\_{RMS} \\| y \\|\_{RMS} \end{equation}$$
+> More generally for $x, y \in \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n} \times d}$,
+> $$ \\| x \circ y \\|\_{\infty RMS} \leq \sqrt{d} \\| x \\|\_{\infty RMS} \\| y \\|\_{\infty RMS} $$ 
 
 {{< collapse summary="Show **proof of Proposition 5**" openByDefault=false >}}
 > **Proof:** It is well-known that,
@@ -114,12 +121,16 @@ We chose the scaling factor $s_2 = \frac{1}{d^{(n-1)/2}}$ so that $\\| V \\|\_{\
 > This can be proven via Cauchy-Schwarz and Jensen's Lemma. Thus,
 > $$\begin{aligned}
     \sqrt{d}\\| x \circ y \\|\_{RMS} &\leq (\sqrt{d}\\| x \\|\_{RMS}) \cdot (\sqrt{d}\\| y \\|\_{RMS}) \\\\
-    \\| x \circ y \\|\_{RMS} &\leq \sqrt{d} \\| x \\|\_{RMS} \\| y \\|\_{RMS} \quad\blacksquare
+    \\| x \circ y \\|\_{RMS} &\leq \sqrt{d} \\| x \\|\_{RMS} \\| y \\|\_{RMS}
 \end{aligned}$$
+> For the more general case,
+> $$\\| x \circ y \\|\_{\infty RMS} = \max\_{I} \\| x\_{I} \circ y\_{I} \\|\_{RMS} \leq \max\_{I} \sqrt{d} \\| x\_{I} \\|\_{RMS} \\| y\_{I} \\|\_{RMS} \leq \sqrt{d} \\| x \\|\_{\infty RMS} \\| y \\|\_{\infty RMS}  \quad\blacksquare$$
 {{< /collapse >}}
 
-> **Lemma 6 (RMS norm of hadamard product of *unit RMS norm* vectors):** Let $x^{(1)}, x^{(2)}, \ldots, x^{(n)} \in \mathbb{R}^d$ be vectors with $\\| x^{(t)} \\|\_{RMS} \leq 1$ for all $t$. Then,
+> **Lemma 6 (RMS norm of hadamard product of *unit RMS norm* vectors):** Let $x^{(1)}, x^{(2)}, \ldots, x^{(n)} \in \mathbb{R}^d$ be vectors with $\\| x^{(t)} \\|\_{RMS} \leq 1$ for all $1 \leq t \leq n$. Then,
 > $$\begin{equation}\left\\| \prod\_{t=1}^n \circ x^{(t)} \right\\|\_{RMS} \leq d^{(n-1)/2}\end{equation}$$
+> More generally for $x^{(1)}, x^{(2)}, \ldots, x^{(n)} \in \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n} \times d}$ with $\\| x^{(t)} \\|\_{\infty RMS} \leq 1$ for all $1 \leq t \leq n$,
+> $$ \left\\| \prod\_{t=1}^n \circ x^{(t)} \right\\|\_{\infty RMS} \leq d^{(n-1)/2} $$
 
 The proof follows directly from Proposition 5.
 
@@ -131,7 +142,7 @@ Following Large et al. (2024), we use the following shorthard which is crucial f
 > $$[B, x]\_{iJ} := x\_J - \sum\_M B\_{iM}x\_{M}$$
 > where $M \neq J$ is a tuple of indices $M = (m\_1, m\_2, \ldots, m\_n)$ and $1 \leq m_t \leq T$
 
-> **Proposition 8 (Crucial inequalities regarding $[B, x]$):** For any $\underbrace{T \times T \times \ldots \times T}\_{n+1}$ tensor $B$ with non-negative entries and $\sum\_J B\_{iJ} = 1$ for all $i$,
+> **Proposition 8 (Crucial inequalities regarding $[B, x]$):** For any $\underbrace{T \times T \times \ldots \times T}\_{n+1}$ tensor $B$ with non-negative entries and $\sum\_J B\_{iJ} = 1$ for all $1 \leq i \leq T$,
 > $$\begin{aligned}
     \sum\_{J} B\_{iJ} \\| [B, x]\_{iJ} \\| &\leq \\max\_J \\| x\_J \\| \\\\
     \sum\_{J} B\_{iJ} \\| [B, x]\_{iJ} \\|^2 &\leq \\max\_J \\| x\_J \\|^2 \\\\
@@ -143,7 +154,7 @@ Following Large et al. (2024), we use the following shorthard which is crucial f
 
 We wish to show that the n-simplical attention is unit sensitive for unit RMS norm inputs $(q, k^{(1:n)}, v^{(1:n)}) \in \mathcal{X}$.
 
-> **Claim 9:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $t$, the n-simplical attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any perturbation $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \in \mathcal{X}$, we have,
+> **Claim 9:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $1 \leq t \leq n$, the n-simplical attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any perturbation $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \in \mathcal{X}$, we have,
 > $$\begin{aligned}
     \\| \nabla \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}
         &\leq \\| (\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \\|\_{\infty RMS} \\\\
@@ -193,8 +204,7 @@ Following Large et al.'s proof (2024), a direct calculation of $\Delta A$ yields
 
 $$\begin{equation}
     \Delta A\_{iJ}
-        = \frac{1}{d^{(n+1)/2}} A\_{iJ} \langle \Delta q\_i, [A, K]\_{iJ} \rangle
-            + \frac{1}{d^{(n+1)/2}} A\_{iJ} \langle q\_i, [A, \Delta K]\_{iJ} \rangle
+        = \frac{1}{d^{(n+1)/2}} A\_{iJ} (\langle \Delta q\_i, [A, K]\_{iJ} \rangle + \langle q\_i, [A, \Delta K]\_{iJ} \rangle)
 \end{equation}$$
 
 Thus,
@@ -202,17 +212,15 @@ Thus,
 $$\begin{align}
     \\| \Delta A\_{iJ} \\|\_{\infty -op}
         &= \max\_i \sum\_J \| \Delta A\_{iJ} \| \nonumber\\\\
-        &= \max\_i \sum\_J \left| \frac{1}{d^{(n+1)/2}} A\_{iJ} \langle \Delta q\_i, [A, K]\_{iJ} \rangle + \frac{1}{d^{(n+1)/2}} A\_{iJ} \langle q\_i, [A, \Delta K]\_{iJ} \rangle \right| \nonumber\\\\
-        &= \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} \| \langle \Delta q\_i, [A, K]\_{iJ} \rangle \| \nonumber\\\\
-            &\quad+ \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} \| \langle q\_i, [A, \Delta K]\_{iJ} \rangle \| \nonumber\\\\
-        &\leq \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} \\| \Delta q\_i \\|\_{2} \left\\| [A, K]\_{iJ} \right\\|\_{2} \nonumber\\\\
-            &\quad+ \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} \\| q\_i \\|\_{2} \left\\| [A, \Delta K]\_{iJ} \right\\|\_{2} &\text{(from Cauchy-Schwarz)} \nonumber\\\\
+        &= \max\_i \sum\_J \left| \frac{1}{d^{(n+1)/2}} A\_{iJ} (\langle \Delta q\_i, [A, K]\_{iJ} \rangle + \langle q\_i, [A, \Delta K]\_{iJ} \rangle) \right| \nonumber\\\\
+        &\leq \frac{1}{d^{(n+1)/2}} \max\_i \sum\_J A\_{iJ} ( \\| \Delta q\_i \\|\_{2} \left\\| [A, K]\_{iJ} \right\\|\_{2} + \\| q\_i \\|\_{2} \left\\| [A, \Delta K]\_{iJ} \right\\|\_{2} ) &\text{(from Cauchy-Schwarz)} \nonumber\\\\
         &\leq \frac{d}{d^{(n+1)/2}} \max\_i \\| \Delta q\_i \\|\_{RMS} \sum\_J A\_{iJ} \left\\| [A, K]\_{iJ} \right\\|\_{RMS} \nonumber\\\\
             &\quad+ \frac{d}{d^{(n+1)/2}} \max\_i \cancel{\\| q\_i \\|\_{RMS}} \sum\_J A\_{iJ} \left\\| [A, \Delta K]\_{iJ} \right\\|\_{RMS} &\text{(from Proposition 5)} \nonumber\\\\
         &\leq \frac{d}{d^{(n+1)/2}} \max\_i \\| \Delta q\_i \\|\_{RMS} \max\_J \left\\| K\_{J} \right\\|\_{RMS} \nonumber\\\\
             &\quad+ \frac{d}{d^{(n+1)/2}} \max\_J \left\\| \Delta K\_{J} \right\\|\_{RMS} &\text{(from Proposition 8)}  \nonumber\\\\
-        &\leq \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \max\_i \\| \Delta q\_i \\|\_{RMS}
-            + \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \sum\_{t=1}^{n} \max\_J \left\\| \Delta k^{(t)}\_{J} \right\\|\_{RMS} &\text{(from Lemma 6 and Equation 15)} \nonumber\\\\
+        &\leq \frac{d}{d^{(n+1)/2}} \\| \Delta q \\|\_{\infty RMS} \left\\| K \right\\|\_{\infty RMS} + \frac{d}{d^{(n+1)/2}} \left\\| \Delta K \right\\|\_{\infty RMS} \nonumber\\\\
+        &\leq \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \\| \Delta q \\|\_{\infty RMS}
+            + \cancel{\frac{dd^{(n-1)/2}}{d^{(n+1)/2}}} \sum\_{t=1}^{n} \left\\| \Delta k^{(t)} \right\\|\_{\infty RMS} &\text{(from Lemma 6 \\& Inequality 15)} \nonumber\\\\
     \\| \Delta A\_{iJ} \\|\_{\infty -op}
         &\leq \\| \Delta q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \Delta k^{(t)} \\|\_{\infty RMS}
 \end{align}$$
@@ -234,7 +242,7 @@ Hence, n-simplical attention is unit sensitive under the $\infty RMS$ operator n
 
 Next, we wish to show that the n-simplical attention is $3$-sharp for unit RMS norm inputs $(q, k^{(1:n)}, v^{(1:n)}) \in \mathcal{X}$. More formally,
 
-> **Claim 10:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $t$, the n-simplical attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any pair of perturbations $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}), (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \in \mathcal{X}$, we have,
+> **Claim 10:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $1 \leq t \leq n$, the n-simplical attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any pair of perturbations $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}), (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \in \mathcal{X}$, we have,
 > $$\begin{aligned}
     &\\| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \diamond \nabla^2 \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}\\\\
         &\qquad\qquad \leq 3\\| (\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \\|\_{\infty RMS} \\| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \\|\_{\infty RMS} \\\\
@@ -272,8 +280,8 @@ Thus,
 $$\begin{align}
     \\| \Delta^2 V \\|\_{\infty RMS}
         &\leq \frac{1}{d^{(n-1)/2}}  \sum_{1 \leq t < s \leq n} \left\\| \Delta v^{(t)} \circ \tilde{\Delta} v^{(s)} \circ \prod\_{r=1,r\neq t,r\neq s}^n \circ v^{(r)} \right\\|\_{\infty RMS} \nonumber\\\\
-        &\leq \frac{d}{d^{(n-1)/2}}  \sum_{1 \leq t < s \leq n} \\| \Delta v^{(t)} \\|\_{\infty RMS} \\| \tilde{\Delta} v^{(s)} \\|\_{\infty RMS} \left\\| \prod\_{r=1,r\neq t,r\neq s}^n \circ v^{(r)} \right\\|\_{\infty RMS} \nonumber\\\\
-        &\leq \cancel{\frac{dd^{(n-3)/2}}{d^{(n-1)/2}}} \sum_{1 \leq t < s \leq n} \\| \Delta v^{(t)} \\|\_{\infty RMS} \\| \tilde{\Delta} v^{(s)} \\|\_{\infty RMS} \nonumber\\\\
+        &\leq \frac{d}{d^{(n-1)/2}}  \sum_{1 \leq t < s \leq n} \\| \Delta v^{(t)} \\|\_{\infty RMS} \\| \tilde{\Delta} v^{(s)} \\|\_{\infty RMS} \left\\| \prod\_{r=1,r\neq t,r\neq s}^n \circ v^{(r)} \right\\|\_{\infty RMS} &\text{(from Proposition 5)}\nonumber\\\\
+        &\leq \cancel{\frac{dd^{(n-3)/2}}{d^{(n-1)/2}}} \sum_{1 \leq t < s \leq n} \\| \Delta v^{(t)} \\|\_{\infty RMS} \\| \tilde{\Delta} v^{(s)} \\|\_{\infty RMS} &\text{(from Lemma 6)}\nonumber\\\\
     \\| \Delta^2 V \\|\_{\infty RMS}
         &\leq \left( \sum\_{t=1}^n \\| \Delta v^{(t)} \\|\_{\infty RMS} \right) \left( \sum\_{t=1}^n \\| \tilde{\Delta} v^{(t)} \\|\_{\infty RMS} \right)
 \end{align}$$
@@ -312,13 +320,16 @@ $$\begin{align}
     \\| \text{ [term 3] } \\|\_{\infty -op}
         &\leq \max\_i\sum\_J \left|\frac{1}{d^{(n+1)/2}} (\tilde{\Delta} A\_{iJ}) \langle \Delta q\_i, [A, K]\_{iJ} \rangle \right| \nonumber\\\\
         &= \frac{1}{d^{n+1}} \max\_i\sum\_J A\_{iJ} \left| \left( \langle \tilde{\Delta} q\_i, [A, K]\_{iJ} \rangle + \langle q\_i, [A, \tilde{\Delta} K]\_{iJ} \rangle \right)\langle \Delta q\_i, [A, K]\_{iJ} \rangle \right| \nonumber\\\\
-        &\leq \frac{1}{d^{n+1}} \max\_i\sum\_J A\_{iJ} \left( \\| \tilde{\Delta} q\_i \\|\_2 \\| \Delta q\_i \\|\_2 \\| [A, K]\_{iJ} \\|\_2^2 + \\| q\_i \\|\_2 \\| \Delta q\_i \\|\_2 \\| [A, \tilde{\Delta} K]\_{iJ} \\|\_2 \\| [A, K]\_{iJ} \\|\_2 \right) \nonumber\\\\
+        &\leq \frac{1}{d^{n+1}} \max\_i\sum\_J A\_{iJ} \\| \tilde{\Delta} q\_i \\|\_2 \\| \Delta q\_i \\|\_2 \\| [A, K]\_{iJ} \\|\_2^2 \nonumber\\\\
+            &\quad+ \frac{1}{d^{n+1}} \max\_i\sum\_J A\_{iJ}\\| q\_i \\|\_2 \\| \Delta q\_i \\|\_2 \\| [A, \tilde{\Delta} K]\_{iJ} \\|\_2 \\| [A, K]\_{iJ} \\|\_2 \nonumber\\\\
         &= \frac{d^2}{d^{n+1}} \max\_i \\| \tilde{\Delta} q\_i \\|\_{RMS} \\| \Delta q\_i \\|\_{RMS} \sum\_J A\_{iJ} \\| [A, K]\_{iJ} \\|\_{RMS}^2 \nonumber\\\\
             &\quad+ \frac{d^2}{d^{n+1}}\max\_i \cancel{\\| q\_i \\|\_{RMS}} \\| \Delta q\_i \\|\_{RMS} \sum\_J A\_{iJ} \\| [A, \tilde{\Delta} K]\_{iJ} \\|\_{RMS} \\| [A, K]\_{iJ} \\|\_{RMS}  \nonumber\\\\
         &\leq \frac{1}{d^{n-1}} \max\_i \\| \tilde{\Delta} q\_i \\|\_{RMS} \\| \Delta q\_i \\|\_{RMS} \max\_{J} \\| K\_{iJ} \\|\_{RMS}^2 \nonumber\\\\
-            &\quad+ \frac{1}{d^{n-1}}\max\_i \\| \Delta q\_i \\|\_{RMS} (\max\_{J} \\| \tilde{\Delta} K\_{J} \\|\_{RMS}) (\max\_{J} \\| K\_{J} \\|\_{RMS})  \nonumber\\\\
-        &\leq \cancel{\frac{(d^{(n-1)/2})^2}{d^{n-1}}} \max\_i \\| \tilde{\Delta} q\_i \\|\_{RMS} \\| \Delta q\_i \\|\_{RMS} \nonumber\\\\
-            &\quad+ \cancel{\frac{(d^{(n-1)/2})^2}{d^{n-1}}}\max\_i \\| \Delta q\_i \\|\_{RMS} \sum\_{t=1}^n \max\_{J} \\| \tilde{\Delta} k\_{J}^{(t)} \\|\_{RMS}  \nonumber\\\\
+            &\quad+ \frac{1}{d^{n-1}}\max\_i \\| \Delta q\_i \\|\_{RMS} (\max\_{J} \\| \tilde{\Delta} K\_{J} \\|\_{RMS}) (\max\_{J} \\| K\_{J} \\|\_{RMS}) &\text{(from Proposition 8)} \nonumber\\\\
+        &\leq \frac{1}{d^{n-1}} \\| \tilde{\Delta} q \\|\_{\infty RMS} \\| \Delta q \\|\_{\infty RMS} \\| K \\|\_{\infty RMS}^2 \nonumber\\\\
+            &\quad+ \frac{1}{d^{n-1}} \\| \Delta q \\|\_{\infty RMS} \\| \tilde{\Delta} K \\|\_{\infty RMS} \\| K \\|\_{\infty RMS} \nonumber\\\\
+        &\leq \cancel{\frac{(d^{(n-1)/2})^2}{d^{n-1}}} \\| \tilde{\Delta} q \\|\_{\infty RMS} \\| \Delta q \\|\_{\infty RMS} &\text{(from Lemma 6\quad} \nonumber\\\\
+            &\quad+ \cancel{\frac{(d^{(n-1)/2})^2}{d^{n-1}}} \\| \Delta q \\|\_{\infty RMS} \sum\_{t=1}^n \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS} &\text{\\& Inequality 15)} \nonumber\\\\
     \\| \text{ [term 3] } \\|\_{\infty -op}
         &\leq \\| \Delta q \\|\_{\infty RMS} \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^n \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS}\right) \nonumber\\\\
 \end{align}$$
@@ -343,7 +354,7 @@ $$\begin{align}
     \max\_i \left\\| \sum\_{M} (\tilde{\Delta} A)\_{iM} K\_M \right\\|\_{RMS}
         &\leq \max\_i \sum\_{M} |(\tilde{\Delta} A)\_{iM}| \\| K\_M \\|\_{RMS} \nonumber\\\\
         &\leq \max\_i \sum\_{M} |(\tilde{\Delta} A)\_{iM}| \left(\max\_M \\| K\_M \\|\_{RMS}\right) \nonumber\\\\
-        &\leq \\| \tilde{\Delta} A \\|\_{\infty -op} \\| K \\|\_{\infty RMS} \nonumber\\\\
+        &= \\| \tilde{\Delta} A \\|\_{\infty -op} \\| K \\|\_{\infty RMS} \nonumber\\\\
         &\leq d^{(n-1)/2} \left(\\| \tilde{\Delta} q \\|\_{\infty RMS} + \sum\_{t=1}^{n} \\| \tilde{\Delta} k^{(t)} \\|\_{\infty RMS}\right) \nonumber
 \end{align}$$
 
