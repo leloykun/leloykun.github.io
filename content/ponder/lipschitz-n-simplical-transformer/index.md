@@ -1,10 +1,10 @@
 ---
-title: "Sensitivity and Sharpness of n-Simplical Attention"
+title: "Sensitivity and Sharpness of n-Simplicial Attention"
 date: 2025-07-06
 tags: ["Machine Learning", "Optimizers", "Architecture-Optimizer Codesign"]
 author: "Franz Louis Cesista"
-description: "Towards a maximal update parameterization of n-simplical attention"
-summary: "Towards a maximal update parameterization of n-simplical attention"
+description: "Towards a maximal update parameterization of n-simplicial attention"
+summary: "Towards a maximal update parameterization of n-simplicial attention"
 # cover:
 #     image: cover.jpg
 #     alt: "Cover"
@@ -22,15 +22,15 @@ editPost:
 
 ## Introduction
 
-A team from Meta have recently shown that 2-simplical attention improves the exponent in the scaling laws vs. vanilla attention (Roy et al., 2025; Clift et al., 2019, Vaswani et al., 2017). This means that while it may be worse than vanilla attention flops-vs-loss-wise at smaller scales, the trade-off gets better and better at larger scales. This could also be useful for e.g. large-scale reasoning-LLM training runs where context lengths could blow up to millions, even billions of tokens. It is also very Bitter Lesson-pilled: compute exponentially scales over time and having a compute sponge which we can pour more compute into and get better results is great.
+A team from Meta have recently shown that 2-simplicial attention improves the exponent in the scaling laws vs. vanilla attention (Roy et al., 2025; Clift et al., 2019, Vaswani et al., 2017). This means that while it may be worse than vanilla attention flops-vs-loss-wise at smaller scales, the trade-off gets better and better at larger scales. This could also be useful for e.g. large-scale reasoning-LLM training runs where context lengths could blow up to millions, even billions of tokens. It is also very Bitter Lesson-pilled: compute exponentially scales over time and having a compute sponge which we can pour more compute into and get better results is great.
 
 And if we are to scale this up, we have to consider two questions:
-1. If 2-simplical attention is better than (vanilla) 1-simplical attention at scale, then would $n$-simplical attention be better than 2-simplical attention for $n \geq 3$?
+1. If 2-simplicial attention is better than (vanilla) 1-simplicial attention at scale, then would $n$-simplicial attention be better than 2-simplicial attention for $n \geq 3$?
 2. How do we guarantee that our activation and gradient norms are 'stable' during training as we scale up the model?
 
-In this blog post, we will focus on the latter, however we will consider $n$-simplical attention in general in our analyses.
+In this blog post, we will focus on the latter, however we will consider $n$-simplicial attention in general in our analyses.
 
-> **Definition 1 (n-Simplical Attention):** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length, $d$ is the model width, and $n$ is the number of key-value pairs per token. And let $s_1, s_2 \in \mathbb{R}$ be scaling factors. Then we define n-simplical attention $\texttt{F}$ as follows,
+> **Definition 1 (n-Simplicial Attention):** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length, $d$ is the model width, and $n$ is the number of key-value pairs per token. And let $s_1, s_2 \in \mathbb{R}$ be scaling factors. Then we define n-simplicial attention $\texttt{F}$ as follows,
 > $$\begin{aligned}
     \texttt{F}(q, k^{(1:n)}, v^{(1:n)})
         &= {\color{blue}s_2} \texttt{softmax}\left({\color{blue}s_1} \langle q, k^{(1)}, k^{(2)}, \ldots, k^{(n)} \rangle + \texttt{mask}\right) ( v^{(1)} \circ v^{(2)} \circ \ldots \circ v^{(n)} )\\\\
@@ -45,7 +45,7 @@ In this blog post, we will focus on the latter, however we will consider $n$-sim
 
 Examples:
 1. Vanilla Attention (Vaswani et al., 2017), $$\texttt{F}(q, k, v) = \texttt{softmax}\left(\frac{1}{\sqrt{d}} qk^T + \texttt{mask}\right) v$$
-2. 2-Simplical Attention (Clift et al., 2019), $$\texttt{F}(q, k^{(1)}, k^{(2)}, v^{(1)}, v^{(2)}) = \texttt{softmax}\left(\frac{1}{\sqrt{d}} \langle q, k^{(1)}, k^{(2)} \rangle + \texttt{mask}\right) ( v^{(1)} \circ v^{(2)} )$$
+2. 2-Simplicial Attention (Clift et al., 2019), $$\texttt{F}(q, k^{(1)}, k^{(2)}, v^{(1)}, v^{(2)}) = \texttt{softmax}\left(\frac{1}{\sqrt{d}} \langle q, k^{(1)}, k^{(2)} \rangle + \texttt{mask}\right) ( v^{(1)} \circ v^{(2)} )$$
 
 Note that for both of these examples, $s_1 = 1/\sqrt{d}$ and $s_2 = 1$.
 
@@ -65,9 +65,9 @@ More formally, what we mean by activation norms being "stable" is that tiny chan
 
 Note that if $\mathcal{X}$ and $\mathcal{Y}$ are normed vector spaces, then the sensitivity bounds the (forward) Lipschitz constant of the module, and the sharpness bounds the (backward) *gradient* Lipschitz constant. Having unit sensitivity means that a small change in the input can only cause at most as much change in the output. Likewise, having unit sharpness means that a small change in the input can only cause at most as much change in the gradient.
 
-In this blog post, we will show that $n$-simplical attention is unit sensitive and $3$-sharp under the $\infty RMS$ operator norm given that the inputs have unit RMS norm.
+In this blog post, we will show that $n$-simplicial attention is unit sensitive and $3$-sharp under the $\infty RMS$ operator norm given that the inputs have unit RMS norm.
 
-> **Claim 4 (Sensitivity and sharpness of n-Simplical Attention):** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length, $d$ is the model width, and $n$ is the number of key-value pairs per token. For unit RMS norm inputs, i.e. $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $1 \leq t \leq n$, $n$-simplical attention parameterized as follows,
+> **Claim 4 (Sensitivity and sharpness of n-Simplicial Attention):** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length, $d$ is the model width, and $n$ is the number of key-value pairs per token. For unit RMS norm inputs, i.e. $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $1 \leq t \leq n$, $n$-simplicial attention parameterized as follows,
 $$\begin{equation}
     \texttt{F}(q, k^{(1:n)}, v^{(1:n)}) = {\color{blue}\frac{1}{d^{(n-1)/2}}} \texttt{softmax}\left({\color{blue}\frac{1}{d^{(n+1)/2}}} \left\langle q, \left( \prod\_{t=1}^n \circ k^{(t)} \right) \right\rangle + \texttt{mask}\right) \left( \prod\_{t=1}^n \circ v^{(t)} \right)
 \end{equation}$$
@@ -98,7 +98,7 @@ $$\\| Bx \\|\_{\infty RMS} \leq \\| B \\|\_{\infty -op} \\| x \\|\_{\infty RMS}$
 
 ### Choice of scaling factors
 
-Let's rewrite n-Simplical Attention in Claim 4 above as follows,
+Let's rewrite n-Simplicial Attention in Claim 4 above as follows,
 
 $$\begin{align}
     K &= \prod\_{t=1}^n \circ k^{(t)} \\\\
@@ -136,7 +136,7 @@ The proof follows directly from Proposition 5.
 
 ### Useful shorthands
 
-Following Large et al. (2024), we use the following shorthard which is crucial for our proofs below.
+Following Large et al. (2024), we use the following shorthand which is crucial for our proofs below.
 
 > **Definition 7 (Bracket notation):** Let $B$ be a $\underbrace{T \times T \times \ldots \times T}\_{n+1}$ tensor and $x$ be a $\underbrace{T \times T \times \ldots \times T}\_{n}\times d$ tensor. Then,
 > $$[B, x]\_{iJ} := x\_J - \sum\_M B\_{iM}x\_{M}$$
@@ -150,11 +150,11 @@ Following Large et al. (2024), we use the following shorthard which is crucial f
 \end{aligned}$$
 > All three inequalities can be proven via standard probability theory.
 
-## Sensitivity of n-Simplical Attention
+## Sensitivity of n-Simplicial Attention
 
-We wish to show that the n-simplical attention is unit sensitive for unit RMS norm inputs $(q, k^{(1:n)}, v^{(1:n)}) \in \mathcal{X}$.
+We wish to show that the n-simplicial attention is unit sensitive for unit RMS norm inputs $(q, k^{(1:n)}, v^{(1:n)}) \in \mathcal{X}$.
 
-> **Claim 9:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $1 \leq t \leq n$, the n-simplical attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any perturbation $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \in \mathcal{X}$, we have,
+> **Claim 9:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $1 \leq t \leq n$, the n-simplicial attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any perturbation $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \in \mathcal{X}$, we have,
 > $$\begin{aligned}
     \\| \nabla \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}
         &\leq \\| (\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \\|\_{\infty RMS} \\\\
@@ -235,13 +235,13 @@ $$\begin{aligned}
         &\leq \\| (q, k^{(1:n)}, v^{(1:n)}) \\|\_{\infty RMS}
 \end{aligned}$$
 
-Hence, n-simplical attention is unit sensitive under the $\infty RMS$ operator norm as claimed.
+Hence, n-simplicial attention is unit sensitive under the $\infty RMS$ operator norm as claimed.
 
-## Sharpness of n-Simplical Attention
+## Sharpness of n-Simplicial Attention
 
-Next, we wish to show that the n-simplical attention is $3$-sharp for unit RMS norm inputs $(q, k^{(1:n)}, v^{(1:n)}) \in \mathcal{X}$. More formally,
+Next, we wish to show that the n-simplicial attention is $3$-sharp for unit RMS norm inputs $(q, k^{(1:n)}, v^{(1:n)}) \in \mathcal{X}$. More formally,
 
-> **Claim 10:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $1 \leq t \leq n$, the n-simplical attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any pair of perturbations $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}), (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \in \mathcal{X}$, we have,
+> **Claim 10:** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length and $d$ is the model width. For $\\| q \\|\_{\infty RMS} = \\| k^{(t)} \\|\_{\infty RMS} = \\| v^{(t)} \\|\_{\infty RMS} = 1$ for all $1 \leq t \leq n$, the n-simplicial attention function $\texttt{F}$ is unit sensitive under the $\infty RMS$ operator norm. That is, for any pair of perturbations $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}), (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \in \mathcal{X}$, we have,
 > $$\begin{aligned}
     &\\| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \diamond \nabla^2 \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \\|\_{\infty RMS}\\\\
         &\qquad\qquad \leq 3\\| (\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \\|\_{\infty RMS} \\| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \\|\_{\infty RMS} \\\\
@@ -412,26 +412,26 @@ $$\begin{aligned}
         &\leq 3 \\| (\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \\|\_{\infty RMS} \\| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \\|\_{\infty RMS}
 \end{aligned}$$
 
-Hence, n-simplical attention is $3$-sharp under the $\infty RMS$ operator norm as claimed.
+Hence, n-simplicial attention is $3$-sharp under the $\infty RMS$ operator norm as claimed.
 
 ## Discussion
 
-Here we have devised a parametrization that allows us to have width-independent sensitivity and sharpness bounds for n-simplical attention. We hope that this will allow us to construct a maximum update parametrization of some sort for such modules and networks containing them.
+Here we have devised a parametrization that allows us to have width-independent sensitivity and sharpness bounds for n-simplicial attention. We hope that this will allow us to construct a maximum update parametrization of some sort for such modules and networks containing them.
 
-Note however that for $n = 1$, we have to set the scaling factor $s_1 = \frac{1}{d^{(1+1)/2}} = \frac{1}{d}$, which is the same scaling factor suggested by Large et al. (2024), but is different from the more standard $s_1 = \frac{1}{\sqrt{d}}$. Likewise, for 2-simplical attention, we have to set the scaling factor $s_1 = \frac{1}{d^{(2+1)/2}} = \frac{1}{d^{3/2}}$, which is different from the $s_1 = \frac{1}{\sqrt{d}}$ used by Roy et al. (2025). Additionally, we also have to set $s_2 = \frac{1}{d^{(2-1)/2}} = \frac{1}{\sqrt{d}}$ for the outer scale in 2-simplical attention, which, for larger dimensions, scales down the outputs significantly. Empirically, such parametrization leads to worse performance early in training, but guarantees stable training, especially at the tail end of training where the queries, keys, and values are more often aligned than not.
+Note however that for $n = 1$, we have to set the scaling factor $s_1 = \frac{1}{d^{(1+1)/2}} = \frac{1}{d}$, which is the same scaling factor suggested by Large et al. (2024), but is different from the more standard $s_1 = \frac{1}{\sqrt{d}}$. Likewise, for 2-simplicial attention, we have to set the scaling factor $s_1 = \frac{1}{d^{(2+1)/2}} = \frac{1}{d^{3/2}}$, which is different from the $s_1 = \frac{1}{\sqrt{d}}$ used by Roy et al. (2025). Additionally, we also have to set $s_2 = \frac{1}{d^{(2-1)/2}} = \frac{1}{\sqrt{d}}$ for the outer scale in 2-simplicial attention, which, for larger dimensions, scales down the outputs significantly. Empirically, such parametrization leads to worse performance early in training, but guarantees stable training, especially at the tail end of training where the queries, keys, and values are more often aligned than not.
 
 The main benefit of having low (and width-independent) sensitivity and sharpness really is that it allows us to have larger update step sizes without worrying about suddenly exploding or vanishing activations and gradients. Additionally, bounding the sensitivity allows us to control how much the gradients change as they pass through the module via backpropagation--the smaller the sensitivity, the smaller the change in the gradients. And bounding the sharpness allows us to have more trust in the momentum term more knowing that gradient spikes would rarely happen, if at all. These gradient spikes notoriously 'break' the momentum term at larger traning runs, especially near the end of training.
 
 This parametrization could also be useful in distributed training setups where gradient all-reduces are expensive and thus sparsifying the gradients before sending them over the network is a must (Douillard et al., 2024; Thérien et al., 2025). Problem arises when the gradients have outliers, requiring us to use more expensive quantization schemes to avoid losing information. But having control over the gradient norms should allow us to eliminate such outliers and get low-precision (and thus low-communication) training basically "for free".
 
-Lastly, this could also be used to parametrize a continuous n-simplical attention module, where $n$ is continous instead of discrete. At test time, we could then scale $n$ as a sort of test-time scaling.
+Lastly, this could also be used to parametrize a continuous n-simplicial attention module, where $n$ is continous instead of discrete. At test time, we could then scale $n$ as a sort of test-time scaling.
 
 ## How to Cite
 
 ```bibtex
 @misc{cesista2025sensitivitysharpnessnsimplicalattention,
   author = {Franz Louis Cesista},
-  title = {"Sensitivity and Sharpness of n-Simplical Attention"},
+  title = {"Sensitivity and Sharpness of n-Simplicial Attention"},
   year = {2025},
   url = {https://leloykun.github.io/ponder/lipschitz-n-simplical-transformer/},
 }
@@ -445,7 +445,7 @@ Lastly, this could also be used to parametrize a continuous n-simplical attentio
 ## References
 
 1. Aurko Roy, Timothy Chou, Sai Surya Duvvuri, Sijia Chen, Jiecao Yu, Xiaodong Wang, Manzil Zaheer, Rohan Anil (2025). Fast and Simplex: 2-Simplicial Attention in Triton. URL https://arxiv.org/abs/2507.02754v1
-2. James Clift, Dmitry Doryn, Daniel Murfet, James Wallbridge (2019). Logic and the -Simplicial Transformer. URL https://arxiv.org/abs/1909.00668
+2. James Clift, Dmitry Doryn, Daniel Murfet, James Wallbridge (2019). Logic and the 2-Simplicial Transformer. URL https://arxiv.org/abs/1909.00668
 3. Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, Illia Polosukhin (2017). Attention is all you need. URL https://arxiv.org/abs/1706.03762
 4. Tim Large, Yang Liu, Minyoung Huh, Hyojin Bahng, Phillip Isola, Jeremy Bernstein (2024). Scalable Optimization in the Modular Norm. URL https://arxiv.org/abs/2405.14813
 5. Benjamin Thérien, Xiaolong Huang, Irina Rish, Eugene Belilovsky (2025). MuLoCo: Muon is a practical inner optimizer for DiLoCo. URL https://arxiv.org/abs/2505.23725

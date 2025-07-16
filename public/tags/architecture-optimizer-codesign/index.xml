@@ -9,11 +9,11 @@
     <lastBuildDate>Sun, 06 Jul 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/tags/architecture-optimizer-codesign/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Sensitivity and Sharpness of n-Simplical Attention</title>
+      <title>Sensitivity and Sharpness of n-Simplicial Attention</title>
       <link>https://leloykun.github.io/ponder/lipschitz-n-simplical-transformer/</link>
       <pubDate>Sun, 06 Jul 2025 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/ponder/lipschitz-n-simplical-transformer/</guid>
-      <description>Towards a maximal update parameterization of n-simplical attention</description>
+      <description>Towards a maximal update parameterization of n-simplicial attention</description>
     </item>
     <item>
       <title>Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration</title>
