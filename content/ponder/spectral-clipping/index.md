@@ -185,9 +185,9 @@ where `_orthogonalize_via_newton_schulz` above implements Jordan et al.'s (2024)
 
 > June 24, 2025 Update: This section builds on top of [Su's (2025c) blog post](https://kexue.fm/archives/11059) in response to this work.
 
-> **Proposition 4 (Transpose Invariance and Unitary Multiplication Equivariance of Odd Matrix Functions)**. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its singular value decomposition. And let $f: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ be an odd analytic matrix function that acts on the singular values of $W$ as follows,
+> **Proposition 4 (Transpose Equivariance and Unitary Multiplication Equivariance of Odd Matrix Functions)**. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its singular value decomposition. And let $f: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ be an odd analytic matrix function that acts on the singular values of $W$ as follows,
 > $$f(W) = U f(\Sigma) V^T.$$
-> Then $f$ is invariant under transposition and equivariant under unitary multiplication, i.e.,
+> Then $f$ is equivariant under transposition and unitary multiplication, i.e.,
 > $$f(W^T) = f(W)^T \quad\text{and}\quad f(WQ^T) = f(W)Q^T \quad\text{and}\quad f(Q^TW) = Q^Tf(W)$$
 > for all $Q \in \mathbb{R}^{m \times n}$ such that $Q^TQ = I$.
 
@@ -202,7 +202,7 @@ where `_orthogonalize_via_newton_schulz` above implements Jordan et al.'s (2024)
            &= \sum_k a_k (W^TW)^kW^T\\\\
     f(W)^T &= f(W^T)
 \end{aligned}$$
-> Hence $f$ is transpose invariant. Likewise, for arbitrary $Q \in \mathbb{R}^{m \times n}$ such that $Q^TQ = I$,
+> Hence $f$ is transpose equivariant. Likewise, for arbitrary $Q \in \mathbb{R}^{m \times n}$ such that $Q^TQ = I$,
 > $$\begin{aligned}
     f(WQ^T) &= \sum_k a_k ((WQ^T)(WQ^T)^T)^kWQ^T\\\\
           &= \sum_k a_k (W\cancel{Q^TQ}W^T)^kWQ^T\\\\
@@ -247,7 +247,7 @@ $$\begin{align}
         &\qquad+ \texttt{msign}(\alpha I - \texttt{msign}(W)^TW)(\alpha  \cdot\texttt{msign}(W) - W)\\\\
         &\qquad- \underbrace{\texttt{msign}(\beta I - \texttt{msign}(W)^TW)}\_{\color{blue}{m \times m}}\underbrace{(\beta  \cdot\texttt{msign}(W) - W)}\_{\color{blue}{m \times n}}]\nonumber\\\\
 \end{align}$$
-which is faster when $m < n$.
+which is faster to compute than Equation (6) when $m < < n$.
 
 We can implement this in JAX as follows,
 
