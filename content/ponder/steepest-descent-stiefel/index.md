@@ -9,9 +9,9 @@ cover:
     image: steepest-descent-stiefel-manifold.jpg
     alt: "Cover"
     relative: true
-# editPost:
-#     URL: "https://x.com/leloykun/status/1936191549735624977"
-#     Text: "Crossposted on X (formerly Twitter)"
+editPost:
+    URL: "https://x.com/leloykun/status/1946640155655475316"
+    Text: "Crossposted on X (formerly Twitter)"
 ---
 
 > If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]
