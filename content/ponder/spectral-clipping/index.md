@@ -181,7 +181,7 @@ def spectral_clip(W: jax.Array, alpha: float=-1., beta: float=1.):
 ```
 where `_orthogonalize_via_newton_schulz` above implements Jordan et al.'s (2024) Newton-Schulz iteration for computing the matrix sign function. Note that we're calling `_orthogonalize_via_newton_schulz` thrice here, which is not ideal.
 
-### 2.4. Optimization via abstract algebra [Under Construction]
+### 2.4. Optimization via abstract algebra
 
 > June 24, 2025 Update: This section builds on top of [Su's (2025c) blog post](https://kexue.fm/archives/11059) in response to this work.
 

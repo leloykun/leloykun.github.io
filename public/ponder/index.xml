@@ -6,8 +6,15 @@
     <description>Recent content in Ponder on Franz Louis Cesista</description>
     <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 06 Jul 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 18 Jul 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/ponder/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>A Simple Heuristic Solution for Steepest Descent on Stiefel Manifold</title>
+      <link>https://leloykun.github.io/ponder/steepest-descent-stiefel/</link>
+      <pubDate>Fri, 18 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/steepest-descent-stiefel/</guid>
+      <description>Fast, numerically stable, and differentiable solution for steepest descent on Stiefel manifold.</description>
+    </item>
     <item>
       <title>Sensitivity and Sharpness of n-Simplicial Attention</title>
       <link>https://leloykun.github.io/ponder/lipschitz-n-simplical-transformer/</link>
