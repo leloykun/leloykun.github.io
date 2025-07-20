@@ -38,7 +38,7 @@ $$\begin{align*}
 
 We will show that these are equivalent, i.e., $A^\*\_{\text{bernstein}} = A^\*\_{\text{su}}$. For this, we will reuse the following proposition we have discussed in a [previous post on spectral clipping](../spectral-clipping).
 
-> **Proposition1 (Transpose Equivariance and Unitary Multiplication Equivariance of Odd Matrix Functions)**. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its reduced SVD. And let $f: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ be an odd analytic matrix function that acts on the singular values of $W$ as follows,
+> **Proposition 1 (Transpose Equivariance and Unitary Multiplication Equivariance of Odd Matrix Functions)**. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its reduced SVD. And let $f: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ be an odd analytic matrix function that acts on the singular values of $W$ as follows,
 > $$f(W) = U f(\Sigma) V^T.$$
 > Then $f$ is equivariant under transposition and unitary multiplication, i.e.,
 > $$f(W^T) = f(W)^T \quad\text{and}\quad f(WQ^T) = f(W)Q^T \quad\text{and}\quad f(Q^TW) = Q^Tf(W)$$
