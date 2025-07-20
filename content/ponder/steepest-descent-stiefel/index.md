@@ -38,10 +38,10 @@ $$\begin{align*}
 
 We will show that these are equivalent, i.e., $A^\*\_{\text{bernstein}} = A^\*\_{\text{su}}$. For this, we will reuse the following proposition we have discussed in a [previous post on spectral clipping](../spectral-clipping).
 
-> **Proposition [1] (Transpose Equivariance and Unitary Multiplication Equivariance of Odd Matrix Functions)**. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its reduced SVD. And let $f: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ be an odd analytic matrix function that acts on the singular values of $W$ as follows,
+> **Proposition1 (Transpose Equivariance and Unitary Multiplication Equivariance of Odd Matrix Functions)**. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its reduced SVD. And let $f: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ be an odd analytic matrix function that acts on the singular values of $W$ as follows,
 > $$f(W) = U f(\Sigma) V^T.$$
-> Then $f$ is equivariant under unitary multiplication, i.e.,
-> $$f(W^T) = f(W)^T \quad f(WQ^T) = f(W)Q^T \quad\text{and}\quad f(Q^TW) = Q^Tf(W)$$
+> Then $f$ is equivariant under transposition and unitary multiplication, i.e.,
+> $$f(W^T) = f(W)^T \quad\text{and}\quad f(WQ^T) = f(W)Q^T \quad\text{and}\quad f(Q^TW) = Q^Tf(W)$$
 > for all $Q \in \mathbb{R}^{m \times n}$ such that $Q^TQ = I$.
 
 Thus,
@@ -154,12 +154,18 @@ For the more general case, we have $Q \neq 0$. Thus, we cannot guarantee that $W
 
 ### Heuristic solution for the general case [Under Construction]
 
-Notice that $QQ^T G$ is the projection of $G$ onto the column space of $Q$, $\texttt{proj}\_{\text{col}(Q)}(G) = QQ^T G$. One can think of this as the component of $G$ that is not in the span of $W$. In practice, this is typically not as large as the component of $G$ that *is* in the span of $W$. If so, then,
+Notice that $QQ^T G$ is the projection of $G$ onto the column space of $Q$, $\texttt{proj}\_{\text{col}(Q)}(G) = QQ^T G$. One can think of this as the component of $G$ that is not in the span of $W$. In practice, this is typically small relative to the component of $G$ that *is* in the span of $W$. If so, then,
 $$(\texttt{msign}\circ \texttt{proj}\_{T\_W St(m, n)})(G) \approx \texttt{msign}(W \texttt{skew}(W^T G) + \cancel{\texttt{proj}\_{\text{col}(Q)}(G)})$$
 which means that while the resulting matrix after the two projections may not be in the tangent space at $W$, it would likely be *nearby*. And repeating this process a few times should close the gap.
 
 Here's a sample implementation,
 ```python
+def project_to_stiefel_tangent_space(X, delta_X):
+    return delta_X - X @ sym(X.T @ delta_X)
+
+def orthogonalize(X):
+    # copy Newton-Schulz iteration from Muon (Jordan et al., 2024)
+
 def steepest_descent_stiefel_manifold_heuristic(W, G, num_steps=1):
     assert num_steps > 0, "Number of steps must be positive"
     A_star = G
@@ -194,3 +200,4 @@ def steepest_descent_stiefel_manifold_heuristic(W, G, num_steps=1):
 1. Jeremy Bernstein (2025). Orthogonal manifold. URL https://docs.modula.systems/algorithms/manifold/orthogonal/
 2. Jianlin Su (2025). Steepest descent on Stiefel manifold. URL https://x.com/YouJiacheng/status/1945522729161224532
 3. Jeremy Bernstein, Laker Newhouse (2024). Old Optimizer, New Norm: An Anthology. URL https://arxiv.org/abs/2409.20325
+4. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
