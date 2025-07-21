@@ -188,8 +188,11 @@ where `_orthogonalize_via_newton_schulz` above implements Jordan et al.'s (2024)
 > **Proposition 4 (Transpose Equivariance and Unitary Multiplication Equivariance of Odd Matrix Functions)**. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its singular value decomposition. And let $f: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ be an odd analytic matrix function that acts on the singular values of $W$ as follows,
 > $$f(W) = U f(\Sigma) V^T.$$
 > Then $f$ is equivariant under transposition and unitary multiplication, i.e.,
-> $$f(W^T) = f(W)^T \quad\text{and}\quad f(WQ^T) = f(W)Q^T \quad\text{and}\quad f(Q^TW) = Q^Tf(W)$$
-> for all $Q \in \mathbb{R}^{m \times n}$ such that $Q^TQ = I$.
+> $$\begin{align*}
+    f(W^T) &= f(W)^T \\\\
+    f(WQ^T) &= f(W)Q^T \quad\forall Q \in \mathbb{R}^{m \times n} \text{ such that } Q^TQ = I_n \\\\
+    f(Q^TW) &= Q^Tf(W) \quad\forall Q \in \mathbb{R}^{m \times n} \text{ such that } QQ^T = I_m
+\end{align*}$$
 
 {{< collapse summary="Show **proof of Proposition 4**" openByDefault=false >}}
 > **Proof**. Since $f$ is odd and analytic, we can decompose it as,
@@ -202,7 +205,7 @@ where `_orthogonalize_via_newton_schulz` above implements Jordan et al.'s (2024)
            &= \sum_k a_k (W^TW)^kW^T\\\\
     f(W)^T &= f(W^T)
 \end{aligned}$$
-> Hence $f$ is transpose equivariant. Likewise, for arbitrary $Q \in \mathbb{R}^{m \times n}$ such that $Q^TQ = I$,
+> Hence $f$ is transpose equivariant. Likewise, for arbitrary $Q \in \mathbb{R}^{m \times n}$ such that $Q^TQ = I\_n$,
 > $$\begin{aligned}
     f(WQ^T) &= \sum_k a_k ((WQ^T)(WQ^T)^T)^kWQ^T\\\\
           &= \sum_k a_k (W\cancel{Q^TQ}W^T)^kWQ^T\\\\
@@ -210,7 +213,7 @@ where `_orthogonalize_via_newton_schulz` above implements Jordan et al.'s (2024)
     f(WQ^T) &= f(W)Q^T,
 \end{aligned}$$
 > 
-> and,
+> and for arbitrary $Q \in \mathbb{R}^{m \times n}$ such that $QQ^T = I\_m$,
 > 
 > $$\begin{aligned}
     f(Q^TW) &= \sum_k a_k (Q^TW)\left((Q^TW)^T(Q^TW)\right)^k\\\\

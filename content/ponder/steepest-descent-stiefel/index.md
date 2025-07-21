@@ -41,8 +41,11 @@ We will show that these are equivalent, i.e., $A^\*\_{\text{bernstein}} = A^\*\_
 > **Proposition 1 (Transpose Equivariance and Unitary Multiplication Equivariance of Odd Matrix Functions)**. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its reduced SVD. And let $f: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ be an odd analytic matrix function that acts on the singular values of $W$ as follows,
 > $$f(W) = U f(\Sigma) V^T.$$
 > Then $f$ is equivariant under transposition and unitary multiplication, i.e.,
-> $$f(W^T) = f(W)^T \quad\text{and}\quad f(WQ^T) = f(W)Q^T \quad\text{and}\quad f(Q^TW) = Q^Tf(W)$$
-> for all $Q \in \mathbb{R}^{m \times n}$ such that $Q^TQ = I$.
+> $$\begin{align*}
+    f(W^T) &= f(W)^T \\\\
+    f(WQ^T) &= f(W)Q^T \quad\forall Q \in \mathbb{R}^{m \times n} \text{ such that } Q^TQ = I_n \\\\
+    f(Q^TW) &= Q^Tf(W) \quad\forall Q \in \mathbb{R}^{m \times n} \text{ such that } QQ^T = I_m
+\end{align*}$$
 
 Thus,
 
