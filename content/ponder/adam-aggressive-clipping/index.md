@@ -1,5 +1,5 @@
 ---
-title: "Adam with Agressive Gradient Clipping ≈ Smoothed SignSGD/NormSGD"
+title: "Adam with Aggressive Gradient Clipping ≈ Smoothed SignSGD/NormSGD"
 date: 2025-07-03
 tags: ["Machine Learning", "Optimizers"]
 author: "Franz Louis Cesista"
@@ -156,7 +156,7 @@ and let's pick an arbitrary entry $G_{t,i,j}$. Like before, if the signs of the 
 ```bibtex
 @misc{cesista2025adamaggressiveclipping,
   author = {Franz Louis Cesista},
-  title = {"Adam with Agressive Gradient Clipping ≈ Smoothed SignSGD/NormSGD"},
+  title = {"Adam with Aggressive Gradient Clipping ≈ Smoothed SignSGD/NormSGD"},
   year = {2025},
   url = {http://leloykun.github.io/ponder/adam-aggressive-clipping/},
 }
