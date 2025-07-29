@@ -38,7 +38,7 @@ We will discuss weight norm controls in the next section, but for now, instead o
 Thus our update rule becomes,
     $$W \leftarrow W - \eta \frac{\sqrt{m}}{\sqrt{n}} A^\*,$$
 where
-$$A^\* = \arg\max\_{\\| A \\|\_{2 \to 2} = 1} \langle G, A \rangle,$$
+$$A^\* = \arg\max\_{A\in \mathbb{R}^{m \times n}:\\| A \\|\_{2 \to 2} = 1} \langle G, A \rangle,$$
 and $\langle \cdot, \cdot \rangle$ is the Frobenius inner product which measures the "alignment" between two matrices. From Bernstein & Newhouse (2024), this has a closed-form solution,
 $$A^\* = \texttt{msign}(G),$$
 where $\texttt{msign}(\cdot)$ is the matrix sign function. And finally, adding a momentum term then yields the Muon optimizer (Jordan et al., 2024),
@@ -60,10 +60,10 @@ $$T\_W \text{St}(m, n) = \\{A \in \mathbb{R}^{m \times n} \| W^T A + A^T W = 0\\
 Now, to "move around" on this manifold, we take an update step on the tangent space at $W$, $A \in T\_W \text{St}(m, n)$, use this to 'move' our weight $W \leftarrow W + \tilde{\eta} A$, then retract the result back to the manifold via $\text{msign}(\cdot)$, and repeat. Ideally, we want our update step to be maximally aligned to $G$ while also satisfying unit-normed-ness. Thus our update rule becomes,
 $$W \leftarrow \text{msign}\left(W - \eta\frac{\sqrt{m}}{\sqrt{n}}A^\* \right)$$
 where
-$$A^\* = \arg\max\_{\\| A \\|\_{2 \to 2} = 1} \langle G, A \rangle \quad \text{s.t. } A \in T\_W\text{St}(m, n),$$
+$$A^\* = \arg\max\_{A\in \mathbb{R}^{m \times n}: \\| A \\|\_{2 \to 2} = 1} \langle G, A \rangle \quad \text{s.t. } A \in T\_W\text{St}(m, n),$$
 
 Equivalently,
-$$A^\* = \arg\max \langle G, A \rangle  \quad \text{s.t. } A \in \text{St}(m, n) \cap T\_W \text{St}(m, n),$$
+$$A^\* = \arg\max\_{A\in \mathbb{R}^{m \times n}} \langle G, A \rangle  \quad \text{s.t. } A \in \text{St}(m, n) \cap T\_W \text{St}(m, n),$$
 Or in words, we want to find a descent direction $A$ that is both on the Stiefel manifold and in the tangent space at $W$ that maximizes the "alignment" with the raw gradient $G$. 
 
 ## 3. Equivalence between Bernstein's and Su's solutions
@@ -220,7 +220,7 @@ Notice that $QQ^T G$ is the projection of $G$ onto the column space of $Q$, $\te
 $$(\texttt{proj}\_{\text{St}(m, n)} \circ \texttt{proj}\_{T\_W St(m, n)})(G) \approx \texttt{msign}(W \texttt{skew}(W^T G) + \cancel{\texttt{proj}\_{\text{col}(Q)}(G)}),$$
 which means that while the resulting matrix after the two projections may not be in the tangent space at $W$, it would likely be *nearby*. And repeating this process a few times should close the gap.
 
-Here's a sample implementation,
+Sample implementation:
 ```python
 def project_to_stiefel_tangent_space(X, delta_X):
     return delta_X - X @ sym(X.T @ delta_X)
@@ -266,7 +266,7 @@ Here we present an alternative solution that is more efficient, but often yields
 
 #### 5.3.1. Problem decomposition
 
-The crux is to split $\arg\max\_{A} \langle G, A \rangle$ into two optimization problems, one for the component of $G$ that is "aligned to" $W$ and one for the component of $G$ that is "not aligned to" $W$. To see this, let's first decompose $G$ and $A$ into,
+The crux is to split $\arg\max\_{A\in \mathbb{R}^{m \times n}} \langle G, A \rangle$ into two optimization problems, one for the component of $G$ that is "aligned to" $W$ and one for the component of $G$ that is "not aligned to" $W$. To see this, let us first decompose $G$ and $A$ into,
 $$G = W G\_W + Q G\_Q \qquad A = WB + QC$$
 where $G\_W = W^T G$ and $G\_Q = Q^T G$. Thus,
 $$\begin{align}
@@ -277,7 +277,7 @@ $$\begin{align}
     \langle G, A \rangle
         &= \langle G\_W, B \rangle + \langle G\_Q, C \rangle \\\\
 \end{align}$$
-The cross terms vanish in the fourth equality because $W^T Q = 0$. Finding the maximizer $A^\*$ for the LHS is then equivalent to finding the maximizers $B^\*$ and $C^\*$ for the RHS and then combining them,
+The cross terms vanish in the third equality because $W^T Q = 0$. Finding the maximizer $A^\*$ for the LHS is then equivalent to finding the maximizers $B^\*$ and $C^\*$ for the RHS and then combining them,
 $$A^\* = WB^\* + QC^\*.$$
 
 #### 5.3.2. Solving the two subproblems
@@ -312,14 +312,14 @@ These mappings preserve skew-symmetry and thus $B^\*(\tau)$ satisfies the first 
 
 ---
 
-Now, let's parametrize $C$ as $C = UR$ where $U^T U = I$ and $R(\tau) = (I_n - (B^\*(\tau))^T B^\*(\tau))^{1/2}$. It is trivial to check that $C$ satisfies our constraints and that $R(\tau)$ is SPD. Thus, assuming we already have a fixed $B^\*(\tau)$ (and consequently a fixed $R(\tau)$), solving the second subproblem,
+Now, parametrize $C$ as $C = UR$ where $U^T U = I$ and $R(\tau) = (I_n - (B^\*(\tau))^T B^\*(\tau))^{1/2}$. It is trivial to check that $C$ satisfies our constraints and that $R(\tau)$ is SPD. Thus, assuming we already have a fixed $B^\*(\tau)$ (and consequently a fixed $R(\tau)$), solving the second subproblem,
 $$\arg\max\_{C} \langle G\_Q, C \rangle$$
 is equivalent to solving,
 $$\begin{align*}
-    \arg\max\_{U} \langle G\_Q, U R(\tau) \rangle
-        &= \arg\max\_{U} \text{tr}(G\_Q^T U R(\tau)) \\\\
-        &= \arg\max\_{U} \text{tr}(R(\tau) G\_Q^T U) \\\\
-        &= \arg\max\_{U} \langle G\_Q R(\tau), U \rangle
+    \arg\max\_{U: U^T U = I} \langle G\_Q, U R(\tau) \rangle
+        &= \arg\max\_{U: U^T U = I} \text{tr}(G\_Q^T U R(\tau)) \\\\
+        &= \arg\max\_{U: U^T U = I} \text{tr}(R(\tau) G\_Q^T U) \\\\
+        &= \arg\max\_{U: U^T U = I} \langle G\_Q R(\tau), U \rangle
 \end{align*}$$
 which has maximizer $U^\* = \texttt{msign}(G\_Q R(\tau))$. Thus, $C^\*(\tau) = \texttt{msign}(G\_Q R(\tau)) R(\tau)$.
 
@@ -412,8 +412,8 @@ For this, we need two things:
 2. A 'projection' or retraction map that maps an (updated) weight matrix $W \in \mathbb{R}^{m \times n}$ back to the (scaled-)Oblique manifold.
 
 The retraction map is simply the column-wise normalization,
-$$\texttt{column\\_normalize}(W) := W\_j \mapsto \frac{W\_j}{\\| W\_j \\|\_{RMS}} = \frac{\sqrt{m}}{\\| W\_j \\|\_{2}} W\_j \quad \forall \text{column indices } 0 \leq j < n$$
-where $W\_j$ is the $j$-th column of the weight matrix $W$.
+$$\texttt{column\\_normalize}(W) := \text{col}\_j(W) \mapsto \frac{\text{col}\_j(W)}{\\| \text{col}\_j(W) \\|\_{RMS}} = \sqrt{m}\frac{\text{col}\_j(W)}{\\| \text{col}\_j(W) \\|\_{2}} \quad \forall 0 \leq j < n$$
+where $\text{col}\_j(W)$ is the $j$-th column of the weight matrix $W$.
 
 As for the dualizer, which norm should we use? We can, for example, use the RMS-to-RMS norm for consistency and still be able to use the same alternating projection method as before. However, as argued by Bernstein & Newhouse (2024) and Pethick et al. (2024), it may be more natural to use the L1-to-RMS norm, $\\| \cdot \\|\_{1\to RMS}$ because the maximizer for the following problem,
 $$\arg\max\_{A: \\| A \\|\_{1 \to RMS} = 1} \langle G, A \rangle$$
@@ -426,7 +426,7 @@ Equivalently,
 $$A^\* = \arg\max\_{A} \langle G, A \rangle  \quad \text{s.t. } A \in \widetilde{\text{Ob}}(m, n) \cap T\_W \widetilde{\text{Ob}}(m, n),$$
 or in words, we want to find a descent direction $A^\*$ that is both on the (scaled-)Oblique manifold and in the tangent space at $W$ that maximizes the alignment with the gradient $G$.
 
-### 6.1. Optimal solution
+### 6.1. Optimal solution for steepest descent on the (scaled-)Oblique manifold
 
 The optimal solution for finding $A^\*$ given $G$ is to simply project $G$ onto the tangent space at $W$ and then normalize column-wise.
 
@@ -439,11 +439,51 @@ or in words, we subtract the component of $G$ that is "aligned to" $W$.
 Notice then that one of the constraints is concerned with the *size* of the columns while the other is concerned with the *direction*. These can be optimized indepedently of each other. Thus, the solution for $A^\*$ is then simply,
 $$A^\* = \texttt{column\\_normalize}(\texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n)}(G))$$
 
+### 6.2. Steepest descent on the (scaled-)Row-Oblique manifold
+
+We argue that the Unembedding layer or the 'language model head' should naturally be on the (scaled-)Row-Oblique manifold, $\widetilde{\text{RowOb}}(m, n)$, or the manifold of matrices with unit-RMS-norm rows. The crux is that the logit for the $i$-th vocabulary token is given by the dot-product or 'alignment' between the $i$-th row of the weight matrix and the feature vector. So if the logits measure 'alignment', not 'size', then it is natural to constrain the rows to have unit-RMS-norm.
+
+And since we can construct $\widetilde{\text{RowOb}}(m, n)$ by transposing $\widetilde{\text{Ob}}(m, n)$, we can use the same reasoning as above to derive the optimal solution for steepest descent on the (scaled-)Row-Oblique manifold.
+
+Our retraction map is simply the row-wise normalization,
+$$\texttt{row\\_normalize}(W) := \text{row}\_i(W) \mapsto \frac{\text{row}\_i(W)}{\\| \text{row}\_i(W) \\|\_{RMS}} = \sqrt{n}\frac{\text{row}\_i(W)}{\\| \text{row}\_i(W) \\|\_{2}} \quad \forall 0 \leq i < m$$
+where $\text{row}\_i(W)$ is the $i$-th row of the weight matrix $W$. We then choose the $\\| \cdot \\|\_{RMS \to \infty}$ norm because the maximizer for the following problem,
+$$\arg\max\_{A: \\| A \\|\_{RMS \to \infty} = 1} \langle G, A \rangle$$
+is simply $\texttt{row\\_normalize}(A) \in \widetilde{\text{RowOb}}(m, n)$. That is, the per-row updates would have even size. 
+
+Our update rule then becomes,
+$$ W \leftarrow \texttt{row\\_normalize}(W - \eta A^\*)$$
+where $\eta$ is the learning rate and,
+$$A^\* = \arg\max\_{A} \langle G, A \rangle  \quad \text{s.t. } A \in \widetilde{\text{RowOb}}(m, n) \cap T\_W \widetilde{\text{RowOb}}(m, n),$$
+which has the closed form solution,
+$$\begin{align*}
+    A^\* &= \texttt{row\\_normalize}(\texttt{proj}\_{T\_W\widetilde{\text{RowOb}}(m, n)}(G)) \\\\
+         &= \texttt{row\\_normalize}(G - \text{diag}(G W^T / n) W) \\\\
+\end{align*}$$
+
 ## 7. Experimental results [Under Construction]
+
+### 7.1. Alternating projections method beats ternary search on nearby feasible solutions on larger matrices
 
 ![](steepest-descent-stiefel.png#center)
 
 ![](steepest-descent-stiefel-edge.png#center)
+
+### 7.2. Grokking on the Addition-Modulo-113 task in 44 full-batch training steps
+
+![](grokking_results.png#center)
+
+We use the same training setup as in a previous [post on spectral clipping](../spectral-clipping/) with new dualizers and projection maps added.
+
+> We will release the source code soon, but if you want early access, please email me.
+
+The best recipe seems to be:
+
+| Layer       |                                Manifold to do steepest descent on |
+| ----------- | ----------------------------------------------------------------: |
+| Embedding   |                                         (Scaled-)Oblique manifold |
+| Linear      | Spectral norm ball around the origin of $\mathbb{R}^{m \times n}$ |
+| Unembedding |                                     (Scaled-)Row-Oblique manifold |
 
 ## How to cite
 
