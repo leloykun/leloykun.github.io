@@ -1,10 +1,10 @@
 ---
-title: "A Simple Heuristic Solution for Steepest Descent on Stiefel Manifold"
+title: "Heuristic Solutions for Steepest Descent on the Stiefel Manifold"
 date: 2025-07-18
 tags: ["Machine Learning", "Optimizers"]
 author: "Franz Louis Cesista"
-description: "Fast, numerically stable, and differentiable solution for steepest descent on Stiefel manifold."
-summary: "Fast, numerically stable, and differentiable solution for steepest descent on Stiefel manifold."
+description: "What would Muon look like if we constrained the weights to be semi-orthogonal?"
+summary: "What would Muon look like if we constrained the weights to be semi-orthogonal?"
 cover:
     image: steepest-descent-stiefel-manifold.jpg
     alt: "Cover"
@@ -50,7 +50,7 @@ for some momentum hyperparameter $\beta \in [0, 1)$.
 
 > If you want to learn more about Muon and the ideas behind it, check out [Newhouse's 3-part blog series](https://www.lakernewhouse.com/writing/muon-1). I highly recommend it!
 
-## 2. Spectral norm-constrained steepest descent on Stiefel manifold
+## 2. Spectral norm-constrained steepest descent on the Stiefel manifold
 
 As discussed in the previous section, we not only need to control the weight update norms but also the weight norms themselves. There are multiple ways to do this and we presented some novel methods in our recent work on [training transformers with enforced Lipschitz bounds](https://arxiv.org/abs/2507.13338) (Newhouse*, Hess*, Cesista* et al., 2025). However, here we will focus on constraining the weights to be semi-orthogonal, i.e., $W^T W = I_n$.
 
@@ -401,7 +401,45 @@ def ternary_search_over_taus(W, Q, G, lo=0., hi=1., normalizer_method=0, max_ite
     return final_tau, final_value
 ```
 
-## 6. Experimental results [Under Construction]
+## 6. Bonus: a Muon-like optimizer for the Embedding and Unembedding layers
+
+Embedding layers have a hidden geometry: the (scaled-)Oblique manifold, $\widetilde{\text{Ob}}(m, n)$, or the manifold of matrices with unit-RMS-norm columns. More precisely, it is the embedding layer *and* the normalization layer right after it that results in unit-RMS-norm feature-vectors. Optimizers like Adam typically ignore this geometry and even its matrix-structure, treating the embedding layer the same as 'flat' vectors. We believe this leads to suboptimal performance and demonstrate this via grokking experiments we discuss in the next section.
+
+What if we build an optimizer that respects this geometry?
+
+For this, we need two things:
+1. A 'dualizer' map that maps a gradient matrix $G \in \mathbb{R}^{m \times n}$ to an update direction of steepest descent on the tangent space at $W$ on the (scaled-)Oblique manifold, i.e., $A^\* \in T\_W\widetilde{\text{Ob}}(m, n)$ with $\\| A^\* \\| = 1$ for some norm $\\| \cdot \\|$ chosen a priori. And,
+2. A 'projection' or retraction map that maps an (updated) weight matrix $W \in \mathbb{R}^{m \times n}$ back to the (scaled-)Oblique manifold.
+
+The retraction map is simply the column-wise normalization,
+$$\texttt{column\\_normalize}(W) := W\_j \mapsto \frac{W\_j}{\\| W\_j \\|\_{RMS}} = \frac{\sqrt{m}}{\\| W\_j \\|\_{2}} W\_j \quad \forall \text{column indices } 0 \leq j < n$$
+where $W\_j$ is the $j$-th column of the weight matrix $W$.
+
+As for the dualizer, which norm should we use? We can, for example, use the RMS-to-RMS norm for consistency and still be able to use the same alternating projection method as before. However, as argued by Bernstein & Newhouse (2024) and Pethick et al. (2024), it may be more natural to use the L1-to-RMS norm, $\\| \cdot \\|\_{1\to RMS}$ because the maximizer for the following problem,
+$$\arg\max\_{A: \\| A \\|\_{1 \to RMS} = 1} \langle G, A \rangle$$
+is simply $\texttt{column\\_normalize}(A) \in \widetilde{\text{Ob}}(m, n)$. That is, all of the token embedding updates would have even size, improving training stability. Thus our update rule becomes,
+$$ W \leftarrow \texttt{column\\_normalize}(W - \eta A^\*)$$
+where $\eta$ is the learning rate and,
+$$ A^\* = \arg\max\_{A: \\| A \\|\_{1 \to RMS} = 1} \langle G, A \rangle \quad \text{s.t. } A \in T\_W\widetilde{\text{Ob}}(m, n),$$
+
+Equivalently,
+$$A^\* = \arg\max\_{A} \langle G, A \rangle  \quad \text{s.t. } A \in \widetilde{\text{Ob}}(m, n) \cap T\_W \widetilde{\text{Ob}}(m, n),$$
+or in words, we want to find a descent direction $A^\*$ that is both on the (scaled-)Oblique manifold and in the tangent space at $W$ that maximizes the alignment with the gradient $G$.
+
+### 6.1. Optimal solution
+
+The optimal solution for finding $A^\*$ given $G$ is to simply project $G$ onto the tangent space at $W$ and then normalize column-wise.
+
+To see this, first note that the columns are, in a sense, acting independently of each other. Thus we can treat the problem as a per-column optimization problem. The tangent space at $W$ is simply,
+$$T\_W\widetilde{\text{Ob}}(m, n) = \\{A \in \mathbb{R}^{m \times n} \| \text{diag}(W^T A) = 0\\}$$
+or in words, the column-wise dot-product or "alignment" between $W$ and $A$ is zero. And the projector onto the tangent space at $W$ is given by,
+$$\texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n)}(G) = G - W \text{diag}(W^T G / m)$$
+or in words, we subtract the component of $G$ that is "aligned to" $W$.
+
+Notice then that one of the constraints is concerned with the *size* of the columns while the other is concerned with the *direction*. These can be optimized indepedently of each other. Thus, the solution for $A^\*$ is then simply,
+$$A^\* = \texttt{column\\_normalize}(\texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n)}(G))$$
+
+## 7. Experimental results [Under Construction]
 
 ![](steepest-descent-stiefel.png#center)
 
@@ -412,7 +450,7 @@ def ternary_search_over_taus(W, Q, G, lo=0., hi=1., normalizer_method=0, max_ite
 ```bibtex
 @misc{cesista2025spectralclipping,
   author = {Franz Louis Cesista},
-  title = {"A Simple Heuristic Solution for Steepest Descent on Stiefel Manifold"},
+  title = {"Heuristic Solutions for Steepest Descent on the Stiefel Manifold"},
   year = {2025},
   url = {http://leloykun.github.io/ponder/steepest-descent-stiefel/},
 }
@@ -433,3 +471,4 @@ def ternary_search_over_taus(W, Q, G, lo=0., hi=1., normalizer_method=0, max_ite
 6. Jeremy Bernstein (2025). Orthogonal manifold. URL https://docs.modula.systems/algorithms/manifold/orthogonal/
 7. Jianlin Su (2025). Steepest descent on Stiefel manifold. URL https://x.com/YouJiacheng/status/1945522729161224532
 8. D. Drusvyatskiy, A.D. Ioffe, A.S. Lewis (2016). Transversality and alternating projections for nonconvex sets. URL https://arxiv.org/abs/1401.7569
+9. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
