@@ -102,6 +102,12 @@
 </head>
 
 <body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
 
 <header class="header">
     <nav class="nav">
@@ -111,6 +117,26 @@
                     height="18"
                     width="18">Franz Louis Cesista</a>
             <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
             </div>
         </div>
         <ul id="menu">
@@ -152,7 +178,7 @@
   <div class="entry-content">
     <p>What would Muon look like if we constrained the weights to be semi-orthogonal?</p>
   </div>
-  <footer class="entry-footer"><span title='2025-07-18 00:00:00 +0000 UTC'>July 18, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-07-18 00:00:00 +0000 UTC'>July 18, 2025</span>&nbsp;&middot;&nbsp;28 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Heuristic Solutions for Steepest Descent on the Stiefel Manifold" href="https://leloykun.github.io/ponder/steepest-descent-stiefel/"></a>
 </article>
 
@@ -164,7 +190,7 @@
   <div class="entry-content">
     <p>Towards a maximal update parameterization of n-simplicial attention</p>
   </div>
-  <footer class="entry-footer"><span title='2025-07-06 00:00:00 +0000 UTC'>July 6, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-07-06 00:00:00 +0000 UTC'>July 6, 2025</span>&nbsp;&middot;&nbsp;23 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Sensitivity and Sharpness of n-Simplicial Attention" href="https://leloykun.github.io/ponder/lipschitz-n-simplical-transformer/"></a>
 </article>
 
@@ -176,7 +202,7 @@
   <div class="entry-content">
     <p>Why does Adam with aggressive gradient value/norm clipping have sparse updates and do well with higher learning rates? Here we show that it is essentially equivalent to a smoothed version of SignSGD/NormSGD.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-07-03 00:00:00 +0000 UTC'>July 3, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-07-03 00:00:00 +0000 UTC'>July 3, 2025</span>&nbsp;&middot;&nbsp;7 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Adam with Aggressive Gradient Clipping ≈ Smoothed SignSGD/NormSGD" href="https://leloykun.github.io/ponder/adam-aggressive-clipping/"></a>
 </article>
 
@@ -188,7 +214,7 @@
   <div class="entry-content">
     <p>A small step towards hardware-architecture-optimizer codesign in deep learning.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-06-23 00:00:00 +0000 UTC'>June 23, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-06-23 00:00:00 +0000 UTC'>June 23, 2025</span>&nbsp;&middot;&nbsp;32 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration" href="https://leloykun.github.io/ponder/spectral-clipping/"></a>
 </article>
 
@@ -200,7 +226,7 @@
   <div class="entry-content">
     <p>Muon from first principles, what makes it different from other optimizers, and why it works so well.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-04-03 00:00:00 +0000 UTC'>April 3, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-04-03 00:00:00 +0000 UTC'>April 3, 2025</span>&nbsp;&middot;&nbsp;43 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds" href="https://leloykun.github.io/ponder/steepest-descent-non-riemannian/"></a>
 </article>
 
@@ -212,7 +238,7 @@
   <div class="entry-content">
     <p>A possible reason why Muon converges faster &amp; does better at higher learning rates than Adam.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-03-24 00:00:00 +0000 UTC'>March 24, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-03-24 00:00:00 +0000 UTC'>March 24, 2025</span>&nbsp;&middot;&nbsp;7 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Napkin Math on Non-Euclidean Trust Region Optimization" href="https://leloykun.github.io/ponder/napkin-math-trust-region-opt/"></a>
 </article>
 
@@ -224,7 +250,7 @@
   <div class="entry-content">
     <p>The blocked matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-03-16 00:00:00 +0000 UTC'>March 16, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-03-16 00:00:00 +0000 UTC'>March 16, 2025</span>&nbsp;&middot;&nbsp;17 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Blocked Matrix Formulation of Linear Attention Mechanisms" href="https://leloykun.github.io/ponder/blockmat-linear-attn/"></a>
 </article>
 
@@ -236,7 +262,7 @@
   <div class="entry-content">
     <p>Why Muon still work despite not perfectly semi-orthogonalizing the gradients.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-02-27 00:00:00 +0000 UTC'>February 27, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-02-27 00:00:00 +0000 UTC'>February 27, 2025</span>&nbsp;&middot;&nbsp;12 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Steepest Descent Under Schatten-p Norms" href="https://leloykun.github.io/ponder/steepest-descent-schatten-p/"></a>
 </article>
 
@@ -248,7 +274,7 @@
   <div class="entry-content">
     <p>Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-02-21 00:00:00 +0000 UTC'>February 21, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-02-21 00:00:00 +0000 UTC'>February 21, 2025</span>&nbsp;&middot;&nbsp;8 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients" href="https://leloykun.github.io/ponder/muon-opt-coeffs/"></a>
 </article>
 
@@ -260,7 +286,7 @@
   <div class="entry-content">
     <p>The CASPR optimizer, a variant of Shampoo, reduces to Muon when we remove the accumulation on the preconditioners.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-02-13 00:00:00 +0000 UTC'>February 13, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-02-13 00:00:00 +0000 UTC'>February 13, 2025</span>&nbsp;&middot;&nbsp;2 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to CASPR Without Accumulation is Muon" href="https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/"></a>
 </article>
 
@@ -272,7 +298,7 @@
   <div class="entry-content">
     <p>GRPO may not be the best choice for training reasoning models. Here’s why.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-02-11 00:00:00 +0000 UTC'>February 11, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-02-11 00:00:00 +0000 UTC'>February 11, 2025</span>&nbsp;&middot;&nbsp;2 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to GRPO&#39;s Main Flaw" href="https://leloykun.github.io/ponder/grpo-flaw/"></a>
 </article>
 
@@ -284,7 +310,7 @@
   <div class="entry-content">
     <p>A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-01-27 00:00:00 +0000 UTC'>January 27, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-01-27 00:00:00 +0000 UTC'>January 27, 2025</span>&nbsp;&middot;&nbsp;7 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to (Linear) Attention as Test-Time Regression" href="https://leloykun.github.io/ponder/test-time-regression/"></a>
 </article>
 
@@ -296,7 +322,7 @@
   <div class="entry-content">
     <p>Instead of asking, ‘Which optimizer should I use?’ ask, ‘In which space do my features live in?’</p>
   </div>
-  <footer class="entry-footer"><span title='2024-10-20 00:00:00 +0000 UTC'>October 20, 2024</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2024-10-20 00:00:00 +0000 UTC'>October 20, 2024</span>&nbsp;&middot;&nbsp;3 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Deep Learning Optimizers as Steepest Descent in Normed Spaces" href="https://leloykun.github.io/ponder/steepest-descent-opt/"></a>
 </article>
 
@@ -308,7 +334,7 @@
   <div class="entry-content">
     <p>Could ChatGPT’s shorter responses be an indication of something more bizarre going on?</p>
   </div>
-  <footer class="entry-footer"><span title='2023-12-16 00:00:00 +0000 UTC'>December 16, 2023</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2023-12-16 00:00:00 +0000 UTC'>December 16, 2023</span>&nbsp;&middot;&nbsp;3 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to ChatGPT May Have Developed Seasonal Depression" href="https://leloykun.github.io/ponder/chatgpt-seasonal-depression/"></a>
 </article>
 
@@ -320,7 +346,7 @@
   <div class="entry-content">
     <p>Years of experience in building artificial minds led me to believe that these AIs may end up seeming more ‘human’ than we currently imagine them to be.</p>
   </div>
-  <footer class="entry-footer"><span title='2023-12-10 00:00:00 +0000 UTC'>December 10, 2023</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2023-12-10 00:00:00 +0000 UTC'>December 10, 2023</span>&nbsp;&middot;&nbsp;3 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to The Human Mind May Be Universal" href="https://leloykun.github.io/ponder/human-mind-universality/"></a>
 </article>
 
@@ -332,7 +358,7 @@
   <div class="entry-content">
     <p>A thought dump on mRNA vaccines and the future of computational biology</p>
   </div>
-  <footer class="entry-footer"><span title='2021-02-06 00:00:00 +0000 UTC'>February 6, 2021</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2021-02-06 00:00:00 +0000 UTC'>February 6, 2021</span>&nbsp;&middot;&nbsp;4 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Vaccine Search as a Computational Problem" href="https://leloykun.github.io/ponder/vaccine-search-as-comp-prob/"></a>
 </article>
     </main>
@@ -393,6 +419,18 @@
             mybutton.style.opacity = "0";
         }
     };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
 
 </script>
 </body>

@@ -21,24 +21,26 @@ editPost:
 
 > This is still a Work in Progress (WIP). I've decided to publish this earlier than planned to get feedback and iterate quickly. If you spot any mistakes, please don't hesitate to let me know! Email me at franzlouiscesista@gmail.com or tag me on X ([@leloykun](https://x.com/leloykun)).
 
-## 1. Recap: Muon as spectral norm-constrained steepest descent
+## 1. Recap: Muon as RMS-to-RMS norm-constrained steepest descent
 
 Consider a weight matrix $W \in \mathbb{R}^{m \times n}$ and a "raw gradient" or differential $G \in \mathbb{R}^{m \times n}$ we get via e.g., backpropagation. In standard gradient descent, we would update the weights as follows,
 $$W \leftarrow W - \eta G,$$
-where $\eta \in (0, \infty)$ is the learning rate. However, this is suboptimal because (1) the update sizes $\\| G \\|$ could vary wildly across steps thereby causing training instability, and (2) as we discussed in a [previous blog post](../steepest-descent-non-riemannian/), it does not take into account the matrix structure of the weights. In particular, it ignores how activations or "features" evolve through the network and how the model behaves as we scale it up. Tl;dr:
+where $\eta \in (0, \infty)$ is the learning rate. However, this is suboptimal because (1) the update sizes $\\| G \\|$ could vary wildly across steps thereby causing training instability, and (2) as we discussed in a [previous blog post on (non-)Riemannian steepest descent](../steepest-descent-non-riemannian/), it does not take into account the matrix structure of the weights. In particular, it ignores how activations or "features" evolve through the network and how the model behaves as we scale it up. Tl;dr:
 > If we want the Euclidean norm $\\| \cdot \\|\_2$ of our features and feature updates to 'grow' with the model size,
 > then the *Spectral norm* $\\| \cdot \\|\_{2 \to 2}$ of our weights and weight updates must also 'grow' with the model size.
 
-Alternatively, following Yang et al. (2024), we can use the "natural" feature norm, the RMS norm $\\|\cdot\\|\_{RMS} = \sqrt{n}\\|\cdot\\|\_{2}$, and the "natural" weight norm, the RMS-to-RMS norm $\\|\cdot\\|\_{RMS \to RMS} = \frac{\sqrt{m}}{\sqrt{n}}\\| \cdot \\|\_{2 \to 2}$, and we can rephrase the above as,
+Equivalently, following Yang et al. (2024), we can use the "natural" feature norm, the RMS norm $\\|\cdot\\|\_{RMS} = \sqrt{n}\\|\cdot\\|\_{2}$, and the "natural" weight norm, the RMS-to-RMS norm $\\|\cdot\\|\_{RMS \to RMS} = \frac{\sqrt{m}}{\sqrt{n}}\\| \cdot \\|\_{2 \to 2}$, and rephrase the above as,
 > If we want the "natural" norm of our features and feature updates to be stable regardless of the model size,
 > then the "natural" norm of our weights and weight updates must also be stable regardless of the model size.
 
 We will discuss weight norm controls in the next section, but for now, instead of using the raw gradient $G$, we can instead try to find a descent direction $A \in \mathbb{R}^{m \times n}$ that is maximally aligned to $G$ while satisfying our weight update condition above,
-    $$\\| A \\|\_{RMS \to RMS} = \frac{\sqrt{m}}{\sqrt{n}}\\| A \\|\_{2 \to 2} = \text{constant}.$$
+    $$\\| A \\|\_{RMS \to RMS} = \frac{\sqrt{n}}{\sqrt{m}}\\| A \\|\_{2 \to 2} = \text{constant}.$$
 Thus our update rule becomes,
     $$W \leftarrow W - \eta \frac{\sqrt{m}}{\sqrt{n}} A^\*,$$
 where
-$$A^\* = \arg\max\_{A\in \mathbb{R}^{m \times n}:\\| A \\|\_{2 \to 2} = 1} \langle G, A \rangle,$$
+$$\begin{equation}
+    A^\* = \arg\max\_{A\in \mathbb{R}^{m \times n}:\\| A \\|\_{2 \to 2} = 1} \langle G, A \rangle,
+\end{equation}$$
 and $\langle \cdot, \cdot \rangle$ is the Frobenius inner product which measures the "alignment" between two matrices. From Bernstein & Newhouse (2024), this has a closed-form solution,
 $$A^\* = \texttt{msign}(G),$$
 where $\texttt{msign}(\cdot)$ is the matrix sign function. And finally, adding a momentum term then yields the Muon optimizer (Jordan et al., 2024),
@@ -50,25 +52,49 @@ for some momentum hyperparameter $\beta \in [0, 1)$.
 
 > If you want to learn more about Muon and the ideas behind it, check out [Newhouse's 3-part blog series](https://www.lakernewhouse.com/writing/muon-1). I highly recommend it!
 
+### 1.1. Recap: (non-)Riemannian steepest descent
+
+An update step in first-order optimization on a manifold $\mathcal{M}$ goes as follows,
+1. Compute an 'optimal' descent direction $A^\*$ in the tangent space at the current point $W\_t \in \mathcal{M}$, $A^\* \in T\_{W\_t} \mathcal{M}$.
+2. Use this to 'move' our weight $\widetilde{W}\_{t+1} \leftarrow W\_t - \eta A^\*$, where $\eta$ is the learning rate. Note that $\widetilde{W}\_{t+1}$ may not be on the manifold $\mathcal{M}$. And so,
+3. Retract the result back to the manifold via a retraction map $W\_{t+1} \leftarrow \texttt{retract}(\widetilde{W}\_{t+1})$.
+
+We then repeat this process until convergence or until we find a satisfactory solution.
+
+An important detail discussed by Large et al. (2024) and in the [previous blog post on (non-)Riemannian optimization](../steepest-descent-non-riemannian/) is that the so-called "raw gradient" $G$ we get via backpropagation is *not* actually in the tangent space, but rather in the *co*tangent space at $W$, $G \in T\_W^\* \mathcal{M}$, or the space of *linear functionals* acting on the tangent vectors. $G$ then is useless by itself. To make it useful, we need to map it to the tangent space first via a dualizer map, $\texttt{dualizer}: T\_W^\* \mathcal{M} \mapsto T\_W \mathcal{M},$
+$$A^\* = \texttt{dualizer}(G) = \arg\max\_{A \in T\_W \mathcal{M}} \langle G, A \rangle,$$
+where the $\langle \cdot, \cdot \rangle$ operation is technically not a dot product, but rather the canonical pairing between tangent and cotangent spaces.
+
+In Euclidean space, we got lucky: $T\_W \mathbb{R}^{m \times n} = T\_W^\* \mathbb{R}^{m \times n} = \mathbb{R}^{m \times n}$, and thus, $A^\* = G$, yielding the update rule for (stochastic) gradient descent (SGD). In Riemannian manifolds, which we get by e.g. equipping the tangent spaces with a Riemannian metric (or a norm that induces such a metric), the two space are no longer equivalent, but they are congruent. This means that for every $G \in T\_W^\* \mathcal{M}$, there exists a *unique* steepest descent direction $A^\* \in T\_W \mathcal{M}$ we can follow to minimize the loss and vice versa. In non-Riemannian manifolds, however, the optimal $A^\*$ may not longer be unique or may not even exist.
+
+Muon then is what we get when we equip the tangent spaces of $\mathcal{M} = \mathbb{R}^{m \times n}$ with the RMS-to-RMS norm, $\\| \cdot \\|\_{RMS \to RMS}$. So while the underlying space is still Euclidean, the change in how we measure 'distances' makes the new manifold non-Euclidean and even non-Riemannian. In the next sections, we discuss how to build Muon-like optimizers for more exotic manifolds and demonstrate how a smart choice of manifolds to 'place' our weights in can accelerate generalization.
+
 ## 2. Spectral norm-constrained steepest descent on the Stiefel manifold
 
-As discussed in the previous section, we not only need to control the weight update norms but also the weight norms themselves. There are multiple ways to do this and we presented some novel methods in our recent work on [training transformers with enforced Lipschitz bounds](https://arxiv.org/abs/2507.13338) (Newhouse*, Hess*, Cesista* et al., 2025). However, here we will focus on constraining the weights to be semi-orthogonal, i.e., $W^T W = I_n$.
+As discussed in the previous section, we not only need to control the weight update norms but also the weight norms themselves. There are multiple ways to do this and we presented some novel methods in our recent work on [training transformers with enforced Lipschitz bounds](https://arxiv.org/abs/2507.13338) (Newhouse*, Hess*, Cesista* et al., 2025). However, here we will focus on constraining the weights to be semi-orthogonal, i.e.,
+$$\begin{equation} W^T W = I_n. \end{equation}$$
 
-Semi-orthogonal matrices lie on the Stiefel manifold, $\text{St}(m, n)$. And at an arbitrary point $W \in \text{St}(m, n)$, the space of all possible velocity vectors or "update directions" passing through this point is called the tangent space at $W$, denoted as $T\_W \text{St}(m, n)$. For the Stiefel manifold we have,
+Semi-orthogonal matrices lie on the Stiefel manifold, $\text{St}(m, n) = \\{W \in \mathbb{R}^{m \times n} \| W^T W = I\_n \\}$. Differentiating Equation (2) on both sides then yields the constraint that determines membership in the tangent space at $W \in \text{St}(m, n)$,
 $$T\_W \text{St}(m, n) = \\{A \in \mathbb{R}^{m \times n} \| W^T A + A^T W = 0\\}.$$
-
-Now, to "move around" on this manifold, we take an update step on the tangent space at $W$, $A \in T\_W \text{St}(m, n)$, use this to 'move' our weight $W \leftarrow W + \tilde{\eta} A$, then retract the result back to the manifold via $\text{msign}(\cdot)$, and repeat. Ideally, we want our update step to be maximally aligned to $G$ while also satisfying unit-normed-ness. Thus our update rule becomes,
-$$W \leftarrow \text{msign}\left(W - \eta\frac{\sqrt{m}}{\sqrt{n}}A^\* \right)$$
-where
+But a crucial difference from prior work on optimization on the Stiefel manifold (Ablin & Peyré, 2021; Gao et al., 2022) is that we equip the tangent spaces with the spectral norm, $\\| \cdot \\|\_{2 \to 2}$, augmenting the Stiefel manifold with a [Finsler structure](https://en.wikipedia.org/wiki/Finsler_manifold). With this, our dualizer becomes,
 $$A^\* = \arg\max\_{A\in \mathbb{R}^{m \times n}: \\| A \\|\_{2 \to 2} = 1} \langle G, A \rangle \quad \text{s.t. } A \in T\_W\text{St}(m, n),$$
+and using $\text{msign}(\cdot)$ as the retraction map, our update rule becomes,
+$$W \leftarrow \text{msign}\left(W - \eta A^\* \right)$$
 
 Equivalently,
 $$A^\* = \arg\max\_{A\in \mathbb{R}^{m \times n}} \langle G, A \rangle  \quad \text{s.t. } A \in \text{St}(m, n) \cap T\_W \text{St}(m, n),$$
-Or in words, we want to find a descent direction $A$ that is both on the Stiefel manifold and in the tangent space at $W$ that maximizes the "alignment" with the raw gradient $G$. 
+Or in words, we want to find a descent direction $A$ that is both on the Stiefel manifold and in the tangent space at the current point $W \in \text{St}(m, n)$ that maximizes the "alignment" with the raw gradient $G$. 
+
+### 2.1. RMS-to-RMS norm-constrained steepest descent on the (scaled) Stiefel manifold
+
+Following the natural norm conditions we discussed in the previous section, we may want to constrain our weights to be semi-orthogonal *with respect to* the RMS-to-RMS norm, i.e.,
+$$W^T W = \frac{m}{n}I\_n.$$
+This places our weights on the scaled Stiefel manifold, $\widetilde{\text{St}}(m, n) = \\{W \in \mathbb{R}^{m \times n} \| W^T W = s^2 I\_n \\}$ with scale $s = \sqrt{m}/\sqrt{n}$. We can use the same dualizer map as for the unscaled Stiefel manifold, but our update rule becomes,
+$$W \leftarrow \frac{\sqrt{m}}{\sqrt{n}} \text{msign}\left(W - \eta \frac{\sqrt{m}}{\sqrt{n}} A^\* \right)$$
 
 ## 3. Equivalence between Bernstein's and Su's solutions
 
-Bernstein (2025) and Su (2025) found the following solutions to the square and full-rank case,
+Bernstein (2025a) and Su (2025) found the following solutions to the square and full-rank case,
 
 $$\begin{align*}
     A^\*\_{\text{bernstein}} &= W \texttt{msign}(\texttt{skew}(W^TG))\\\\
@@ -147,7 +173,7 @@ And from Proposition 4 of Bernstein & Newhouse (2024),
 
 > **Proposition 3 (Projection to the closest semi-orthogonal matrix).** Consider the orthogonal matrices $\mathcal{O}\_{m \times n} := \\{ A \in \mathbb{R}^{m \times n} : A A^T = I\_m or A^T A = I\_n \\}$ and let $\\| \cdot \\|\_F$ denote the Frobenius norm. For any matrix $G \in R^{m \times n}$ with reduced SVD $G = U \Sigma V^T$:
 > $$\arg\min\_{A \in \mathcal{O}\_{m \times n}} \\| A - G \\|\_F = \texttt{msign}(G) = UV^T,$$
-> where the minizer $UV^T$ is unique if and only if the matrix $G$ has full rank.
+> where the minimizer $UV^T$ is unique if and only if the matrix $G$ has full rank.
 
 Thus we can write,
 $$A^\*\_{\text{bernstein}} = A^\*\_{\text{su}} = (\texttt{proj}\_{\text{St}(m, n)} \circ \texttt{proj}\_{T\_W\text{St}(m, n)})(G)$$
@@ -364,7 +390,7 @@ def construct_nearby_feasible_solution(W, Q, G, tau=0.5, normalizer_method=0):
 
 ![](alignment-unimodal.png#center)
 
-From Equation (3), we have,
+From Equation (5), we have,
 
 $$\begin{align*}
     f(\tau) := \langle G, A^\*(\tau) \rangle
@@ -403,7 +429,7 @@ def ternary_search_over_taus(W, Q, G, lo=0., hi=1., normalizer_method=0, max_ite
 
 ## 6. Bonus: a Muon-like optimizer for the Embedding and Unembedding layers
 
-Embedding layers have a hidden geometry: the (scaled-)Oblique manifold, $\widetilde{\text{Ob}}(m, n)$, or the manifold of matrices with unit-RMS-norm columns. More precisely, it is the embedding layer *and* the normalization layer right after it that results in unit-RMS-norm feature-vectors. Optimizers like Adam typically ignore this geometry and even its matrix-structure, treating the embedding layer the same as 'flat' vectors. We believe this leads to suboptimal performance and demonstrate this via grokking experiments we discuss in the next section.
+Embedding layers have a hidden geometry: the (scaled-)Oblique manifold, $\widetilde{\text{Ob}}(m, n)$, or the manifold of matrices with unit-RMS-norm columns; i.e., points $W \in \widetilde{\text{Ob}}(m, n)$ satisfy $\text{diag}(W^T W) = \mathbf{1}$. More precisely, it is the embedding layer *and* the normalization layer right after it that results in unit-RMS-norm feature-vectors. But optimizers like Adam typically ignore this geometry and even its matrix-structure, treating the embedding layer the same as 'flat' vectors. We believe this leads to suboptimal performance and demonstrate this via grokking experiments we discuss in the next section.
 
 What if we build an optimizer that respects this geometry?
 
@@ -428,11 +454,13 @@ or in words, we want to find a descent direction $A^\*$ that is both on the (sca
 
 ### 6.1. Optimal solution for steepest descent on the (scaled-)Oblique manifold
 
-The optimal solution for finding $A^\*$ given $G$ is to simply project $G$ onto the tangent space at $W$ and then normalize column-wise.
+The Oblique manifold is a product of hyperspheres, $\text{Ob}(m, n) = \underbrace{S^m \times \ldots \times S^m}\_{n}$. So, in a sense, the columns are acting independently of each other and steepest descent on the Oblique manifold is equivalent to steepest descent on the hypersphere, applied column-wise. And generalizing Bernstein's (2025b) dualizer for steepest descent on the hypersphere to the Oblique manifold yields,
 
-To see this, first note that the columns are, in a sense, acting independently of each other. Thus we can treat the problem as a per-column optimization problem. The tangent space at $W$ is simply,
+> The optimal solution for finding the direction of steepest descent on the Oblique manifold $A^\*$ given "raw Euclidean gradient" or differential $G$ is to simply project $G$ onto the tangent space at point $W \in \widetilde{\text{Ob}}(m, n)$ and then normalize column-wise.
+
+The tangent space at $W$ is simply,
 $$T\_W\widetilde{\text{Ob}}(m, n) = \\{A \in \mathbb{R}^{m \times n} \| \text{diag}(W^T A) = 0\\}$$
-or in words, the column-wise dot-product or "alignment" between $W$ and $A$ is zero. And the projector onto the tangent space at $W$ is given by,
+or in words, the column-wise dot-product or "alignment" between $W$ and a candidate tangent vector $A$ must be zero for $A$ to be in the tangent space at $W$. The projector onto the tangent space at $W$ is then given by,
 $$\texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n)}(G) = G - W \text{diag}(W^T G / m)$$
 or in words, we subtract the component of $G$ that is "aligned to" $W$.
 
@@ -469,21 +497,26 @@ $$\begin{align*}
 
 ![](steepest-descent-stiefel-edge.png#center)
 
+Here we compare our two heuristic methods for the problem of spectral-norm constrained steepest descent on the Stiefel manifold. Observe from the figures above that the ternary search over nearby feasible solutions method results in almost optimal solutions, regardless of scale. However, the alternating projections method results in more aligned solutions, albeit at the cost of more compute and being more off-tangent.
+
 ### 7.2. Grokking on the Addition-Modulo-113 task in 44 full-batch training steps
-
-![](grokking_results.png#center)
-
-We use the same training setup as in a previous [post on spectral clipping](../spectral-clipping/) with new dualizers and projection maps added.
 
 > We will release the source code soon, but if you want early access, please email me.
 
+![](grokking_results.png#center)
+
+We use the same training setup for grokking experiments on the Addition-Modulo-113 problem as in a previous [post on spectral clipping](../spectral-clipping/), with new dualizers and projection maps added. Following Prieto et al. (2025), we use a 2-layer MLP (plus Embedding and Unembedding layers) with 200 hidden units per layer. All matrix multiplications are done in `bfloat16` precision.
+
+Interestingly, without weight constraints, models fail to grok within 1000 full-batch training steps. This is true for both the Muon optimizer and AdamW. However, with weight constraints, we were able to achieve grokking in 44 full-batch training steps, which we believe is SOTA.
+
 The best recipe seems to be:
 
-| Layer       |                                Manifold to do steepest descent on |
-| ----------- | ----------------------------------------------------------------: |
-| Embedding   |                                         (Scaled-)Oblique manifold |
-| Linear      | Spectral norm ball around the origin of $\mathbb{R}^{m \times n}$ |
-| Unembedding |                                     (Scaled-)Row-Oblique manifold |
+| Layer       |                                   Manifold to do steepest descent on |
+| ----------- | -------------------------------------------------------------------: |
+| Embedding   |                                            (Scaled-)Oblique manifold |
+| 1st Linear  | Spectral norm ball<br>around the origin of $\mathbb{R}^{m \times n}$ |
+| 2nd Linear  | Spectral norm ball<br>around the origin of $\mathbb{R}^{m \times n}$ |
+| Unembedding |                                        (Scaled-)Row-Oblique manifold |
 
 ## How to cite
 
@@ -505,10 +538,15 @@ The best recipe seems to be:
 
 1. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
 2. Greg Yang, James B. Simon, Jeremy Bernstein (2024). A Spectral Condition for Feature Learning. URL https://arxiv.org/abs/2310.17813
-3. Jeremy Bernstein, Laker Newhouse (2024). Old Optimizer, New Norm: An Anthology. URL https://arxiv.org/abs/2409.20325
-4. Laker Newhouse (2025). Understanding Muon. URL https://www.lakernewhouse.com/writing/muon-1
-5. Laker Newhouse, R. Preston Hess, Franz Cesista, Andrii Zahorodnii, Jeremy Bernstein, Phillip Isola (2025). Training Transformers with Enforced Lipschitz Constants. URL https://arxiv.org/abs/2507.13338
-6. Jeremy Bernstein (2025). Orthogonal manifold. URL https://docs.modula.systems/algorithms/manifold/orthogonal/
-7. Jianlin Su (2025). Steepest descent on Stiefel manifold. URL https://x.com/YouJiacheng/status/1945522729161224532
-8. D. Drusvyatskiy, A.D. Ioffe, A.S. Lewis (2016). Transversality and alternating projections for nonconvex sets. URL https://arxiv.org/abs/1401.7569
-9. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
+3. Tim Large, Yang Liu, Minyoung Huh, Hyojin Bahng, Phillip Isola, Jeremy Bernstein (2024). Scalable Optimization in the Modular Norm. URL https://arxiv.org/abs/2405.14813
+4. Jeremy Bernstein, Laker Newhouse (2024). Old Optimizer, New Norm: An Anthology. URL https://arxiv.org/abs/2409.20325
+5. Laker Newhouse (2025). Understanding Muon. URL https://www.lakernewhouse.com/writing/muon-1
+6. Laker Newhouse, R. Preston Hess, Franz Cesista, Andrii Zahorodnii, Jeremy Bernstein, Phillip Isola (2025). Training Transformers with Enforced Lipschitz Constants. URL https://arxiv.org/abs/2507.13338
+7. Jeremy Bernstein (2025a). Orthogonal manifold. URL https://docs.modula.systems/algorithms/manifold/orthogonal/
+8. Jeremy Bernstein (2025b). Hypersphere. URL https://docs.modula.systems/algorithms/manifold/hypersphere/
+9. Jianlin Su (2025). Steepest descent on Stiefel manifold. URL https://x.com/YouJiacheng/status/1945522729161224532
+10. D. Drusvyatskiy, A.D. Ioffe, A.S. Lewis (2016). Transversality and alternating projections for nonconvex sets. URL https://arxiv.org/abs/1401.7569
+11. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
+12. Bin Gao, Simon Vary, Pierre Ablin, P.-A. Absil (2022). Optimization flows landing on the Stiefel manifold. URL https://arxiv.org/abs/2202.09058
+13. Pierre Ablin, Gabriel Peyré (2021). Fast and accurate optimization on the orthogonal manifold without retraction. URL https://arxiv.org/abs/2102.07432
+14. Lucas Prieto, Melih Barsbey, Pedro A.M. Mediano, Tolga Birdal (2025). Grokking at the Edge of Numerical Stability. URL https://arxiv.org/abs/2501.04697

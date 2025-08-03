@@ -87,6 +87,12 @@
 </head>
 
 <body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
 
 <header class="header">
     <nav class="nav">
@@ -96,6 +102,26 @@
                     height="18"
                     width="18">Franz Louis Cesista</a>
             <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
             </div>
         </div>
         <ul id="menu">
@@ -138,7 +164,7 @@
   <div class="entry-content">
     <p>The blocked matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-03-16 00:00:00 +0000 UTC'>March 16, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-03-16 00:00:00 +0000 UTC'>March 16, 2025</span>&nbsp;&middot;&nbsp;17 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to Blocked Matrix Formulation of Linear Attention Mechanisms" href="https://leloykun.github.io/ponder/blockmat-linear-attn/"></a>
 </article>
 
@@ -150,7 +176,7 @@
   <div class="entry-content">
     <p>A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-01-27 00:00:00 +0000 UTC'>January 27, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <footer class="entry-footer"><span title='2025-01-27 00:00:00 +0000 UTC'>January 27, 2025</span>&nbsp;&middot;&nbsp;7 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
   <a class="entry-link" aria-label="post link to (Linear) Attention as Test-Time Regression" href="https://leloykun.github.io/ponder/test-time-regression/"></a>
 </article>
     </main>
@@ -211,6 +237,18 @@
             mybutton.style.opacity = "0";
         }
     };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
 
 </script>
 </body>

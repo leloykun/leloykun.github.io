@@ -30,9 +30,9 @@ params:
   DateFormat: "January 2, 2006"
   defaultTheme: light
   hideFooter: false
-  disableThemeToggle: true
+  disableThemeToggle: false
   ShowShareButtons: true
-  ShowReadingTime: false
+  ShowReadingTime: true
   disableSpecial1stPost: false
   disableAnchoredHeadings: false
   ShowPostNavLinks: true
