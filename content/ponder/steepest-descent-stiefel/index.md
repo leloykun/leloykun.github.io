@@ -438,13 +438,13 @@ For this, we need two things:
 2. A 'projection' or retraction map that maps an (updated) weight matrix $W \in \mathbb{R}^{m \times n}$ back to the (scaled-)Oblique manifold.
 
 The retraction map is simply the column-wise normalization,
-$$\texttt{column\\_normalize}(W) := \text{col}\_j(W) \mapsto \frac{\text{col}\_j(W)}{\\| \text{col}\_j(W) \\|\_{RMS}} = \sqrt{m}\frac{\text{col}\_j(W)}{\\| \text{col}\_j(W) \\|\_{2}} \quad \forall 0 \leq j < n$$
+$$\texttt{col\\_normalize}(W) := \text{col}\_j(W) \mapsto \frac{\text{col}\_j(W)}{\\| \text{col}\_j(W) \\|\_{RMS}} = \sqrt{m}\frac{\text{col}\_j(W)}{\\| \text{col}\_j(W) \\|\_{2}} \quad \forall 0 \leq j < n$$
 where $\text{col}\_j(W)$ is the $j$-th column of the weight matrix $W$.
 
 As for the dualizer, which norm should we use? We can, for example, use the RMS-to-RMS norm for consistency and still be able to use the same alternating projection method as before. However, as argued by Bernstein & Newhouse (2024) and Pethick et al. (2024), it may be more natural to use the L1-to-RMS norm, $\\| \cdot \\|\_{1\to RMS}$ because the maximizer for the following problem,
 $$\arg\max\_{A: \\| A \\|\_{1 \to RMS} = 1} \langle G, A \rangle$$
-is simply $\texttt{column\\_normalize}(A) \in \widetilde{\text{Ob}}(m, n)$. That is, all of the token embedding updates would have even size, improving training stability. Thus our update rule becomes,
-$$ W \leftarrow \texttt{column\\_normalize}(W - \eta A^\*)$$
+is simply $\texttt{col\\_normalize}(A) \in \widetilde{\text{Ob}}(m, n)$. That is, all of the token embedding updates would have even size, improving training stability. Thus our update rule becomes,
+$$ W \leftarrow \texttt{col\\_normalize}(W - \eta A^\*)$$
 where $\eta$ is the learning rate and,
 $$ A^\* = \arg\max\_{A: \\| A \\|\_{1 \to RMS} = 1} \langle G, A \rangle \quad \text{s.t. } A \in T\_W\widetilde{\text{Ob}}(m, n),$$
 
@@ -465,7 +465,7 @@ $$\texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n)}(G) = G - W \text{diag}(W^T G 
 or in words, we subtract the component of $G$ that is "aligned to" $W$.
 
 Notice then that one of the constraints is concerned with the *size* of the columns while the other is concerned with the *direction*. These can be optimized indepedently of each other. Thus, the solution for $A^\*$ is then simply,
-$$A^\* = \texttt{column\\_normalize}(\texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n)}(G))$$
+$$A^\* = \texttt{col\\_normalize}(\texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n)}(G))$$
 
 ### 6.2. Steepest descent on the (scaled-)Row-Oblique manifold
 
@@ -511,12 +511,16 @@ Interestingly, without weight constraints, models fail to grok within 1000 full-
 
 The best recipe seems to be:
 
-| Layer       |                                   Manifold to do steepest descent on |
-| ----------- | -------------------------------------------------------------------: |
-| Embedding   |                                            (Scaled-)Oblique manifold |
-| 1st Linear  | Spectral norm ball<br>around the origin of $\mathbb{R}^{m \times n}$ |
-| 2nd Linear  | Spectral norm ball<br>around the origin of $\mathbb{R}^{m \times n}$ |
-| Unembedding |                                        (Scaled-)Row-Oblique manifold |
+| layer       |                                                               manifold |                                 $\texttt{dualizer}$                                  |       $\texttt{retract}$        |
+| ----------- | ---------------------------------------------------------------------: | :----------------------------------------------------------------------------------: | :-----------------------------: |
+| Embedding   |                                              (Scaled-)Oblique manifold |  $\texttt{col\\_normalize} \circ \texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n)}$   |   $\texttt{col\\_normalize}$    |
+| 1st Linear  | RMS-to-RMS norm ball<br>around the origin of $\mathbb{R}^{m \times n}$ |                                   $\texttt{msign}$                                   | $\texttt{spectral\\_normalize}$ |
+| 2nd Linear  | RMS-to-RMS norm ball<br>around the origin of $\mathbb{R}^{m \times n}$ |                                   $\texttt{msign}$                                   | $\texttt{spectral\\_normalize}$ |
+| Unembedding |                                          (Scaled-)Row-Oblique manifold | $\texttt{row\\_normalize} \circ \texttt{proj}\_{T\_W\widetilde{\text{RowOb}}(m, n)}$ |   $\texttt{row\\_normalize}$    |
+
+## Acknowledgements
+
+Big thanks to Jianlin Su, Jeremy Bernstein, Vinay Rao, Antonio Silveti-Falls, Mikail Khona, Omead Pooladzandi, Simo Ryu, and Kevin Yin for productive discussions on the topic.
 
 ## How to cite
 
