@@ -449,7 +449,7 @@ def ternary_search_over_taus(W, Q, G, lo=0., hi=1., normalizer_method=0, max_ite
 
 ## 6. Bonus: a Muon-like optimizer for the Embedding and Unembedding layers
 
-Embedding layers have a hidden geometry: the (scaled-)Oblique manifold, $\widetilde{\text{Ob}}(m, n) = \\{ W \in \mathbb{R}^{m \times n} \| \text{diag}(W^T W) = m\mathbf{1} \\}$, or the manifold of matrices with unit-RMS-norm columns. More precisely, it is the embedding layer *and* the normalization layer right after it that results in unit-RMS-norm feature-vectors. But optimizers like Adam typically ignore this geometry and even its matrix-structure, treating the embedding layer the same as 'flat' vectors. We believe this leads to suboptimal performance and demonstrate this via grokking experiments we discuss in the next section.
+Embedding layers have a hidden geometry: the (scaled-)Oblique manifold, $\widetilde{\text{Ob}}(m, n) = \\{ W \in \mathbb{R}^{m \times n} \| \text{diag}(W^T W) = s^2\mathbf{1}_n \\}$ with scale $s = \sqrt{m}$, or the manifold of matrices with unit-RMS-norm columns. More precisely, it is the embedding layer *and* the normalization layer right after it that results in unit-RMS-norm feature-vectors. But optimizers like Adam typically ignore this geometry and even its matrix-structure, treating the embedding layer the same as 'flat' vectors. We believe this leads to suboptimal performance and demonstrate this via grokking experiments we discuss in the next section.
 
 What if we build an optimizer that respects this geometry?
 
@@ -489,7 +489,7 @@ $$A^\* = \texttt{col\\_normalize}(\texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n
 
 ### 6.2. Steepest descent on the (scaled-)Row-Oblique manifold
 
-We argue that the Unembedding layer or the 'language model head' should naturally be on the (scaled-)Row-Oblique manifold, $\widetilde{\text{RowOb}}(m, n) = \\{ W \in \mathbb{R}^{m \times n} | \text{diag}(WW^T) = n\mathbb{1} \\}$, or the manifold of matrices with unit-RMS-norm rows. The crux is that the logit for the $i$-th vocabulary token is given by the dot-product or 'alignment' between the $i$-th row of the weight matrix and the feature vector. So if the logits measure 'alignment', not 'size', then it is natural to constrain the rows to have unit-RMS-norm.
+We argue that the Unembedding layer or the 'language model head' should naturally be on the (scaled-)Row-Oblique manifold, $\widetilde{\text{RowOb}}(m, n) = \\{ W \in \mathbb{R}^{m \times n} | \text{diag}(WW^T) = s^2\mathbf{1}_m \\}$ with scale $s = \sqrt{n}$, or the manifold of matrices with unit-RMS-norm rows. The crux is that the logit for the $i$-th vocabulary token is given by the dot-product or 'alignment' between the $i$-th row of the weight matrix and the feature vector. So if the logits measure 'alignment', not 'size', then it is natural to constrain the rows to have unit-RMS-norm.
 
 And since we can construct $\widetilde{\text{RowOb}}(m, n)$ by transposing $\widetilde{\text{Ob}}(m, n)$, we can use the same reasoning as above to derive the optimal solution for steepest descent on the (scaled-)Row-Oblique manifold.
 
