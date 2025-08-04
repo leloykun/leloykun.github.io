@@ -63,7 +63,7 @@ We then repeat this process until convergence or until we find a satisfactory so
 
 An important detail discussed by Large et al. (2024) and in the [previous blog post on (non-)Riemannian optimization](../steepest-descent-non-riemannian/) is that the so-called "raw gradient" $G$ we get via backpropagation is *not* actually in the tangent space, but rather in the *co*tangent space at $W$, $G \in T\_W^\* \mathcal{M}$, or the space of *linear functionals* acting on the tangent vectors. $G$ then is useless by itself. To make it useful, we need to map it to the tangent space first via a dualizer map, $\texttt{dualizer}: T\_W^\* \mathcal{M} \mapsto T\_W \mathcal{M},$
 $$A^\* = \texttt{dualizer}(G) = \arg\max\_{A \in T\_W \mathcal{M}} \langle G, A \rangle,$$
-where the $\langle \cdot, \cdot \rangle$ operation is technically not a dot product, but rather the canonical pairing between tangent and cotangent spaces.
+where the $\langle \cdot, \cdot \rangle$ operation is the canonical pairing between tangent and cotangent spaces. It is technically not an inner product, but *behaves like* the Frobenius inner product.
 
 In Euclidean space, we got lucky: $T\_W \mathbb{R}^{m \times n} = T\_W^\* \mathbb{R}^{m \times n} = \mathbb{R}^{m \times n}$, and thus, $A^\* = G$, yielding the update rule for (stochastic) gradient descent (SGD). In Riemannian manifolds, which we get by e.g. equipping the tangent spaces with a Riemannian metric (or a norm that induces such a metric), the two space are no longer equivalent, but they are congruent. This means that for every $G \in T\_W^\* \mathcal{M}$, there exists a *unique* steepest descent direction $A^\* \in T\_W \mathcal{M}$ we can follow to minimize the loss and vice versa. In non-Riemannian manifolds, however, the optimal $A^\*$ may not longer be unique or may not even exist.
 
@@ -449,12 +449,12 @@ def ternary_search_over_taus(W, Q, G, lo=0., hi=1., normalizer_method=0, max_ite
 
 ## 6. Bonus: a Muon-like optimizer for the Embedding and Unembedding layers
 
-Embedding layers have a hidden geometry: the (scaled-)Oblique manifold, $\widetilde{\text{Ob}}(m, n)$, or the manifold of matrices with unit-RMS-norm columns; i.e., points $W \in \widetilde{\text{Ob}}(m, n)$ satisfy $\text{diag}(W^T W) = \mathbf{1}$. More precisely, it is the embedding layer *and* the normalization layer right after it that results in unit-RMS-norm feature-vectors. But optimizers like Adam typically ignore this geometry and even its matrix-structure, treating the embedding layer the same as 'flat' vectors. We believe this leads to suboptimal performance and demonstrate this via grokking experiments we discuss in the next section.
+Embedding layers have a hidden geometry: the (scaled-)Oblique manifold, $\widetilde{\text{Ob}}(m, n) = \\{ W \in \mathbb{R}^{m \times n} \| \text{diag}(W^T W) = m\mathbf{1} \\}$, or the manifold of matrices with unit-RMS-norm columns. More precisely, it is the embedding layer *and* the normalization layer right after it that results in unit-RMS-norm feature-vectors. But optimizers like Adam typically ignore this geometry and even its matrix-structure, treating the embedding layer the same as 'flat' vectors. We believe this leads to suboptimal performance and demonstrate this via grokking experiments we discuss in the next section.
 
 What if we build an optimizer that respects this geometry?
 
 For this, we need two things:
-1. A 'dualizer' map that maps a gradient matrix $G \in \mathbb{R}^{m \times n}$ to an update direction of steepest descent on the tangent space at $W$ on the (scaled-)Oblique manifold, i.e., $A^\* \in T\_W\widetilde{\text{Ob}}(m, n)$ with $\\| A^\* \\| = 1$ for some norm $\\| \cdot \\|$ chosen a priori. And,
+1. A 'dualizer' map that maps a "raw gradient" matrix $G \in \mathbb{R}^{m \times n}$ to an update direction of steepest descent on the tangent space at $W \in \widetilde{\text{Ob}}(m, n)$, i.e., $A^\* \in T\_W\widetilde{\text{Ob}}(m, n)$ with $\\| A^\* \\| = 1$ for some norm $\\| \cdot \\|$ chosen a priori. And,
 2. A 'projection' or retraction map that maps an (updated) weight matrix $W \in \mathbb{R}^{m \times n}$ back to the (scaled-)Oblique manifold.
 
 The retraction map is simply the column-wise normalization,
@@ -463,18 +463,18 @@ where $\text{col}\_j(W)$ is the $j$-th column of the weight matrix $W$.
 
 As for the dualizer, which norm should we use? We can, for example, use the RMS-to-RMS norm for consistency and still be able to use the same alternating projection method as before. However, as argued by Bernstein & Newhouse (2024) and Pethick et al. (2024), it may be more natural to use the L1-to-RMS norm, $\\| \cdot \\|\_{1\to RMS}$ because the maximizer for the following problem,
 $$\arg\max\_{A: \\| A \\|\_{1 \to RMS} = 1} \langle G, A \rangle$$
-is simply $\texttt{col\\_normalize}(A) \in \widetilde{\text{Ob}}(m, n)$. That is, all of the token embedding updates would have even size, improving training stability. Thus our update rule becomes,
+is simply $\texttt{col\\_normalize}(G) \in \widetilde{\text{Ob}}(m, n)$. That is, all of the token embedding updates would have the same size, improving training stability. Thus our update rule becomes,
 $$ W \leftarrow \texttt{col\\_normalize}(W - \eta A^\*)$$
 where $\eta$ is the learning rate and,
 $$ A^\* = \arg\max\_{A: \\| A \\|\_{1 \to RMS} = 1} \langle G, A \rangle \quad \text{s.t. } A \in T\_W\widetilde{\text{Ob}}(m, n),$$
 
 Equivalently,
 $$A^\* = \arg\max\_{A} \langle G, A \rangle  \quad \text{s.t. } A \in \widetilde{\text{Ob}}(m, n) \cap T\_W \widetilde{\text{Ob}}(m, n),$$
-or in words, we want to find a descent direction $A^\*$ that is both on the (scaled-)Oblique manifold and in the tangent space at $W$ that maximizes the alignment with the gradient $G$.
+or in words, we want to find a descent direction $A^\*$ that is both on the (scaled-)Oblique manifold and in the tangent space at $W$ that maximizes the alignment with the "raw gradient" $G$.
 
 ### 6.1. Optimal solution for steepest descent on the (scaled-)Oblique manifold
 
-The Oblique manifold is a product of hyperspheres, $\text{Ob}(m, n) = \underbrace{S^m \times \ldots \times S^m}\_{n}$. So, in a sense, the columns are acting independently of each other and steepest descent on the Oblique manifold is equivalent to steepest descent on the hypersphere, applied column-wise. And generalizing Bernstein's (2025b) dualizer for steepest descent on the hypersphere to the Oblique manifold yields,
+The Oblique manifold is a product of hyperspheres, $\text{Ob}(m, n) = \underbrace{S^m \times \ldots \times S^m}\_{n}$. So, in a sense, the columns are acting independently of each other and steepest descent on the Oblique manifold is equivalent to steepest descent on the hypersphere, applied column-wise. Generalizing Bernstein's (2025b) dualizer for steepest descent on the hypersphere to the Oblique manifold then yields,
 
 > The optimal solution for finding the direction of steepest descent on the Oblique manifold $A^\*$ given "raw Euclidean gradient" or differential $G$ is to simply project $G$ onto the tangent space at point $W \in \widetilde{\text{Ob}}(m, n)$ and then normalize column-wise.
 
@@ -489,7 +489,7 @@ $$A^\* = \texttt{col\\_normalize}(\texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n
 
 ### 6.2. Steepest descent on the (scaled-)Row-Oblique manifold
 
-We argue that the Unembedding layer or the 'language model head' should naturally be on the (scaled-)Row-Oblique manifold, $\widetilde{\text{RowOb}}(m, n)$, or the manifold of matrices with unit-RMS-norm rows. The crux is that the logit for the $i$-th vocabulary token is given by the dot-product or 'alignment' between the $i$-th row of the weight matrix and the feature vector. So if the logits measure 'alignment', not 'size', then it is natural to constrain the rows to have unit-RMS-norm.
+We argue that the Unembedding layer or the 'language model head' should naturally be on the (scaled-)Row-Oblique manifold, $\widetilde{\text{RowOb}}(m, n) = \\{ W \in \mathbb{R}^{m \times n} | \text{diag}(WW^T) = n\mathbb{1} \\}$, or the manifold of matrices with unit-RMS-norm rows. The crux is that the logit for the $i$-th vocabulary token is given by the dot-product or 'alignment' between the $i$-th row of the weight matrix and the feature vector. So if the logits measure 'alignment', not 'size', then it is natural to constrain the rows to have unit-RMS-norm.
 
 And since we can construct $\widetilde{\text{RowOb}}(m, n)$ by transposing $\widetilde{\text{Ob}}(m, n)$, we can use the same reasoning as above to derive the optimal solution for steepest descent on the (scaled-)Row-Oblique manifold.
 
@@ -497,7 +497,7 @@ Our retraction map is simply the row-wise normalization,
 $$\texttt{row\\_normalize}(W) := \text{row}\_i(W) \mapsto \frac{\text{row}\_i(W)}{\\| \text{row}\_i(W) \\|\_{RMS}} = \sqrt{n}\frac{\text{row}\_i(W)}{\\| \text{row}\_i(W) \\|\_{2}} \quad \forall 0 \leq i < m$$
 where $\text{row}\_i(W)$ is the $i$-th row of the weight matrix $W$. We then choose the $\\| \cdot \\|\_{RMS \to \infty}$ norm because the maximizer for the following problem,
 $$\arg\max\_{A: \\| A \\|\_{RMS \to \infty} = 1} \langle G, A \rangle$$
-is simply $\texttt{row\\_normalize}(A) \in \widetilde{\text{RowOb}}(m, n)$. That is, the per-row updates would have even size. 
+is simply $\texttt{row\\_normalize}(G) \in \widetilde{\text{RowOb}}(m, n)$. That is, the per-row updates would have even size.
 
 Our update rule then becomes,
 $$ W \leftarrow \texttt{row\\_normalize}(W - \eta A^\*)$$
