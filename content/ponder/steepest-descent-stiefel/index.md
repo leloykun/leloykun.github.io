@@ -65,7 +65,7 @@ An important detail discussed by Large et al. (2024) and in the [previous blog p
 $$A^\* = \texttt{dualizer}(G) = \arg\max\_{A \in T\_W \mathcal{M}} \langle G, A \rangle,$$
 where the $\langle \cdot, \cdot \rangle$ operation is the canonical pairing between tangent and cotangent spaces. It is technically not an inner product, but *behaves like* the Frobenius inner product.
 
-In Euclidean space, we got lucky: $T\_W \mathbb{R}^{m \times n} = T\_W^\* \mathbb{R}^{m \times n} = \mathbb{R}^{m \times n}$, and thus, $A^\* = G$, yielding the update rule for (stochastic) gradient descent (SGD). In Riemannian manifolds, which we get by e.g. equipping the tangent spaces with a Riemannian metric (or a norm that induces such a metric), the two space are no longer equivalent, but they are congruent. This means that for every $G \in T\_W^\* \mathcal{M}$, there exists a *unique* steepest descent direction $A^\* \in T\_W \mathcal{M}$ we can follow to minimize the loss and vice versa. In non-Riemannian manifolds, however, the optimal $A^\*$ may not longer be unique or may not even exist.
+In Euclidean space, we got lucky: $T\_W \mathbb{R}^{m \times n} = T\_W^\* \mathbb{R}^{m \times n} = \mathbb{R}^{m \times n}$, and thus, $A^\* = G$, yielding the update rule for (stochastic) gradient descent (SGD). In Riemannian manifolds, which we get by e.g. equipping the tangent spaces with a Riemannian metric (or a norm that induces such a metric), the two spaces are no longer equivalent, but they are congruent. This means that for every $G \in T\_W^\* \mathcal{M}$, there exists a *unique* steepest descent direction $A^\* \in T\_W \mathcal{M}$ we can follow to minimize the loss and vice versa. In non-Riemannian manifolds, however, the optimal $A^\*$ may no longer be unique or may not even exist.
 
 Muon then is what we get when we equip the tangent spaces of $\mathcal{M} = \mathbb{R}^{m \times n}$ with the RMS-to-RMS norm, $\\| \cdot \\|\_{RMS \to RMS}$. So while the underlying space is still Euclidean, the change in how we measure 'distances' makes the new manifold non-Euclidean and even non-Riemannian. In the next sections, we discuss how to build Muon-like optimizers for more exotic manifolds and demonstrate how a smart choice of manifolds to 'place' our weights in can accelerate generalization.
 
@@ -102,7 +102,7 @@ Recall that $\texttt{msign}(X) = X (X^T X)^{-1/2}$ and note that,
 
 $$\begin{align*}
     (W - \eta A^\*)^T (W - \eta A^\*)
-        &= \underbrace{W^T W}\_{I_n} - \eta \underbrace{((A^\*)^T W + W^T A^\*)}\_{0} + \eta^2 \underbrace{(A^\*)^T A^\*}\_{I_n} \\\\
+        &= \underbrace{W^T W}\_{=I_n} - \eta \underbrace{((A^\*)^T W + W^T A^\*)}\_{=0} + \eta^2 \underbrace{(A^\*)^T A^\*}\_{=I_n} \\\\
         &= (1 + \eta^2) I\_n
 \end{align*}$$
 
@@ -239,7 +239,7 @@ $$\begin{align*}
 \end{align*}$$
 Hence for the square and full-rank case, this two-step projection process guarantees that the resulting matrix has unit spectral norm *and* is in the tangent space at $W$.
 
-For the more general case, we have $Q = 0$ and $W W^T = I$ may no longer hold true. Thus, we cannot guarantee that $W \texttt{skew}(W^T G) + QQ^T G$ is skew-symmetric. And so the $\texttt{msign}$ after the first projection may send the resulting matrix outside the tangent space at $W$.
+For the more general case, we may no longer have $Q = 0$ or $W W^T = I$. Thus, we cannot guarantee that $W \texttt{skew}(W^T G) + QQ^T G$ is skew-symmetric. And so the $\texttt{msign}$ after the first projection may send the resulting matrix outside the tangent space at $W$.
 
 ## 5. Heuristic solutions for the general case
 
@@ -509,7 +509,7 @@ $$\begin{align*}
          &= \texttt{row\\_normalize}(G - \text{diag}(G W^T / n) W) \\\\
 \end{align*}$$
 
-## 7. Experimental results [Under Construction]
+## 7. Experimental results
 
 ### 7.1. Alternating projections method beats ternary search on nearby feasible solutions on larger matrices
 
