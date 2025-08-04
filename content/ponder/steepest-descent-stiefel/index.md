@@ -79,7 +79,9 @@ $$T\_W \text{St}(m, n) = \\{A \in \mathbb{R}^{m \times n} \| W^T A + A^T W = 0\\
 But a crucial difference from prior work on optimization on the Stiefel manifold (Ablin & Peyré, 2021; Gao et al., 2022) is that we equip the tangent spaces with the spectral norm, $\\| \cdot \\|\_{2 \to 2}$, augmenting the Stiefel manifold with a [Finsler structure](https://en.wikipedia.org/wiki/Finsler_manifold). With this, our dualizer becomes,
 $$A^\* = \arg\max\_{A\in \mathbb{R}^{m \times n}: \\| A \\|\_{2 \to 2} = 1} \langle G, A \rangle \quad \text{s.t. } A \in T\_W\text{St}(m, n),$$
 and using $\text{msign}(\cdot)$ as the retraction map, our update rule becomes,
-$$W \leftarrow \text{msign}\left(W - \eta A^\* \right)$$
+$$\begin{equation}
+    W \leftarrow \text{msign}\left(W - \eta A^\* \right)
+\end{equation}$$
 
 Equivalently,
 $$A^\* = \arg\max\_{A\in \mathbb{R}^{m \times n}} \langle G, A \rangle  \quad \text{s.t. } A \in \text{St}(m, n) \cap T\_W \text{St}(m, n),$$
@@ -90,7 +92,24 @@ Or in words, we want to find a descent direction $A$ that is both on the Stiefel
 Following the natural norm conditions we discussed in the previous section, we may want to constrain our weights to be semi-orthogonal *with respect to* the RMS-to-RMS norm, i.e.,
 $$W^T W = \frac{m}{n}I\_n.$$
 This places our weights on the scaled Stiefel manifold, $\widetilde{\text{St}}(m, n) = \\{W \in \mathbb{R}^{m \times n} \| W^T W = s^2 I\_n \\}$ with scale $s = \sqrt{m}/\sqrt{n}$. We can use the same dualizer map as for the unscaled Stiefel manifold, but our update rule becomes,
-$$W \leftarrow \frac{\sqrt{m}}{\sqrt{n}} \text{msign}\left(W - \eta \frac{\sqrt{m}}{\sqrt{n}} A^\* \right)$$
+$$\begin{equation}
+    W \leftarrow \frac{\sqrt{m}}{\sqrt{n}} \text{msign}\left(W - \eta \frac{\sqrt{m}}{\sqrt{n}} A^\* \right)
+\end{equation}$$
+
+### 2.2. Retraction via rescaling
+
+Recall that $\texttt{msign}(X) = X (X^T X)^{-1/2}$ and note that,
+
+$$\begin{align*}
+    (W - \eta A^\*)^T (W - \eta A^\*)
+        &= \underbrace{W^T W}\_{I_n} - \eta \underbrace{((A^\*)^T W + W^T A^\*)}\_{0} + \eta^2 \underbrace{(A^\*)^T A^\*}\_{I_n} \\\\
+        &= (1 + \eta^2) I\_n
+\end{align*}$$
+
+Thus we can rewrite the update rule for steepest descent on the unscaled Stiefel manifold as,
+$$W \leftarrow \frac{W - \eta A^\*}{\sqrt{1 + \eta^2}}$$
+and for the scaled Stiefel manifold as,
+$$W \leftarrow \frac{W - \eta \frac{\sqrt{m}}{\sqrt{n}} A^\*}{\sqrt{1 + \eta^2}}$$
 
 ## 3. Equivalence between Bernstein's and Su's solutions
 
@@ -100,6 +119,7 @@ $$\begin{align*}
     A^\*\_{\text{bernstein}} &= W \texttt{msign}(\texttt{skew}(W^TG))\\\\
     A^\*\_{\text{su}} &= \texttt{msign}(G - W\texttt{sym}(W^T G))
 \end{align*}$$
+where $\texttt{sym}(X) = \frac{1}{2}(X + X^T)$ and $\texttt{skew}(X) = \frac{1}{2}(X - X^T)$.
 
 We will show that these are equivalent, i.e., $A^\*\_{\text{bernstein}} = A^\*\_{\text{su}}$. For this, we will reuse the following proposition we discussed in a [previous post on spectral clipping](../spectral-clipping).
 
@@ -390,7 +410,7 @@ def construct_nearby_feasible_solution(W, Q, G, tau=0.5, normalizer_method=0):
 
 ![](alignment-unimodal.png#center)
 
-From Equation (5), we have,
+From Equation (7), we have,
 
 $$\begin{align*}
     f(\tau) := \langle G, A^\*(\tau) \rangle
@@ -464,7 +484,7 @@ or in words, the column-wise dot-product or "alignment" between $W$ and a candid
 $$\texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n)}(G) = G - W \text{diag}(W^T G / m)$$
 or in words, we subtract the component of $G$ that is "aligned to" $W$.
 
-Notice then that one of the constraints is concerned with the *size* of the columns while the other is concerned with the *direction*. These can be optimized indepedently of each other. Thus, the solution for $A^\*$ is then simply,
+Notice then that one of the constraints is concerned with the *size* of the columns while the other is concerned with the *direction*. These can be optimized independently of each other. Thus, the solution for $A^\*$ is then simply,
 $$A^\* = \texttt{col\\_normalize}(\texttt{proj}\_{T\_W\widetilde{\text{Ob}}(m, n)}(G))$$
 
 ### 6.2. Steepest descent on the (scaled-)Row-Oblique manifold
@@ -506,6 +526,8 @@ Here we compare our two heuristic methods for the problem of spectral-norm const
 ![](grokking_results.png#center)
 
 We use the same training setup for grokking experiments on the Addition-Modulo-113 problem as in a previous [post on spectral clipping](../spectral-clipping/), with new dualizers and projection maps added. Following Prieto et al. (2025), we use a 2-layer MLP (plus Embedding and Unembedding layers) with 200 hidden units per layer. All matrix multiplications are done in `bfloat16` precision.
+
+We place our Embedding and Unembedding weights on the (scaled-)Oblique manifold and (scaled-)Row-Oblique manifold, respectively. We then vary the dualizer and retraction maps used in the linear layers and report the best median-steps-to-grokking across 64 random seeds. See figure above for the results.
 
 Interestingly, without weight constraints, models fail to grok within 1000 full-batch training steps. This is true for both the Muon optimizer and AdamW. However, with weight constraints, we were able to achieve grokking in 44 full-batch training steps, which we believe is SOTA.
 
