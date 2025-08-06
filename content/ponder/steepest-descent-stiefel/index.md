@@ -19,8 +19,6 @@ editPost:
 [sponsor-badge]: https://img.shields.io/badge/🤝-Sponsor%20me-1da1f2?logo=github&style=flat-square
 [sponsor-link]: https://github.com/sponsors/leloykun
 
-> This is still a Work in Progress (WIP). I've decided to publish this earlier than planned to get feedback and iterate quickly. If you spot any mistakes, please don't hesitate to let me know! Email me at franzlouiscesista@gmail.com or tag me on X ([@leloykun](https://x.com/leloykun)).
-
 ## 1. Recap: Muon as RMS-to-RMS norm-constrained steepest descent
 
 Consider a weight matrix $W \in \mathbb{R}^{m \times n}$ and a "raw gradient" or differential $G \in \mathbb{R}^{m \times n}$ we get via e.g., backpropagation. In standard gradient descent, we would update the weights as follows,
@@ -29,7 +27,7 @@ where $\eta \in (0, \infty)$ is the learning rate. However, this is suboptimal b
 > If we want the Euclidean norm $\\| \cdot \\|\_2$ of our features and feature updates to 'grow' with the model size,
 > then the *Spectral norm* $\\| \cdot \\|\_{2 \to 2}$ of our weights and weight updates must also 'grow' with the model size.
 
-Equivalently, following Yang et al. (2024), we can use the "natural" feature norm, the RMS norm $\\|\cdot\\|\_{RMS} = \sqrt{n}\\|\cdot\\|\_{2}$, and the "natural" weight norm, the RMS-to-RMS norm $\\|\cdot\\|\_{RMS \to RMS} = \frac{\sqrt{m}}{\sqrt{n}}\\| \cdot \\|\_{2 \to 2}$, and rephrase the above as,
+Equivalently, following Yang et al. (2024), we can use the "natural" feature norm, the RMS norm $\\|\cdot\\|\_{RMS} = \sqrt{n}\\|\cdot\\|\_{2}$, and the "natural" weight norm, the RMS-to-RMS norm $\\|\cdot\\|\_{RMS \to RMS} = \frac{\sqrt{n}}{\sqrt{m}}\\| \cdot \\|\_{2 \to 2}$, and rephrase the above as,
 > If we want the "natural" norm of our features and feature updates to be stable regardless of the model size,
 > then the "natural" norm of our weights and weight updates must also be stable regardless of the model size.
 
