@@ -27,7 +27,7 @@ where $\eta \in (0, \infty)$ is the learning rate. However, this is suboptimal b
 > If we want the Euclidean norm $\\| \cdot \\|\_2$ of our features and feature updates to 'grow' with the model size,
 > then the *Spectral norm* $\\| \cdot \\|\_{2 \to 2}$ of our weights and weight updates must also 'grow' with the model size.
 
-Equivalently, following Yang et al. (2024), we can use the "natural" feature norm, the RMS norm $\\|\cdot\\|\_{RMS} = \sqrt{n}\\|\cdot\\|\_{2}$, and the "natural" weight norm, the RMS-to-RMS norm $\\|\cdot\\|\_{RMS \to RMS} = \frac{\sqrt{n}}{\sqrt{m}}\\| \cdot \\|\_{2 \to 2}$, and rephrase the above as,
+Equivalently, following Yang et al. (2024), we can use the "natural" feature norm, the RMS norm $\\|\cdot\\|\_{RMS} = \frac{1}{\sqrt{n}}\\|\cdot\\|\_{2}$, and the "natural" weight norm, the RMS-to-RMS norm $\\|\cdot\\|\_{RMS \to RMS} = \frac{\sqrt{n}}{\sqrt{m}}\\| \cdot \\|\_{2 \to 2}$, and rephrase the above as,
 > If we want the "natural" norm of our features and feature updates to be stable regardless of the model size,
 > then the "natural" norm of our weights and weight updates must also be stable regardless of the model size.
 
