@@ -6,19 +6,19 @@
     <description>Recent content in Tags on Franz Louis Cesista</description>
     <generator>Hugo -- 0.145.0</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 18 Jul 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 20 Aug 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Machine Learning</title>
       <link>https://leloykun.github.io/tags/machine-learning/</link>
-      <pubDate>Fri, 18 Jul 2025 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 20 Aug 2025 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/tags/machine-learning/</guid>
       <description></description>
     </item>
     <item>
       <title>Optimizers</title>
       <link>https://leloykun.github.io/tags/optimizers/</link>
-      <pubDate>Fri, 18 Jul 2025 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 20 Aug 2025 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/tags/optimizers/</guid>
       <description></description>
     </item>
@@ -48,6 +48,13 @@
       <link>https://leloykun.github.io/tags/test-time-regression/</link>
       <pubDate>Sun, 16 Mar 2025 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/tags/test-time-regression/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>NanoGPT Speedrun</title>
+      <link>https://leloykun.github.io/tags/nanogpt-speedrun/</link>
+      <pubDate>Fri, 21 Feb 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/tags/nanogpt-speedrun/</guid>
       <description></description>
     </item>
     <item>

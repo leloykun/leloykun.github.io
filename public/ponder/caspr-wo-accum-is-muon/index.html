@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>CASPR Without Accumulation is Muon | Franz Louis Cesista</title>
-<meta name="keywords" content="Machine Learning, Muon">
+<meta name="keywords" content="Machine Learning, Muon, Optimizers">
 <meta name="description" content="The CASPR optimizer, a variant of Shampoo, reduces to Muon when we remove the accumulation on the preconditioners.">
 <meta name="author" content="Franz Louis Cesista">
 <link rel="canonical" href="https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/">
@@ -67,7 +67,7 @@
   "name": "CASPR Without Accumulation is Muon",
   "description": "The CASPR optimizer, a variant of Shampoo, reduces to Muon when we remove the accumulation on the preconditioners.",
   "keywords": [
-    "Machine Learning", "Muon"
+    "Machine Learning", "Muon", "Optimizers"
   ],
   "articleBody": "CASPR is a variant of the Shampoo optimizer that finds different preconditioners for each axis of the parameter.\nCASPR’s update rule CASPR updates the parameters using the following update rule:\n$$L_t := L_{t-1} + G_t G_t^T, \\quad\\quad R_t := R_{t-1} + G_t^T G_t$$ $$\\tilde{L}_t := L_t + \\epsilon I_m, \\quad\\quad \\tilde{R}_t := R_t + \\epsilon I_n$$ $$\\Delta W = (\\tilde{L}^{-1/2}_t G_t + 2 \\tilde{L}^{-1/4}_t G_t \\tilde{R}^{-1/4}_t + G_t \\tilde{R}^{-1/2}_t)/4.$$\nCASPR without accumulation If we turn off accumulation on the preconditioners, we get: $$\\Delta W = (1/4) \\cdot ((G G^T + \\epsilon I_m)^{-1/2} G + 2 (G G^T + \\epsilon I_m)^{-1/4} G (G^T G + \\epsilon I_n)^{-1/4} + G (G^T G + \\epsilon I_n)^{-1/2})$$\nTo simplify this, let’s first decompose $G$ via its singular value decomposition (SVD): $$G = U \\Sigma V^T,$$ where $U$ and $V$ are orthogonal matrices and $\\Sigma$ is a diagonal matrix with the singular values of $G$.\nThus, $$\\begin{aligned} \\Delta W \u0026= (1/4) \\cdot [[(U \\Sigma V^T) (U \\Sigma V^T)^T + \\epsilon U I U^T]^{-1/2}(U \\Sigma V^T)\\\\ \u0026\\quad\\quad\\quad + 2[(U \\Sigma V^T) (U \\Sigma V^T)^T + \\epsilon U I U^T]^{-1/4}(U \\Sigma V^T) [(U \\Sigma V^T)^T (U \\Sigma V^T) + \\epsilon V I V^T]^{-1/4}\\\\ \u0026\\quad\\quad\\quad + (U \\Sigma V^T) [(U \\Sigma V^T)^T (U \\Sigma V^T) + \\epsilon V I V^T]^{-1/2}]\\\\ \u0026= (1/4) \\cdot [U(\\Sigma(\\Sigma^2 + \\epsilon I)^{-1/2})V^T + U(2\\Sigma(\\Sigma^2 + \\epsilon I)^{-1/2})V^T + U(\\Sigma(\\Sigma^2 + \\epsilon I)^{-1/2})V^T]\\\\ \u0026= (1/4) \\cdot [U(1+2+1)(\\Sigma(\\Sigma^2 + \\epsilon I)^{-1/2})V^T]\\\\ \u0026= U\\left(\\frac{\\Sigma}{\\sqrt{\\Sigma^2 + \\epsilon I}} \\right)V^T \\\\ \\Delta W \u0026\\approx UV^T \\end{aligned}$$ which is just the update rule for Muon.\nHow to cite @misc{cesista2025casprmuon, author = {Franz Louis Cesista}, title = {{CASPR} Without Accumulation is {M}uon}, year = {2025}, url = {https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/}, } References Surya, S., Duvvuri, Devvrit, F., Anil, R., Hsieh, C., \u0026 Dhillon, I.S. (2024). Combining Axes Preconditioners through Kronecker Approximation for Deep Learning. International Conference on Learning Representations. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568 Rohan Anil et al. “Scalable second order optimization for deep learning.” arXiv preprint arXiv:2002.09018 (2020). Keller Jordan, Jeremy Bernstein, Brendan Rappazzo, @fernbear.bsky.social, Boza Vlado, Jiacheng You, Franz Cesista, Braden Koszarsky, and @Grad62304977. modded-nanogpt: Speedrunning the NanoGPT baseline. 2024. Available at: https://github.com/KellerJordan/modded-nanogpt. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/. ",
   "wordCount" : "390",
@@ -277,13 +277,14 @@ which is just the update rule for Muon.</p>
     <ul class="post-tags">
       <li><a href="https://leloykun.github.io/tags/machine-learning/">Machine Learning</a></li>
       <li><a href="https://leloykun.github.io/tags/muon/">Muon</a></li>
+      <li><a href="https://leloykun.github.io/tags/optimizers/">Optimizers</a></li>
     </ul>
 
 
 <ul class="share-buttons">
     <li>
         <a target="_blank" rel="noopener noreferrer" aria-label="share CASPR Without Accumulation is Muon on x"
-            href="https://x.com/intent/tweet/?text=CASPR%20Without%20Accumulation%20is%20Muon&amp;url=https%3a%2f%2fleloykun.github.io%2fponder%2fcaspr-wo-accum-is-muon%2f&amp;hashtags=MachineLearning%2cMuon">
+            href="https://x.com/intent/tweet/?text=CASPR%20Without%20Accumulation%20is%20Muon&amp;url=https%3a%2f%2fleloykun.github.io%2fponder%2fcaspr-wo-accum-is-muon%2f&amp;hashtags=MachineLearning%2cMuon%2cOptimizers">
             <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
                 <path
                     d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />

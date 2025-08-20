@@ -10,7 +10,7 @@ cover:
     alt: "Cover"
     relative: true
 editPost:
-    URL: "https://x.com/leloykun/status/1946640155655475316"
+    URL: "https://x.com/leloykun/status/1953821883482456446"
     Text: "Crossposted on X (formerly Twitter)"
 ---
 

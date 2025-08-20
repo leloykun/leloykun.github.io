@@ -6,8 +6,15 @@
     <description>Recent content in Ponder on Franz Louis Cesista</description>
     <generator>Hugo -- 0.145.0</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 18 Jul 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 20 Aug 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/ponder/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Steepest Descent on Finsler-Structured (Matrix) Manifolds</title>
+      <link>https://leloykun.github.io/ponder/steepest-descent-finsler/</link>
+      <pubDate>Wed, 20 Aug 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/steepest-descent-finsler/</guid>
+      <description>Fast and robust model training.</description>
+    </item>
     <item>
       <title>Heuristic Solutions for Steepest Descent on the Stiefel Manifold</title>
       <link>https://leloykun.github.io/ponder/steepest-descent-stiefel/</link>

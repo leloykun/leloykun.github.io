@@ -1,7 +1,7 @@
 ---
 title: "Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds"
 date: 2025-04-03
-tags: ["Machine Learning", "Muon"]
+tags: ["Machine Learning", "Muon", "Optimizers"]
 author: "Franz Louis Cesista"
 description: "Muon from first principles, what makes it different from other optimizers, and why it works so well."
 summary: "Muon from first principles, what makes it different from other optimizers, and why it works so well."

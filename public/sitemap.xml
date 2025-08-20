@@ -3,21 +3,24 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://leloykun.github.io/</loc>
-    <lastmod>2025-07-18T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://leloykun.github.io/ponder/steepest-descent-stiefel/</loc>
-    <lastmod>2025-07-18T00:00:00+00:00</lastmod>
+    <lastmod>2025-08-20T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/machine-learning/</loc>
-    <lastmod>2025-07-18T00:00:00+00:00</lastmod>
+    <lastmod>2025-08-20T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/optimizers/</loc>
-    <lastmod>2025-07-18T00:00:00+00:00</lastmod>
+    <lastmod>2025-08-20T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/ponder/</loc>
-    <lastmod>2025-07-18T00:00:00+00:00</lastmod>
+    <lastmod>2025-08-20T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/ponder/steepest-descent-finsler/</loc>
+    <lastmod>2025-08-20T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/</loc>
+    <lastmod>2025-08-20T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/ponder/steepest-descent-stiefel/</loc>
     <lastmod>2025-07-18T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/tags/architecture-optimizer-codesign/</loc>
@@ -58,6 +61,9 @@
   </url><url>
     <loc>https://leloykun.github.io/ponder/steepest-descent-schatten-p/</loc>
     <lastmod>2025-02-27T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://leloykun.github.io/tags/nanogpt-speedrun/</loc>
+    <lastmod>2025-02-21T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://leloykun.github.io/ponder/muon-opt-coeffs/</loc>
     <lastmod>2025-02-21T00:00:00+00:00</lastmod>

@@ -6,8 +6,15 @@
     <description>Recent content in Optimizers on Franz Louis Cesista</description>
     <generator>Hugo -- 0.145.0</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 18 Jul 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 20 Aug 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/tags/optimizers/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Steepest Descent on Finsler-Structured (Matrix) Manifolds</title>
+      <link>https://leloykun.github.io/ponder/steepest-descent-finsler/</link>
+      <pubDate>Wed, 20 Aug 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/steepest-descent-finsler/</guid>
+      <description>Fast and robust model training.</description>
+    </item>
     <item>
       <title>Heuristic Solutions for Steepest Descent on the Stiefel Manifold</title>
       <link>https://leloykun.github.io/ponder/steepest-descent-stiefel/</link>
@@ -42,6 +49,20 @@
       <pubDate>Mon, 23 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/ponder/spectral-clipping/</guid>
       <description>A small step towards hardware-architecture-optimizer codesign in deep learning.</description>
+    </item>
+    <item>
+      <title>Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds</title>
+      <link>https://leloykun.github.io/ponder/steepest-descent-non-riemannian/</link>
+      <pubDate>Thu, 03 Apr 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/steepest-descent-non-riemannian/</guid>
+      <description>Muon from first principles, what makes it different from other optimizers, and why it works so well.</description>
+    </item>
+    <item>
+      <title>CASPR Without Accumulation is Muon</title>
+      <link>https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/</link>
+      <pubDate>Thu, 13 Feb 2025 00:00:00 +0000</pubDate>
+      <guid>https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/</guid>
+      <description>The CASPR optimizer, a variant of Shampoo, reduces to Muon when we remove the accumulation on the preconditioners.</description>
     </item>
   </channel>
 </rss>

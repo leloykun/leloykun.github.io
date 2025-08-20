@@ -1,7 +1,7 @@
 ---
 title: "Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients"
 date: 2025-02-21
-tags: ["Machine Learning", "Muon"]
+tags: ["Machine Learning", "Muon", "NanoGPT Speedrun"]
 author: "Franz Louis Cesista"
 description: "Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients."
 summary: "Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients."
