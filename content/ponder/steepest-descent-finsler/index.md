@@ -72,7 +72,7 @@ Inspired by a partial solution by Jianlin (which did not yet work at the time), 
 
 ## 3. General solution via block-wise Primal-Dual Hybrid Gradient
 
-Now let $\mathcal{M}$ be a (matrix) manifold and $\\| \cdot \\|$ be a Finsler norm defined on $\mathcal{M}$, both chosen a priori. We want to solve the problem,
+Let $\mathcal{M}$ be a (matrix) manifold and $\\| \cdot \\|$ be a Finsler norm defined on the tangent spaces of $\mathcal{M}$, both chosen a priori. We want to solve the problem,
 > Given the current weight $W \in \mathcal{M}$ and a "raw gradient" or differential we get via e.g. backpropagation $G \in T\_{W}^\*\mathcal{M} \subseteq \mathbb{R}^{m \times n}$, we want to find the optimal update $A^\*$ such that,
 > $$\begin{equation} A^\* = \arg\max\_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \\| A \\| \leq 1,\quad A \in T\_{W}\mathcal{M} \end{equation}$$
 
@@ -143,6 +143,8 @@ $$\begin{align}
 \end{align}$$
 where $\tau = \text{diag}(\tau\_A I\_m, \tau\_B I\_m)$ and $\texttt{prox}$ is the proximal operator.
 
+To speed up convergence, we can also re-use the $X^\*$ and $Y^\*$ from the previous optimization step to initialize $X_0$ and $Y_0$. This is specially useful when e.g. using (nesterov) momentum on $G$, guaranteeing that the 'input gradients' do not vary too much.
+
 #### 3.2.1. Converting proximal operators to projections
 
 For the $Y$-variable,
@@ -184,10 +186,14 @@ $$\begin{align*}
         &= \texttt{proj}\_{T\_W\mathcal{M}} (B\_k + \tau\_B Y\_{k+1} - \tau\_B G)
 \end{align*}$$
 Thus,
-$$X\_{k+1} = \begin{bmatrix}
-    \texttt{proj}\_{\\| \cdot \\| \leq 1} (A\_k - \tau\_A Y\_{k+1}) \\\\
-    \texttt{proj}\_{T\_W\mathcal{M}} (B\_k + \tau\_B Y\_{k+1} - \tau\_B G)
-\end{bmatrix}$$
+$$
+\begin{equation}
+    X\_{k+1} = \begin{bmatrix}
+        \texttt{proj}\_{\\| \cdot \\| \leq 1} (A\_k - \tau\_A Y\_{k+1}) \\\\
+        \texttt{proj}\_{T\_W\mathcal{M}} (B\_k + \tau\_B Y\_{k+1} - \tau\_B G)
+    \end{bmatrix}
+\end{equation}
+$$
 
 ## 4. Alternative solution to Stiefel Muon via Primal-Dual Hybrid Gradient
 
@@ -263,6 +269,47 @@ def pdhg_stiefel_spectral(
 ![](pareto-frontier-stiefel.png)
 
 Here I've plotted the alignment <-> off-tangency frontier for the different methods proposed by myself, Jeremy and Jianlin. The alternating projections method seems to do well despite being provably suboptimal in some cases. But the PDHG method closes the gap as we increase the number of iteration. If we initialize $X\_0$ and $Y\_0$ from the previous optimization step, we can save compute while potentially improving performance.
+
+## 5. Generalization to arbitrary number of constraints on the update
+
+Our solution above generalizes to arbitrary number of constraints on $A$ so long as the feasible set for each constraint is closed convex. We then only need to find the metric projection onto each feasible set.
+
+For example, suppose we add another constraint $A \in S$ in Equation (2) above where $S$ is a closed convex set and $\texttt{proj}\_{S}(\cdot)$ is the (metric) projection onto $S$. Then our Equation (5) becomes,
+$$\begin{equation} A^\* = \left[-\arg\min\_{A,B,C \in \mathbb{R}^{m \times n}} \\{f(A) + g(B) + h(C)\\} \quad \text{ s.t. } \quad A - B = A - C = 0\right]\_{A} \end{equation}$$
+where,
+$$
+h(C) := \mathcal{i}\_{S}(C) =
+\begin{cases}
+    0 &\text{ if } C \in S \\\\
+    \infty &\text{ otherwise}
+\end{cases}
+$$
+
+We then define,
+$$
+\begin{align*}
+    X &:= \begin{bmatrix}
+        A \\\\
+        B \\\\
+        C
+    \end{bmatrix}\\\\
+    L &:= \begin{bmatrix}
+        1 & -1 &  \\\\
+        1 &    & -1
+    \end{bmatrix} \\\\
+    \mathcal{F}(X) &:= f(A) + g(B) + h(C) \\\\
+\end{align*}
+$$
+and the rest then follows and Equation (12) becomes,
+$$
+\begin{equation}
+    X\_{k+1} = \begin{bmatrix}
+        \texttt{proj}\_{\\| \cdot \\| \leq 1} (A\_k - \tau\_A [Y\_{k+1}]\_1 - \tau\_A [Y\_{k+1}]\_2) \\\\
+        \texttt{proj}\_{T\_W\mathcal{M}} (B\_k + \tau\_B [Y\_{k+1}]\_1 - \tau\_B G) \\\\
+        \texttt{proj}\_{S} (C\_k + \tau\_C [Y\_{k+1}]\_2)
+    \end{bmatrix}
+\end{equation}
+$$
 
 ## Acknowledgements
 
