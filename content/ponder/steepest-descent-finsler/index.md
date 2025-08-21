@@ -77,7 +77,7 @@ Let $\mathcal{M}$ be a (matrix) manifold and $\\| \cdot \\|$ be a Finsler norm d
 > $$\begin{equation} A^\* = \arg\max\_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \\| A \\| \leq 1,\quad A \in T\_{W}\mathcal{M} \end{equation}$$
 
 Replacing the constraints with indicator functions yields,
-$$\begin{equation} A^\* = -\arg\min\_{A \in \mathbb{R}^{m \times n}} \\{\langle G, A \rangle + \mathcal{i}\_{\\| \cdot \\| \leq 1}(A) + \mathcal{i}\_{T\_{W}\mathcal{M}}(A)\\} \end{equation}$$
+$$\begin{equation} A^\* = -\arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ \langle G, A \rangle + \mathcal{i}\_{\\| \cdot \\| \leq 1}(A) + \mathcal{i}\_{T\_{W}\mathcal{M}}(A) \right\\} \end{equation}$$
 where,
 $$ \mathcal{i}\_{\\| \cdot \\| \leq 1}(A) =
 \begin{cases}
@@ -93,11 +93,11 @@ $$ \mathcal{i}\_{\\| \cdot \\| \leq 1}(A) =
 $$
 
 Equivalently,
-$$\begin{equation} A^\* = -\arg\min\_{A \in \mathbb{R}^{m \times n}} \\{f(A) + g(A)\\} \end{equation}$$
+$$\begin{equation} A^\* = -\arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ f(A) + g(A) \right\\} \end{equation}$$
 where $f(\cdot) := \mathcal{i}\_{\\| \cdot \\|\_{\leq 1}}(\cdot)$ and $g(\cdot) := \mathcal{i}\_{T\_{W}\mathcal{M}}(\cdot) + \langle G, \cdot \rangle$. Note that we can move the $\langle G, \cdot \rangle$ term to $f$ instead, but as we will see later, the proximal operator for $g$ is simpler so we keep it there for improved numerical stability.
 
-We can then split this into two subproblems,
-$$\begin{equation} A^\* = \left[-\arg\min\_{A,B \in \mathbb{R}^{m \times n}} \\{f(A) + g(B)\\} \quad \text{ s.t. } \quad A - B = 0\right]\_{A} \end{equation}$$
+We can then split Equation (4) into two subproblems by 'copying' $A$,
+$$\begin{equation} A^\* = -\left[\arg\min\_{A,B \in \mathbb{R}^{m \times n}} \\{f(A) + g(B)\\} \quad \text{ s.t. } \quad A - B = 0\right]\_{A} \end{equation}$$
 This effectively blows up our solution search space, but one can easily prove that the optimal solution to the problem above also solves our original problem!
 
 ### 3.1. Recasting as a primal-dual problem
@@ -119,10 +119,9 @@ $$
 $$
 where $X \in \mathcal{X} = \mathbb{R}^{2m \times n}$, $Y \in \mathcal{Y} = \mathbb{R}^{m \times n}$, $L: \mathcal{X} \to \mathcal{Y}$ is a linear operator, $\mathcal{F}: \mathcal{X} \to \mathbb{R}$, and $\mathcal{G}: \mathcal{Y} \to \mathbb{R}$.
 
-Then our problem above can be rewritten to,
+Then Equation (5) can be rewritten to,
 $$\begin{align}
-    A^\* &= -X^\*\_{1} \\\\
-    X^\* &= \arg\min\_{X \in \mathcal{X}} \\{\mathcal{F}(X) + \mathcal{G}(LX)\\}
+    A^\* &= -\left[ \arg\min\_{X \in \mathcal{X}} \\{\mathcal{F}(X) + \mathcal{G}(LX)\\} \right]\_{1}
 \end{align}$$
 
 Fenchel duality then yields the saddle problem,
@@ -171,16 +170,16 @@ $$\begin{align*}
 Note that we can optimize for $A$ and $B$ separately and thus get,
 $$\begin{align*}
     A\_{k+1}
-        &= \arg\min\_{A \in \mathbb{R}^{m \times n}} \\{ \tau\_A f(A\_k) + \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \\} \\\\
+        &= \arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ \tau\_A f(A\_k) + \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
         &= \arg\min\_{\\| A \\| \leq 1} \left\\{ \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
         &= \texttt{proj}\_{\\| \cdot \\| \leq 1} (A\_k - \tau\_A Y\_{k+1}) \\\\
 \end{align*}$$
 where $\texttt{proj}\_{\\| \cdot \\| \leq 1}$ is the projection onto the unit norm ball. Likewise,
 $$\begin{align*}
     B\_{k+1}
-        &= \arg\min\_{B \in \mathbb{R}^{m \times n}} \\{ \tau\_B g(B\_k) + \frac{1}{2} \left\\| B - (B\_k + \tau\_B Y\_{k+1}) \right\\|\_F^2 \\} \\\\
-        &= \arg\min\_{B \in T\_W\mathcal{M}} \\{ \tau\_B \langle G, B \rangle + \frac{1}{2} \left\\| B - (B\_k + \tau\_B Y\_{k+1}) \right\\|\_F^2 \\} \\\\
-        &= \arg\min\_{B \in T\_W\mathcal{M}} \\{ \tau\_B \langle G, B \rangle + \frac{1}{2} \\| B \\|\_F^2 - \langle B, B\_k + \tau\_B Y\_{k+1} \\rangle     + \frac{1}{2} \\| B\_k + \tau\_B Y\_{k+1} \\|\_F^2 \\} \\\\
+        &= \arg\min\_{B \in \mathbb{R}^{m \times n}} \left\\{ \tau\_B g(B\_k) + \frac{1}{2} \left\\| B - (B\_k + \tau\_B Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
+        &= \arg\min\_{B \in T\_W\mathcal{M}} \left\\{ \tau\_B \langle G, B \rangle + \frac{1}{2} \left\\| B - (B\_k + \tau\_B Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
+        &= \arg\min\_{B \in T\_W\mathcal{M}} \left\\{ \tau\_B \langle G, B \rangle + \frac{1}{2} \\| B \\|\_F^2 - \langle B, B\_k + \tau\_B Y\_{k+1} \\rangle     + \frac{1}{2} \\| B\_k + \tau\_B Y\_{k+1} \\|\_F^2 \right\\} \\\\
         &= \arg\min\_{B \in T\_W\mathcal{M}} \left\\{ \frac{1}{2} \\| B \\|\_F^2 - \langle B, B\_k + \tau\_B Y\_{k+1} - \tau\_B G \\rangle + \text{ constant} \right\\} \\\\
         &= \arg\min\_{B \in T\_W\mathcal{M}} \left\\{ \frac{1}{2} \\| B - (B\_k + \tau\_B Y\_{k+1} - \tau\_B G) \\|\_F^2 + \text{ constant} \right\\} \\\\
         &= \texttt{proj}\_{T\_W\mathcal{M}} (B\_k + \tau\_B Y\_{k+1} - \tau\_B G)
@@ -275,7 +274,7 @@ Here I've plotted the alignment <-> off-tangency frontier for the different meth
 Our solution above generalizes to arbitrary number of constraints on $A$ so long as the feasible set for each constraint is closed convex. We then only need to find the metric projection onto each feasible set.
 
 For example, suppose we add another constraint $A \in S$ in Equation (2) above where $S$ is a closed convex set and $\texttt{proj}\_{S}(\cdot)$ is the (metric) projection onto $S$. Then our Equation (5) becomes,
-$$\begin{equation} A^\* = \left[-\arg\min\_{A,B,C \in \mathbb{R}^{m \times n}} \\{f(A) + g(B) + h(C)\\} \quad \text{ s.t. } \quad A - B = A - C = 0\right]\_{A} \end{equation}$$
+$$\begin{equation} A^\* = -\left[\arg\min\_{A,B,C \in \mathbb{R}^{m \times n}} \\{f(A) + g(B) + h(C)\\} \quad \text{ s.t. } \quad A - B = A - C = 0\right]\_{A} \end{equation}$$
 where,
 $$
 h(C) := \mathcal{i}\_{S}(C) =
