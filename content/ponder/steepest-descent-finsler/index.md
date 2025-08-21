@@ -271,9 +271,9 @@ Here I've plotted the alignment <-> off-tangency frontier for the different meth
 
 ## 5. Generalization to arbitrary number of constraints on the update
 
-Our solution above generalizes to arbitrary number of constraints on $A$ so long as the feasible set for each constraint is closed convex. We then only need to find the metric projection onto each feasible set.
+Our solution above generalizes to arbitrary number of constraints on $A$ so long as the feasible set for each constraint is convex. We then only need to find the metric projection onto each feasible set.
 
-For example, suppose we add another constraint $A \in S$ in Equation (2) above where $S$ is a closed convex set and $\texttt{proj}\_{S}(\cdot)$ is the (metric) projection onto $S$. Then our Equation (5) becomes,
+For example, suppose we add another constraint $A \in S$ in Equation (2) above where $S$ is a convex set and $\texttt{proj}\_{S}(\cdot)$ is the (metric) projection onto $S$. Then our Equation (5) becomes,
 $$\begin{equation} A^\* = -\left[\arg\min\_{A,B,C \in \mathbb{R}^{m \times n}} \\{f(A) + g(B) + h(C)\\} \quad \text{ s.t. } \quad A - B = A - C = 0\right]\_{A} \end{equation}$$
 where,
 $$
