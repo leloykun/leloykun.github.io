@@ -299,7 +299,7 @@ $$
     \mathcal{F}(X) &:= f(A) + g(B) + h(C) \\\\
 \end{align*}
 $$
-and the rest then follows and Equation (12) becomes,
+and the rest then follows and Equation (11) becomes,
 $$
 \begin{equation}
     X\_{k+1} = \begin{bmatrix}
