@@ -68,7 +68,7 @@ The problem Jeremy, Jianlin, and I have been trying to solve then is this:
     A^\* = \arg\max\_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \\| A \\|\_{2 \to 2} \leq 1,\quad A \in T\_{W}\texttt{St}(m, n)
 \end{equation}$$
 
-Inspired by a partial solution by Jianlin (which did not yet work at the time), I proposed [heuristic solutions here](../steepest-descent-stiefel/). Jianlin then [solved the problem](https://kexue.fm/archives/11221) via a fixed-point iteration method. Finally, Jeremy proposed a [more general solution](https://docs.modula.systems/algorithms/manifold/stiefel/) via the dual ascent algorithm. [Cédric Simal](https://scholar.google.com/citations?user=Vo3M-WIAAAAJ&hl) also indepedently proposed studying the dual problem to me and Jeremy.
+Inspired by a partial solution by Jianlin (which did not yet work at the time), I proposed [heuristic solutions here](../steepest-descent-stiefel/). Jianlin then [solved the problem](https://kexue.fm/archives/11221) via a fixed-point iteration method. Finally, Jeremy proposed a [more general solution](https://docs.modula.systems/algorithms/manifold/stiefel/) via the dual ascent algorithm. [Cédric Simal](https://scholar.google.com/citations?user=Vo3M-WIAAAAJ&hl) also independently proposed studying the dual problem to me and Jeremy.
 
 ## 3. General solution via block-wise Primal-Dual Hybrid Gradient
 
@@ -109,7 +109,7 @@ $$
         A \\\\
         B
     \end{bmatrix}\\\\
-    L &:= \begin{bmatrix} 1 & -1 \end{bmatrix} \\\\
+    L &:= \begin{bmatrix} I & -I \end{bmatrix} \\\\
     \mathcal{F}(X) &:= f(A) + g(B) \\\\
     \mathcal{G}(Y) &:= \mathcal{i}\_{\\{0\\}}(Y) = \begin{cases}
         0 &\text{ if } Y = 0 \\\\
@@ -142,7 +142,7 @@ $$\begin{align}
 \end{align}$$
 where $\tau = \text{diag}(\tau\_A I\_m, \tau\_B I\_m)$ and $\texttt{prox}$ is the proximal operator.
 
-To speed up convergence, we can also re-use the $X^\*$ and $Y^\*$ from the previous optimization step to initialize $X_0$ and $Y_0$. This is specially useful when e.g. using (nesterov) momentum on $G$, guaranteeing that the 'input gradients' do not vary too much.
+To speed up convergence, we can also re-use the $X^\*$ and $Y^\*$ from the previous optimization step to initialize $X_0$ and $Y_0$. This is especially useful when e.g. using (nesterov) momentum on $G$, guaranteeing that the 'input gradients' do not vary too much.
 
 #### 3.2.1. Converting proximal operators to projections
 
@@ -150,7 +150,7 @@ For the $Y$-variable,
 $$\begin{align*}
     Y\_{k+1}
         &= \texttt{prox}\_{\sigma \mathcal{G}^\*} (Y\_{k} + \sigma L \widetilde{X}\_{k}) \\\\
-        &= \arg\min\_{Y \in \mathcal{Y}} \left\\{ \sigma \cancel{\mathcal{G}^\*(Y\_k)} + \frac{1}{2} \\| Y - (Y\_{k} + \sigma L \widetilde{X}\_{k}) \\|\_F^2 \right\\} \\\\
+        &= \arg\min\_{Y \in \mathcal{Y}} \left\\{ \sigma \cancel{\mathcal{G}^\*(Y)} + \frac{1}{2} \\| Y - (Y\_{k} + \sigma L \widetilde{X}\_{k}) \\|\_F^2 \right\\} \\\\
         &= Y\_{k} + \sigma L \widetilde{X}\_{k}
 \end{align*}$$
 
@@ -158,26 +158,26 @@ For the $X$-variable,
 $$\begin{align*}
     X\_{k+1}
         &= \texttt{prox}\_{\tau \mathcal{F}} (X\_{k} - \tau L^T Y\_{k+1}) \\\\
-        &= \arg\min\_{X \in \mathcal{X}} \left\\{ \tau \mathcal{F}(X\_k) + \frac{1}{2} \\| X - (X\_{k} - \tau L^T Y\_{k+1}) \\|\_F^2 \right\\} \\\\
-        &= \arg\min\_{X \in \mathcal{X}} \left\\{ \tau\_A f(A\_k) + \tau\_B g(B\_k) + \frac{1}{2} \left\\| \begin{bmatrix}
+        &= \arg\min\_{X \in \mathcal{X}} \left\\{ \tau \mathcal{F}(X) + \frac{1}{2} \\| X - (X\_{k} - \tau L^T Y\_{k+1}) \\|\_F^2 \right\\} \\\\
+        &= \arg\min\_{X \in \mathcal{X}} \left\\{ \tau\_A f(A) + \tau\_B g(B) + \frac{1}{2} \left\\| \begin{bmatrix}
             A - (A\_k - \tau\_A Y\_{k+1}) \\\\
             B - (B\_k + \tau\_B Y\_{k+1})
         \end{bmatrix} \right\\|\_F^2 \right\\} \\\\
-        &= \arg\min\_{X \in \mathcal{X}} \\{ \tau\_A f(A\_k) + \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \\\\
-        &\qquad\qquad + \tau\_B g(B\_k) + \frac{1}{2} \left\\| B - (B\_k - \tau\_B Y\_{k+1}) \right\\|\_F^2 \\} \\\\
+        &= \arg\min\_{X \in \mathcal{X}} \\{ \tau\_A f(A) + \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \\\\
+        &\qquad\qquad + \tau\_B g(B) + \frac{1}{2} \left\\| B - (B\_k + \tau\_B Y\_{k+1}) \right\\|\_F^2 \\} \\\\
 \end{align*}$$
 
 Note that we can optimize for $A$ and $B$ separately and thus get,
 $$\begin{align*}
     A\_{k+1}
-        &= \arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ \tau\_A f(A\_k) + \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
+        &= \arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ \tau\_A f(A) + \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
         &= \arg\min\_{\\| A \\| \leq 1} \left\\{ \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
         &= \texttt{proj}\_{\\| \cdot \\| \leq 1} (A\_k - \tau\_A Y\_{k+1}) \\\\
 \end{align*}$$
 where $\texttt{proj}\_{\\| \cdot \\| \leq 1}$ is the projection onto the unit norm ball. Likewise,
 $$\begin{align*}
     B\_{k+1}
-        &= \arg\min\_{B \in \mathbb{R}^{m \times n}} \left\\{ \tau\_B g(B\_k) + \frac{1}{2} \left\\| B - (B\_k + \tau\_B Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
+        &= \arg\min\_{B \in \mathbb{R}^{m \times n}} \left\\{ \tau\_B g(B) + \frac{1}{2} \left\\| B - (B\_k + \tau\_B Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
         &= \arg\min\_{B \in T\_W\mathcal{M}} \left\\{ \tau\_B \langle G, B \rangle + \frac{1}{2} \left\\| B - (B\_k + \tau\_B Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
         &= \arg\min\_{B \in T\_W\mathcal{M}} \left\\{ \tau\_B \langle G, B \rangle + \frac{1}{2} \\| B \\|\_F^2 - \langle B, B\_k + \tau\_B Y\_{k+1} \\rangle     + \frac{1}{2} \\| B\_k + \tau\_B Y\_{k+1} \\|\_F^2 \right\\} \\\\
         &= \arg\min\_{B \in T\_W\mathcal{M}} \left\\{ \frac{1}{2} \\| B \\|\_F^2 - \langle B, B\_k + \tau\_B Y\_{k+1} - \tau\_B G \\rangle + \text{ constant} \right\\} \\\\
@@ -196,7 +196,7 @@ $$
 
 ## 4. Alternative solution to Stiefel Muon via Primal-Dual Hybrid Gradient
 
-Here we have $\mathcal{M} = \texttt{St}(m, n)$ and $\\| \cdot \\| = \\| \cdot \\|\_{2 \to 2}$. For the projection to the unit spectral norm ball, $\texttt{proj}\_{\\| \cdot \\|\_{2 \to 2} \leq 1}$, we can use the spectral hardcap function discussed in my [previous blog post](../spectral-clipping/) and in [our latest paper](https://arxiv.org/abs/2507.13338).
+Here we have $\mathcal{M} = \texttt{St}(m, n)$ and $\\| \cdot \\| = \\| \cdot \\|\_{2 \to 2}$. For the projection to the unit spectral norm ball, $\texttt{proj}\_{\\| \cdot \\|\_{2 \to 2} \leq 1}$, we can use the GPU/TPU-friendly spectral hardcap function discussed in my [previous blog post](../spectral-clipping/) and in [our latest paper](https://arxiv.org/abs/2507.13338).
 
 ```python
 def spectral_hardcap(W: jax.Array):
@@ -293,8 +293,8 @@ $$
         C
     \end{bmatrix}\\\\
     L &:= \begin{bmatrix}
-        1 & -1 &  \\\\
-        1 &    & -1
+        I & -I &  \\\\
+        I &    & -I
     \end{bmatrix} \\\\
     \mathcal{F}(X) &:= f(A) + g(B) + h(C) \\\\
 \end{align*}
