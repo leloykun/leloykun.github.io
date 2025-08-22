@@ -15,6 +15,8 @@ editPost:
 
 Repo: https://github.com/leloykun/mmsg
 
+## Summary
+
 Generate interleaved text and image content in a structured format you can directly pass to downstream APIs. You can also use this to control how many "draft" text tokens and "imagination" image tokens the model generates first before it starts generating the final output.
 
 > Note: The upstream repositories this work depended on have now updated their interfaces, so you may need to update the scripts accordingly.
