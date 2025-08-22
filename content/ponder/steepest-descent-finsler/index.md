@@ -196,10 +196,10 @@ $$
 
 #### 3.2.2. Block-wise PDHG algorithm for the steepest descent on Finsler manifolds problem
 
-Taking everything together, we have,
+Taking everything together, our iteration becomes,
 
 $$\begin{align}
-    Y\_{k+1} &= Y\_{k} + \sigma (A\_{k} - B\_{k}) \\\\
+    Y\_{k+1} &= Y\_{k} + \sigma (\widetilde{A}\_{k} - \widetilde{B}\_{k}) \\\\
     A\_{k+1} &= \texttt{proj}\_{\\| \cdot \\| \leq 1} (A\_k - \tau\_A Y\_{k+1}) \\\\
     B\_{k+1} &= \texttt{proj}\_{T\_W\mathcal{M}} (B\_k + \tau\_B Y\_{k+1} - \tau\_B G) \\\\
     \widetilde{A}\_{k+1} &= A\_{k+1} + \theta (A\_{k+1} - A\_{k}) \\\\
