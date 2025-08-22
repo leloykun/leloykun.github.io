@@ -4,7 +4,7 @@
     <title>Personal Projects on Franz Louis Cesista</title>
     <link>https://leloykun.github.io/personal-projects/</link>
     <description>Recent content in Personal Projects on Franz Louis Cesista</description>
-    <generator>Hugo -- 0.145.0</generator>
+    <generator>Hugo -- 0.125.4</generator>
     <language>en</language>
     <lastBuildDate>Sun, 14 Jul 2024 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://leloykun.github.io/personal-projects/index.xml" rel="self" type="application/rss+xml" />
@@ -16,11 +16,11 @@
       <description>Generate interleaved text and image content in a structured format you can directly pass to downstream APIs.</description>
     </item>
     <item>
-      <title>Flash Hyperbolic Attention Minimal [WIP]</title>
-      <link>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</link>
+      <title>Flash Attention Minimal</title>
+      <link>https://leloykun.github.io/personal-projects/flash-attention-minimal/</link>
       <pubDate>Tue, 16 Apr 2024 00:00:00 +0000</pubDate>
-      <guid>https://leloykun.github.io/personal-projects/flash-hyperbolic-attention-minimal/</guid>
-      <description>A minimal implementation of Flash Attention 1 &amp;amp; 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the various variations of Hyperbolic Attention in CUDA.</description>
+      <guid>https://leloykun.github.io/personal-projects/flash-attention-minimal/</guid>
+      <description>A minimal implementation of Flash Attention 1 &amp;amp; 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the various variations of Attention in CUDA.</description>
     </item>
     <item>
       <title>Llama.cpp</title>

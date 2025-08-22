@@ -331,7 +331,8 @@ which is just the update rule for Muon.</p>
 <blockquote>
 <p><strong>Definition 1: Schatten-$p$ Norm.</strong> The Schatten-$p$ norm of a matrix $A$ is defined as:
 $$||A||_p = \left(\sum_{i=1}^{\min(m, n)} |\sigma_i(A)|^p\right)^{1/p},$$
-where $\sigma_i(A)$ are the singular values of $A$.</p></blockquote>
+where $\sigma_i(A)$ are the singular values of $A$.</p>
+</blockquote>
 <p>In a sense, you can think of the Schatten-$p$ norm of $A$ as the $p$-norm of the singular values of $A.$</p>
 <p><strong>Examples:</strong></p>
 <ol>
@@ -351,13 +352,15 @@ $$</p>
 <blockquote>
 <p><strong>Theorem (von Neumann&rsquo;s Trace Inequality).</strong> Let $A$ and $B$ be two matrices. Then, the following inequality holds:
 $$\text{tr}(A^TB) \leq \sum_{i=1}^{\min(m,n)} \sigma_i(A) \sigma_i(B),$$
-where $\sigma_i(A)$ are the singular values of $A$. And equality holds if and only if $A$ and $B$ share singular vectors.</p></blockquote>
+where $\sigma_i(A)$ are the singular values of $A$. And equality holds if and only if $A$ and $B$ share singular vectors.</p>
+</blockquote>
 <h3 id="steepest-descent-under-schatten-p-norms-1">Steepest descent under Schatten-$p$ Norms<a hidden class="anchor" aria-hidden="true" href="#steepest-descent-under-schatten-p-norms-1">#</a></h3>
 <p>Here, we derive the dualizer for an arbitrary Schatten-$p$ norm.</p>
 <blockquote>
 <p><strong>Proposition 2.</strong> The dualizer for the Schatten-$p$ norm is:
 $$\text{dualizer}_{||\cdot||_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{||X||_{S_q}^{q-1}} V^T$$
-where $X = U\Sigma V^T$ is the singular value decomposition of $X$ and $\frac{1}{p} + \frac{1}{q} = 1$.</p></blockquote>
+where $X = U\Sigma V^T$ is the singular value decomposition of $X$ and $\frac{1}{p} + \frac{1}{q} = 1$.</p>
+</blockquote>
 <blockquote>
 <p><strong>Proof:</strong> For a given $X$, let $T^*$ be:
 $$
@@ -374,10 +377,12 @@ $$\max_{\{\sigma_i(T)\}} \sum_i \sigma_i(X) \sigma_i(T) \quad\text{s.t.}\quad \s
 which we can solve via Lagrange multipliers. See appendix for the full proof. For now, the solution is:
 $$\sigma_i(T) = \frac{\sigma_i(X)^{q-1}}{||X||_{S_q}^{q-1}}$$
 Hence,
-$$T^* = \text{dualizer}_{||\cdot||_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{||X||_{S_q}^{q-1}} V^T\quad\blacksquare$$</p></blockquote>
+$$T^* = \text{dualizer}_{||\cdot||_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{||X||_{S_q}^{q-1}} V^T\quad\blacksquare$$</p>
+</blockquote>
 <p>The proof that the dual norm of the Schatten-$p$ norm is the Schatten-$q$ norm where $\frac{1}{p} + \frac{1}{q} = 1$ actually follows directly from here:</p>
 <blockquote>
-<p><strong>Corollary 3.</strong> The dual norm of the Schatten-$p$ norm is the Schatten-$q$ norm where $\frac{1}{p} + \frac{1}{q} = 1$.</p></blockquote>
+<p><strong>Corollary 3.</strong> The dual norm of the Schatten-$p$ norm is the Schatten-$q$ norm where $\frac{1}{p} + \frac{1}{q} = 1$.</p>
+</blockquote>
 <blockquote>
 <p><strong>Proof:</strong> For a given $X$, we want to show that $$||X||_{S_p}^{\dagger} = ||X||_{S_q}$$
 From the definition of the dual norm, we have:
@@ -396,12 +401,14 @@ $$
 &amp;= \frac{||X||_{S_q}^q}{||X||_{S_q}^{q-1}}\\
 ||X||_{S_p}^{\dagger} &amp;= ||X||_{S_q}\quad\blacksquare
 \end{align*}
-$$</p></blockquote>
+$$</p>
+</blockquote>
 <p>Finally,</p>
 <blockquote>
 <p><strong>Theorem 4.</strong> The update rule for steepest descent under the Schatten-$p$ norm is:
 $$\Delta W_l^* = -\frac{1}{\hat{\lambda}} U \frac{\text{diag}\left(\sigma_1(\nabla L(W_l))^{q-1}, \ldots, \sigma_{\min(m,n)}(\nabla L(W_l))^{q-1}\right)}{||\nabla L(W_l)||_{S_q}^{q-1}} V^T$$
-where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||_{S_q}}$, $\nabla L(W_l) = U\Sigma V^T$ is the singular value decomposition of $\nabla L(W_l)$, and $\frac{1}{p} + \frac{1}{q} = 1$.</p></blockquote>
+where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||_{S_q}}$, $\nabla L(W_l) = U\Sigma V^T$ is the singular value decomposition of $\nabla L(W_l)$, and $\frac{1}{p} + \frac{1}{q} = 1$.</p>
+</blockquote>
 <p>The proof follows directly from Proposition 2 and Corollary 3.</p>
 <h3 id="sanity-checks">Sanity Checks<a hidden class="anchor" aria-hidden="true" href="#sanity-checks">#</a></h3>
 <p>Our results should match prior results for $p = 2, \infty$:</p>
@@ -446,7 +453,8 @@ where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||_{S_1}}$.</p>
 <p>To support this, we show that the (1) variance of singular values, and the (2) relative size, and (3) stable rank of the gradients post-dualization under the Schatten-$p$ norm converge to those of the Spectral norm very quickly as $p$ approaches $\infty$. And in fact, at $p = 32$, the results are already very close to those of the Spectral norm.</p>
 <h3 id="on-the-variance-of-singular-values">On the variance of singular values<a hidden class="anchor" aria-hidden="true" href="#on-the-variance-of-singular-values">#</a></h3>
 <blockquote>
-<p><strong>Proposition 5.</strong> The variance of the singular values post-dualization under the Schatten-$p$ Norm converges quadratically to $0$ as $p$ approaches $\infty$.</p></blockquote>
+<p><strong>Proposition 5.</strong> The variance of the singular values post-dualization under the Schatten-$p$ Norm converges quadratically to $0$ as $p$ approaches $\infty$.</p>
+</blockquote>
 <blockquote>
 <p><strong>Proof:</strong> Let $t_i$ be the $i$-th singular value post-dualization. From Proposition 2 earlier, we have
 $$
@@ -466,15 +474,18 @@ Var[t_i] &amp;\approx (q-1)^2\mathbb{E}\left[\ln^2\left[\sigma_i(\nabla L(W_l)) 
 Var[t_i] &amp;\approx \frac{1}{(p-1)^2}\mathbb{E}\left[\ln^2\left[\sigma_i(\nabla L(W_l)) - \mathbb{E}[\sigma_i(\nabla L(W_l))]\right]\right]
 \end{align*}
 $$
-Hence, the variance of the singular values post-dualization converges quadratically to $0$ as $p$ approaches $\infty$.</p></blockquote>
+Hence, the variance of the singular values post-dualization converges quadratically to $0$ as $p$ approaches $\infty$.</p>
+</blockquote>
 <p>Empirically, we can see this in the following plot. And at $p = 32$, the variance of the resulting singular values is already very close to $0$.
 <img loading="lazy" src="/ponder/steepest-descent-schatten-p/var_sv_dualizer.png#center"></p>
 <h3 id="on-the-relative-size-and-stable-rank-of-gradients">On the relative size and stable rank of gradients<a hidden class="anchor" aria-hidden="true" href="#on-the-relative-size-and-stable-rank-of-gradients">#</a></h3>
 <blockquote>
 <p><strong>Definition 6: Relative Size of a Gradient.</strong> Given a norm $||\cdot||$ chosen a priori, the relative size of a gradient-update $\Delta W$ relative to the parameter matrix $W$ is defined as:
-$$\text{relsize}(\Delta W) = \frac{||\Delta W||}{||W||}$$</p></blockquote>
+$$\text{relsize}(\Delta W) = \frac{||\Delta W||}{||W||}$$</p>
+</blockquote>
 <blockquote>
-<p><strong>Definition 7: Stable Rank.</strong> The stable rank of a matrix $A$ is defined as $$srank(A) = \frac{||A||_F^2}{||A||_{2 \to 2}^2}$$</p></blockquote>
+<p><strong>Definition 7: Stable Rank.</strong> The stable rank of a matrix $A$ is defined as $$srank(A) = \frac{||A||_F^2}{||A||_{2 \to 2}^2}$$</p>
+</blockquote>
 <p>As we can see in the following plot, the raw gradients have very low-stable rank. But the stable rank of the gradients post-dualization under the Schatten-$p$ norm converges very quickly to that of the Spectral norm as $p$ approaches $\infty$.</p>
 <p><img loading="lazy" src="/ponder/steepest-descent-schatten-p/srank_sv_dualizer.png#center"></p>
 <p>One can interpret this as, for some large enough $p$, the dualized gradient is already very close to being &ldquo;maximal&rdquo; in a sense. And increasing $p$ further would only offer rapidly diminishing returns.</p>

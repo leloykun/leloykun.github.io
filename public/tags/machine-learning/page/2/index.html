@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en" dir="auto">
 
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="noindex, nofollow">
+<meta name="robots" content="index, follow">
 <title>Machine Learning | Franz Louis Cesista</title>
 <meta name="keywords" content="">
 <meta name="description" content="Mathematician | Machine Learning (AI) Research Scientist">
 <meta name="author" content="Franz Louis Cesista">
-<link rel="canonical" href="http://localhost:1313/tags/machine-learning/">
+<link rel="canonical" href="https://leloykun.github.io/tags/machine-learning/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.e50e51e1b615f62676c32fb60e15e4b5e3a80ade29f3c6f9c953c528f576fb9f.css" integrity="sha256-5Q5R4bYV9iZ2wy&#43;2DhXkteOoCt4p88b5yVPFKPV2&#43;58=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="icon" href="https://leloykun.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://leloykun.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://leloykun.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://leloykun.github.io/apple-touch-icon.png">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/tags/machine-learning/index.xml">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/tags/machine-learning/">
+<link rel="alternate" type="application/rss+xml" href="https://leloykun.github.io/tags/machine-learning/index.xml">
+<link rel="alternate" hreflang="en" href="https://leloykun.github.io/tags/machine-learning/">
 <noscript>
     <style>
         #theme-toggle,
@@ -30,7 +30,7 @@
 </noscript><meta property="og:title" content="Machine Learning" />
 <meta property="og:description" content="Research and course materials about: Machine Learning" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="http://localhost:1313/tags/machine-learning/" />
+<meta property="og:url" content="https://leloykun.github.io/tags/machine-learning/" />
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Machine Learning"/>
@@ -38,6 +38,15 @@
 <meta name="twitter:site" content="@leloykun"/>
 
 
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BWCGBRX8G1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-BWCGBRX8G1');
+</script>
 
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css"
@@ -78,35 +87,61 @@
 </head>
 
 <body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
 
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="Franz Louis Cesista">
-                <img src="http://localhost:1313/favicon.ico" alt="" aria-label="logo"
+            <a href="https://leloykun.github.io/" accesskey="h" title="Franz Louis Cesista">
+                <img src="https://leloykun.github.io/favicon.ico" alt="" aria-label="logo"
                     height="18"
                     width="18">Franz Louis Cesista</a>
             <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
             </div>
         </div>
         <ul id="menu">
             <li>
-                <a href="http://localhost:1313/cv.pdf" title="CV">
+                <a href="https://leloykun.github.io/cv.pdf" title="CV">
                     <span>CV</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/papers/" title="Papers">
+                <a href="https://leloykun.github.io/papers/" title="Papers">
                     <span>Papers</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/personal-projects/" title="Personal Projects">
+                <a href="https://leloykun.github.io/personal-projects/" title="Personal Projects">
                     <span>Personal Projects</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/ponder/" title="Ponder (Posts)">
+                <a href="https://leloykun.github.io/ponder/" title="Ponder (Posts)">
                     <span>Ponder (Posts)</span>
                 </a>
             </li>
@@ -123,14 +158,38 @@
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Simply switching to Muon can already get you 2x efficiency gains. But you can squeeze out an extra 1-2% by optimizing the Newton-Schulz coefficients.</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-02-21 00:00:00 +0000 UTC'>February 21, 2025</span>&nbsp;&middot;&nbsp;8 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <a class="entry-link" aria-label="post link to Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients" href="https://leloykun.github.io/ponder/muon-opt-coeffs/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">CASPR Without Accumulation is Muon
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>The CASPR optimizer, a variant of Shampoo, reduces to Muon when we remove the accumulation on the preconditioners.</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-02-13 00:00:00 +0000 UTC'>February 13, 2025</span>&nbsp;&middot;&nbsp;2 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <a class="entry-link" aria-label="post link to CASPR Without Accumulation is Muon" href="https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">GRPO&#39;s Main Flaw
     </h2>
   </header>
   <div class="entry-content">
     <p>GRPO may not be the best choice for training reasoning models. Here’s why.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-02-11 00:00:00 +0000 UTC'>February 11, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
-  <a class="entry-link" aria-label="post link to GRPO&#39;s Main Flaw" href="http://localhost:1313/ponder/grpo-flaw/"></a>
+  <footer class="entry-footer"><span title='2025-02-11 00:00:00 +0000 UTC'>February 11, 2025</span>&nbsp;&middot;&nbsp;2 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <a class="entry-link" aria-label="post link to GRPO&#39;s Main Flaw" href="https://leloykun.github.io/ponder/grpo-flaw/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
@@ -141,8 +200,8 @@
   <div class="entry-content">
     <p>A unifying framework for linear attention mechanisms as test-time regression and how to parallelize training and inference.</p>
   </div>
-  <footer class="entry-footer"><span title='2025-01-27 00:00:00 +0000 UTC'>January 27, 2025</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
-  <a class="entry-link" aria-label="post link to (Linear) Attention as Test-Time Regression" href="http://localhost:1313/ponder/test-time-regression/"></a>
+  <footer class="entry-footer"><span title='2025-01-27 00:00:00 +0000 UTC'>January 27, 2025</span>&nbsp;&middot;&nbsp;7 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <a class="entry-link" aria-label="post link to (Linear) Attention as Test-Time Regression" href="https://leloykun.github.io/ponder/test-time-regression/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
@@ -153,8 +212,8 @@
   <div class="entry-content">
     <p>Instead of asking, ‘Which optimizer should I use?’ ask, ‘In which space do my features live in?’</p>
   </div>
-  <footer class="entry-footer"><span title='2024-10-20 00:00:00 +0000 UTC'>October 20, 2024</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
-  <a class="entry-link" aria-label="post link to Deep Learning Optimizers as Steepest Descent in Normed Spaces" href="http://localhost:1313/ponder/steepest-descent-opt/"></a>
+  <footer class="entry-footer"><span title='2024-10-20 00:00:00 +0000 UTC'>October 20, 2024</span>&nbsp;&middot;&nbsp;3 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <a class="entry-link" aria-label="post link to Deep Learning Optimizers as Steepest Descent in Normed Spaces" href="https://leloykun.github.io/ponder/steepest-descent-opt/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
@@ -165,8 +224,8 @@
   <div class="entry-content">
     <p>Generate interleaved text and image content in a structured format you can directly pass to downstream APIs.</p>
   </div>
-  <footer class="entry-footer"><span title='2024-07-14 00:00:00 +0000 UTC'>July 14, 2024</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
-  <a class="entry-link" aria-label="post link to Multimodal Structured Generation" href="http://localhost:1313/personal-projects/mmsg/"></a>
+  <footer class="entry-footer"><span title='2024-07-14 00:00:00 +0000 UTC'>July 14, 2024</span>&nbsp;&middot;&nbsp;1 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <a class="entry-link" aria-label="post link to Multimodal Structured Generation" href="https://leloykun.github.io/personal-projects/mmsg/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
@@ -177,20 +236,20 @@
   <div class="entry-content">
     <p>[Technical Report for CVPR’s 2nd MMFM Challenge] This report presents Multimodal Structured Generation, a general framework which constrains the output logits of frozen Multimodal Foundation Models to force them to reason before responding with structured outputs that downstream APIs can parse and use. This approach achieved the second highest score in the hidden test set for Phase 2 and third highest overall in the 2nd Multimodal Foundation Models Challenge hosted by the Computer Vision and Pattern Recognition (CVPR) conference.</p>
   </div>
-  <footer class="entry-footer"><span title='2024-06-17 00:00:00 +0000 UTC'>June 17, 2024</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
-  <a class="entry-link" aria-label="post link to Multimodal Structured Generation: CVPR&#39;s 2nd MMFM Challenge Technical Report" href="http://localhost:1313/papers/mmsg/"></a>
+  <footer class="entry-footer"><span title='2024-06-17 00:00:00 +0000 UTC'>June 17, 2024</span>&nbsp;&middot;&nbsp;2 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <a class="entry-link" aria-label="post link to Multimodal Structured Generation: CVPR&#39;s 2nd MMFM Challenge Technical Report" href="https://leloykun.github.io/papers/mmsg/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">Flash Hyperbolic Attention Minimal [WIP]
+    <h2 class="entry-hint-parent">Flash Attention Minimal
     </h2>
   </header>
   <div class="entry-content">
-    <p>A minimal implementation of Flash Attention 1 &amp; 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the various variations of Hyperbolic Attention in CUDA.</p>
+    <p>A minimal implementation of Flash Attention 1 &amp; 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the various variations of Attention in CUDA.</p>
   </div>
-  <footer class="entry-footer"><span title='2024-04-16 00:00:00 +0000 UTC'>April 16, 2024</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
-  <a class="entry-link" aria-label="post link to Flash Hyperbolic Attention Minimal [WIP]" href="http://localhost:1313/personal-projects/flash-hyperbolic-attention-minimal/"></a>
+  <footer class="entry-footer"><span title='2024-04-16 00:00:00 +0000 UTC'>April 16, 2024</span>&nbsp;&middot;&nbsp;1 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <a class="entry-link" aria-label="post link to Flash Attention Minimal" href="https://leloykun.github.io/personal-projects/flash-attention-minimal/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
@@ -201,8 +260,8 @@
   <div class="entry-content">
     <p>[IEEE 7th International Conference on Multimedia Information Processing and Retrieval (MIPR) 2024] This paper presents Retrieval Augmented Structured Generation (RASG), a novel general framework for Business Document Information Extraction that achieves state of the art (SOTA) results on both Key-Information Extraction (KIE) and Line Items Recognition (LIR).</p>
   </div>
-  <footer class="entry-footer"><span title='2024-04-15 00:00:00 +0000 UTC'>April 15, 2024</span>&nbsp;&middot;&nbsp;Franz Louis Cesista, Rui Aguiar, Jason Kim, Paolo Acilo</footer>
-  <a class="entry-link" aria-label="post link to Retrieval Augmented Structured Generation: Business Document Information Extraction As Tool Use" href="http://localhost:1313/papers/rasg/"></a>
+  <footer class="entry-footer"><span title='2024-04-15 00:00:00 +0000 UTC'>April 15, 2024</span>&nbsp;&middot;&nbsp;2 min&nbsp;&middot;&nbsp;Franz Louis Cesista, Rui Aguiar, Jason Kim, Paolo Acilo</footer>
+  <a class="entry-link" aria-label="post link to Retrieval Augmented Structured Generation: Business Document Information Extraction As Tool Use" href="https://leloykun.github.io/papers/rasg/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
@@ -213,46 +272,22 @@
   <div class="entry-content">
     <p>Years of experience in building artificial minds led me to believe that these AIs may end up seeming more ‘human’ than we currently imagine them to be.</p>
   </div>
-  <footer class="entry-footer"><span title='2023-12-10 00:00:00 +0000 UTC'>December 10, 2023</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
-  <a class="entry-link" aria-label="post link to The Human Mind May Be Universal" href="http://localhost:1313/ponder/human-mind-universality/"></a>
-</article>
-
-<article class="post-entry tag-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Llama.cpp
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>A C&#43;&#43; implementation of Meta’s Llama2 generative large-language model. I also optimized the original C implementation by Karpathy by adding parallelization on the multi-head attention layer.</p>
-  </div>
-  <footer class="entry-footer"><span title='2023-07-25 00:00:00 +0000 UTC'>July 25, 2023</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
-  <a class="entry-link" aria-label="post link to Llama.cpp" href="http://localhost:1313/personal-projects/llama.cpp/"></a>
-</article>
-
-<article class="post-entry tag-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Expedock Assistant: ChatGPT Applied to Logistics Data
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Expedock Assistant is a chatbot that allows you to ask questions about your shipments and get answers in real time. It’s like having a personal assistant that knows everything about your business, shipments and industry.</p>
-  </div>
-  <footer class="entry-footer"><span title='2023-01-31 00:00:00 +0000 UTC'>January 31, 2023</span>&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
-  <a class="entry-link" aria-label="post link to Expedock Assistant: ChatGPT Applied to Logistics Data" href="http://localhost:1313/personal-projects/expedock-assistant/"></a>
+  <footer class="entry-footer"><span title='2023-12-10 00:00:00 +0000 UTC'>December 10, 2023</span>&nbsp;&middot;&nbsp;3 min&nbsp;&middot;&nbsp;Franz Louis Cesista</footer>
+  <a class="entry-link" aria-label="post link to The Human Mind May Be Universal" href="https://leloykun.github.io/ponder/human-mind-universality/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">
-    <a class="prev" href="http://localhost:1313/tags/machine-learning/">
+    <a class="prev" href="https://leloykun.github.io/tags/machine-learning/">
       «&nbsp;Prev&nbsp;
     </a>
-    <a class="next" href="http://localhost:1313/tags/machine-learning/page/3/">Next&nbsp;&nbsp;»
+    <a class="next" href="https://leloykun.github.io/tags/machine-learning/page/3/">Next&nbsp;&nbsp;»
     </a>
   </nav>
 </footer>
     </main>
     
 <footer class="footer">
-    <span>&copy; 2025 <a href="http://localhost:1313/">Franz Louis Cesista</a></span> ·     
+    <span>&copy; 2025 <a href="https://leloykun.github.io/">Franz Louis Cesista</a></span> ·     
     <span>
     Powered by 
         <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
@@ -307,6 +342,18 @@
             mybutton.style.opacity = "0";
         }
     };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
 
 </script>
 </body>

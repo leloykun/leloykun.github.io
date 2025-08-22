@@ -220,7 +220,7 @@
   </header> 
 <figure class="entry-cover">
             <img loading="eager"
-                srcset='https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold_hu_13745548ba158a7c.jpg 360w,https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold_hu_dc44888482476382.jpg 480w,https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold_hu_5a3e5cdf35e725b7.jpg 720w,https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold_hu_3ddae4a0c855badb.jpg 1080w,https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold_hu_5b725e2da1107df0.jpg 1500w,https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold.jpg 1512w'
+                srcset='https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold_hu96f70d7508379ec217e7a2e241ae6f20_56654_360x0_resize_q75_box.jpg 360w,https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold_hu96f70d7508379ec217e7a2e241ae6f20_56654_480x0_resize_q75_box.jpg 480w,https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold_hu96f70d7508379ec217e7a2e241ae6f20_56654_720x0_resize_q75_box.jpg 720w,https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold_hu96f70d7508379ec217e7a2e241ae6f20_56654_1080x0_resize_q75_box.jpg 1080w,https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold_hu96f70d7508379ec217e7a2e241ae6f20_56654_1500x0_resize_q75_box.jpg 1500w,https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold.jpg 1512w'
                 src="https://leloykun.github.io/ponder/steepest-descent-stiefel/steepest-descent-stiefel-manifold.jpg"
                 sizes="(min-width: 768px) 720px, 100vw"
                 width="1512" height="816"
@@ -280,18 +280,21 @@
 </div>
 
   <div class="post-content"><blockquote>
-<p>If you find this post useful, please consider supporting my work by sponsoring me on GitHub: <a href="https://github.com/sponsors/leloykun" target="_blank"><img alt="Sponsor on GitHub" loading="lazy" src="https://img.shields.io/badge/%F0%9F%A4%9D-Sponsor%20me-1da1f2?logo=github&style=flat-square"></a></p></blockquote>
+<p>If you find this post useful, please consider supporting my work by sponsoring me on GitHub: <a href="https://github.com/sponsors/leloykun" target="_blank"><img alt="Sponsor on GitHub" loading="lazy" src="https://img.shields.io/badge/%F0%9F%A4%9D-Sponsor%20me-1da1f2?logo=github&style=flat-square"></a></p>
+</blockquote>
 <h2 id="1-recap-muon-as-rms-to-rms-norm-constrained-steepest-descent">1. Recap: Muon as RMS-to-RMS norm-constrained steepest descent<a hidden class="anchor" aria-hidden="true" href="#1-recap-muon-as-rms-to-rms-norm-constrained-steepest-descent">#</a></h2>
 <p>Consider a weight matrix $W \in \mathbb{R}^{m \times n}$ and a &ldquo;raw gradient&rdquo; or differential $G \in \mathbb{R}^{m \times n}$ we get via e.g., backpropagation. In standard gradient descent, we would update the weights as follows,
 $$W \leftarrow W - \eta G,$$
 where $\eta \in (0, \infty)$ is the learning rate. However, this is suboptimal because (1) the update sizes $\| G \|$ could vary wildly across steps thereby causing training instability, and (2) as we discussed in a <a href="../steepest-descent-non-riemannian/">previous blog post on (non-)Riemannian steepest descent</a>, it does not take into account the matrix structure of the weights. In particular, it ignores how activations or &ldquo;features&rdquo; evolve through the network and how the model behaves as we scale it up. Tl;dr:</p>
 <blockquote>
 <p>If we want the Euclidean norm $\| \cdot \|_2$ of our features and feature updates to &lsquo;grow&rsquo; with the model size,
-then the <em>Spectral norm</em> $\| \cdot \|_{2 \to 2}$ of our weights and weight updates must also &lsquo;grow&rsquo; with the model size.</p></blockquote>
+then the <em>Spectral norm</em> $\| \cdot \|_{2 \to 2}$ of our weights and weight updates must also &lsquo;grow&rsquo; with the model size.</p>
+</blockquote>
 <p>Equivalently, following Yang et al. (2024), we can use the &ldquo;natural&rdquo; feature norm, the RMS norm $\|\cdot\|_{RMS} = \frac{1}{\sqrt{n}}\|\cdot\|_{2}$, and the &ldquo;natural&rdquo; weight norm, the RMS-to-RMS norm $\|\cdot\|_{RMS \to RMS} = \frac{\sqrt{n}}{\sqrt{m}}\| \cdot \|_{2 \to 2}$, and rephrase the above as,</p>
 <blockquote>
 <p>If we want the &ldquo;natural&rdquo; norm of our features and feature updates to be stable regardless of the model size,
-then the &ldquo;natural&rdquo; norm of our weights and weight updates must also be stable regardless of the model size.</p></blockquote>
+then the &ldquo;natural&rdquo; norm of our weights and weight updates must also be stable regardless of the model size.</p>
+</blockquote>
 <p>We will discuss weight norm controls in the next section, but for now, instead of using the raw gradient $G$, we can instead try to find a descent direction $A \in \mathbb{R}^{m \times n}$ that is maximally aligned to $G$ while satisfying our weight update condition above,
 $$\| A \|_{RMS \to RMS} = \frac{\sqrt{n}}{\sqrt{m}}\| A \|_{2 \to 2} = \text{constant}.$$
 Thus our update rule becomes,
@@ -309,7 +312,8 @@ W_t &amp;= W_{t-1} - \eta\frac{\sqrt{m}}{\sqrt{n}} \texttt{msign}(M_t), \\
 \end{align*}$$
 for some momentum hyperparameter $\beta \in [0, 1)$.</p>
 <blockquote>
-<p>If you want to learn more about Muon and the ideas behind it, check out <a href="https://www.lakernewhouse.com/writing/muon-1" target="_blank">Newhouse&rsquo;s 3-part blog series</a>. I highly recommend it!</p></blockquote>
+<p>If you want to learn more about Muon and the ideas behind it, check out <a href="https://www.lakernewhouse.com/writing/muon-1" target="_blank">Newhouse&rsquo;s 3-part blog series</a>. I highly recommend it!</p>
+</blockquote>
 <h3 id="11-recap-non-riemannian-steepest-descent">1.1. Recap: (non-)Riemannian steepest descent<a hidden class="anchor" aria-hidden="true" href="#11-recap-non-riemannian-steepest-descent">#</a></h3>
 <p>An update step in first-order optimization on a manifold $\mathcal{M}$ goes as follows,</p>
 <ol>
@@ -371,7 +375,8 @@ $$\begin{align*}
 f(W^T) &amp;= f(W)^T \\
 f(WQ^T) &amp;= f(W)Q^T \quad\forall Q \in \mathbb{R}^{m \times n} \text{ such that } Q^TQ = I_n \\
 f(Q^TW) &amp;= Q^Tf(W) \quad\forall Q \in \mathbb{R}^{m \times n} \text{ such that } QQ^T = I_m
-\end{align*}$$</p></blockquote>
+\end{align*}$$</p>
+</blockquote>
 <p>Thus,</p>
 <p>$$\begin{align*}
 A^*_{\text{bernstein}}
@@ -394,7 +399,8 @@ where the second-to-last equality relies on $W$ being square and full-rank, whic
 <p><strong>Theorem 2 (Orthogonal projection to the tangent space at $W$).</strong> Let $W \in \text{St}(m, n)$ be a point on the Stiefel manifold. The projection of a vector $V \in \mathbb{R}^{m \times n}$ onto the tangent space at $W$, denoted as $T_W\text{St}(m, n)$ , is given by,
 $$\begin{equation}
 \texttt{proj}_{T_W\text{St}(m, n)}(V) = V - W \text{sym}(W^T V)
-\end{equation}$$</p></blockquote>
+\end{equation}$$</p>
+</blockquote>
 
 
 <p><details >
@@ -424,7 +430,8 @@ $$\begin{equation*}
 = \langle \underbrace{W^T (V - WS)}_{\text{skew-symmetric}}, \underbrace{S}_{\text{symmetric}} \rangle
 = 0
 \end{equation*}$$
-Hence, $V - W \text{sym}(W^T V)$ is the orthogonal projection of $V$ onto the tangent space at $W$.</p></blockquote>
+Hence, $V - W \text{sym}(W^T V)$ is the orthogonal projection of $V$ onto the tangent space at $W$.</p>
+</blockquote>
 
 </details></p>
 
@@ -432,41 +439,43 @@ Hence, $V - W \text{sym}(W^T V)$ is the orthogonal projection of $V$ onto the ta
 <blockquote>
 <p><strong>Proposition 3 (Projection to the closest semi-orthogonal matrix).</strong> Consider the orthogonal matrices $\mathcal{O}_{m \times n} := \{ A \in \mathbb{R}^{m \times n} : A A^T = I_m or A^T A = I_n \}$ and let $\| \cdot \|_F$ denote the Frobenius norm. For any matrix $G \in R^{m \times n}$ with reduced SVD $G = U \Sigma V^T$:
 $$\arg\min_{A \in \mathcal{O}_{m \times n}} \| A - G \|_F = \texttt{msign}(G) = UV^T,$$
-where the minimizer $UV^T$ is unique if and only if the matrix $G$ has full rank.</p></blockquote>
+where the minimizer $UV^T$ is unique if and only if the matrix $G$ has full rank.</p>
+</blockquote>
 <p>Thus we can write,
 $$A^*_{\text{bernstein}} = A^*_{\text{su}} = (\texttt{proj}_{\text{St}(m, n)} \circ \texttt{proj}_{T_W\text{St}(m, n)})(G)$$
 for the square and full-rank case at least.</p>
 <h3 id="41-why-bernsteins--sus-solutions-only-work-for-the-square-and-full-rank-case">4.1. Why Bernstein&rsquo;s &amp; Su&rsquo;s solutions only work for the square and full-rank case<a hidden class="anchor" aria-hidden="true" href="#41-why-bernsteins--sus-solutions-only-work-for-the-square-and-full-rank-case">#</a></h3>
 <p>Note that the projections above aim to guarantee both of our criteria for the solution, but one step at a time. And that the $\texttt{msign}$ after the projection may send the resulting matrix outside the tangent space at $W$. We show that this is not a problem in the square and full-rank case, but it is in the general case.</p>
 <table>
-  <thead>
-      <tr>
-          <th>operation</th>
-          <th style="text-align: right">on the tangent space at $W$?</th>
-          <th style="text-align: right">have unit spectral norm?</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>(input $G$)</td>
-          <td style="text-align: right">not in general</td>
-          <td style="text-align: right">not in general</td>
-      </tr>
-      <tr>
-          <td>1st projection ($\texttt{proj}_{T_W St(m, n)}(\cdot)$)</td>
-          <td style="text-align: right">${\color{green}\text{yes}}$</td>
-          <td style="text-align: right">not necessarily</td>
-      </tr>
-      <tr>
-          <td>2nd projection ($\texttt{msign}(\cdot$))</td>
-          <td style="text-align: right">only for the square<br>and full-rank case</td>
-          <td style="text-align: right">${\color{green}\text{yes}}$</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>operation</th>
+<th style="text-align:right">on the tangent space at $W$?</th>
+<th style="text-align:right">have unit spectral norm?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(input $G$)</td>
+<td style="text-align:right">not in general</td>
+<td style="text-align:right">not in general</td>
+</tr>
+<tr>
+<td>1st projection ($\texttt{proj}_{T_W St(m, n)}(\cdot)$)</td>
+<td style="text-align:right">${\color{green}\text{yes}}$</td>
+<td style="text-align:right">not necessarily</td>
+</tr>
+<tr>
+<td>2nd projection ($\texttt{msign}(\cdot$))</td>
+<td style="text-align:right">only for the square<br>and full-rank case</td>
+<td style="text-align:right">${\color{green}\text{yes}}$</td>
+</tr>
+</tbody>
 </table>
 <p>To demonstrate this, we will need the following proposition.</p>
 <blockquote>
-<p><strong>Proposition 4 ($\texttt{msign}$ preserves skew-symmetry).</strong> Let $X \in \R^{m \times n}$ be a skew-symmetric matrix. Then $\texttt{msign}(X)$ is also skew-symmetric.</p></blockquote>
+<p><strong>Proposition 4 ($\texttt{msign}$ preserves skew-symmetry).</strong> Let $X \in \R^{m \times n}$ be a skew-symmetric matrix. Then $\texttt{msign}(X)$ is also skew-symmetric.</p>
+</blockquote>
 <p>The proof follows directly from the transpose equivariance and oddness of $\texttt{msign}$, i.e., $\texttt{msign}(X) = \texttt{msign}(-X^T) = -\texttt{msign}(X)^T$.</p>
 <p>Also note that for the general case,
 $$\begin{equation}
@@ -525,18 +534,22 @@ which means that while the resulting matrix after the two projections may not be
 </span></span></code></pre></div><h4 id="521-local-linear-convergence-guarantee">5.2.1. Local (linear) convergence guarantee<a hidden class="anchor" aria-hidden="true" href="#521-local-linear-convergence-guarantee">#</a></h4>
 <p>For now, we cannot yet guarantee global convergence as it would potentially require deriving the Lyapunov function for this iteration which is extremely difficult. What we can guarantee, however, is <em>local</em> convergence due to $\text{St}(m, n)$ and $T_W\text{St}(m, n)$ being closed semi-algebraic sets. That is, assuming that the initial point $W$ is &ldquo;close enough&rdquo; to the intersection, we can guarantee that a subsequence of the iterates converges to a point in the intersection. Furthermore, assuming transversality, we can guarantee that the convergence is linear.</p>
 <blockquote>
-<p><strong>Definition 5 (Semi-algebraic set)</strong> Let $\mathbb{F}$ be a real closed field. A subset $S$ of $\mathbb{F}^n$ is a semi-algebraic set if it is a finite union of sets defined by polynomial equations and inequalities.</p></blockquote>
+<p><strong>Definition 5 (Semi-algebraic set)</strong> Let $\mathbb{F}$ be a real closed field. A subset $S$ of $\mathbb{F}^n$ is a semi-algebraic set if it is a finite union of sets defined by polynomial equations and inequalities.</p>
+</blockquote>
 <p>We can construct $\text{St}(m, n) = \{ W \in \mathbb{R}^{m \times n} | W^T W = I_n \}$ via $n(n+1)/2$ polynomial equations, and $T_W\text{St}(m, n) = \{ A \in \mathbb{R}^{m \times n} | W^T A + A^T W = 0 \}$ via $mn$ polynomial equations. Hence both are semi-algebraic sets. And the intersection of two semi-algebraic sets is also a semi-algebraic set. From Theorem 7.3 of Drusvyatskiy et al. (2016), we then have the following convergence guarantee.</p>
 <blockquote>
-<p><strong>Theorem 6 (Convergence of alternating projections on semi-algebraic sets)</strong> Consider two nonempty closed semi-algebraic sets $X, Y \subset E$ with $X$ bounded. If the method of alternating projections starts in $Y$ and near $X$, then the distance of the iterates to the intersection $X \cap Y$ converges to zero, and hence every limit point lies in $X \cap Y$.</p></blockquote>
+<p><strong>Theorem 6 (Convergence of alternating projections on semi-algebraic sets)</strong> Consider two nonempty closed semi-algebraic sets $X, Y \subset E$ with $X$ bounded. If the method of alternating projections starts in $Y$ and near $X$, then the distance of the iterates to the intersection $X \cap Y$ converges to zero, and hence every limit point lies in $X \cap Y$.</p>
+</blockquote>
 <p>Setting $Y = T_W\text{St}(m, n)$, $X = \text{St}(m, n)$, and noting that the Stiefel manifold is bounded, we have that the iterates of our method of alternating projections converge to a point in the intersection $\text{St}(m, n) \cap T_W\text{St}(m, n)$.</p>
 <p>But does this algorithm converge in sufficient time? Somewhat yes, we can guarantee local <em>linear</em> convergence assuming transversality.</p>
 <blockquote>
 <p><strong>Definition 7 (Transversality)</strong> Let $\mathcal{M}$ and $\mathcal{N}$ be two (smooth) manifolds in a Euclidean space. We say that $\mathcal{M}$ and $\mathcal{N}$ intersect transversally at a point $x \in \mathcal{M} \cap \mathcal{N}$ when,
-$$N_x\mathcal{M} \cap N_x\mathcal{N} = \{0\}.$$</p></blockquote>
+$$N_x\mathcal{M} \cap N_x\mathcal{N} = \{0\}.$$</p>
+</blockquote>
 <p>Intuitively speaking, this means that the tangent spaces at the intersection of the two manifolds have an &ldquo;angle&rdquo; between them, i.e., they are not parallel. The larger this angle is, the faster the convergence; and the smaller the angle, the slower the convergence. Theorem 2.1 of Drusvyatskiy et al. (2016) then gives us the following local linear convergence guarantee.</p>
 <blockquote>
-<p><strong>Theorem 8 (Linear convergence of alternating projections, assuming transversality)</strong> If two closed sets in a Euclidean space intersect transversally at a point $\tilde{x}$, then the method of alternating projections, started nearby, converges linearly to a point in the intersection.</p></blockquote>
+<p><strong>Theorem 8 (Linear convergence of alternating projections, assuming transversality)</strong> If two closed sets in a Euclidean space intersect transversally at a point $\tilde{x}$, then the method of alternating projections, started nearby, converges linearly to a point in the intersection.</p>
+</blockquote>
 <p>$\text{St}(m, n)$ and $T_W\text{St}(m, n)$ are both closed sets so the theorem above applies.</p>
 <h3 id="53-ternary-search-over-nearby-feasible-solutions">5.3. Ternary search over nearby feasible solutions<a hidden class="anchor" aria-hidden="true" href="#53-ternary-search-over-nearby-feasible-solutions">#</a></h3>
 <p>Here we present an alternative solution that is more efficient, but often yields slightly more suboptimal results than the fixed-point iteration method above.</p>
@@ -673,7 +686,8 @@ or in words, we want to find a descent direction $A^*$ that is both on the (scal
 <h3 id="61-optimal-solution-for-steepest-descent-on-the-scaled-oblique-manifold">6.1. Optimal solution for steepest descent on the (scaled-)Oblique manifold<a hidden class="anchor" aria-hidden="true" href="#61-optimal-solution-for-steepest-descent-on-the-scaled-oblique-manifold">#</a></h3>
 <p>The Oblique manifold is a product of hyperspheres, $\text{Ob}(m, n) = \underbrace{S^m \times \ldots \times S^m}_{n}$. So, in a sense, the columns are acting independently of each other and steepest descent on the Oblique manifold is equivalent to steepest descent on the hypersphere, applied column-wise. Generalizing Bernstein&rsquo;s (2025b) dualizer for steepest descent on the hypersphere to the Oblique manifold then yields,</p>
 <blockquote>
-<p>The optimal solution for finding the direction of steepest descent on the Oblique manifold $A^*$ given &ldquo;raw Euclidean gradient&rdquo; or differential $G$ is to simply project $G$ onto the tangent space at point $W \in \widetilde{\text{Ob}}(m, n)$ and then normalize column-wise.</p></blockquote>
+<p>The optimal solution for finding the direction of steepest descent on the Oblique manifold $A^*$ given &ldquo;raw Euclidean gradient&rdquo; or differential $G$ is to simply project $G$ onto the tangent space at point $W \in \widetilde{\text{Ob}}(m, n)$ and then normalize column-wise.</p>
+</blockquote>
 <p>The tangent space at $W$ is simply,
 $$T_W\widetilde{\text{Ob}}(m, n) = \{A \in \mathbb{R}^{m \times n} | \text{diag}(W^T A) = 0\}$$
 or in words, the column-wise dot-product or &ldquo;alignment&rdquo; between $W$ and a candidate tangent vector $A$ must be zero for $A$ to be in the tangent space at $W$. The projector onto the tangent space at $W$ is then given by,
@@ -705,47 +719,48 @@ A^* &amp;= \texttt{row\_normalize}(\texttt{proj}_{T_W\widetilde{\text{RowOb}}(m,
 <p>Here we compare our two heuristic methods for the problem of spectral-norm constrained steepest descent on the Stiefel manifold. Observe from the figures above that the ternary search over nearby feasible solutions method results in almost optimal solutions, regardless of scale. However, the alternating projections method results in more aligned solutions, albeit at the cost of more compute and being more off-tangent.</p>
 <h3 id="72-grokking-on-the-addition-modulo-113-task-in-44-full-batch-training-steps">7.2. Grokking on the Addition-Modulo-113 task in 44 full-batch training steps<a hidden class="anchor" aria-hidden="true" href="#72-grokking-on-the-addition-modulo-113-task-in-44-full-batch-training-steps">#</a></h3>
 <blockquote>
-<p>We will release the source code soon, but if you want early access, please email me.</p></blockquote>
+<p>We will release the source code soon, but if you want early access, please email me.</p>
+</blockquote>
 <p><img loading="lazy" src="/ponder/steepest-descent-stiefel/grokking_results.png#center"></p>
 <p>We use the same training setup for grokking experiments on the Addition-Modulo-113 problem as in a previous <a href="../spectral-clipping/">post on spectral clipping</a>, with new dualizers and projection maps added. Following Prieto et al. (2025), we use a 2-layer MLP (plus Embedding and Unembedding layers) with 200 hidden units per layer. All matrix multiplications are done in <code>bfloat16</code> precision.</p>
 <p>We place our Embedding and Unembedding weights on the (scaled-)Oblique manifold and (scaled-)Row-Oblique manifold, respectively. We then vary the dualizer and retraction maps used in the linear layers and report the best median-steps-to-grokking across 64 random seeds. See figure above for the results.</p>
 <p>Interestingly, without weight constraints, models fail to grok within 1000 full-batch training steps. This is true for both the Muon optimizer and AdamW. However, with weight constraints, we were able to achieve grokking in 44 full-batch training steps, which we believe is SOTA.</p>
 <p>The best recipe seems to be:</p>
 <table>
-  <thead>
-      <tr>
-          <th>layer</th>
-          <th style="text-align: right">manifold</th>
-          <th style="text-align: center">$\texttt{dualizer}$</th>
-          <th style="text-align: center">$\texttt{retract}$</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>Embedding</td>
-          <td style="text-align: right">(Scaled-)Oblique manifold</td>
-          <td style="text-align: center">$\texttt{col\_normalize} \circ \texttt{proj}_{T_W\widetilde{\text{Ob}}(m, n)}$</td>
-          <td style="text-align: center">$\texttt{col\_normalize}$</td>
-      </tr>
-      <tr>
-          <td>1st Linear</td>
-          <td style="text-align: right">RMS-to-RMS norm ball<br>around the origin of $\mathbb{R}^{m \times n}$</td>
-          <td style="text-align: center">$\texttt{msign}$</td>
-          <td style="text-align: center">$\texttt{spectral\_normalize}$</td>
-      </tr>
-      <tr>
-          <td>2nd Linear</td>
-          <td style="text-align: right">RMS-to-RMS norm ball<br>around the origin of $\mathbb{R}^{m \times n}$</td>
-          <td style="text-align: center">$\texttt{msign}$</td>
-          <td style="text-align: center">$\texttt{spectral\_normalize}$</td>
-      </tr>
-      <tr>
-          <td>Unembedding</td>
-          <td style="text-align: right">(Scaled-)Row-Oblique manifold</td>
-          <td style="text-align: center">$\texttt{row\_normalize} \circ \texttt{proj}_{T_W\widetilde{\text{RowOb}}(m, n)}$</td>
-          <td style="text-align: center">$\texttt{row\_normalize}$</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>layer</th>
+<th style="text-align:right">manifold</th>
+<th style="text-align:center">$\texttt{dualizer}$</th>
+<th style="text-align:center">$\texttt{retract}$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Embedding</td>
+<td style="text-align:right">(Scaled-)Oblique manifold</td>
+<td style="text-align:center">$\texttt{col\_normalize} \circ \texttt{proj}_{T_W\widetilde{\text{Ob}}(m, n)}$</td>
+<td style="text-align:center">$\texttt{col\_normalize}$</td>
+</tr>
+<tr>
+<td>1st Linear</td>
+<td style="text-align:right">RMS-to-RMS norm ball<br>around the origin of $\mathbb{R}^{m \times n}$</td>
+<td style="text-align:center">$\texttt{msign}$</td>
+<td style="text-align:center">$\texttt{spectral\_normalize}$</td>
+</tr>
+<tr>
+<td>2nd Linear</td>
+<td style="text-align:right">RMS-to-RMS norm ball<br>around the origin of $\mathbb{R}^{m \times n}$</td>
+<td style="text-align:center">$\texttt{msign}$</td>
+<td style="text-align:center">$\texttt{spectral\_normalize}$</td>
+</tr>
+<tr>
+<td>Unembedding</td>
+<td style="text-align:right">(Scaled-)Row-Oblique manifold</td>
+<td style="text-align:center">$\texttt{row\_normalize} \circ \texttt{proj}_{T_W\widetilde{\text{RowOb}}(m, n)}$</td>
+<td style="text-align:center">$\texttt{row\_normalize}$</td>
+</tr>
+</tbody>
 </table>
 <h2 id="acknowledgements">Acknowledgements<a hidden class="anchor" aria-hidden="true" href="#acknowledgements">#</a></h2>
 <p>Big thanks to Jianlin Su, Jeremy Bernstein, Vinay Rao, Antonio Silveti-Falls, Mikail Khona, Omead Pooladzandi, Simo Ryu, and Kevin Yin for productive discussions on the topic.</p>
@@ -757,7 +772,8 @@ A^* &amp;= \texttt{row\_normalize}(\texttt{proj}_{T_W\widetilde{\text{RowOb}}(m,
 </span></span><span style="display:flex;"><span>  <span style="color:#1e90ff">url</span> = <span style="color:#a50">{http://leloykun.github.io/ponder/steepest-descent-stiefel/}</span>,
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><blockquote>
-<p>If you find this post useful, please consider supporting my work by sponsoring me on GitHub: <a href="https://github.com/sponsors/leloykun" target="_blank"><img alt="Sponsor on GitHub" loading="lazy" src="https://img.shields.io/badge/%F0%9F%A4%9D-Sponsor%20me-1da1f2?logo=github&style=flat-square"></a></p></blockquote>
+<p>If you find this post useful, please consider supporting my work by sponsoring me on GitHub: <a href="https://github.com/sponsors/leloykun" target="_blank"><img alt="Sponsor on GitHub" loading="lazy" src="https://img.shields.io/badge/%F0%9F%A4%9D-Sponsor%20me-1da1f2?logo=github&style=flat-square"></a></p>
+</blockquote>
 <h2 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h2>
 <ol>
 <li>Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: <a href="https://kellerjordan.github.io/posts/muon/" target="_blank">https://kellerjordan.github.io/posts/muon/</a></li>

@@ -220,7 +220,7 @@
   </header> 
 <figure class="entry-cover">
             <img loading="eager"
-                srcset='https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix_hu_8a03ea894ba25f98.png 360w,https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix_hu_37802ec989eaf9b7.png 480w,https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix_hu_732734ac446bcd59.png 720w,https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix_hu_c612e02410460272.png 1080w,https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix_hu_e92027da452a7b66.png 1500w,https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix.png 2370w'
+                srcset='https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix_hu1a35ba9b0b4e5e02e11ca6938458ef27_164682_360x0_resize_box_3.png 360w,https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix_hu1a35ba9b0b4e5e02e11ca6938458ef27_164682_480x0_resize_box_3.png 480w,https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix_hu1a35ba9b0b4e5e02e11ca6938458ef27_164682_720x0_resize_box_3.png 720w,https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix_hu1a35ba9b0b4e5e02e11ca6938458ef27_164682_1080x0_resize_box_3.png 1080w,https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix_hu1a35ba9b0b4e5e02e11ca6938458ef27_164682_1500x0_resize_box_3.png 1500w,https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix.png 2370w'
                 src="https://leloykun.github.io/ponder/spectral-clipping/clip_lifting_trap_fix.png"
                 sizes="(min-width: 768px) 720px, 100vw"
                 width="2370" height="1147"
@@ -281,12 +281,14 @@
 </div>
 
   <div class="post-content"><blockquote>
-<p>If you find this post useful, please consider supporting my work by sponsoring me on GitHub: <a href="https://github.com/sponsors/leloykun" target="_blank"><img alt="Sponsor on GitHub" loading="lazy" src="https://img.shields.io/badge/%F0%9F%A4%9D-Sponsor%20me-1da1f2?logo=github&style=flat-square"></a></p></blockquote>
+<p>If you find this post useful, please consider supporting my work by sponsoring me on GitHub: <a href="https://github.com/sponsors/leloykun" target="_blank"><img alt="Sponsor on GitHub" loading="lazy" src="https://img.shields.io/badge/%F0%9F%A4%9D-Sponsor%20me-1da1f2?logo=github&style=flat-square"></a></p>
+</blockquote>
 <h2 id="1-introduction">1. Introduction<a hidden class="anchor" aria-hidden="true" href="#1-introduction">#</a></h2>
 <p>Here I&rsquo;ll discuss a fast, numerically stable, and (auto-)differentiable way to perform spectral clipping, i.e., clipping the singular values of a matrix to a certain range. This is useful in deep learning because it allows us to control the &lsquo;growth&rsquo; of our weights and weight updates, enabling faster and stabler feature learning (Yang et al., 2024; Large et al., 2024). As discussed in a <a href="../steepest-descent-non-riemannian/#22-feature-learning-perspective">previous post</a>,</p>
 <blockquote>
 <p>If we want the Euclidean norm of our features and feature updates to &lsquo;grow&rsquo; with the model size,
-then the <em>Spectral norm</em> of our weights and weight updates must also &lsquo;grow&rsquo; with the model size.</p></blockquote>
+then the <em>Spectral norm</em> of our weights and weight updates must also &lsquo;grow&rsquo; with the model size.</p>
+</blockquote>
 <p>There are multiple ways to control the spectral norm of our (matrix-structured) weights and weight updates. One is to &ldquo;pull&rdquo; <strong>all</strong> of the singular values to some target value chosen a priori via the matrix sign function $\texttt{misgn}$. This is what the Muon optimizer already does, but only on the weight updates: it takes the raw gradient and tries to &ldquo;pull&rdquo; its as many of its singular values to $\sqrt{\frac{d_{out}}{d_{in}}}$. This guarantees that the update step merely changes the activation RMS-norm of that layer by at most $1$ unit. We <em>could</em> also apply this process to the weights after every update step to guarantee that the weight norms <em>would not</em> blow up, but constraining the weight space to the Stiefel manifold is too strong of a constraint. We discuss more of this in our upcoming preprint. For now, we will focus on Spectral Clipping:</p>
 <blockquote>
 <p><strong>Definition 1 (Spectral Clipping)</strong>. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its singular value decomposition where $\Sigma = (\sigma_1, \ldots, \sigma_{min(m,n)})$ are the singular values of $W$. Then we define Spectral Clipping as the following matrix function $\texttt{spectral\_clip}_{[\sigma_{min}, \sigma_{max}]}: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$,
@@ -297,7 +299,8 @@ where $\sigma_{min}, \sigma_{max} \in [0, \infty)$ are hyperparameters that cont
 x &amp; \texttt{if } \alpha \leq x \leq \beta \\
 \beta &amp; \texttt{if } \beta &lt; x
 \end{cases}\end{equation}$$
-where $\alpha, \beta \in \mathbb{R} \cup \{-\infty, \infty\}$ and $\alpha \leq \beta$.</p></blockquote>
+where $\alpha, \beta \in \mathbb{R} \cup \{-\infty, \infty\}$ and $\alpha \leq \beta$.</p>
+</blockquote>
 <p>Note that since the singular values of a matrix are guaranteed to be non-negative, $\texttt{clip}$ above does not need to be bidirectional. And setting $\alpha \leq 0$ and/or $\beta = \infty$ massively simpifies our (matrix) function, resulting in efficiency gains,</p>
 <ul>
 <li>$\texttt{clip}_{[\leq 0, \beta]}(x) = \min(x, \beta)$; and</li>
@@ -315,7 +318,8 @@ for $k \in \mathbb{R}$. Thus, we could simply swap in Muon&rsquo;s orthogonaliza
 <blockquote>
 <p><strong>Definition 2 (Lipschitz)</strong>. Let $f: \mathbb{R}^n \to \mathbb{R}^m$ be a function, then $f$ is said to be $L$-Lipschitz continuous if there exists a constant $L \geq 0$ such that for all $x, y \in \mathbb{R}^n$,
 $$||f(x) - f(y)|| \leq L||x - y||$$
-for some norm $||\cdot||$ chosen a priori.</p></blockquote>
+for some norm $||\cdot||$ chosen a priori.</p>
+</blockquote>
 <h2 id="2-towards-hardware-architecture-optimizer-codesign">2. Towards hardware-architecture-optimizer codesign<a hidden class="anchor" aria-hidden="true" href="#2-towards-hardware-architecture-optimizer-codesign">#</a></h2>
 <p>In deep learning, we not only have to be mindful of architecture-optimizer codesign but also hardware-software codesign. That is, architectural and optimizer choices and how we implement them have to be hardware-aware so that we can squeeze as much performance as we can from our GPUs/TPUs.</p>
 <p>For example, the naive way to compute Spectral Clipping is to directly compute the SVD, clip the singular values we get from it, then reconstruct the matrix using the clipped singular values. A JAX implementation would look like this:</p>
@@ -329,58 +333,58 @@ for some norm $||\cdot||$ chosen a priori.</p></blockquote>
 <p>This is the fun part.</p>
 <p>So, how do we compute spectral clipping while only using simple, but fast &amp; numerically stable operations? First, let&rsquo;s list the operations we can actually use and consider how they act on the matrix itself and its singular values. There are more operations we can use that aren&rsquo;t listed here, but these would suffice for our problem.</p>
 <table>
-  <thead>
-      <tr>
-          <th style="text-align: left"><strong>Operation</strong></th>
-          <th style="text-align: center"><strong>Matrix form</strong></th>
-          <th style="text-align: center"><strong>Action on<br>singular values</strong></th>
-          <th style="text-align: center"><strong>Tensor cores<br>utilization</strong></th>
-          <th style="text-align: center"><strong>Numerical stability<br>at low precision</strong></th>
-          <th style="text-align: center"><strong>(Auto-)differentiable</strong></th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td style="text-align: left">Linear combination</td>
-          <td style="text-align: center">$c_1 W_1 + c_2 W_2$</td>
-          <td style="text-align: center">$c_1 \Sigma_1 + c_2 \Sigma_2$</td>
-          <td style="text-align: center">$\color{green}{\text{high}}$</td>
-          <td style="text-align: center">$\color{green}{\text{yes}}$</td>
-          <td style="text-align: center">$\color{green}{\text{yes}}$</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">Apply polynomial function</td>
-          <td style="text-align: center">$\texttt{p}(W)$</td>
-          <td style="text-align: center">$\texttt{p}(\Sigma)$</td>
-          <td style="text-align: center">$\color{green}{\text{high}}$</td>
-          <td style="text-align: center">$\color{green}{\text{yes}}$</td>
-          <td style="text-align: center">$\color{green}{\text{yes}}$</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">Apply matrix sign function<br>(via Newton-Schulz iteration)</td>
-          <td style="text-align: center">$\texttt{msign}(W)$</td>
-          <td style="text-align: center">$\texttt{sign}(\Sigma)$</td>
-          <td style="text-align: center">$\color{green}{\text{high}}$</td>
-          <td style="text-align: center">$\color{green}{\text{yes}}$</td>
-          <td style="text-align: center">$\color{green}{\text{yes}}$</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">Apply matrix sign function<br>(via QR-decomposition)</td>
-          <td style="text-align: center">$\texttt{msign}(W)$</td>
-          <td style="text-align: center">$\texttt{sign}(\Sigma)$</td>
-          <td style="text-align: center">$\color{orange}{\text{medium}}$</td>
-          <td style="text-align: center">$\color{green}{\text{yes}}$*<br>(<code>bfloat16</code>/<code>float16</code>+)</td>
-          <td style="text-align: center">$\color{green}{\text{yes}}$<br>(in jax)</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">Apply matrix sign function<br>(via SVD)</td>
-          <td style="text-align: center">$\texttt{msign}(W)$</td>
-          <td style="text-align: center">$\texttt{sign}(\Sigma)$</td>
-          <td style="text-align: center">$\color{red}{\text{low}}$</td>
-          <td style="text-align: center">$\color{red}{\text{no}}$<br>(<code>float32</code>+)</td>
-          <td style="text-align: center">$\color{red}{\text{no}}$</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th style="text-align:left"><strong>Operation</strong></th>
+<th style="text-align:center"><strong>Matrix form</strong></th>
+<th style="text-align:center"><strong>Action on<br>singular values</strong></th>
+<th style="text-align:center"><strong>Tensor cores<br>utilization</strong></th>
+<th style="text-align:center"><strong>Numerical stability<br>at low precision</strong></th>
+<th style="text-align:center"><strong>(Auto-)differentiable</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Linear combination</td>
+<td style="text-align:center">$c_1 W_1 + c_2 W_2$</td>
+<td style="text-align:center">$c_1 \Sigma_1 + c_2 \Sigma_2$</td>
+<td style="text-align:center">$\color{green}{\text{high}}$</td>
+<td style="text-align:center">$\color{green}{\text{yes}}$</td>
+<td style="text-align:center">$\color{green}{\text{yes}}$</td>
+</tr>
+<tr>
+<td style="text-align:left">Apply polynomial function</td>
+<td style="text-align:center">$\texttt{p}(W)$</td>
+<td style="text-align:center">$\texttt{p}(\Sigma)$</td>
+<td style="text-align:center">$\color{green}{\text{high}}$</td>
+<td style="text-align:center">$\color{green}{\text{yes}}$</td>
+<td style="text-align:center">$\color{green}{\text{yes}}$</td>
+</tr>
+<tr>
+<td style="text-align:left">Apply matrix sign function<br>(via Newton-Schulz iteration)</td>
+<td style="text-align:center">$\texttt{msign}(W)$</td>
+<td style="text-align:center">$\texttt{sign}(\Sigma)$</td>
+<td style="text-align:center">$\color{green}{\text{high}}$</td>
+<td style="text-align:center">$\color{green}{\text{yes}}$</td>
+<td style="text-align:center">$\color{green}{\text{yes}}$</td>
+</tr>
+<tr>
+<td style="text-align:left">Apply matrix sign function<br>(via QR-decomposition)</td>
+<td style="text-align:center">$\texttt{msign}(W)$</td>
+<td style="text-align:center">$\texttt{sign}(\Sigma)$</td>
+<td style="text-align:center">$\color{orange}{\text{medium}}$</td>
+<td style="text-align:center">$\color{green}{\text{yes}}$*<br>(<code>bfloat16</code>/<code>float16</code>+)</td>
+<td style="text-align:center">$\color{green}{\text{yes}}$<br>(in jax)</td>
+</tr>
+<tr>
+<td style="text-align:left">Apply matrix sign function<br>(via SVD)</td>
+<td style="text-align:center">$\texttt{msign}(W)$</td>
+<td style="text-align:center">$\texttt{sign}(\Sigma)$</td>
+<td style="text-align:center">$\color{red}{\text{low}}$</td>
+<td style="text-align:center">$\color{red}{\text{no}}$<br>(<code>float32</code>+)</td>
+<td style="text-align:center">$\color{red}{\text{no}}$</td>
+</tr>
+</tbody>
 </table>
 <p>Let&rsquo;s reconstruct the $\mathbb{R} \to \mathbb{R}$ clipping on the singular values with these elementary functions first, then let&rsquo;s use it to construct the matrix form. Here we take advantage of the following identity,
 $$\begin{equation}|x| = x \cdot \texttt{sign}(x)\end{equation}$$
@@ -388,7 +392,8 @@ With this, we can now construct $\texttt{clip}$ as follows,</p>
 <p><img loading="lazy" src="/ponder/spectral-clipping/clip_abs_trick.png#center"></p>
 <blockquote>
 <p><strong>Proposition 3 (Computing $\texttt{clip}$ via $\texttt{sign}$).</strong> Let $\alpha, \beta \in \mathbb{R} \cup \{-\infty, \infty\}$ and $\texttt{clip}: \mathbb{R} \to \mathbb{R}$ be the clipping function defined in Definition 1. Then,
-$$\begin{equation}\texttt{clip}_{[\alpha, \beta]}(x) = \frac{\alpha + \beta + (\alpha - x)\texttt{sign}(\alpha - x) - (\beta - x)\texttt{sign}(\beta - x)}{2}\label{4}\end{equation}$$</p></blockquote>
+$$\begin{equation}\texttt{clip}_{[\alpha, \beta]}(x) = \frac{\alpha + \beta + (\alpha - x)\texttt{sign}(\alpha - x) - (\beta - x)\texttt{sign}(\beta - x)}{2}\label{4}\end{equation}$$</p>
+</blockquote>
 
 
 <p><details >
@@ -398,40 +403,41 @@ $$\begin{equation}\texttt{clip}_{[\alpha, \beta]}(x) = \frac{\alpha + \beta + (\
 $$\begin{equation}\texttt{clip}_{[\alpha, \beta]}(x) = \frac{\alpha + \beta + |\alpha - x| - |\beta - x|}{2}\end{equation}$$
 For this, we can simply check case-by-case,</p>
 <table>
-  <thead>
-      <tr>
-          <th style="text-align: center">$x$</th>
-          <th style="text-align: center">$\left | \alpha - x\right | $</th>
-          <th style="text-align: center">$\left | \beta - x\right | $</th>
-          <th style="text-align: center">$\frac{\alpha + \beta +  | \alpha - x | - | \beta - x | }{2}$</th>
-          <th style="text-align: center">$\texttt{clip}_{[\alpha, \beta]}(x)$</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td style="text-align: center">$x &lt; \alpha$</td>
-          <td style="text-align: center">$\alpha - x$</td>
-          <td style="text-align: center">$\beta - x$</td>
-          <td style="text-align: center">$\alpha$</td>
-          <td style="text-align: center">$\alpha$</td>
-      </tr>
-      <tr>
-          <td style="text-align: center">$\alpha \leq x \leq \beta $</td>
-          <td style="text-align: center">$x - \alpha$</td>
-          <td style="text-align: center">$\beta - x$</td>
-          <td style="text-align: center">$x$</td>
-          <td style="text-align: center">$x$</td>
-      </tr>
-      <tr>
-          <td style="text-align: center">$\beta &lt; x$</td>
-          <td style="text-align: center">$x - \alpha$</td>
-          <td style="text-align: center">$x - \beta$</td>
-          <td style="text-align: center">$\beta$</td>
-          <td style="text-align: center">$\beta$</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th style="text-align:center">$x$</th>
+<th style="text-align:center">$\left | \alpha - x\right | $</th>
+<th style="text-align:center">$\left | \beta - x\right | $</th>
+<th style="text-align:center">$\frac{\alpha + \beta +  | \alpha - x | - | \beta - x | }{2}$</th>
+<th style="text-align:center">$\texttt{clip}_{[\alpha, \beta]}(x)$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">$x &lt; \alpha$</td>
+<td style="text-align:center">$\alpha - x$</td>
+<td style="text-align:center">$\beta - x$</td>
+<td style="text-align:center">$\alpha$</td>
+<td style="text-align:center">$\alpha$</td>
+</tr>
+<tr>
+<td style="text-align:center">$\alpha \leq x \leq \beta $</td>
+<td style="text-align:center">$x - \alpha$</td>
+<td style="text-align:center">$\beta - x$</td>
+<td style="text-align:center">$x$</td>
+<td style="text-align:center">$x$</td>
+</tr>
+<tr>
+<td style="text-align:center">$\beta &lt; x$</td>
+<td style="text-align:center">$x - \alpha$</td>
+<td style="text-align:center">$x - \beta$</td>
+<td style="text-align:center">$\beta$</td>
+<td style="text-align:center">$\beta$</td>
+</tr>
+</tbody>
 </table>
-<p>Combining Equations (3) and (5) then gives us Equation $\eqref{4}$. $\blacksquare$</p></blockquote>
+<p>Combining Equations (3) and (5) then gives us Equation $\eqref{4}$. $\blacksquare$</p>
+</blockquote>
 
 </details></p>
 
@@ -492,7 +498,8 @@ $$\begin{align}
 </span></span></code></pre></div><p>where <code>_orthogonalize_via_newton_schulz</code> above implements Jordan et al.&rsquo;s (2024) Newton-Schulz iteration for computing the matrix sign function. Note that we&rsquo;re calling <code>_orthogonalize_via_newton_schulz</code> thrice here, which is not ideal.</p>
 <h3 id="24-optimization-via-abstract-algebra">2.4. Optimization via abstract algebra<a hidden class="anchor" aria-hidden="true" href="#24-optimization-via-abstract-algebra">#</a></h3>
 <blockquote>
-<p>June 24, 2025 Update: This section builds on top of <a href="https://kexue.fm/archives/11059" target="_blank">Su&rsquo;s (2025c) blog post</a> in response to this work.</p></blockquote>
+<p>June 24, 2025 Update: This section builds on top of <a href="https://kexue.fm/archives/11059" target="_blank">Su&rsquo;s (2025c) blog post</a> in response to this work.</p>
+</blockquote>
 <blockquote>
 <p><strong>Proposition 4 (Transpose Equivariance and Unitary Multiplication Equivariance of Odd Matrix Functions)</strong>. Let $W \in \mathbb{R}^{m \times n}$ and $W = U \Sigma V^T$ be its singular value decomposition. And let $f: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ be an odd analytic matrix function that acts on the singular values of $W$ as follows,
 $$f(W) = U f(\Sigma) V^T.$$
@@ -501,7 +508,8 @@ $$\begin{align*}
 f(W^T) &amp;= f(W)^T \\
 f(WQ^T) &amp;= f(W)Q^T \quad\forall Q \in \mathbb{R}^{m \times n} \text{ such that } Q^TQ = I_n \\
 f(Q^TW) &amp;= Q^Tf(W) \quad\forall Q \in \mathbb{R}^{m \times n} \text{ such that } QQ^T = I_m
-\end{align*}$$</p></blockquote>
+\end{align*}$$</p>
+</blockquote>
 
 
 <p><details >
@@ -531,7 +539,8 @@ f(Q^TW) &amp;= \sum_k a_k (Q^TW)\left((Q^TW)^T(Q^TW)\right)^k\\
 &amp;= Q^T\underbrace{\sum_k a_k W(W^TW)^k}_{f(W)}\\
 f(Q^TW) &amp;= Q^Tf(W)
 \end{aligned}$$
-Hence $f$ is unitary multiplication equivariant. $\blacksquare$</p></blockquote>
+Hence $f$ is unitary multiplication equivariant. $\blacksquare$</p>
+</blockquote>
 
 </details></p>
 
@@ -616,7 +625,8 @@ $$\begin{aligned}
 </span></span></code></pre></div><h3 id="33-unbounded-below-spectral-hardcapping">3.3. Unbounded below: Spectral Hardcapping<a hidden class="anchor" aria-hidden="true" href="#33-unbounded-below-spectral-hardcapping">#</a></h3>
 <p><img loading="lazy" src="/ponder/spectral-clipping/spectral_hardcap.png#center"></p>
 <blockquote>
-<p>Note: Su (2025a) calls this &ldquo;Singular Value Clipping&rdquo; or &ldquo;SVC&rdquo; while our upcoming paper calls this &ldquo;Spectral Hardcapping&rdquo;.</p></blockquote>
+<p>Note: Su (2025a) calls this &ldquo;Singular Value Clipping&rdquo; or &ldquo;SVC&rdquo; while our upcoming paper calls this &ldquo;Spectral Hardcapping&rdquo;.</p>
+</blockquote>
 <p>Singular values are guaranteed to be non-negative, so if we only want to bound the singular values from above, we can simply set $\alpha = 0$ in Equation $\eqref{4}$, i.e.,
 $$\begin{align}
 \texttt{clip}_{[0, \beta]}(x) &amp;= \frac{0 + \beta + (0 - x)\texttt{sign}(0 - x) - (\beta - x)\texttt{sign}(\beta - x)}{2}\nonumber\\
@@ -665,7 +675,8 @@ $$\begin{aligned}
 \beta + \frac{\eta}{\lambda} &amp; \texttt{if } \text{we project first then take a gradient step}
 \end{cases}
 \end{aligned}$$
-which it &ldquo;pulls&rdquo; the spectral norm of the weights towards.</p></blockquote>
+which it &ldquo;pulls&rdquo; the spectral norm of the weights towards.</p>
+</blockquote>
 
 
 <p><details >
@@ -717,7 +728,8 @@ $$\begin{aligned}
 \sigma_{\text{eq}} &amp;= (1-\lambda)\sigma_{\text{eq}} + \lambda\beta + \eta\\
 \sigma_{\text{eq}} &amp;= \beta + \frac{\eta}{\lambda}
 \end{aligned}$$
-and we can verify that it is indeed an equilibrium point similarly to the first case.</p></blockquote>
+and we can verify that it is indeed an equilibrium point similarly to the first case.</p>
+</blockquote>
 
 </details></p>
 
@@ -757,7 +769,8 @@ $$g(S) = \begin{bmatrix}
 g(W)^T &amp; 0
 \end{bmatrix}$$
 and hence,
-$$g(W) = [g(S)]_{12} = [g(S)]_{21}^T$$</p></blockquote>
+$$g(W) = [g(S)]_{12} = [g(S)]_{21}^T$$</p>
+</blockquote>
 <p>Note that, for our optimization tricks below to work, our scalar function $\texttt{clip}_{[\alpha, \beta]}$ has to be <em>odd</em> which we will impose by setting,
 $$\alpha = -\beta.$$
 Also note that,
@@ -819,7 +832,8 @@ $$\begin{bmatrix}
 \end{bmatrix} = f\left(\begin{bmatrix}
 P &amp; -Q \\
 -Q^T &amp; R
-\end{bmatrix}\right).$$</p></blockquote>
+\end{bmatrix}\right).$$</p>
+</blockquote>
 <p>This is a standard result. To see why,</p>
 <blockquote>
 <p><strong>Proof</strong>. Let $J = \text{diag}(I_m, -I_n)$ so that $J^2 = I$ and $J^{-1} = J$. This makes $J A J = J A J^{-1}$ simply a change of basis, which is preserved under application of analytic matrix functions. Thus we have,
@@ -855,7 +869,8 @@ I_m &amp; 0 \\
 P &amp; -Q \\
 -Q^T &amp; R
 \end{bmatrix}\right)\quad\blacksquare
-\end{aligned}$$</p></blockquote>
+\end{aligned}$$</p>
+</blockquote>
 <p>Thus we have,
 $$\begin{bmatrix}
 \widetilde{P} &amp; \widetilde{Q} \\
@@ -954,64 +969,64 @@ Thus we can implement the (blocked) matrix multiplications as,</p>
 <h2 id="5-runtime-analysis">5. Runtime analysis<a hidden class="anchor" aria-hidden="true" href="#5-runtime-analysis">#</a></h2>
 <p>From Jordan et al. (2024), computing the matrix sign function on a $m \times n$ matrix (WLOG let $m \leq n$) via $T$ steps of Newton-Schulz iterations with 5th degree odd polynomials requires at most $\approx 6Tnm^2$ matmul FLOPs. Thus,</p>
 <table>
-  <thead>
-      <tr>
-          <th style="text-align: left">Operation</th>
-          <th style="text-align: center">Number of $\texttt{msign}$ calls</th>
-          <th style="text-align: right">Total FLOPs</th>
-          <th style="text-align: right">FLOPs overhead<br>(w/ NanoGPT-140M<br>speedrun configs)</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td style="text-align: left">$\texttt{msign}$ via Newton-Schulz</td>
-          <td style="text-align: center">$1$</td>
-          <td style="text-align: right">$6Tnm^2$</td>
-          <td style="text-align: right">0.98%</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$\texttt{spectral\_clip}_{[\alpha, \beta]}$<br>(via nested $\texttt{msign}$ in Section (2))</td>
-          <td style="text-align: center">$3$</td>
-          <td style="text-align: right">$(18T + 6)nm^2$</td>
-          <td style="text-align: right">3.13%</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$\texttt{spectral\_relu}$</td>
-          <td style="text-align: center">$2$</td>
-          <td style="text-align: right">$(12T + 4)nm^2$</td>
-          <td style="text-align: right">2.08%</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$\texttt{spectral\_hardcap}$<br>(Su&rsquo;s (2025b) version)</td>
-          <td style="text-align: center">$2$</td>
-          <td style="text-align: right">$(12T + 4)nm^2$</td>
-          <td style="text-align: right">2.08%</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$\texttt{spectral\_clipped\_weight\_decay}$</td>
-          <td style="text-align: center">$2$</td>
-          <td style="text-align: right">$(12T + 4)nm^2$</td>
-          <td style="text-align: right">2.08%</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$\texttt{spectral\_clip}_{[-\beta, \beta]}$<br>(via full-matrix anti-block-diagonal trick)</td>
-          <td style="text-align: center">$1$<br>$(m+n) \times (m+n)$</td>
-          <td style="text-align: right">$6T(n+m)^3$</td>
-          <td style="text-align: right">7.81%</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$\texttt{msign}$ via block-wise Newton-Schulz</td>
-          <td style="text-align: center">$1$ (block-wise)</td>
-          <td style="text-align: right">$36Tn^3$</td>
-          <td style="text-align: right">-</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$\texttt{spectral\_clip}_{[-\beta, \beta]}$<br>(via block-wise anti-block-diagonal trick)</td>
-          <td style="text-align: center">$1$ (block-wise)</td>
-          <td style="text-align: right">$(36T+1)n^3$</td>
-          <td style="text-align: right">5.89%</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th style="text-align:left">Operation</th>
+<th style="text-align:center">Number of $\texttt{msign}$ calls</th>
+<th style="text-align:right">Total FLOPs</th>
+<th style="text-align:right">FLOPs overhead<br>(w/ NanoGPT-140M<br>speedrun configs)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">$\texttt{msign}$ via Newton-Schulz</td>
+<td style="text-align:center">$1$</td>
+<td style="text-align:right">$6Tnm^2$</td>
+<td style="text-align:right">0.98%</td>
+</tr>
+<tr>
+<td style="text-align:left">$\texttt{spectral\_clip}_{[\alpha, \beta]}$<br>(via nested $\texttt{msign}$ in Section (2))</td>
+<td style="text-align:center">$3$</td>
+<td style="text-align:right">$(18T + 6)nm^2$</td>
+<td style="text-align:right">3.13%</td>
+</tr>
+<tr>
+<td style="text-align:left">$\texttt{spectral\_relu}$</td>
+<td style="text-align:center">$2$</td>
+<td style="text-align:right">$(12T + 4)nm^2$</td>
+<td style="text-align:right">2.08%</td>
+</tr>
+<tr>
+<td style="text-align:left">$\texttt{spectral\_hardcap}$<br>(Su&rsquo;s (2025b) version)</td>
+<td style="text-align:center">$2$</td>
+<td style="text-align:right">$(12T + 4)nm^2$</td>
+<td style="text-align:right">2.08%</td>
+</tr>
+<tr>
+<td style="text-align:left">$\texttt{spectral\_clipped\_weight\_decay}$</td>
+<td style="text-align:center">$2$</td>
+<td style="text-align:right">$(12T + 4)nm^2$</td>
+<td style="text-align:right">2.08%</td>
+</tr>
+<tr>
+<td style="text-align:left">$\texttt{spectral\_clip}_{[-\beta, \beta]}$<br>(via full-matrix anti-block-diagonal trick)</td>
+<td style="text-align:center">$1$<br>$(m+n) \times (m+n)$</td>
+<td style="text-align:right">$6T(n+m)^3$</td>
+<td style="text-align:right">7.81%</td>
+</tr>
+<tr>
+<td style="text-align:left">$\texttt{msign}$ via block-wise Newton-Schulz</td>
+<td style="text-align:center">$1$ (block-wise)</td>
+<td style="text-align:right">$36Tn^3$</td>
+<td style="text-align:right">-</td>
+</tr>
+<tr>
+<td style="text-align:left">$\texttt{spectral\_clip}_{[-\beta, \beta]}$<br>(via block-wise anti-block-diagonal trick)</td>
+<td style="text-align:center">$1$ (block-wise)</td>
+<td style="text-align:right">$(36T+1)n^3$</td>
+<td style="text-align:right">5.89%</td>
+</tr>
+</tbody>
 </table>
 <h2 id="6-experimental-results-under-construction">6. Experimental results [Under Construction]<a hidden class="anchor" aria-hidden="true" href="#6-experimental-results-under-construction">#</a></h2>
 <p>This section is still under construction.</p>
@@ -1023,11 +1038,13 @@ Thus we can implement the (blocked) matrix multiplications as,</p>
 <h3 id="62-weight-constraints-accelerate-grokking-and-improves-robustness">6.2. Weight constraints accelerate grokking (and improves robustness)<a hidden class="anchor" aria-hidden="true" href="#62-weight-constraints-accelerate-grokking-and-improves-robustness">#</a></h3>
 <p><img loading="lazy" src="/ponder/spectral-clipping/weight_constraints_grokking_2.png#center"></p>
 <blockquote>
-<p>Note: we used an unreleased updated version of the Modula library (Bernstein et al., 2024) for this work. We will update this post with a link to experimt codes once the library is released.</p></blockquote>
+<p>Note: we used an unreleased updated version of the Modula library (Bernstein et al., 2024) for this work. We will update this post with a link to experimt codes once the library is released.</p>
+</blockquote>
 <p>An interesting phenomenon commonly observed in deep learning is that generalization happens long after training accuracy saturates, and when it does happen, it happens &ldquo;suddenly&rdquo;&ndash;in a relative sense. This is known as &ldquo;grokking&rdquo; (Power et al., 2022). More recent results have shown that failure to &lsquo;grok&rsquo; could be partly attributed to the uncontrolled growth of weight norms when training with the Adam optimizer (Prieto et al., 2025). A neat property of the Muon optimizer is that the spectral norm of its weight updates are guaranteed to be equal to the learning rate, i.e. controlled (Bernstein et al., 2024). And it has been shown that Muon indeed accelerates grokking (Tveit et al., 2025).</p>
 <p>Now if the uncontrolled growth of the weight norms is part of the reason why models fail to grok, then it is natural to ask,</p>
 <blockquote>
-<p>Do weight and weight update constraints enable/accelerate grokking?</p></blockquote>
+<p>Do weight and weight update constraints enable/accelerate grokking?</p>
+</blockquote>
 <p>Our preliminary results here suggest that the answer is yes.</p>
 <h4 id="621-experimental-setup">6.2.1. Experimental setup<a hidden class="anchor" aria-hidden="true" href="#621-experimental-setup">#</a></h4>
 <p>We will largely follow the setup of Prieto et al.&rsquo;s (2025) grokking experiments on the addition-modulo-113 ($y=(a + b) \% 113$) and multiplication-modulo-113 ($y=ab \% 113$) tasks. In all our experiment runs, we use 2-layer MLPs with width 200, embedding dimension of 113, and GeLU activations. We concatenate the embeddings of the inputs $a$ and $b$, resulting in an input dimension of 226, which we then pass to the succeeding linear layers.</p>
@@ -1049,7 +1066,8 @@ Thus we can implement the (blocked) matrix multiplications as,</p>
 </span></span><span style="display:flex;"><span>  <span style="color:#1e90ff">url</span> = <span style="color:#a50">{http://leloykun.github.io/ponder/spectral-clipping/}</span>,
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><blockquote>
-<p>If you find this post useful, please consider supporting my work by sponsoring me on GitHub: <a href="https://github.com/sponsors/leloykun" target="_blank"><img alt="Sponsor on GitHub" loading="lazy" src="https://img.shields.io/badge/%F0%9F%A4%9D-Sponsor%20me-1da1f2?logo=github&style=flat-square"></a></p></blockquote>
+<p>If you find this post useful, please consider supporting my work by sponsoring me on GitHub: <a href="https://github.com/sponsors/leloykun" target="_blank"><img alt="Sponsor on GitHub" loading="lazy" src="https://img.shields.io/badge/%F0%9F%A4%9D-Sponsor%20me-1da1f2?logo=github&style=flat-square"></a></p>
+</blockquote>
 <h2 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h2>
 <ol>
 <li>Greg Yang, James B. Simon, Jeremy Bernstein (2024). A Spectral Condition for Feature Learning. URL <a href="https://arxiv.org/abs/2310.17813" target="_blank">https://arxiv.org/abs/2310.17813</a></li>

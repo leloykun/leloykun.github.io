@@ -220,7 +220,7 @@
   </header> 
 <figure class="entry-cover">
             <img loading="eager"
-                srcset='https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover_hu_c44e316a75385d.png 360w,https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover_hu_eb77121be6e23620.png 480w,https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover_hu_bf45ad3619200271.png 720w,https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover_hu_3a6ce5ab175e3d0e.png 1080w,https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover_hu_f6d6a70b5c418575.png 1500w,https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover.png 1536w'
+                srcset='https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover_hu445333e34fe532108680be26662773a0_2515577_360x0_resize_box_3.png 360w,https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover_hu445333e34fe532108680be26662773a0_2515577_480x0_resize_box_3.png 480w,https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover_hu445333e34fe532108680be26662773a0_2515577_720x0_resize_box_3.png 720w,https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover_hu445333e34fe532108680be26662773a0_2515577_1080x0_resize_box_3.png 1080w,https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover_hu445333e34fe532108680be26662773a0_2515577_1500x0_resize_box_3.png 1500w,https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover.png 1536w'
                 src="https://leloykun.github.io/ponder/steepest-descent-non-riemannian/cover.png"
                 sizes="(min-width: 768px) 720px, 100vw"
                 width="1536" height="1024"
@@ -281,7 +281,8 @@
 </div>
 
   <div class="post-content"><blockquote>
-<p>This is still a Work in Progress (WIP). I&rsquo;ve decided to publish this earlier than planned to get feedback and iterate quickly. If you spot any mistakes, please don&rsquo;t hesitate to let me know! Email me at <a href="mailto:franzlouiscesista@gmail.com">franzlouiscesista@gmail.com</a> or tag me on X (<a href="https://x.com/leloykun" target="_blank">@leloykun</a>).</p></blockquote>
+<p>This is still a Work in Progress (WIP). I&rsquo;ve decided to publish this earlier than planned to get feedback and iterate quickly. If you spot any mistakes, please don&rsquo;t hesitate to let me know! Email me at <a href="mailto:franzlouiscesista@gmail.com">franzlouiscesista@gmail.com</a> or tag me on X (<a href="https://x.com/leloykun" target="_blank">@leloykun</a>).</p>
+</blockquote>
 <p>A new optimizer called Muon (Jordan et al., 2024a) has recently been shown to outperform Adam (Kingma et al., 2014) in both small-scale language model training (Jordan et al., 2024b), and larger-scale language model training (Moonshot AI Team, 2025) by a factor of up to 2x in terms of flops efficiency. For non-matrix-valued parameters in a neural network, Muon falls back to Adam. But for matrix-valued parameters, Muon first semi-orthogonalizes the gradient before subtracting it from the parameter. It can also be viewed as steepest descent under the Spectral norm (Bernstein et al., 2024).</p>
 <h2 id="0-introduction">0. Introduction<a hidden class="anchor" aria-hidden="true" href="#0-introduction">#</a></h2>
 <p>In deep learning, the goal is to find a <em>function</em> that maps input data to output data so that a certain optimization objective $\mathcal{L}$ is minimized. We parametrize this function with a set of weights $\{W^l\}_{l=1}^L$ that are typically matrix valued. However, previous work on deep learning optimization algorithms typically ignores the matrix-structure and functional nature of these weights. A common strategy involves flattening the weights in a vector and treating them as such, while others flatten and then unflatten the weights in some intermediate step (Kingma et al., 2014; Li, 2015; Gupta et al., 2018; Surya et al., 2024; Pooladzandi et al., 2024). Worse, this is also prevalent in related fields such as evolutionary algorithms research (Salimans et al., 2017; Braun et al., 2024), among others.</p>
@@ -309,18 +310,21 @@
 <li>Each $U_i \subseteq \mathcal{W}$ is an open set, and $\varphi_i: U_i \to \mathbb{R}^{m \times n}$ is a homeomorphism (i.e., a continuous bijection with continuous inverse).</li>
 <li>The open sets $U_i$ cover $\mathcal{W}$, i.e., $\mathcal{W} \subseteq \bigcup_{i \in I} U_i$.</li>
 <li>The transition maps $\varphi_{ij} = \varphi_j \circ \varphi_i^{-1}: \varphi_i(U_i \cap U_j) \to \varphi_j(U_i \cap U_j)$ are smooth (i.e., infinitely differentiable) for all $i, j \in I$ such that $U_i \cap U_j \neq \emptyset$.</li>
-</ol></blockquote>
+</ol>
+</blockquote>
 <p>Note that $\mathcal{W}$ being second-countable and Hausdorff will not be relevant for this work, but is included for completeness.</p>
 <blockquote>
 <p><strong>Definition 2 (Differentiable Functions).</strong> A function $f: \mathcal{W} \to \mathbb{R}$ is said to be differentiable at a point $p \in \mathcal{W}$ if and only if,
 $$f \circ \varphi_i^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}$$
-is differentiable at $\varphi_i(p)$ for some chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$.</p></blockquote>
+is differentiable at $\varphi_i(p)$ for some chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$.</p>
+</blockquote>
 <p>Note that since the transition maps $\varphi_{ji} = \varphi_i \circ \varphi_j^{-1}$ of a differentiable manifold are smooth, then by the Chain Rule this is equivalent to $f \circ \varphi_j^{-1}$ being differentiable at $\varphi_j(p)$ for all charts $(U_j, \varphi_j) \in \mathcal{A}$ such that $p \in U_j$. I.e.,
 $$f \circ \varphi_j^{-1} = \underbrace{f \circ \varphi_i^{-1}}_{\text{differentiable}} \circ \underbrace{\varphi_i \circ \varphi_j^{-1}}_{\text{differentiable}}$$
 Thus the differentiability of $f$ at $p \in \mathcal{W}$ is independent of the choice of chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$.</p>
 <blockquote>
 <p><strong>Definition 3 (Curves).</strong> Let $p \in \mathcal{W}$. A <strong>curve</strong> $\gamma$ at $p$ is a function $\gamma: \mathbb{R} \to \mathcal{W}$ with $\gamma(0) = p$ which is differentiable in the sense that its composition with any chart $\varphi_i$ is differentiable,
-$$\varphi_i \circ \gamma: \mathbb{R} \to \mathbb{R}^{m \times n}.$$</p></blockquote>
+$$\varphi_i \circ \gamma: \mathbb{R} \to \mathbb{R}^{m \times n}.$$</p>
+</blockquote>
 <p>Again, since the transition maps $\varphi_{ij} = \varphi_j \circ \varphi_i^{-1}$ are smooth, then by the Chain Rule this is equivalent to $\varphi_j \circ \gamma$ being differentiable for all charts $(U_j, \varphi_j) \in \mathcal{A}$ such that $p \in U_j$. I.e.,
 $$\varphi_j \circ \gamma = \underbrace{\varphi_j \circ \varphi_i^{-1}}_{\text{differentiable}} \circ \underbrace{\varphi_i \circ \gamma}_{\text{differentiable}}$$</p>
 <blockquote>
@@ -329,19 +333,22 @@ $$\begin{align*}
 Df(p)[\gamma] &amp;= \frac{d}{dt} (\underbrace{f \circ \gamma}_{\mathbb{R} \to \mathbb{R}})(t)\bigg|_{t=0}\newline
 Df(p)[\gamma] &amp;= \frac{d}{dt} (\underbrace{f \circ \varphi_i^{-1}}_{\mathbb{R}^{m \times n} \to \mathbb{R}} \circ \underbrace{\varphi_i \circ \gamma}_{\mathbb{R} \to \mathbb{R}^{m \times n}})(t) \bigg|_{t=0}
 \end{align*}$$
-for any chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$. Note that this derivative is well-defined because it is simply a derivative of a composition of differentiable functions defined in the usual Euclidean space. Additionally, the choice of chart does not matter because the differentiability of $f$ and $\gamma$ at $p$ are both chart-independent.</p></blockquote>
+for any chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$. Note that this derivative is well-defined because it is simply a derivative of a composition of differentiable functions defined in the usual Euclidean space. Additionally, the choice of chart does not matter because the differentiability of $f$ and $\gamma$ at $p$ are both chart-independent.</p>
+</blockquote>
 <p>Now, to move along the manifold, we need to define a notion of &ldquo;direction&rdquo; from a point $p \in \mathcal{W}$. This is formalized by the concept of a tangent vector. And together with all the tangent vectors at $p$, we can define a tangent (vector) space at $p$,</p>
 <blockquote>
 <p><strong>Definition 5 (Tangent Vectors and Tangent Spaces).</strong> A <strong>tangent vector</strong> at $p \in \mathcal{W}$ is an <em>equivalence class</em> of curves $\gamma$ with $\gamma(0) = p$ where two curves $\gamma_1$ and $\gamma_2$ are said to be equivalent if and only if,
 $$\frac{d}{dt}(\underbrace{\varphi_i \circ \gamma_1}_{\mathbb{R} \to \mathbb{R}^{m \times n}})(t) \bigg|_{t=0} = \frac{d}{dt}(\underbrace{\varphi_i \circ \gamma_2}_{\mathbb{R} \to \mathbb{R}^{m \times n}})(t)\bigg|_{t=0}$$ for any chart $(U_i, \varphi_i) \in \mathcal{A}$ such that $p \in U_i$. Again, the choice of chart does not matter.</p>
-<p>The <strong>tangent space</strong> at $p \in \mathcal{W}$ is the set of all tangent vectors at $p$ and is denoted by $T_p\mathcal{W}$. This space forms an $mn$-dimensional vector space over $\mathbb{R}$.</p></blockquote>
+<p>The <strong>tangent space</strong> at $p \in \mathcal{W}$ is the set of all tangent vectors at $p$ and is denoted by $T_p\mathcal{W}$. This space forms an $mn$-dimensional vector space over $\mathbb{R}$.</p>
+</blockquote>
 <p>Since we are trying to optimize a differentiable function, it is useful to define a notion of &ldquo;directional derivative&rdquo; along a tangent vector. This is formalized by the concept of differentials which is a linear functional that maps tangent vectors (or &ldquo;directions&rdquo;) to a real number measuring the &ldquo;rate of change&rdquo; along that direction. These differentials are also called <em>covectors</em> and the space of all differentials at $p \in \mathcal{W}$, denoted by $T^*_p\mathcal{W}$, forms a vector space called the <em>cotangent space</em> at $p \in \mathcal{W}$,</p>
 <blockquote>
 <p><strong>Definition 6 (Differentials and Cotangent Spaces).</strong> Let $X \in T_p\mathcal{W}$ be a tangent vector at $p \in \mathcal{W}$ and $f$ be a differentiable function near $p$, then differentiating $f$ along any curve in the equivalence class defining $X$ gives a well-defined directional derivative along $X$:
 $$Xf(p) := \frac{d}{dt}(\underbrace{f \circ \gamma}_{\mathbb{R} \to \mathbb{R}})(t)\bigg|_{t = 0}$$
 which is independent of the choice of curve $\gamma$ in the equivalence class defining $X$. We then define the <strong>differential</strong> of $f$ at $p$ as the linear functional $Df(p)[\cdot]: T_p\mathcal{W} \to \mathbb{R}$ given by,
 $$Df(p)[X] = Xf(p)$$</p>
-<p>The <strong>cotangent space</strong> at $p \in \mathcal{W}$ then is defined as the set of all differentials at $p$ and is denoted by $T^*_p\mathcal{W}$. Note that this space also forms an $m \times n$-dimensional vector space over $\mathbb{R}$.</p></blockquote>
+<p>The <strong>cotangent space</strong> at $p \in \mathcal{W}$ then is defined as the set of all differentials at $p$ and is denoted by $T^*_p\mathcal{W}$. Note that this space also forms an $m \times n$-dimensional vector space over $\mathbb{R}$.</p>
+</blockquote>
 <blockquote>
 <p><strong>Definition 7 (Canonical Pairing between Tangent and Cotangent Spaces).</strong> Let $\{e_{ij}\}_{1\leq i\leq m, 1\leq j\leq n}$ be the standard basis of $\mathbb{R}^{m \times n}$ where $e_{ij} \in \mathbb{R}^{m \times n}$ is the matrix with $1$ at the $(i, j)$-th entry and $0$ elsewhere. And at every point $p \in \mathcal{W}$, define,
 $$\begin{align*}
@@ -357,7 +364,8 @@ $$\begin{align*}
 Df(p)[X] &amp;= \sum_{i=1}^m \sum_{j=1}^n \frac{\partial f}{\partial x^{ij}} X^{ij}\newline
 Df(p)[X] &amp;= \langle \partial f(p), X \rangle_F
 \end{align*}$$
-where $\langle \cdot, \cdot \rangle_F$ is the Frobenius inner product. This pairing of a tangent vector $X \in T_p\mathcal{W}$ and a differential $\partial f(p) \in T^*_p\mathcal{W}$ that results in a real number is called the <strong>canonical pairing</strong> between the tangent and cotangent spaces at $p \in \mathcal{W}$.</p></blockquote>
+where $\langle \cdot, \cdot \rangle_F$ is the Frobenius inner product. This pairing of a tangent vector $X \in T_p\mathcal{W}$ and a differential $\partial f(p) \in T^*_p\mathcal{W}$ that results in a real number is called the <strong>canonical pairing</strong> between the tangent and cotangent spaces at $p \in \mathcal{W}$.</p>
+</blockquote>
 <p>Since the tangent spaces $T_p\mathcal{W}$ are vector spaces, we can define a notion of &ldquo;length&rdquo; on them. This notion of length is formalized by the concept of a norm. Some, but not all, norms can also be induced by an inner product which formalizes the notion of &ldquo;angle&rdquo; between two directions.</p>
 <blockquote>
 <p><strong>Definition 8 (Norm).</strong> A norm $||\cdot||$ on a (real matrix-valued) vector space $V$ is a function $||\cdot||: V \to \mathbb{R}$ that satisfies the following properties:</p>
@@ -365,7 +373,8 @@ where $\langle \cdot, \cdot \rangle_F$ is the Frobenius inner product. This pair
 <li><strong>Non-negativity:</strong> $||x|| \geq 0$ for all $x \in V$, and $||x|| = 0$ if and only if $x = 0$.</li>
 <li><strong>Homogeneity:</strong> $||ax|| = |a| \cdot ||x||$ for all $x \in V$ and $a \in \mathbb{R}$.</li>
 <li><strong>Triangle Inequality:</strong> $||x + y|| \leq ||x|| + ||y||$ for all $x, y \in V$.</li>
-</ol></blockquote>
+</ol>
+</blockquote>
 <p>If the norm depends on the point $p \in \mathcal{W}$, we denote it by $||\cdot||_p$.</p>
 <blockquote>
 <p><strong>Definition 9 (Inner Product).</strong> An inner product on a (real) vector space $V$ is a bilinear form $\langle \cdot, \cdot \rangle: V \times V \rightarrow \mathbb{R}$ that satisfies the following properties:</p>
@@ -375,22 +384,27 @@ where $\langle \cdot, \cdot \rangle_F$ is the Frobenius inner product. This pair
 <li><strong>Positive Definiteness:</strong> $\langle x, x \rangle &gt; 0$ for all $x \in V$ such that $x \neq 0$.</li>
 <li><strong>Non-degeneracy:</strong> $\langle x, y \rangle = 0$ for all $y \in V$ implies $x = 0$.</li>
 </ol>
-<p>Every inner product has a corresponding matrix form $G_*$ such that $\langle x, y \rangle = x^T G_{*} y$ for all $x, y \in V$. The inner product also induces a norm $||\cdot||$ on $V$ defined by $||x|| = \sqrt{\langle x, x \rangle}$ for all $x \in V$.</p></blockquote>
+<p>Every inner product has a corresponding matrix form $G_*$ such that $\langle x, y \rangle = x^T G_{*} y$ for all $x, y \in V$. The inner product also induces a norm $||\cdot||$ on $V$ defined by $||x|| = \sqrt{\langle x, x \rangle}$ for all $x \in V$.</p>
+</blockquote>
 <p>However, not all norms are induced by an inner product. For example, the spectral norm $||\cdot||_{2 \to 2}$ is not induced by an inner product. The parallelogram law is a necessary and sufficient condition for the existence of an inner product that induces the norm (Jordan et al., 1935).</p>
 <blockquote>
 <p><strong>Definition 10 (Parallelogram Law).</strong> A norm $||\cdot||$ on a (real matrix-valued) vector space $V$ is said to satisfy the parallelogram law if, for all $x, y \in V$, we have,
-$$||x + y||^2 + ||x - y||^2 = 2||x||^2 + 2||y||^2.$$</p></blockquote>
+$$||x + y||^2 + ||x - y||^2 = 2||x||^2 + 2||y||^2.$$</p>
+</blockquote>
 <p>Note that we can vary the norm or inner product on the tangent spaces $T_p\mathcal{W}$ at each point $p \in \mathcal{W}$,</p>
 <blockquote>
 <p><strong>Definition 11 (Riemannian Metric).</strong> Suppose that we equip the tangent spaces $T_p\mathcal{W}$ at each point $p \in \mathcal{W}$ with an inner product $\langle \cdot, \cdot \rangle_p$. Let $g$ be a function such that,
 $$g(p, X, Y) = g_p(X, Y) = \langle X, Y \rangle_{G_p} \qquad \forall p\in\mathcal{W}; X,Y\in T_p\mathcal{W}$$
-We say that $g$ is a <strong>Riemannian metric</strong> on $\mathcal{W}$ if it smoothly varies along $p$.</p></blockquote>
+We say that $g$ is a <strong>Riemannian metric</strong> on $\mathcal{W}$ if it smoothly varies along $p$.</p>
+</blockquote>
 <blockquote>
 <p><strong>Definition 12 (Riemannian Gradient).</strong> Let $Df(p)[\cdot]: T_p\mathcal{W} \to \mathbb{R}$ be the differential of a differentiable function $f$ at $p \in \mathcal{W}$. The <strong>Riemannian gradient</strong> of $f$ at $p$ is defined as the <em>unique</em> tangent vector $\nabla f(p) \in T_p\mathcal{W}$ such that,
-$$Df(p)[X] = g_p(\nabla f(p), X) \qquad \forall X \in T_p\mathcal{W}$$</p></blockquote>
+$$Df(p)[X] = g_p(\nabla f(p), X) \qquad \forall X \in T_p\mathcal{W}$$</p>
+</blockquote>
 <p>Finally, we can now formally define Riemannian and non-Riemannian differentiable matrix manifolds,</p>
 <blockquote>
-<p><strong>Definition 13 (Riemannian and Non-Riemannian Differentiable Matrix Manifolds).</strong> Given a differentiable matrix manifold $(\mathcal{W}, \mathcal{A})$ whose tangent spaces $T_p\mathcal{W}$ are equipped with a norm $||\cdot||_p$, we say that it is a <strong>Riemannian manifold</strong> if the norm $||\cdot||_p$ is induced by an inner product $\langle \cdot, \cdot \rangle_p$ (i.e., the Parallelogram Law holds) and the inner product varies smoothly along $p$. Otherwise, it is a <strong>non-Riemannian manifold</strong>.</p></blockquote>
+<p><strong>Definition 13 (Riemannian and Non-Riemannian Differentiable Matrix Manifolds).</strong> Given a differentiable matrix manifold $(\mathcal{W}, \mathcal{A})$ whose tangent spaces $T_p\mathcal{W}$ are equipped with a norm $||\cdot||_p$, we say that it is a <strong>Riemannian manifold</strong> if the norm $||\cdot||_p$ is induced by an inner product $\langle \cdot, \cdot \rangle_p$ (i.e., the Parallelogram Law holds) and the inner product varies smoothly along $p$. Otherwise, it is a <strong>non-Riemannian manifold</strong>.</p>
+</blockquote>
 <p>Note that if the norm $||\cdot||_p$ smoothly varies along $p \in \mathcal{W}$, then it is also common to refer to the manifold as a <em>Finsler Manifold</em> (Flynn, 2017). However, we will not use this terminology in this work.</p>
 
 </details></p>
@@ -401,7 +415,8 @@ $$Df(p)[X] = g_p(\nabla f(p), X) \qquad \forall X \in T_p\mathcal{W}$$</p></bloc
 <p><details >
   <summary markdown="span">Show Section 1.2. Deep Learning</summary>
   <blockquote>
-<p><strong>Definition 14 (Neural Networks).</strong> A neural network is a parametrized function $f: \mathbb{R}^{d_0} \to \mathbb{R}^{d_L}$ defined by composing linear and non-linear transformations according to a directed acyclic graph (DAG) structure. Here, we focus on neural networks parametrized by matrix-valued weights $\{W^l\}_{l=1}^L$ where $W^l \in \mathbb{R}^{d_{l} \times d_{l-1}}$ is the weight matrix and $d_l$ is the dimension of hidden (vector) representations at the $l$-th layer, respectively. The input to the network is a vector $x_0 \in \mathbb{R}^{d_0}$, and the output is a vector $x_L \in \mathbb{R}^{d_L}$.</p></blockquote>
+<p><strong>Definition 14 (Neural Networks).</strong> A neural network is a parametrized function $f: \mathbb{R}^{d_0} \to \mathbb{R}^{d_L}$ defined by composing linear and non-linear transformations according to a directed acyclic graph (DAG) structure. Here, we focus on neural networks parametrized by matrix-valued weights $\{W^l\}_{l=1}^L$ where $W^l \in \mathbb{R}^{d_{l} \times d_{l-1}}$ is the weight matrix and $d_l$ is the dimension of hidden (vector) representations at the $l$-th layer, respectively. The input to the network is a vector $x_0 \in \mathbb{R}^{d_0}$, and the output is a vector $x_L \in \mathbb{R}^{d_L}$.</p>
+</blockquote>
 <p>The weights of a neural network are often initialized randomly, and then updated iteratively using an optimizer to minimize an objective function $\mathcal{L}$. In practice, we often define $\mathcal{L}$ to be the expected &ldquo;loss&rdquo; of a neural network $f$ according to some differentiable &ldquo;loss function&rdquo; $loss: \mathbb{R}^{d_L} \times \mathbb{R}^{d_L} \to \mathbb{R}$ that measures the distance between the &ldquo;predicted&rdquo; output $x_L \in \mathbb{R}^{d_L}$ and the &ldquo;expected&rdquo; output $y \in \mathbb{R}^{d_L}$ over some dataset $\mathcal{D} \subseteq \mathbb{R}^{d_0} \times \mathbb{R}^{d_L}$ of input-output pairs. I.e., we have,
 $$\mathcal{L}(\{W^l\}_{l=1}^L) = \mathbb{E}_{(x^i, y^i) \sim \mathcal{D}}[loss(f(x^i | \{W^l\}_{l=1}^L), y^i)]$$
 To simplify matters, we also often optimize each weight independently of each other. And so we have,
@@ -440,13 +455,15 @@ $$\begin{align*}
 \frac{\partial\mathcal{L}}{\partial y_m}
 \end{bmatrix}
 \end{align*}$$
-We can then use $\frac{\partial\mathcal{L}}{\partial x}$ to calculate the differentials at the previous layer, and so on, until we reach the input layer. This is the essence of backpropagation.</p></blockquote>
+We can then use $\frac{\partial\mathcal{L}}{\partial x}$ to calculate the differentials at the previous layer, and so on, until we reach the input layer. This is the essence of backpropagation.</p>
+</blockquote>
 <p>An important matter we want to highlight is that, despite the terminology used in deep learning literature, backpropagation only gives us the <em>differentials</em>, and <em>not the gradients</em> of the loss function $\mathcal{L}$ at each weight $W^l$.</p>
 <blockquote>
 <p><strong>Definition 16 (Optimizers).</strong> A (deep learning) optimizer is an algorithm that <em>iteratively</em> adjust a model&rsquo;s parameters $W_t \in \mathcal{W}$ in order to minimize an objective function $\mathcal{L}: \mathcal{W} \to \mathbb{R}$. Optimizers are often <em>stateful</em>, meaning that they maintain a set of statistics $S_t \in \mathcal{S}$ on the previous parameters and differentials (or gradients) they have seen so far. Optimizers that do not maintain any state (or equivalently, maintains an empty set $S_t = \emptyset$ for all $t$) are called <em>stateless</em> optimizers.</p>
 <p>At every training step $t$, the optimizer receives a stochastic estimate of the differential $\partial\mathcal{L}(W_t; \xi) \in T^*_{W_t}\mathcal{W}$ at the current point $W_t \in \mathcal{W}$, and uses it to update the model parameters $W_t$ to $W_{t+1} \in \mathcal{W}$ and optimizer state $S_t$ to $S_{t+1} \in \mathcal{S}$ using a function $opt$ (called the &ldquo;update rule&rdquo;) defined a priori,</p>
 <p>$$opt: \mathcal{W} \times \mathcal{S} \times T^*\mathcal{W}\rightarrow \mathcal{W} \times \mathcal{S}.$$
-Optimizers are characterized by their update rules. I.e., two optimizers are said to be equivalent if they have the same update function $opt$.</p></blockquote>
+Optimizers are characterized by their update rules. I.e., two optimizers are said to be equivalent if they have the same update function $opt$.</p>
+</blockquote>
 <blockquote>
 <p><strong>Definition 17 (Preconditioning).</strong> In an optimizer, a preconditioner $\mathcal{P}(\cdot; W_t): T^*_{W_t}\mathcal{W} \rightarrow T_{W_t}\mathcal{W}$ is a (possibly point-dependent) linear transform that maps the coordinate representation of the differential we have access to $\partial\mathcal{L}(W_t; \xi) \in T^*_{W_t}\mathcal{W}$ to a descent direction in the tangent space $\widehat{U}_t \in T_{W_t}\mathcal{W}$. That is, at any $W_t \in \mathcal{W}$, we have a matrix $P_{W_t}$ such that,
 $$\widehat{U}_t = \mathcal{P}(\partial\mathcal{L}(W_t; \xi); W_t) = -P_{W_t} \partial\mathcal{L}(W_t; \xi)$$
@@ -460,7 +477,8 @@ $$
 \end{align*}
 $$
 $$W_{t+1} = W_t - \lambda L_{W_t} \partial\mathcal{L}(W_t) R_{W_t}.$$
-We call $L_W$ and $R_W$ as the left and right preconditioners, respectively.</p></blockquote>
+We call $L_W$ and $R_W$ as the left and right preconditioners, respectively.</p>
+</blockquote>
 
 </details></p>
 
@@ -482,7 +500,8 @@ or equivalently,
 $$\begin{equation}
 \widehat{U}_t = - \arg\max_{\substack{\Delta W \in T_{W_t}\mathcal{W}\newline ||\Delta W|| = 1}} D\mathcal{L}(W_t)[\Delta W],
 \end{equation}$$
-where $D\mathcal{L}(W_t)[\Delta W] \in \mathbb{R}$ gives the <em>directional derivative</em> of $\mathcal{L}$ at $W_t$ in the direction of $\Delta W \in T_{W_t}\mathcal{W}$. Intuitively, this can be understood as the update direction of unit length that leads to the largest decrease in the objective function $\mathcal{L}$.</p></blockquote>
+where $D\mathcal{L}(W_t)[\Delta W] \in \mathbb{R}$ gives the <em>directional derivative</em> of $\mathcal{L}$ at $W_t$ in the direction of $\Delta W \in T_{W_t}\mathcal{W}$. Intuitively, this can be understood as the update direction of unit length that leads to the largest decrease in the objective function $\mathcal{L}$.</p>
+</blockquote>
 <p>Again, in practice, we often do not have access to the exact differential $D\mathcal{L}(W_t)[\cdot]$. However, either through, e.g., backpropagation if downstream operations are differentiable (Rumelhart et al., 1986) or evolutionary algorithms otherwise (Salimans et al., 2017), we often do have access to a stochastic estimator of the differential in coordinate form,</p>
 <blockquote>
 <p><strong>Assumption 1:</strong> Let $\partial\mathcal{L}(W) \in T^*_W\mathcal{W}$ be the coordinate representation of the differential $D\mathcal{L}(W)[\cdot]: T_W\mathcal{W} \rightarrow \mathbb{R}$ at $W \in \bm{\mathcal{W}}$ such that,
@@ -502,7 +521,8 @@ $$
 &amp;\mathbb{E}_{\xi \sim D}[||\nabla\mathcal{L}(W; \xi) - \nabla\mathcal{L}(W) ||_F^2] \leq \hat{\sigma}^2 &amp;&amp; \forall W \in \bm{\mathcal{W}}
 \end{align*}
 $$
-where $\nabla\mathcal{L}(W)$ is the &ldquo;true&rdquo; gradient of $\mathcal{L}$ at $W$, $\nabla\mathcal{L}(W; \xi) = G_W^{-1}\partial\mathcal{L}(W; \xi)$ is the equivalent stochastic estimator of the gradient, $\hat{\sigma} = \sigma(\max_{W \in \mathcal{W}}||G_W^{-1}||_F) &gt; 0$ is the adjusted variance parameter, and $G_W$ is the metric tensor at $W \in \bm{\mathcal{W}}$.</p></blockquote>
+where $\nabla\mathcal{L}(W)$ is the &ldquo;true&rdquo; gradient of $\mathcal{L}$ at $W$, $\nabla\mathcal{L}(W; \xi) = G_W^{-1}\partial\mathcal{L}(W; \xi)$ is the equivalent stochastic estimator of the gradient, $\hat{\sigma} = \sigma(\max_{W \in \mathcal{W}}||G_W^{-1}||_F) &gt; 0$ is the adjusted variance parameter, and $G_W$ is the metric tensor at $W \in \bm{\mathcal{W}}$.</p>
+</blockquote>
 <p>We also make the following standard continuity assumption on the differential $\partial\mathcal{L}(\cdot)$ (Mokhtari et al., 2018; Kovalev, 2025),</p>
 <blockquote>
 <p><strong>Assumption 2:</strong> The differential $\partial\mathcal{L}(\cdot)$ is Lipschitz continuous with respect to the norm $||\cdot||$ with Lipschitz constant $L &gt; 0$. That is, for all $W \in \bm{\mathcal{W}}$,
@@ -518,7 +538,8 @@ $$
 ||\nabla\mathcal{L}(W + \Delta W) - \nabla\mathcal{L}(W)||^\dagger \leq \hat{L}||\Delta W|| \quad \forall \Delta W \in T_W\bm{\mathcal{W}}
 \end{equation}
 $$
-where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$, $\hat{L} = L(\max_{W \in \mathcal{W}}||G_W^{-1}||^\dagger) &gt; 0$, and $G_W$ is the metric tensor at $W \in \bm{\mathcal{W}}$.</p></blockquote>
+where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$, $\hat{L} = L(\max_{W \in \mathcal{W}}||G_W^{-1}||^\dagger) &gt; 0$, and $G_W$ is the metric tensor at $W \in \bm{\mathcal{W}}$.</p>
+</blockquote>
 <h2 id="2-why-do-steepest-descent-under-the-spectral-norm">2. Why do Steepest Descent Under the Spectral Norm?<a hidden class="anchor" aria-hidden="true" href="#2-why-do-steepest-descent-under-the-spectral-norm">#</a></h2>
 <p>The geometry of $\mathcal{W}$ and the optimizer we will need both depend on the choice of norm $||\cdot||$. Our core argument is that it is most natural to do steepest descent under the spectral norm $||\cdot||_{2 \to 2}$ in the context of training the linear weights $W$ of a neural network. The spectral norm induces $\mathcal{W}$ to be non-Riemannian, and therefore, intuitions on optimization we have developed in Riemannian manifolds may not apply.</p>
 <h3 id="21-majorization-minimization-perspective">2.1. Majorization-Minimization Perspective<a hidden class="anchor" aria-hidden="true" href="#21-majorization-minimization-perspective">#</a></h3>
@@ -543,7 +564,8 @@ as long as $\lambda \leq L$ (Hunter et al., 2004), where $L$ is the Lipschitz co
 <p>This section can be summarized as,</p>
 <blockquote>
 <p>If we want the Euclidean norm of our features and feature updates to &lsquo;grow&rsquo; with the model size,
-then the <em>Spectral norm</em> of our weights and weight updates must also &lsquo;grow&rsquo; with the model size.</p></blockquote>
+then the <em>Spectral norm</em> of our weights and weight updates must also &lsquo;grow&rsquo; with the model size.</p>
+</blockquote>
 <p>Suppose that we have a linear transform $x_{l+1} = W_{l} x_{l}$ at the $l$-th layer of a neural network where $x_l \in \mathcal{R}^{d_l}$ and $x_{l+1} \in \mathcal{R}^{d_{l+1}}$ are the input and output hidden representations (or &ldquo;features&rdquo;), respectively, and $W_l \in \mathcal{R}^{d_{l+1} \times d_l}$ is the weight matrix. Additionally, let $\Delta x_l \in \mathcal{R}^{d_l}$, $\Delta x_{l+1} \in \mathcal{R}^{d_{l+1}}$, and $\Delta W_l \in \mathcal{R}^{d_{l+1} \times d_l}$ be their updates after a backward pass.</p>
 <p>Ideally, we want the sizes of both the hidden representations $x_l$ and their updates $\Delta x_l$ to scale with the model width $d_l$. Otherwise, if the hidden representations are &rsquo;too small&rsquo;, we are wasting capacity, in a sense (Elhage et al., 2022); and if they are &rsquo;too large&rsquo;, we are pushing the model towards the edge of numerical stability and prevent grokking (Prieto et al., 2025). Likewise, if the updates are &rsquo;too small&rsquo;, they vanish at larger scales, slowing down convergence; and if they are &rsquo;too large&rsquo;, they cause training instability. Yang et al. (2024) summarizes this as follows,</p>
 <blockquote>
@@ -553,7 +575,8 @@ $$
 ||x_l||_2 = \Theta(\sqrt{d_l})\quad\text{and}\quad ||\Delta x_l||_2 = \Theta(\sqrt{d_l})\quad\text{for all layers } l = 1, 2, \ldots, L-1
 \end{equation}
 $$
-where $f(d) = \Theta(g(d))$ means that $f(d)$ &ldquo;scales like&rdquo; or &ldquo;grows in the order of&rdquo; $g(d)$. More formally, there exists positive real constants $c, C &gt; 0$ and positive integer $D$ such that, for all $d &gt; D$, we have $c \cdot g(d) \leq f(d) \leq C \cdot g(d)$.</p></blockquote>
+where $f(d) = \Theta(g(d))$ means that $f(d)$ &ldquo;scales like&rdquo; or &ldquo;grows in the order of&rdquo; $g(d)$. More formally, there exists positive real constants $c, C &gt; 0$ and positive integer $D$ such that, for all $d &gt; D$, we have $c \cdot g(d) \leq f(d) \leq C \cdot g(d)$.</p>
+</blockquote>
 <p>We ensure this by imposing constraints on the size of the weights $W_l$ and their updates $\Delta W_l$:</p>
 <ol>
 <li>
@@ -608,7 +631,8 @@ $$
 \begin{equation}
 ||W_l||_{2\to 2} = \Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)\quad\text{and}\quad||\Delta W_l||_{2\to 2} = \Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)\quad\text{at layers } l = 1, \ldots, L-1
 \end{equation}
-$$</p></blockquote>
+$$</p>
+</blockquote>
 <h3 id="23-input-tensor-alignment-phenomenon-under-construction">2.3 Input-Tensor Alignment Phenomenon [Under Construction]<a hidden class="anchor" aria-hidden="true" href="#23-input-tensor-alignment-phenomenon-under-construction">#</a></h3>
 <h2 id="3-steepest-descent-in-riemannian-and-non-riemannian-manifolds">3. Steepest Descent in Riemannian and Non-Riemannian Manifolds<a hidden class="anchor" aria-hidden="true" href="#3-steepest-descent-in-riemannian-and-non-riemannian-manifolds">#</a></h2>
 <p>Let us consider the different cases of the geometry of $\bm{\mathcal{W}}$ induced by the choice of norm $||\cdot||$.</p>
@@ -650,7 +674,8 @@ which is simply the Euclidean case above.</li>
 $$||X|| = \sqrt{g_W(X, X)} = \sqrt{\text{tr}(X^T C^T C X)} = \sqrt{\langle \overline{X}, \overline{X} \rangle_F} = ||\overline{X}||_F\quad\forall X \in T_W\mathcal{W}$$
 where $\overline{X} = CX\in CT_W\mathcal{W}$. This means that, up to a simple, linear change of coordinates, this case is equivalent to the Euclidean case above.</li>
 </ol>
-<p>Our proofs below still hold in these special cases. But note that, the metric matrix $G_W$ may depend on the point $W \in \mathcal{W}$ and thus potentially induce a non-zero curvature somewhere on the manifold, making it non-Euclidean.</p></blockquote>
+<p>Our proofs below still hold in these special cases. But note that, the metric matrix $G_W$ may depend on the point $W \in \mathcal{W}$ and thus potentially induce a non-zero curvature somewhere on the manifold, making it non-Euclidean.</p>
+</blockquote>
 <p>An interesting property of Riemannian manifolds is that we have a canonical bijection between differentials $D\mathcal{L}(W)[\cdot] \in T_W^* \bm{\mathcal{W}}$ and gradients $\nabla \mathcal{L}(W) \in T_W \bm{\mathcal{W}}$ such that,
 $$
 \begin{align*}
@@ -686,7 +711,8 @@ W_{t+1} &amp;= W_t - \hat{\lambda} G_{W_t}^{-1}\partial\mathcal{L}(W_t)
 $$
 where $\hat{\lambda} = \frac{\lambda}{||G_{W_t}^{-1}\partial\mathcal{L}(W_t)||}$. This is Riemannian Stochastic Gradient Descent (RSGD) with an adaptive learning rate. And if we let $P_W = G_W^{-1}$ be the preconditioner at point $W$, we can relate this to Preconditioned Stochastic Gradient Descent (PSGD) algorithms (Li, 2015; Pooladzandi et al., 2024).</p>
 <blockquote>
-<p><strong>Important Takeaway:</strong> In a Riemannian manifold, the preconditioner $P_W$ is <em>unique</em> and <em>well-defined</em> at each point $W \in \mathcal{W}$, but <em>may not be constant</em> across the manifold. Thus, as we move across the manifold, we may need to recompute or update our running estimate of the preconditioner. However, if our updates are &ldquo;small-enough&rdquo; by some definition, then we may not need to update it at every step; near convergence, or even earlier, it would suffice to update only every $K &gt; 1$ steps for some positive integer $K$ chosen a priori.</p></blockquote>
+<p><strong>Important Takeaway:</strong> In a Riemannian manifold, the preconditioner $P_W$ is <em>unique</em> and <em>well-defined</em> at each point $W \in \mathcal{W}$, but <em>may not be constant</em> across the manifold. Thus, as we move across the manifold, we may need to recompute or update our running estimate of the preconditioner. However, if our updates are &ldquo;small-enough&rdquo; by some definition, then we may not need to update it at every step; near convergence, or even earlier, it would suffice to update only every $K &gt; 1$ steps for some positive integer $K$ chosen a priori.</p>
+</blockquote>
 <h3 id="33-bmmathcalw-is-a-non-riemannian-manifold">3.3. $\bm{\mathcal{W}}$ is a Non-Riemannian Manifold<a hidden class="anchor" aria-hidden="true" href="#33-bmmathcalw-is-a-non-riemannian-manifold">#</a></h3>
 <p>In this case, our choice of norm $||\cdot||$ does not admit a well-behaved metric $g_W(\cdot, \cdot)$ and consequently also does not admit a well-behaved inner product $\langle \cdot, \cdot \rangle$ such that $||\cdot|| = \sqrt{\langle \cdot, \cdot \rangle}$ for all $W \in \mathcal{W}$. Our differentials $D\mathcal{L}(W)[\cdot]$ are still well-defined, but we no longer have the bijective relationship between differentials and gradients. And so, we do not always have a unique $V \in T_W\mathcal{W}$ such that $D\mathcal{L}(W)[\cdot] = \langle V, \cdot \rangle$ if this inner product even exists.</p>
 <p>While we still have access to the stochastic estimator of the differential in standard Euclidean coordinates $\partial\mathcal{L}(W)$ from Assumption 1, it no longer has geometric meaning by itself. More precisely, we no longer have information on how to transform $\partial\mathcal{L}(W)$ to the direction of steepest descent by a (possibly point-dependent) change of coordinates on the tangent space $T_W\mathcal{W}$.</p>
@@ -713,7 +739,8 @@ $$</p>
 <li>In the Riemannian case, the dualization is equivalent to preconditioning. But in the non-Riemannian case, the dualizer may not be linear and may even have multiple solutions! However, as we will discuss in the next section, it may suffice to approximate the dualizer with a (linear) preconditioner in practice.</li>
 <li>The intuitions we have developed for the Riemannian case may not apply in the non-Riemannian case. Dualizers in the non-Riemannian case may behave counterintuitively, and may not even have approximate (linear) preconditioners that would work well in practice. And so, we must be vigilant about the geometry of the manifold we are working with.</li>
 <li>Instantaneous (i.e. preconditioner-free) dualization like what Muon does may be more appropriate in cases where the dualizer has a closed form solution <em>and</em> is cheap-enough to compute, according to one&rsquo;s compute budget.</li>
-</ol></blockquote>
+</ol>
+</blockquote>
 <h2 id="4-muon-as-steepest-descent-in-a-non-riemannian-manifold">4. Muon as Steepest Descent in a Non-Riemannian Manifold<a hidden class="anchor" aria-hidden="true" href="#4-muon-as-steepest-descent-in-a-non-riemannian-manifold">#</a></h2>
 <h3 id="41-the-muon-optimizer">4.1. The Muon Optimizer<a hidden class="anchor" aria-hidden="true" href="#41-the-muon-optimizer">#</a></h3>
 <blockquote>
@@ -727,7 +754,8 @@ $$</p>
 \text{&hellip;&hellip;. }O_{t+1} = \text{approx-orth}(M_{t+1})\newline
 \text{&hellip;&hellip;. }W_{t+1} = W_t - \lambda O_{t+1}
 $</p>
-<p><strong>Output:</strong> $W_T \in \mathcal{W}$.</p></blockquote>
+<p><strong>Output:</strong> $W_T \in \mathcal{W}$.</p>
+</blockquote>
 <blockquote>
 <p><strong>Algorithm 2 (Approximate Orthogonalization through Newton-Schulz Iteration)</strong></p>
 <div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#00a">def</span> <span style="color:#0a0">zeropower_via_newtonschulz</span>(G: Tensor, steps: <span style="color:#0aa">int</span>=<span style="color:#099">5</span>):
@@ -768,7 +796,8 @@ $$
 \text{msign}(X) &amp;= U V^T
 \end{align*}
 $$
-where $U\Sigma V^T$ is the singular value decomposition (SVD) of $X$.</p></blockquote>
+where $U\Sigma V^T$ is the singular value decomposition (SVD) of $X$.</p>
+</blockquote>
 <p>Thus, one can interpret Muon&rsquo;s update rule as simply the matrix sign function applied to $\partial\mathcal{L}(W_t)$. And if we let $G_t = \partial\mathcal{L}(W_t)$ and $P_{W_t} = (G_t G_t^T)^{-1/2}$, then we arrive at a preconditioner form of Muon&rsquo;s update rule,
 $$
 \begin{align*}
@@ -843,7 +872,8 @@ $$</p>
 <li>$p = 1$: The Manhattan/Taxicab norm, $||\bm{x}||_1 = \sum_{i=1}^{n} |x_i|$</li>
 <li>$p = 2$: The Euclidean norm, $||\bm{x}||_2 = \sqrt{\sum_{i=1}^{n} |x_i|^2} = ||\bm{x}||_F$</li>
 <li>$p = \infty$: The Max norm, $||\bm{x}||_\infty = \max_{i} |x_i|$</li>
-</ol></blockquote>
+</ol>
+</blockquote>
 <blockquote>
 <p><strong>Definition 3 (Matrix Elementwise $p$-Norms).</strong> Given $p = [1, \infty]$, the elementwise $p$-norm of a finite-dimensional, real-valued matrix $X \in \mathbb{R}^{m \times n}$ is defined as,
 $$
@@ -860,7 +890,8 @@ where $\text{vec}(\cdot)$ is the vectorization operator that stacks the columns 
 <li>$p = 1$: The Sum-of-Sums norm, $||X||_{e,1} = \sum_{i=1}^{m} \sum_{j=1}^{n} |X_{ij}|$</li>
 <li>$p = 2$: The Frobenius norm, $||X||_{e,2} = \sqrt{\sum_{i=1}^{m} \sum_{j=1}^{n} |X_{ij}|^2} = ||X||_F$</li>
 <li>$p = \infty$: The Max-of-Max norm, $||X||_{e,\infty} = \max_{i,j} |X_{ij}|$</li>
-</ol></blockquote>
+</ol>
+</blockquote>
 <blockquote>
 <p><strong>Definition 4 (Schatten-$p$ Norms).</strong> Given $p = [1, \infty]$, the Schatten-$p$ norm of a finite-dimensional, real-valued matrix $X \in \mathbb{R}^{m \times n}$ is defined as,
 $$
@@ -876,7 +907,8 @@ $$||X||_{S_p} = ||\sigma(X)||_p$$</p>
 <li>$p = 1$: The Nuclear norm, $||A||_{S_1} = \sum_{i=1}^{\min(m,n)} |\sigma_i(A)| = ||A||_{\text{nuc}}$</li>
 <li>$p = 2$: The Frobenius norm, $||A||_{S_2} = \left(\sum_{i=1}^{\min(m,n)} |\sigma_i(A)|^2\right)^{\frac{1}{2}} = ||A||_F$</li>
 <li>$p = \infty$: The Spectral norm, $||A||_{S_{\infty}} = \max_{i} \sigma_i(A) = ||A||_{2 \to 2}$</li>
-</ol></blockquote>
+</ol>
+</blockquote>
 <p>A special case is when $p = 2$, and so we have the Frobenius norm. Equipping $\mathcal{W}$ with this norm gives us the standard Euclidean manifold, which is Riemannian. However, Propositions (6) and (7) below still applies.</p>
 <p>And to find the dualizers for the Schatten-$p$ norms, we will use the following inequality,</p>
 <blockquote>
@@ -888,7 +920,8 @@ $$
 \text{tr}(A^TB) &amp;= \sum_{i=1}^{\min(m,n)} \sigma_i(A) \sigma_i(B)\newline
 \langle A, B\rangle_F &amp;= \langle \sigma(A), \sigma(B) \rangle_F
 \end{align*}
-$$</p></blockquote>
+$$</p>
+</blockquote>
 <h3 id="51-dualizers-for-elementwise-p-norms-and-schatten-p-norms">5.1. Dualizers for Elementwise $p$-Norms and Schatten-$p$ Norms<a hidden class="anchor" aria-hidden="true" href="#51-dualizers-for-elementwise-p-norms-and-schatten-p-norms">#</a></h3>
 <blockquote>
 <p><strong>Proposition 7.</strong> Given $p = [1, \infty]$, the dualizer for the Schatten-$p$ norm is:
@@ -919,7 +952,8 @@ $$\arg\max_{\sigma(T)} \sum_{i=1}^{\min(m,n)} \sigma_i(X) \sigma_i(T) \quad\text
 And solving via Lagrange multipliers, we have,
 $$\sigma_i(T) = \frac{\sigma_i(X)^{q-1}}{||X||_{S_q}^{q-1}}$$
 where $\frac{1}{p} + \frac{1}{q} = 1$. Note that this is indepdent of $W$. Hence,
-$$T^* = \text{dualizer}_{||\cdot||_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{||X||_{S_q}^{q-1}} V^T\quad\blacksquare$$</p></blockquote>
+$$T^* = \text{dualizer}_{||\cdot||_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{||X||_{S_q}^{q-1}} V^T\quad\blacksquare$$</p>
+</blockquote>
 <h3 id="52-stochastic-gradient-descent-and-muon-as-special-cases-of-steepest-descent-under-schatten-p-norms">5.2. Stochastic Gradient Descent and Muon as Special Cases of Steepest Descent under Schatten-$p$ Norms<a hidden class="anchor" aria-hidden="true" href="#52-stochastic-gradient-descent-and-muon-as-special-cases-of-steepest-descent-under-schatten-p-norms">#</a></h3>
 <p><strong>5.2.1. Recovering SGD.</strong> Let $p = 2$, and so we have $q = 2$ and $||\cdot||_{S_2} = ||\cdot||_F$. Thus for $\partial\mathcal{L}(W; \xi) \in T^*_W\mathcal{W}$ at $W \in \mathcal{W}$, we have,
 $$
@@ -946,7 +980,8 @@ which matches the update rule we expect from Muon.</p>
 <p>To support this, we show that the (1) variance of singular values post-dualization, and the (2) relative size, and (3) stable rank of the dualized gradients under the Schatten-$p$ norm quadratically converges to those of the Spectral norm as $p$ approaches $\infty$. And in fact, at $p = 32$, the results are already very close to those of the Spectral norm.</p>
 <p><strong>5.3.1. On the variance of singular values post-dualization</strong></p>
 <blockquote>
-<p><strong>Proposition 8.</strong> The variance of the singular values post-dualization under the Schatten-$p$ Norm converges quadratically to $0$ as $p$ approaches $\infty$.</p></blockquote>
+<p><strong>Proposition 8.</strong> The variance of the singular values post-dualization under the Schatten-$p$ Norm converges quadratically to $0$ as $p$ approaches $\infty$.</p>
+</blockquote>
 <blockquote>
 <p><strong>Proof:</strong> Let $X \in \mathbb{R}^{m \times n}$ and let $t_i$ be the $i$-th singular value post-dualization. From Proposition 7 earlier, we have
 $$
@@ -966,15 +1001,18 @@ Var[t_i] &amp;\approx (q-1)^2\mathbb{E}\left[\ln^2\left[\sigma_i(X) - \mathbb{E}
 Var[t_i] &amp;\approx \frac{1}{(p-1)^2}\mathbb{E}\left[\ln^2\left[\sigma_i(X) - \mathbb{E}[\sigma_i(X)]\right]\right]
 \end{align*}
 $$
-Hence, the variance of the singular values post-dualization converges quadratically to $0$ as $p$ approaches $\infty$.</p></blockquote>
+Hence, the variance of the singular values post-dualization converges quadratically to $0$ as $p$ approaches $\infty$.</p>
+</blockquote>
 <p>Empirically, we can see this in the following plot. And at $p = 32$, the variance of the resulting singular values are already close to $0$.
 <img loading="lazy" src="../steepest-descent-schatten-p/var_sv_dualizer.png#center"></p>
 <p><strong>5.3.2. On the relative size and stable rank of gradients</strong></p>
 <blockquote>
 <p><strong>Definition 6: Relative Size of a Gradient.</strong> Given a norm $||\cdot||$ chosen a priori, the relative size of a gradient-update $\Delta W$ relative to the parameter matrix $W$ is defined as:
-$$\text{relsize}(\Delta W) = \frac{||\Delta W||}{||W||}$$</p></blockquote>
+$$\text{relsize}(\Delta W) = \frac{||\Delta W||}{||W||}$$</p>
+</blockquote>
 <blockquote>
-<p><strong>Definition 7: Stable Rank.</strong> The stable rank of a matrix $A$ is defined as $$srank(A) = \frac{||A||_F^2}{||A||_{2 \to 2}^2}$$</p></blockquote>
+<p><strong>Definition 7: Stable Rank.</strong> The stable rank of a matrix $A$ is defined as $$srank(A) = \frac{||A||_F^2}{||A||_{2 \to 2}^2}$$</p>
+</blockquote>
 <p>As we can see in the following plot, the raw gradients have very low-stable rank. But the stable rank of the gradients post-dualization under the Schatten-$p$ norm converges very quickly to that of the Spectral norm as $p$ approaches $\infty$.</p>
 <p><img loading="lazy" src="../steepest-descent-schatten-p/srank_sv_dualizer.png#center"></p>
 <p>One can interpret this as, for some large enough $p$, the dualized gradient is already very close to being &ldquo;maximal&rdquo; in a sense. And increasing $p$ further would only offer rapidly diminishing returns.</p>

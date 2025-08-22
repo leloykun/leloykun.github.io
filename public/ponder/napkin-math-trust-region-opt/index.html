@@ -253,7 +253,8 @@
 $$\min_{x \in \mathcal{X}} f(x)$$
 where $f(\cdot): \mathcal{X} \rightarrow \mathbb{R}$ is a bounded from below and differentiable objective function and $\mathcal{X}$ is finite-dimensional vector space equipped with an inner product $\langle \cdot, \cdot \rangle: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}$ and a norm $|| \cdot ||: \mathcal{X} \rightarrow \mathbb{R}$ which may or may not coincide with the inner product.</p>
 <blockquote>
-<p>Note: Kovalev&rsquo;s objective actually has a regularization term, $R(\cdot): \mathcal{X} \rightarrow \mathbb{R} \cup \{ +\infty \}$ that is proper (i.e. not $\infty$ everywhere), closed, and convex. So the original objective is $\min_{x \in \mathcal{X}} [F(x) = f(x) + R(x)]$. We omit this for simplicity.</p></blockquote>
+<p>Note: Kovalev&rsquo;s objective actually has a regularization term, $R(\cdot): \mathcal{X} \rightarrow \mathbb{R} \cup \{ +\infty \}$ that is proper (i.e. not $\infty$ everywhere), closed, and convex. So the original objective is $\min_{x \in \mathcal{X}} [F(x) = f(x) + R(x)]$. We omit this for simplicity.</p>
+</blockquote>
 <h3 id="assumptions">Assumptions<a hidden class="anchor" aria-hidden="true" href="#assumptions">#</a></h3>
 <p>The paper&rsquo;s results rely on the following assumptions, which I find to be quite reasonable:</p>
 <ol>
@@ -275,13 +276,15 @@ where $f(\cdot): \mathcal{X} \rightarrow \mathbb{R}$ is a bounded from below and
 <p>The first is Lemma 3 which gives an upper bound on the distance between the momentum $m_k$ and the true gradient $\nabla f(x_k)$, following the update rule in Algorithm 1. And the second is Theorem 2 which provides convergence guarantees for Algorithm 1.</p>
 <blockquote>
 <p><strong>(Kovalev&rsquo;s) Lemma 3.</strong> Let Assumptions <strong>(A1)</strong> to <strong>(A3)</strong> hold and let $m_0 = g(x_0; \xi_0)$. Then the iterations of Algorithm 1 satisfy the following inequality for $k \geq 1$:
-$$\mathbb{E}[|| m_k - \nabla f(x_k) ||^{\dagger}] \leq (1-a)^k \rho \sigma + \sqrt{\alpha}\rho\sigma+\frac{L\eta}{\alpha}.$$</p></blockquote>
+$$\mathbb{E}[|| m_k - \nabla f(x_k) ||^{\dagger}] \leq (1-a)^k \rho \sigma + \sqrt{\alpha}\rho\sigma+\frac{L\eta}{\alpha}.$$</p>
+</blockquote>
 <p>This is why, unlike OSGDM, we must accumulate the momentum term <em>before</em> we apply the dualizer. Otherwise, we can&rsquo;t guarantee that our momentum term would actually be useful, nor even converge. And this lemma also works for any well-defined norm $||\cdot||$ on $\mathcal{X}$. Previous work by Cutkosky &amp; Mehta (2020) has only shown this for the Frobenius norm.</p>
 <blockquote>
 <p><strong>(Kovalev&rsquo;s) Theorem 2.</strong> Let Assumptions <strong>(A1)</strong> to <strong>(A3)</strong> hold and let $m_0 = g(x_0; \xi_0)$. Then the iterations of Algorithm 1 satisfy the following inequality:
 $$\mathbb{E}\left[ \min_{k=1,\ldots,K} || \nabla f(x_k) ||^{\dagger} \right] \leq \frac{\Delta_0}{\eta K} + \frac{2\rho\sigma}{\alpha K} + 2\sqrt{\alpha}\rho\sigma + \frac{3L\eta}{2} + \frac{2L\eta}{\alpha},$$ where $\Delta_0 = f(x_0) - \inf_x f(x)$. Hence, to reach precision $\mathbb{E}\left[ \min_{k=1,\ldots,K} || \nabla f(x_k) ||^{\dagger} \right] \leq \epsilon$, it is sufficient to choose the stepsize $\eta$ and the momentum parameter $\alpha$ as follows:
 $$\eta = \min\left\{\frac{\epsilon}{16L}, \frac{\epsilon^3}{256\rho^2\sigma^2L} \right\},\quad\quad \alpha=\min\left\{ 1, \frac{\epsilon^2}{16\rho^2\sigma^2} \right\},$$ and the number of iterations $K$ as follows:
-$$K = \left\lceil \max\left\{ \frac{2048L\Delta_0\rho^2\sigma^2}{\epsilon^4}, \frac{256\rho^3\sigma^3}{\epsilon^3},\frac{128L\Delta_0}{\epsilon^2}, \frac{16\rho\sigma}{\epsilon} \right\}\right\rceil.$$</p></blockquote>
+$$K = \left\lceil \max\left\{ \frac{2048L\Delta_0\rho^2\sigma^2}{\epsilon^4}, \frac{256\rho^3\sigma^3}{\epsilon^3},\frac{128L\Delta_0}{\epsilon^2}, \frac{16\rho\sigma}{\epsilon} \right\}\right\rceil.$$</p>
+</blockquote>
 <p>I think this is the real meat of the paper. And this works for any well-defined norm $||\cdot||$ on $\mathcal{X}$, not just the Frobenius norm.</p>
 <p>However, the norm embedding constant $\rho$ and the Lipschitz constant $L$ both depend on the choice of norm. And as they increase, the lower $\eta$ and $\alpha$ become and the higher $K$ becomes.</p>
 <h2 id="a-possible-reason-why-muon-outperforms-adam">A Possible Reason Why Muon Outperforms Adam<a hidden class="anchor" aria-hidden="true" href="#a-possible-reason-why-muon-outperforms-adam">#</a></h2>
@@ -290,30 +293,31 @@ $$K = \left\lceil \max\left\{ \frac{2048L\Delta_0\rho^2\sigma^2}{\epsilon^4}, \f
 <h3 id="preliminaries">Preliminaries<a hidden class="anchor" aria-hidden="true" href="#preliminaries">#</a></h3>
 <p>Let&rsquo;s focus on linear layers. I.e., $\mathcal{X} = \mathbb{R}^{m \times n}$. And following Bernstein &amp; Newhouse (2024), we can interpret Adam and Muon as steepest descent under the operator norms $||A||_{\text{max}}$ and $||A||_{2\to 2}$, respectively.</p>
 <table>
-  <thead>
-      <tr>
-          <th style="text-align: center">Optimizer</th>
-          <th style="text-align: center">Norm ($||\cdot||$)</th>
-          <th style="text-align: center">Dual Norm ($||\cdot||^{\dagger}$)</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td style="text-align: center">Adam</td>
-          <td style="text-align: center">$\quad||A||_{\text{max}} = ||vec(A)||_\infty = \max_{i,j}|A_{i,j}|\quad$</td>
-          <td style="text-align: center">$||A||_{1} = \sum_{i,j}|A_{i,j}|$</td>
-      </tr>
-      <tr>
-          <td style="text-align: center">Muon</td>
-          <td style="text-align: center">$\quad||A||_{2\to 2} = ||\sigma(A)||_\infty = \max_i \sigma_i(A)\quad$</td>
-          <td style="text-align: center">$||A||_{\text{nuc}} = ||\sigma(A)||_1 = \sum_i \sigma_i(A)$</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th style="text-align:center">Optimizer</th>
+<th style="text-align:center">Norm ($||\cdot||$)</th>
+<th style="text-align:center">Dual Norm ($||\cdot||^{\dagger}$)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Adam</td>
+<td style="text-align:center">$\quad||A||_{\text{max}} = ||vec(A)||_\infty = \max_{i,j}|A_{i,j}|\quad$</td>
+<td style="text-align:center">$||A||_{1} = \sum_{i,j}|A_{i,j}|$</td>
+</tr>
+<tr>
+<td style="text-align:center">Muon</td>
+<td style="text-align:center">$\quad||A||_{2\to 2} = ||\sigma(A)||_\infty = \max_i \sigma_i(A)\quad$</td>
+<td style="text-align:center">$||A||_{\text{nuc}} = ||\sigma(A)||_1 = \sum_i \sigma_i(A)$</td>
+</tr>
+</tbody>
 </table>
 <p>where $A \in \mathbb{R}^{m \times n}$, $\sigma(A) = (\sigma(A)_1, \sigma(A)_2, \ldots, \sigma(A)_r)$ are the singular values of $A$, and $r = \text{rank}(A) \leq \min(m, n)$.</p>
 <p>We will also heavily rely on the following inequality in our proofs below:</p>
 <blockquote>
-<p><strong>The monotonicity inequality for $p$-norms.</strong> For any vector $x \in \mathbb{R}^N$ and for $0 &lt; p&rsquo; \leq q&rsquo; \leq \infty$, the $p$-norms satisfy $$||x||_{q&rsquo;} \leq ||x||_{p&rsquo;} \leq N^{1/{p&rsquo;} - 1/{q&rsquo;}}||x||_{q&rsquo;},\tag{1}$$</p></blockquote>
+<p><strong>The monotonicity inequality for $p$-norms.</strong> For any vector $x \in \mathbb{R}^N$ and for $0 &lt; p&rsquo; \leq q&rsquo; \leq \infty$, the $p$-norms satisfy $$||x||_{q&rsquo;} \leq ||x||_{p&rsquo;} \leq N^{1/{p&rsquo;} - 1/{q&rsquo;}}||x||_{q&rsquo;},\tag{1}$$</p>
+</blockquote>
 <p>which is a direct consequence of the Hölder&rsquo;s inequality.</p>
 <h3 id="adam-has-a-higher-norm-embedding-constant-rho-than-muon">Adam has a higher norm embedding constant $\rho$ than Muon<a hidden class="anchor" aria-hidden="true" href="#adam-has-a-higher-norm-embedding-constant-rho-than-muon">#</a></h3>
 <p><strong>For Adam:</strong></p>
@@ -327,7 +331,8 @@ $$K = \left\lceil \max\left\{ \frac{2048L\Delta_0\rho^2\sigma^2}{\epsilon^4}, \f
 ||A||_{\text{max}}^{\dagger} &amp;\leq \sqrt{mn}||A||_F \tag{2}
 \end{align*}
 $$
-Thus, Adam&rsquo;s $\rho$ is $\sqrt{mn}$.</p></blockquote>
+Thus, Adam&rsquo;s $\rho$ is $\sqrt{mn}$.</p>
+</blockquote>
 <p>Likewise, <strong>for Muon:</strong></p>
 <blockquote>
 <p>$$
@@ -339,11 +344,13 @@ Thus, Adam&rsquo;s $\rho$ is $\sqrt{mn}$.</p></blockquote>
 ||A||_{2\to 2}^{\dagger} &amp;\leq \sqrt{\min\{m,n\}}||A||_F \tag{3}
 \end{align*}
 $$
-Thus, Muon&rsquo;s $\rho$ is $\sqrt{\min\{m,n\}}$ which is always less than Adam&rsquo;s $\sqrt{mn}$.</p></blockquote>
+Thus, Muon&rsquo;s $\rho$ is $\sqrt{\min\{m,n\}}$ which is always less than Adam&rsquo;s $\sqrt{mn}$.</p>
+</blockquote>
 <h3 id="adam-has-a-higher-lipschitz-constant-l-than-muon">Adam has a higher Lipschitz constant $L$ than Muon<a hidden class="anchor" aria-hidden="true" href="#adam-has-a-higher-lipschitz-constant-l-than-muon">#</a></h3>
 <p>We make another assumption:</p>
 <blockquote>
-<p>Suppose that we have a constant $\hat{L} &gt; 0$ such that for all $X, X&rsquo; \in \mathbb{R}^{m\times n}$ we have $$||\nabla f(X) - \nabla f(X&rsquo;)||_F \leq \hat{L} || X - X&rsquo; ||_F.\tag{A4}$$</p></blockquote>
+<p>Suppose that we have a constant $\hat{L} &gt; 0$ such that for all $X, X&rsquo; \in \mathbb{R}^{m\times n}$ we have $$||\nabla f(X) - \nabla f(X&rsquo;)||_F \leq \hat{L} || X - X&rsquo; ||_F.\tag{A4}$$</p>
+</blockquote>
 <p><strong>For Adam:</strong></p>
 <blockquote>
 <p>$$
@@ -362,7 +369,8 @@ $$
 &amp;\leq \hat{L}mn||X - X&rsquo;||_\text{max} &amp;&amp; \text{(from $\bm{(4)}$)}\tag{5}\\
 \end{align*}
 $$
-Thus, Adam&rsquo;s $L$ is $\hat{L}mn$.</p></blockquote>
+Thus, Adam&rsquo;s $L$ is $\hat{L}mn$.</p>
+</blockquote>
 <p>Likewise, <strong>for Muon:</strong></p>
 <blockquote>
 <p>$$
@@ -383,7 +391,8 @@ $$
 \end{align*}
 $$
 $$
-Thus, Muon&rsquo;s $L$ is $\hat{L}\min\{m,n\}$ which is always less than Adam&rsquo;s $\hat{L}mn$.</p></blockquote>
+Thus, Muon&rsquo;s $L$ is $\hat{L}\min\{m,n\}$ which is always less than Adam&rsquo;s $\hat{L}mn$.</p>
+</blockquote>
 <h3 id="conclusion">Conclusion<a hidden class="anchor" aria-hidden="true" href="#conclusion">#</a></h3>
 <p>Let&rsquo;s go back to Kovalev&rsquo;s main result:
 $$\eta = \min\left\{\frac{\epsilon}{16L}, \frac{\epsilon^3}{256\rho^2\sigma^2L} \right\},\quad\quad \alpha=\min\left\{ 1, \frac{\epsilon^2}{16\rho^2\sigma^2} \right\},$$ $$K = \left\lceil \max\left\{ \frac{2048L\Delta_0\rho^2\sigma^2}{\epsilon^4}, \frac{256\rho^3\sigma^3}{\epsilon^3},\frac{128L\Delta_0}{\epsilon^2}, \frac{16\rho\sigma}{\epsilon} \right\}\right\rceil$$</p>

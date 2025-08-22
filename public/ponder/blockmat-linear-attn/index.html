@@ -272,40 +272,40 @@ $$S_i = S_{i-1}A_i + B_i$$
 where $S_{i-1}$ is the (old) state after processing the first $i-1$ tokens, $S_i$ is the (new) state after processing the first $i$ tokens, and $A_i$ and $B_i$ are update matrices. Think of $A_i$ as an operation that <em>modifies</em> some information already stored in the state while $B_i$ <em>adds</em> new information to the state. In most cases where $A_i \neq I$, $A_i$ typically <em>removes</em> some (old) information from the state. But if we allow $A_i$ to have negative eigenvalues, then we can also think of it as an operation that, in a sense, <em>inverts</em> information instead.</p>
 <p>Here are a couple of examples:</p>
 <table>
-  <thead>
-      <tr>
-          <th>Linear Attention Mechanism</th>
-          <th style="text-align: right"><strong>$A_i$</strong></th>
-          <th style="text-align: right"><strong>$B_i$</strong></th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>Vanilla Linear Attention</td>
-          <td style="text-align: right">$I$</td>
-          <td style="text-align: right">$\bm{v}_i \bm{k}_i^T$</td>
-      </tr>
-      <tr>
-          <td>Mamba 2</td>
-          <td style="text-align: right">$\text{diag}\left(\alpha_i I\right)$</td>
-          <td style="text-align: right">$\bm{v}_i \bm{k}_i^T$</td>
-      </tr>
-      <tr>
-          <td>DeltaNet</td>
-          <td style="text-align: right">$I - \beta_i \bm{k}_i \bm{k}_i^T$</td>
-          <td style="text-align: right">$\beta_i \bm{v}_i \bm{k}_i^T$</td>
-      </tr>
-      <tr>
-          <td>Gated DeltaNet</td>
-          <td style="text-align: right">$\alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T)$</td>
-          <td style="text-align: right">$\beta_i \bm{v}_i \bm{k}_i^T$</td>
-      </tr>
-      <tr>
-          <td>RWKV-7</td>
-          <td style="text-align: right">$\text{diag}(\bm{w}_i) - \bm{\hat{\kappa}}_i(\bm{a}_i \odot\bm{\hat{\kappa}}_i^T)$</td>
-          <td style="text-align: right">$\bm{v}_i \bm{k}_i^T$</td>
-      </tr>
-  </tbody>
+<thead>
+<tr>
+<th>Linear Attention Mechanism</th>
+<th style="text-align:right"><strong>$A_i$</strong></th>
+<th style="text-align:right"><strong>$B_i$</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vanilla Linear Attention</td>
+<td style="text-align:right">$I$</td>
+<td style="text-align:right">$\bm{v}_i \bm{k}_i^T$</td>
+</tr>
+<tr>
+<td>Mamba 2</td>
+<td style="text-align:right">$\text{diag}\left(\alpha_i I\right)$</td>
+<td style="text-align:right">$\bm{v}_i \bm{k}_i^T$</td>
+</tr>
+<tr>
+<td>DeltaNet</td>
+<td style="text-align:right">$I - \beta_i \bm{k}_i \bm{k}_i^T$</td>
+<td style="text-align:right">$\beta_i \bm{v}_i \bm{k}_i^T$</td>
+</tr>
+<tr>
+<td>Gated DeltaNet</td>
+<td style="text-align:right">$\alpha_i(I - \beta_i \bm{k}_i \bm{k}_i^T)$</td>
+<td style="text-align:right">$\beta_i \bm{v}_i \bm{k}_i^T$</td>
+</tr>
+<tr>
+<td>RWKV-7</td>
+<td style="text-align:right">$\text{diag}(\bm{w}_i) - \bm{\hat{\kappa}}_i(\bm{a}_i \odot\bm{\hat{\kappa}}_i^T)$</td>
+<td style="text-align:right">$\bm{v}_i \bm{k}_i^T$</td>
+</tr>
+</tbody>
 </table>
 <p>where $\bm{k}_i  \in \mathbb{R}^{d_k}$ and $\bm{v}_i \in \mathbb{R}^{d_v}$ are the corresponding key-value pair for the $i$-th token; $\alpha_i \in [0, 1]$ can be thought of as a data-dependent weight decay that controls how much of the previous state to keep or forget; and $\beta_i \in [0, 1]$ can be thought of as a data-dependent learning rate that controls how much of the new information to add to the state.</p>
 <p>If we let $\alpha_i \in [-1, 1]$ for Mamba 2 and $\beta_i \in [0, 2]$ for (Gated) DeltaNet, then $A_i$ can have negative eigenvalues while still having norm $||A_i|| \leq 1$. This allows the models to learn more complex patterns while maintaining training stability (Grazzi et al., 2025).</p>
@@ -667,7 +667,8 @@ $$
 </details></p>
 
 <blockquote>
-<p>*I&rsquo;m not actually sure if MambaSum already exists under a different name. If it does, please let me know!</p></blockquote>
+<p>*I&rsquo;m not actually sure if MambaSum already exists under a different name. If it does, please let me know!</p>
+</blockquote>
 <h3 id="deltaproduct">DeltaProduct<a hidden class="anchor" aria-hidden="true" href="#deltaproduct">#</a></h3>
 
 
@@ -732,7 +733,8 @@ $$
 </ol>
 <p>Now, parallel associative scan might seem the best choice, and indeed it already suffices for some architectures like Mamba 1. However, it requires a lot more (shared) memory and communication between the processing units (and therefore materialization to the HBM). And it also doesn&rsquo;t fully utilize the tensor cores. But with chunk-wise parallelism, we only need to store the current state in the shared memory, and use matrix multiplications to compute the next chunk-level state. This way, we don&rsquo;t have to materialize the $S_N$s to the HBM at all, and we can fully utilize the tensor cores. Hence why most flash linear attention kernels use chunk-wise parallelism.</p>
 <blockquote>
-<p>*At inference time, we need to process the input tokens first before generating outputs. This is called the &ldquo;pre-filling&rdquo; stage. And chunk-wise parallelism works better here. After that, we can then use the recurrent form to generate the outputs.</p></blockquote>
+<p>*At inference time, we need to process the input tokens first before generating outputs. This is called the &ldquo;pre-filling&rdquo; stage. And chunk-wise parallelism works better here. After that, we can then use the recurrent form to generate the outputs.</p>
+</blockquote>
 <hr>
 <p>A better way to think of chunk-wise parallelism is as multi-step online gradient descent, but instead of updating the state $n_h$ times per token, we update the state $n_c$ times per chunk where $n_c = N/C$ is the number of tokens per chunk and $C$ is the number of chunks. Thus, we just reuse our results from the previous section!</p>
 <p>To make the connection more explicit, let&rsquo;s reindex Equation $(1)$ as $[\cdot]_i = [\cdot]_{\lceil i/n_c \rceil,\space (i-1) \% n_c + 1}$:

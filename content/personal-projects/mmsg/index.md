@@ -13,4 +13,19 @@ editPost:
     Text: "Github Repository"
 ---
 
+Repo: https://github.com/leloykun/mmsg
+
 Generate interleaved text and image content in a structured format you can directly pass to downstream APIs. You can also use this to control how many "draft" text tokens and "imagination" image tokens the model generates first before it starts generating the final output.
+
+> Note: The upstream repositories this work depended on have now updated their interfaces, so you may need to update the scripts accordingly.
+
+## How to cite
+
+```bibtex
+@misc{cesista2024mmsg,
+  author = {Franz Louis Cesista},
+  title = {"Multimodal Structured Generation"},
+  year = {2024},
+  url = {https://github.com/leloykun/mmsg},
+}
+```
