@@ -8,11 +8,11 @@ various variations of Attention in CUDA."
 summary: "A minimal implementation of Flash Attention 1 & 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the
 various variations of Attention in CUDA."
 editPost:
-    URL: "https://github.com/leloykun/flash-hyperbolic-attention-minimal"
+    URL: "https://github.com/leloykun/flash-attention-minimal"
     Text: "Github Repository"
 ---
 
-Repo: https://github.com/leloykun/flash-hyperbolic-attention-minimal
+Repo: https://github.com/leloykun/flash-attention-minimal
 
 ## Summary
 
@@ -29,6 +29,6 @@ A minimal re-implementation of Flash Attention with CUDA and PyTorch. The [offic
   author = {Franz Louis Cesista},
   title = {"Flash Attention Minimal"},
   year = {2024},
-  url = {https://github.com/leloykun/flash-hyperbolic-attention-minimal/},
+  url = {https://github.com/leloykun/flash-attention-minimal/},
 }
 ```
