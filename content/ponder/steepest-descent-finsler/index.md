@@ -40,7 +40,14 @@ This blog post generalizes work by [Jeremy Bernstein](https://docs.modula.system
 
 {{< collapse summary="Show contents of *Section 2.1.*" openByDefault=false >}}
 
-Following [Bernstein & Newhouse (2024)](https://arxiv.org/abs/2409.20325), one can think of the [Muon optimizer (Jordan et al., 2024)](https://kellerjordan.github.io/posts/muon/) as doing steepest descent under the spectral norm on $\mathbb{R}^{m \times n}$. But why choose the spectral norm in the first place? Why not the simpler Frobenius norm?
+Following [Bernstein & Newhouse (2024)](https://arxiv.org/abs/2409.20325), here is a minimal construction of the [Muon optimizer (Jordan et al., 2024)](https://kellerjordan.github.io/posts/muon/):
+
+1. Take $\mathbb{R}^{m \times n}$
+2. Equip the tangent spaces with the spectral norm
+3. Do first-order optimization on the resulting manifold
+4. Add momentum
+
+But why choose the spectral norm in the first place? Why not the simpler Frobenius norm?
 
 As we discussed in previous [blog](../steepest-descent-non-riemannian/) [posts](../steepest-descent-finsler/),
 > If we want the "natural" norm of our features and feature updates to be stable regardless of the model size,
@@ -48,7 +55,7 @@ As we discussed in previous [blog](../steepest-descent-non-riemannian/) [posts](
 
 where the 'natural' feature norm here is the RMS norm or the scaled Euclidean norm while the 'natural' weight norm is the RMS-to-RMS norm or the scaled spectral norm.
 
-Note that the spectral norm does not follow the [Parallelogram Law](https://en.wikipedia.org/wiki/Parallelogram_law) and so it is not induced by an inner product and therefore non-Riemannian. It does, however, induce a Finsler-structure on the manifold--an example of what we're trying to generalize here!
+Note that the spectral norm does not satisfy the [Parallelogram Law](https://en.wikipedia.org/wiki/Parallelogram_law) and so it is not induced by an inner product and therefore non-Riemannian. It does, however, induce a Finsler-structure on the manifold--an example of what we're trying to generalize here!
 
 {{< /collapse >}}
 
