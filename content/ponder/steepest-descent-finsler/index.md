@@ -194,6 +194,18 @@ $$
 \end{equation}
 $$
 
+#### 3.2.2. Block-wise PDHG algorithm for the steepest descent on Finsler manifolds problem
+
+Taking everything together, we have,
+
+$$\begin{align}
+    Y\_{k+1} &= Y\_{k} + \sigma (A\_{k} - B\_{k}) \\\\
+    A\_{k+1} &= \texttt{proj}\_{\\| \cdot \\| \leq 1} (A\_k - \tau\_A Y\_{k+1}) \\\\
+    B\_{k+1} &= \texttt{proj}\_{T\_W\mathcal{M}} (B\_k + \tau\_B Y\_{k+1} - \tau\_B G) \\\\
+    \widetilde{A}\_{k+1} &= A\_{k+1} + \theta (A\_{k+1} - A\_{k}) \\\\
+    \widetilde{B}\_{k+1} &= B\_{k+1} + \theta (B\_{k+1} - B\_{k})
+\end{align}$$
+
 ## 4. Alternative solution to Stiefel Muon via Primal-Dual Hybrid Gradient
 
 Here we have $\mathcal{M} = \texttt{St}(m, n)$ and $\\| \cdot \\| = \\| \cdot \\|\_{2 \to 2}$. For the projection to the unit spectral norm ball, $\texttt{proj}\_{\\| \cdot \\|\_{2 \to 2} \leq 1}$, we can use the GPU/TPU-friendly spectral hardcap function discussed in my [previous blog post](../spectral-clipping/) and in [our latest paper](https://arxiv.org/abs/2507.13338).
