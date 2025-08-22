@@ -20,7 +20,7 @@
       <link>https://leloykun.github.io/personal-projects/flash-attention-minimal/</link>
       <pubDate>Tue, 16 Apr 2024 00:00:00 +0000</pubDate>
       <guid>https://leloykun.github.io/personal-projects/flash-attention-minimal/</guid>
-      <description>A minimal implementation of Flash Attention 1 &amp;amp; 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the various variations of Attention in CUDA.</description>
+      <description>A minimal implementation of Flash Attention 1 &amp;amp; 2 in just ~350 lines of CUDA code.</description>
     </item>
     <item>
       <title>Llama.cpp</title>

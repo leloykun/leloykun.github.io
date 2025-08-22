@@ -3,10 +3,8 @@ title: "Flash Attention Minimal"
 date: 2024-04-16
 tags: ["Machine Learning", "C++", "CUDA", "PyTorch", "Flash Attention"]
 author: "Franz Louis Cesista"
-description: "A minimal implementation of Flash Attention 1 & 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the
-various variations of Attention in CUDA."
-summary: "A minimal implementation of Flash Attention 1 & 2 in just ~350 lines of CUDA code. This is still a work-in-progress, but the ultimate goal is to implement the
-various variations of Attention in CUDA."
+description: "A minimal implementation of Flash Attention 1 & 2 in just ~350 lines of CUDA code."
+summary: "A minimal implementation of Flash Attention 1 & 2 in just ~350 lines of CUDA code."
 editPost:
     URL: "https://github.com/leloykun/flash-attention-minimal"
     Text: "Github Repository"
