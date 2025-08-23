@@ -9,9 +9,9 @@ summary: "Fast and robust model training."
 #     image: cover.png
 #     alt: "Cover"
 #     relative: true
-# editPost:
-#     URL: "https://x.com/leloykun/status/1907211629982556320"
-#     Text: "Crossposted from X (formerly Twitter)"
+editPost:
+    URL: "https://x.com/leloykun/status/1958915061793075549"
+    Text: "Crossposted from X (formerly Twitter)"
 ---
 
 > If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]
