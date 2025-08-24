@@ -90,7 +90,7 @@ The $\langle \cdot, \cdot \rangle: T^\*\_{W}\mathcal{M} \times T\_{W}\mathcal{M}
 
 ### 3.2. Convex optimization approach
 
-First, notice that the feasible sets for the constraints on $A$ above are convex. And so we can frame this problem as a convex optimization problem.
+First, notice that the feasible sets for the constraints on $A$ above are convex, regardless of where we currently are in the manifold. And so we can frame this problem squarely as a convex optimization problem.
 
 > Note: an intuitive, but incorrect approach is to simply project $G$ onto the (convex) intersection. First, this projection often does not have a closed-form solution. And second, it is suboptimal. Counterexample: suppose that $A=G$ is already in the intersection, but $\\| A \\|\_{W} = 0.5\eta$. Then $2A$ must also be in the intersection. However, $\langle G, 2A \rangle > \langle G, A \rangle$.
 
@@ -137,7 +137,7 @@ $$
     \end{cases}
 \end{align*}
 $$
-where $X \in \mathcal{X} = \mathbb{R}^{2m \times n}$, $Y \in \mathcal{Y} = \mathbb{R}^{m \times n}$, $L: \mathcal{X} \to \mathcal{Y}$ is a linear operator, $\mathcal{F}: \mathcal{X} \to \mathbb{R}$, and $\mathcal{G}: \mathcal{Y} \to \mathbb{R}$.
+where $X \in \mathcal{X} = \mathbb{R}^{2m \times n}$, $Y \in \mathcal{Y} = \mathbb{R}^{m \times n}$, $L: \mathcal{X} \to \mathcal{Y}$ is a linear operator, $\mathcal{F}\_{\eta}: \mathcal{X} \to \mathbb{R}$, and $\mathcal{G}: \mathcal{Y} \to \mathbb{R}$.
 
 Then Equation (5) can be rewritten to,
 $$\begin{align}
@@ -157,7 +157,7 @@ since $\mathcal{G}^\*(Y) = \sup\_{Z \in \mathcal{Y}} \\{ \langle Y, Z \rangle - 
 Following [ODL's page on PDHG](https://odlgroup.github.io/odl/math/solvers/nonsmooth/pdhg.html), we choose $\tau\_A, \tau\_B, \sigma > 0$, $\theta \in [0,1]$, and initialize $X\_0 \in \mathcal{X}$, $Y\_0 \in \mathcal{Y}$, and $\widetilde{X}\_0 = X\_0$. We then iterate,
 $$\begin{align}
     Y\_{k+1} &= \texttt{prox}\_{\sigma \mathcal{G}^\*} (Y\_{k} + \sigma L \widetilde{X}\_{k}) \\\\
-    X\_{k+1} &= \texttt{prox}\_{\tau \mathcal{F}} (X\_{k} - \tau L^T Y\_{k+1}) \\\\
+    X\_{k+1} &= \texttt{prox}\_{\tau \mathcal{F}\_{\eta}} (X\_{k} - \tau L^T Y\_{k+1}) \\\\
     \widetilde{X}\_{k+1} &= X\_{k+1} + \theta (X\_{k+1} - X\_{k})
 \end{align}$$
 where $\tau = \text{diag}(\tau\_A I\_m, \tau\_B I\_m)$ and $\texttt{prox}$ is the proximal operator.
@@ -177,7 +177,7 @@ $$\begin{align*}
 For the $X$-variable,
 $$\begin{align*}
     X\_{k+1}
-        &= \texttt{prox}\_{\tau \mathcal{F}} (X\_{k} - \tau L^T Y\_{k+1}) \\\\
+        &= \texttt{prox}\_{\tau \mathcal{F}\_{\eta}} (X\_{k} - \tau L^T Y\_{k+1}) \\\\
         &= \arg\min\_{X \in \mathcal{X}} \left\\{ \tau \mathcal{F}\_{\eta}(X) + \frac{1}{2} \\| X - (X\_{k} - \tau L^T Y\_{k+1}) \\|\_F^2 \right\\} \\\\
         &= \arg\min\_{X \in \mathcal{X}} \left\\{ \tau\_A f\_{\eta}(A) + \tau\_B g(B) + \frac{1}{2} \left\\| \begin{bmatrix}
             A - (A\_k - \tau\_A Y\_{k+1}) \\\\
@@ -344,7 +344,7 @@ $$
 
 ## Acknowledgements
 
-Big thanks to Jeremy Bernstein and Cédric Simal for productive discussions on the topic!
+Big thanks to Jeremy Bernstein, Cédric Simal, and Antonio Silveti-Falls for productive discussions on the topic!
 
 ## How to cite
 
