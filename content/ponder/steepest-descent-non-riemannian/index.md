@@ -811,6 +811,8 @@ Many thanks to Jeremy Bernstein, Omead Pooladzandi, Simo Ryu, and Antonio Silvet
   author = {Franz Louis Cesista},
   title = {Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds},
   year = {2025},
+  month = {April},
+  day = {3},
   url = {http://leloykun.github.io/ponder/steepest-descent-non-riemannian/},
 }
 ```

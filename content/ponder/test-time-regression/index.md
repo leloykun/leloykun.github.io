@@ -172,6 +172,8 @@ Stay tuned!
   author = {Franz Louis Cesista},
   title = {({L}inear) {A}ttention as {T}est-{T}ime {R}egression},
   year = {2025},
+  month = {January},
+  day = {27},
   url = {https://leloykun.github.io/ponder/test-time-regression/},
 }
 ```

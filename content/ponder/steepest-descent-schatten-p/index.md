@@ -284,6 +284,8 @@ That's it for now. Until next time!
   author = {Franz Louis Cesista},
   title = {Steepest Descent Under Schatten-p Norms},
   year = {2025},
+  month = {February},
+  day = {7},
   url = {http://leloykun.github.io/ponder/steepest-descent-schatten-p/},
 }
 ```

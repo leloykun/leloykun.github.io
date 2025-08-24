@@ -172,6 +172,8 @@ The bounds here are *very* loose. And for SGD, which is steepest descent under t
   author = {Franz Louis Cesista},
   title = {Napkin Math on Non-Euclidean Trust Region Optimization},
   year = {2025},
+  month = {March},
+  day = {24},
   url = {http://leloykun.github.io/ponder/napkin-math-trust-region-opt/},
 }
 ```

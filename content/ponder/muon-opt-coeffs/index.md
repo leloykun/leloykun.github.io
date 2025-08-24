@@ -296,6 +296,8 @@ if __name__ == "__main__":
   author = {Franz Louis Cesista and YouJiacheng and Keller Jordan},
   title = {Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients},
   year = {2025},
+  month = {February},
+  day = {21},
   url = {http://leloykun.github.io/ponder/muon-opt-coeffs/},
 }
 ```

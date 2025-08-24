@@ -353,6 +353,8 @@ Big thanks to Jeremy Bernstein, Cédric Simal, and Antonio Silveti-Falls for pro
   author = {Franz Louis Cesista},
   title = {"Steepest Descent on Finsler-Structured (Matrix) Manifolds"},
   year = {2025},
+  month = {August},
+  day = {20},
   url = {http://leloykun.github.io/ponder/steepest-descent-finsler/},
 }
 ```

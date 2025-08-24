@@ -46,6 +46,8 @@ which is just the update rule for Muon.
   author = {Franz Louis Cesista},
   title = {{CASPR} Without Accumulation is {M}uon},
   year = {2025},
+  month = {February},
+  day = {13},
   url = {https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/},
 }
 ```

@@ -791,6 +791,8 @@ Big thanks to Songlin Yang, Julien Siems, and @Smerky, @BeeGass, @safelix, and @
   author = {Franz Louis Cesista},
   title = {Blocked Matrix Formulation of Linear Attention Mechanisms},
   year = {2025},
+  month = {March},
+  day = {16},
   url = {https://leloykun.github.io/ponder/blockmat-linear-attn/},
 }
 ```

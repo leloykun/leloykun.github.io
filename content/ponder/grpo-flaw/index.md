@@ -58,6 +58,8 @@ Yes, the goal of introducing a baseline is to reduce the variance of the gradien
   author = {Franz Louis Cesista},
   title = {GRPO's Main Flaw},
   year = {2025},
+  month = {February},
+  day = {11},
   url = {http://leloykun.github.io/ponder/grpo-flaw/},
 }
 ```

@@ -775,6 +775,8 @@ Many thanks to Rohan Anil for initiating a [discussion thread on the topic on Tw
   author = {Franz Louis Cesista},
   title = {"Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping Via Newton-Schulz Iteration"},
   year = {2025},
+  month = {June},
+  day = {23},
   url = {http://leloykun.github.io/ponder/spectral-clipping/},
 }
 ```

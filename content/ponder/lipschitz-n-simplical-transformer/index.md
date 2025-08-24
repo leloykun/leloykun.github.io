@@ -433,6 +433,8 @@ Lastly, this could also be used to parametrize a continuous n-simplicial attenti
   author = {Franz Louis Cesista},
   title = {"Sensitivity and Sharpness of n-Simplicial Attention"},
   year = {2025},
+  month = {July},
+  day = {6},
   url = {https://leloykun.github.io/ponder/lipschitz-n-simplical-transformer/},
 }
 ```

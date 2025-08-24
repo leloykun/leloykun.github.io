@@ -549,6 +549,8 @@ Big thanks to Jianlin Su, Jeremy Bernstein, Vinay Rao, Antonio Silveti-Falls, Mi
   author = {Franz Louis Cesista},
   title = {"Heuristic Solutions for Steepest Descent on the Stiefel Manifold"},
   year = {2025},
+  month = {July},
+  day = {18},
   url = {http://leloykun.github.io/ponder/steepest-descent-stiefel/},
 }
 ```

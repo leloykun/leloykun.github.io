@@ -99,6 +99,8 @@ https://arxiv.org/abs/2410.01131
   author = {Franz Louis Cesista},
   title = {Deep Learning Optimizers as Steepest Descent in Normed Spaces},
   year = {2024},
+  month = {October},
+  day = {20},
   url = {http://leloykun.github.io/ponder/steepest-descent-opt/},
 }
 ```
