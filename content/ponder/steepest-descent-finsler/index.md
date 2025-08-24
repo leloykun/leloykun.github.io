@@ -83,6 +83,8 @@ Let $\mathcal{M}$ be a (matrix) manifold and $\\| \cdot \\|$ be a Finsler norm d
 > Given the current weight $W \in \mathcal{M}$ and a "raw gradient" or differential we get via e.g. backpropagation $G \in T\_{W}^\*\mathcal{M} \subseteq \mathbb{R}^{m \times n}$, we want to find the optimal update $A^\*$ such that,
 > $$\begin{equation} A^\* = \arg\max\_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \\| A \\| \leq 1,\quad A \in T\_{W}\mathcal{M} \end{equation}$$
 
+Note that the $\langle \cdot, \cdot \rangle$ operator above is *not* an inner product, but the canonical pairing between the cotangent and tangent spaces. It holds no geometric meaning by itself. However, in the standard basis of $R^{m \times n}$, it *behaves like* the Frobenius/Euclidean inner product.
+
 Replacing the constraints with indicator functions yields,
 $$\begin{equation} A^\* = -\arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ \langle G, A \rangle + \mathcal{i}\_{\\| \cdot \\| \leq 1}(A) + \mathcal{i}\_{T\_{W}\mathcal{M}}(A) \right\\} \end{equation}$$
 where,
