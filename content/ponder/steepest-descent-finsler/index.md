@@ -77,20 +77,31 @@ The problem Jeremy, Jianlin, and I have been trying to solve then is this:
 
 Inspired by a partial solution by Jianlin (which did not yet work at the time), I proposed [heuristic solutions here](../steepest-descent-stiefel/). Jianlin then [solved the problem](https://kexue.fm/archives/11221) via a fixed-point iteration method. Finally, Jeremy proposed a [more general solution](https://docs.modula.systems/algorithms/manifold/stiefel/) via the dual ascent algorithm. [Cédric Simal](https://scholar.google.com/citations?user=Vo3M-WIAAAAJ&hl) also independently proposed studying the dual problem to me and Jeremy.
 
-## 3. General solution via block-wise Primal-Dual Hybrid Gradient
+## 3. General solution via block-wise Primal-Dual Hybrid Gradient (PDHG) algorithm
+
+### 3.1. Problem statement
 
 Let $\mathcal{M}$ be a (matrix) manifold and $\\| \cdot \\|$ be a Finsler norm defined on the tangent spaces of $\mathcal{M}$, both chosen a priori. We want to solve the problem,
-> Given the current weight $W \in \mathcal{M}$ and a "raw gradient" or differential we get via e.g. backpropagation $G \in T\_{W}^\*\mathcal{M} \subseteq \mathbb{R}^{m \times n}$, we want to find the optimal update $A^\*$ such that,
-> $$\begin{equation} A^\* = \arg\max\_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \\| A \\| \leq 1,\quad A \in T\_{W}\mathcal{M} \end{equation}$$
+> Given the current weight $W \in \mathcal{M}$ and a "raw gradient" or differential we get via e.g. backpropagation $G \in T\_{W}^\*\mathcal{M} \subseteq \mathbb{R}^{m \times n}$, we want to find the optimal update $A^\* \in T\_{W}\mathcal{M} \subseteq \mathbb{R}^{m \times n}$ such that,
+> $$\begin{equation} A^\* = \arg\max\_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \\| A \\|\_{W} \leq \eta,\quad A \in T\_{W}\mathcal{M} \end{equation}$$
+> where $\eta > 0$ is the learning rate parameter.
 
-Note that the $\langle \cdot, \cdot \rangle$ operator above is *not* an inner product, but the canonical pairing between the cotangent and tangent spaces. It holds no geometric meaning by itself. However, in the standard basis of $R^{m \times n}$, it *behaves like* the Frobenius/Euclidean inner product.
+The $\langle \cdot, \cdot \rangle: T^\*\_{W}\mathcal{M} \times T\_{W}\mathcal{M} \to \mathbb{R}$ operator above is *not* an inner product, but the canonical pairing between the cotangent and tangent spaces. It holds no geometric meaning by itself. However, in the standard basis of $R^{m \times n}$, it *behaves like* the Frobenius/Euclidean inner product.
 
-Replacing the constraints with indicator functions yields,
-$$\begin{equation} A^\* = -\arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ \langle G, A \rangle + \mathcal{i}\_{\\| \cdot \\| \leq 1}(A) + \mathcal{i}\_{T\_{W}\mathcal{M}}(A) \right\\} \end{equation}$$
+### 3.2. Convex optimization approach
+
+First, notice that the feasible sets for the constraints on $A$ above are convex. And so we can frame this problem as a convex optimization problem.
+
+> Note: an intuitive, but incorrect approach is to simply project $G$ onto the (convex) intersection. First, this projection often does not have a closed-form solution. And second, it is suboptimal. Counterexample: suppose that $A=G$ is already in the intersection, but $\\| A \\|\_{W} = 0.5\eta$. Then $2A$ must also be in the intersection. However, $\langle G, 2A \rangle > \langle G, A \rangle$.
+
+There are many ways to solve this problem such as Alternating Direction Method of Multipliers (ADMM), Douglas-Rachford, and etc. In this blog post, we will focus on the Primal-Dual Hybrid Gradient (PDHG) method.
+
+First, replace the constraints with indicator functions,
+$$\begin{equation} A^\* = -\arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ \langle G, A \rangle + \mathcal{i}\_{\\| \cdot \\|\_{W} \leq \eta}(A) + \mathcal{i}\_{T\_{W}\mathcal{M}}(A) \right\\} \end{equation}$$
 where,
-$$ \mathcal{i}\_{\\| \cdot \\| \leq 1}(A) =
+$$ \mathcal{i}\_{\\| \cdot \\|\_{W} \leq \eta}(A) =
 \begin{cases}
-    0 &\text{ if } \\| A \\| \leq 1 \\\\
+    0 &\text{ if } \\| A \\|\_{W} \leq \eta \\\\
     \infty &\text{ otherwise}
 \end{cases}
 \qquad \text{ and } \qquad
@@ -102,14 +113,14 @@ $$ \mathcal{i}\_{\\| \cdot \\| \leq 1}(A) =
 $$
 
 Equivalently,
-$$\begin{equation} A^\* = -\arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ f(A) + g(A) \right\\} \end{equation}$$
-where $f(\cdot) := \mathcal{i}\_{\\| \cdot \\|\_{\leq 1}}(\cdot)$ and $g(\cdot) := \mathcal{i}\_{T\_{W}\mathcal{M}}(\cdot) + \langle G, \cdot \rangle$. Note that we can move the $\langle G, \cdot \rangle$ term to $f$ instead, but as we will see later, the proximal operator for $g$ is simpler so we keep it there for improved numerical stability.
+$$\begin{equation} A^\* = -\arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ f\_{\eta}(A) + g(A) \right\\} \end{equation}$$
+where $f\_{\eta}(\cdot) := \mathcal{i}\_{\\| \cdot \\|\_{W} \leq \eta}(\cdot)$ and $g(\cdot) := \mathcal{i}\_{T\_{W}\mathcal{M}}(\cdot) + \langle G, \cdot \rangle$. Note that we can move the $\langle G, \cdot \rangle$ term to $f$ instead, but as we will see later, the proximal operator for $g$ is simpler so we keep it there for improved numerical stability.
 
 We can then split Equation (4) into two subproblems by 'copying' $A$,
-$$\begin{equation} A^\* = -\left[\arg\min\_{A,B \in \mathbb{R}^{m \times n}} \\{f(A) + g(B)\\} \quad \text{ s.t. } \quad A - B = 0\right]\_{A} \end{equation}$$
+$$\begin{equation} A^\* = -\left[\arg\min\_{A,B \in \mathbb{R}^{m \times n}} \\{f\_{\eta}(A) + g(B)\\} \quad \text{ s.t. } \quad A - B = 0\right]\_{A} \end{equation}$$
 This effectively blows up our solution search space, but one can easily prove that the optimal solution to the problem above also solves our original problem!
 
-### 3.1. Recasting as a primal-dual problem
+### 3.3. Recasting as a primal-dual problem
 
 Define,
 $$
@@ -119,7 +130,7 @@ $$
         B
     \end{bmatrix}\\\\
     L &:= \begin{bmatrix} I & -I \end{bmatrix} \\\\
-    \mathcal{F}(X) &:= f(A) + g(B) \\\\
+    \mathcal{F}\_{\eta}(X) &:= f\_{\eta}(A) + g(B) \\\\
     \mathcal{G}(Y) &:= \mathcal{i}\_{\\{0\\}}(Y) = \begin{cases}
         0 &\text{ if } Y = 0 \\\\
         \infty &\text{ otherwise}
@@ -130,18 +141,18 @@ where $X \in \mathcal{X} = \mathbb{R}^{2m \times n}$, $Y \in \mathcal{Y} = \math
 
 Then Equation (5) can be rewritten to,
 $$\begin{align}
-    A^\* &= -\left[ \arg\min\_{X \in \mathcal{X}} \\{\mathcal{F}(X) + \mathcal{G}(LX)\\} \right]\_{1}
+    A^\* &= -\left[ \arg\min\_{X \in \mathcal{X}} \\{\mathcal{F}\_{\eta}(X) + \mathcal{G}(LX)\\} \right]\_{1}
 \end{align}$$
 
 Fenchel duality then yields the saddle problem,
 $$\begin{align}
     \min\_{X \in \mathcal{X}} \max\_{Y \in \mathcal{Y}} \mathcal{L}(X,Y)
-        &:= \mathcal{F}(X) + \langle LX, Y \rangle - \mathcal{G}^\*(Y) \nonumber \\\\
-        &\ = \mathcal{F}(X) + \langle LX, Y \rangle
+        &:= \mathcal{F}\_{\eta}(X) + \langle LX, Y \rangle - \mathcal{G}^\*(Y) \nonumber \\\\
+        &\ = \mathcal{F}\_{\eta}(X) + \langle LX, Y \rangle
 \end{align}$$
 since $\mathcal{G}^\*(Y) = \sup\_{Z \in \mathcal{Y}} \\{ \langle Y, Z \rangle - \underbrace{\mathcal{G}(Z)}\_{=\infty \text{ if } Z \neq 0} \\} = \langle Y, 0 \rangle + \mathcal{G}(0) = 0$ for all $Y \in \mathcal{Y}$.
 
-### 3.2. Block-wise Primal-Dual Hybrid Gradient
+### 3.4. Block-wise Primal-Dual Hybrid Gradient
 
 Following [ODL's page on PDHG](https://odlgroup.github.io/odl/math/solvers/nonsmooth/pdhg.html), we choose $\tau\_A, \tau\_B, \sigma > 0$, $\theta \in [0,1]$, and initialize $X\_0 \in \mathcal{X}$, $Y\_0 \in \mathcal{Y}$, and $\widetilde{X}\_0 = X\_0$. We then iterate,
 $$\begin{align}
@@ -153,7 +164,7 @@ where $\tau = \text{diag}(\tau\_A I\_m, \tau\_B I\_m)$ and $\texttt{prox}$ is th
 
 To speed up convergence, we can also re-use the $X^\*$ and $Y^\*$ from the previous optimization step to initialize $X_0$ and $Y_0$. This is especially useful when e.g. using (nesterov) momentum on $G$, guaranteeing that the 'input gradients' do not vary too much.
 
-#### 3.2.1. Converting proximal operators to projections
+#### 3.4.1. Converting proximal operators to projections
 
 For the $Y$-variable,
 $$\begin{align*}
@@ -167,23 +178,23 @@ For the $X$-variable,
 $$\begin{align*}
     X\_{k+1}
         &= \texttt{prox}\_{\tau \mathcal{F}} (X\_{k} - \tau L^T Y\_{k+1}) \\\\
-        &= \arg\min\_{X \in \mathcal{X}} \left\\{ \tau \mathcal{F}(X) + \frac{1}{2} \\| X - (X\_{k} - \tau L^T Y\_{k+1}) \\|\_F^2 \right\\} \\\\
-        &= \arg\min\_{X \in \mathcal{X}} \left\\{ \tau\_A f(A) + \tau\_B g(B) + \frac{1}{2} \left\\| \begin{bmatrix}
+        &= \arg\min\_{X \in \mathcal{X}} \left\\{ \tau \mathcal{F}\_{\eta}(X) + \frac{1}{2} \\| X - (X\_{k} - \tau L^T Y\_{k+1}) \\|\_F^2 \right\\} \\\\
+        &= \arg\min\_{X \in \mathcal{X}} \left\\{ \tau\_A f\_{\eta}(A) + \tau\_B g(B) + \frac{1}{2} \left\\| \begin{bmatrix}
             A - (A\_k - \tau\_A Y\_{k+1}) \\\\
             B - (B\_k + \tau\_B Y\_{k+1})
         \end{bmatrix} \right\\|\_F^2 \right\\} \\\\
-        &= \arg\min\_{X \in \mathcal{X}} \\{ \tau\_A f(A) + \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \\\\
+        &= \arg\min\_{X \in \mathcal{X}} \\{ \tau\_A f\_{\eta}(A) + \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \\\\
         &\qquad\qquad + \tau\_B g(B) + \frac{1}{2} \left\\| B - (B\_k + \tau\_B Y\_{k+1}) \right\\|\_F^2 \\} \\\\
 \end{align*}$$
 
 Note that we can optimize for $A$ and $B$ separately and thus get,
 $$\begin{align*}
     A\_{k+1}
-        &= \arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ \tau\_A f(A) + \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
-        &= \arg\min\_{\\| A \\| \leq 1} \left\\{ \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
-        &= \texttt{proj}\_{\\| \cdot \\| \leq 1} (A\_k - \tau\_A Y\_{k+1}) \\\\
+        &= \arg\min\_{A \in \mathbb{R}^{m \times n}} \left\\{ \tau\_A f\_{\eta}(A) + \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
+        &= \arg\min\_{\\| A \\|\_{W} \leq \eta} \left\\{ \frac{1}{2} \left\\| A - (A\_k - \tau\_A Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
+        &= \texttt{proj}\_{\\| \cdot \\|\_{W} \leq \eta} (A\_k - \tau\_A Y\_{k+1}) \\\\
 \end{align*}$$
-where $\texttt{proj}\_{\\| \cdot \\| \leq 1}$ is the projection onto the unit norm ball. Likewise,
+where $\texttt{proj}\_{\\| \cdot \\|\_{W} \leq \eta}$ is the projection onto the ${\eta}$-norm ball. Likewise,
 $$\begin{align*}
     B\_{k+1}
         &= \arg\min\_{B \in \mathbb{R}^{m \times n}} \left\\{ \tau\_B g(B) + \frac{1}{2} \left\\| B - (B\_k + \tau\_B Y\_{k+1}) \right\\|\_F^2 \right\\} \\\\
@@ -197,19 +208,19 @@ Thus,
 $$
 \begin{equation}
     X\_{k+1} = \begin{bmatrix}
-        \texttt{proj}\_{\\| \cdot \\| \leq 1} (A\_k - \tau\_A Y\_{k+1}) \\\\
+        \texttt{proj}\_{\\| \cdot \\|\_{W} \leq \eta} (A\_k - \tau\_A Y\_{k+1}) \\\\
         \texttt{proj}\_{T\_W\mathcal{M}} (B\_k + \tau\_B Y\_{k+1} - \tau\_B G)
     \end{bmatrix}
 \end{equation}
 $$
 
-#### 3.2.2. Block-wise PDHG algorithm for the steepest descent on Finsler manifolds problem
+#### 3.4.2. Block-wise PDHG algorithm for the steepest descent on Finsler manifolds problem
 
 Taking everything together, our iteration becomes,
 
 $$\begin{align}
     Y\_{k+1} &= Y\_{k} + \sigma (\widetilde{A}\_{k} - \widetilde{B}\_{k}) \\\\
-    A\_{k+1} &= \texttt{proj}\_{\\| \cdot \\| \leq 1} (A\_k - \tau\_A Y\_{k+1}) \\\\
+    A\_{k+1} &= \texttt{proj}\_{\\| \cdot \\|\_{W} \leq \eta} (A\_k - \tau\_A Y\_{k+1}) \\\\
     B\_{k+1} &= \texttt{proj}\_{T\_W\mathcal{M}} (B\_k + \tau\_B Y\_{k+1} - \tau\_B G) \\\\
     \widetilde{A}\_{k+1} &= A\_{k+1} + \theta (A\_{k+1} - A\_{k}) \\\\
     \widetilde{B}\_{k+1} &= B\_{k+1} + \theta (B\_{k+1} - B\_{k})
@@ -217,18 +228,18 @@ $$\begin{align}
 
 ## 4. Alternative solution to Stiefel Muon via Primal-Dual Hybrid Gradient
 
-Here we have $\mathcal{M} = \texttt{St}(m, n)$ and $\\| \cdot \\| = \\| \cdot \\|\_{2 \to 2}$. For the projection to the unit spectral norm ball, $\texttt{proj}\_{\\| \cdot \\|\_{2 \to 2} \leq 1}$, we can use the GPU/TPU-friendly spectral hardcap function discussed in my [previous blog post](../spectral-clipping/) and in [our latest paper](https://arxiv.org/abs/2507.13338).
+Here we have $\mathcal{M} = \texttt{St}(m, n)$ and $\\| \cdot \\| = \\| \cdot \\|\_{2 \to 2}$. For the projection to the spectral norm ball, $\texttt{proj}\_{\\| \cdot \\|\_{2 \to 2} \leq \eta}$, we can use the GPU/TPU-friendly spectral hardcap function discussed in my [previous blog post](../spectral-clipping/) and in [our latest paper](https://arxiv.org/abs/2507.13338).
 
 ```python
-def spectral_hardcap(W: jax.Array):
-    if transpose := W.shape[0] > W.shape[1]:
-        W = W.T
-    OW = _orthogonalize_via_newton_schulz(W)
-    aW = OW - W
-    result = (1/2) * (OW + W - aW @ _orthogonalize_via_newton_schulz(aW).T @ OW)
-    if transpose:
-        result = result.T
-    return result
+def spectral_hardcap(X: jax.Array, eta: float=1.):
+    def _spectral_hardcap_util(X: jax.Array):
+        if transpose := X.shape[0] > X.shape[1]:
+            X = X.T
+        result = (1/2) * ((OX := orthogonalize(X)) + X - orthogonalize(jnp.eye(X.shape[0]) - OX @ X.T) @ (OX - X))
+        if transpose:
+            result = result.T
+        return result
+    return eta * _spectral_hardcap_util(X / eta)
 ```
 
 And for the projection to the tangent space at $W \in \texttt{St}(m, n)$, we can use the projection map discussed in [Theorem 2 in this blog post](../steepest-descent-stiefel/),
@@ -239,7 +250,7 @@ $$\texttt{proj}\_{T\_W\texttt{St}(m, n)}(V) = V - W \text{sym}(W^T V)$$
 
 ```python
 def pdhg_stiefel_spectral(
-    W, G, *,
+    W, G, *, eta=1.0,
     tau_A=1.0, tau_B=1.0, sigma=0.49, gamma=1.,
     max_iters=200, tol=1e-6,
     A0=None, B0=None, y0=None
@@ -261,7 +272,7 @@ def pdhg_stiefel_spectral(
         y_new = y + sigma * (A_bar - B_bar)
 
         # Primal descent (A & B updates)
-        A_new = spectral_hardcap(A - tau_A * y_new)
+        A_new = spectral_hardcap(A - tau_A * y_new, eta)
         B_new = project_to_stiefel_tangent_space(W, B + tau_B * y_new - tau_B * G)
 
         # update step-sizes
@@ -324,7 +335,7 @@ and the rest then follows and Equation (11) becomes,
 $$
 \begin{equation}
     X\_{k+1} = \begin{bmatrix}
-        \texttt{proj}\_{\\| \cdot \\| \leq 1} (A\_k - \tau\_A [Y\_{k+1}]\_1 - \tau\_A [Y\_{k+1}]\_2) \\\\
+        \texttt{proj}\_{\\| \cdot \\| \leq \eta} (A\_k - \tau\_A [Y\_{k+1}]\_1 - \tau\_A [Y\_{k+1}]\_2) \\\\
         \texttt{proj}\_{T\_W\mathcal{M}} (B\_k + \tau\_B [Y\_{k+1}]\_1 - \tau\_B G) \\\\
         \texttt{proj}\_{S} (C\_k + \tau\_C [Y\_{k+1}]\_2)
     \end{bmatrix}
