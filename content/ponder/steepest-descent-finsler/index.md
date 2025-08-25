@@ -92,7 +92,7 @@ The $\langle \cdot, \cdot \rangle: T^\*\_{W}\mathcal{M} \times T\_{W}\mathcal{M}
 
 First, notice that the feasible sets for the constraints on $A$ above are convex, regardless of where we currently are in the manifold. And so we can frame this problem squarely as a convex optimization problem.
 
-> Note: an intuitive, but incorrect approach is to simply project $G$ onto the (convex) intersection. First, this projection often does not have a closed-form solution. And second, it is suboptimal. Counterexample: suppose that $A=G$ is already in the intersection, but $\\| A \\|\_{W} = 0.5\eta$. Then $2A$ must also be in the intersection. However, $\langle G, 2A \rangle > \langle G, A \rangle$.
+> Note: an intuitive, but incorrect approach is to simply project $G$ onto the (convex) intersection. First, this projection often does not have a closed-form solution. And second, it is suboptimal. Counterexample: suppose that $A=G$ is already in the intersection and $\langle G, A \rangle > 0$, but $\\| A \\|\_{W} = 0.5\eta$. Then $2A$ must also be in the intersection, but $\langle G, 2A \rangle > \langle G, A \rangle$. Hence, naive projection onto the intersection is suboptimal.
 
 There are many ways to solve this problem such as Alternating Direction Method of Multipliers (ADMM), Douglas-Rachford, and etc. In this blog post, we will focus on the Primal-Dual Hybrid Gradient (PDHG) method.
 
