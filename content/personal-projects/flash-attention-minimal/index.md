@@ -25,7 +25,7 @@ A minimal re-implementation of Flash Attention with CUDA and PyTorch. The [offic
 ```bibtex
 @misc{cesista2024flashattentionminimal,
   author = {Franz Louis Cesista},
-  title = {"Flash Attention Minimal"},
+  title = {Flash Attention Minimal},
   year = {2024},
   url = {https://github.com/leloykun/flash-attention-minimal/},
 }

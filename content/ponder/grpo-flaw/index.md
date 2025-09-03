@@ -56,7 +56,7 @@ Yes, the goal of introducing a baseline is to reduce the variance of the gradien
 ```bibtex
 @misc{cesista2025grpoflaw,
   author = {Franz Louis Cesista},
-  title = {GRPO's Main Flaw},
+  title = {{GRPO}'s Main Flaw},
   year = {2025},
   month = {February},
   day = {11},

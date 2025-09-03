@@ -282,7 +282,7 @@ That's it for now. Until next time!
 ```bibtex
 @misc{cesista2025schattenp,
   author = {Franz Louis Cesista},
-  title = {Steepest Descent Under Schatten-p Norms},
+  title = {{S}teepest {D}escent Under {S}chatten-p {N}orms},
   year = {2025},
   month = {February},
   day = {7},

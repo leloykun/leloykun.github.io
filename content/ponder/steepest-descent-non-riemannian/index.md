@@ -802,14 +802,14 @@ A side-effect of this is that it allows the model parameters to "escape" the sma
 
 ## Acknowledgements
 
-Many thanks to Jeremy Bernstein, Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their feedback on this work. I have been (and still is) trying to incorporate their feedback into this work. Also many thanks to Keller Jordan for developing Muon in the first place and for conversations on optimization and machine learning, in general.
+Many thanks to Jeremy Bernstein, Omead Pooladzandi, Simo Ryu, and Antonio Silveti-Falls for their feedback on this work. I have been (and still is) trying to incorporate their feedback into this work. Also many thanks to Keller Jordan for developing Muon in the first place and for conversations on optimization and machine learning, in general. All remaining mistakes are mine.
 
 ## How to Cite
 
 ```bibtex
 @misc{cesista2025sdnr,
   author = {Franz Louis Cesista},
-  title = {Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds},
+  title = {{M}uon and a Selective Survey on {S}teepest {D}escent in {R}iemannian and Non-{R}iemannian {M}anifolds},
   year = {2025},
   month = {April},
   day = {3},

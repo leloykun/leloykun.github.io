@@ -27,7 +27,7 @@ Neural networks are often highly sensitive to input and weight perturbations. Th
 
 ```bibtex
 @misc{newhouse2025training,
-    title={Training Transformers with Enforced Lipschitz Constants},
+    title={{T}raining {T}ransformers with {E}nforced {L}ipschitz {B}ounds},
     author={Laker Newhouse and R. Preston Hess and Franz Cesista and Andrii Zahorodnii and Jeremy Bernstein and Phillip Isola},
     year={2025},
     eprint={2507.13338},

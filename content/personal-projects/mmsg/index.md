@@ -26,7 +26,7 @@ Generate interleaved text and image content in a structured format you can direc
 ```bibtex
 @misc{cesista2024mmsg,
   author = {Franz Louis Cesista},
-  title = {"Multimodal Structured Generation"},
+  title = {Multimodal Structured Generation},
   year = {2024},
   url = {https://github.com/leloykun/mmsg},
 }

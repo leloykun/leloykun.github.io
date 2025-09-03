@@ -766,14 +766,14 @@ Finally, spectral normalization, spectral hardcapping, and spectral clipped weig
 
 ## Acknowledgements
 
-Many thanks to Rohan Anil for initiating a [discussion thread on the topic on Twitter](https://x.com/_arohan_/status/1929945590366122037), and to Arthur Breitman, You Jiacheng, and Su Jianlin for [productive](https://x.com/ArthurB/status/1929958284754330007) [discussions](https://x.com/YouJiacheng/status/1931029612102078749) on [the topic](https://kexue.fm/archives/11006).
+Many thanks to Rohan Anil for initiating a [discussion thread on the topic on Twitter](https://x.com/_arohan_/status/1929945590366122037), and to Arthur Breitman, You Jiacheng, and Su Jianlin for [productive](https://x.com/ArthurB/status/1929958284754330007) [discussions](https://x.com/YouJiacheng/status/1931029612102078749) on [the topic](https://kexue.fm/archives/11006). All remaining mistakes are mine.
 
 ## How to Cite
 
 ```bibtex
 @misc{cesista2025spectralclipping,
   author = {Franz Louis Cesista},
-  title = {"Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping Via Newton-Schulz Iteration"},
+  title = {{F}ast, {N}umerically {S}table, and {A}uto-{D}ifferentiable {S}pectral {C}lipping Via {N}ewton-{S}chulz {I}teration"},
   year = {2025},
   month = {June},
   day = {23},

@@ -431,7 +431,7 @@ Lastly, this could also be used to parametrize a continuous n-simplicial attenti
 ```bibtex
 @misc{cesista2025sensitivitysharpnessnsimplicalattention,
   author = {Franz Louis Cesista},
-  title = {"Sensitivity and Sharpness of n-Simplicial Attention"},
+  title = {{S}ensitivity and {S}harpness of n-{S}implicial {A}ttention},
   year = {2025},
   month = {July},
   day = {6},

@@ -540,14 +540,14 @@ The best recipe seems to be:
 
 ## Acknowledgements
 
-Big thanks to Jianlin Su, Jeremy Bernstein, Vinay Rao, Antonio Silveti-Falls, Mikail Khona, Omead Pooladzandi, Simo Ryu, and Kevin Yin for productive discussions on the topic.
+Big thanks to Jianlin Su, Jeremy Bernstein, Vinay Rao, Antonio Silveti-Falls, Mikail Khona, Omead Pooladzandi, Simo Ryu, and Kevin Yin for productive discussions on the topic. All remaining mistakes are mine.
 
 ## How to cite
 
 ```bibtex
 @misc{cesista2025spectralclipping,
   author = {Franz Louis Cesista},
-  title = {"Heuristic Solutions for Steepest Descent on the Stiefel Manifold"},
+  title = {{H}euristic Solutions for {S}teepest {D}escent on the {S}tiefel {M}anifold"},
   year = {2025},
   month = {July},
   day = {18},

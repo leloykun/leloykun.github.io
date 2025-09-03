@@ -156,7 +156,7 @@ and let's pick an arbitrary entry $G_{t,i,j}$. Like before, if the signs of the 
 ```bibtex
 @misc{cesista2025adamaggressiveclipping,
   author = {Franz Louis Cesista},
-  title = {"Adam with Aggressive Gradient Clipping ≈ Smoothed SignSGD/NormSGD"},
+  title = {{A}dam with Aggressive Gradient Clipping ≈ {S}moothed {SignSGD}/{NormSGD}},
   year = {2025},
   month = {July},
   day = {3},

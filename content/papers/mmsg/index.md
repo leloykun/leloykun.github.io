@@ -29,7 +29,7 @@ Multimodal Foundation Models (MMFMs) have shown remarkable performance on variou
 
 ```bibtex
 @misc{cesista2024mmsg,
-    title={Multimodal Structured Generation: CVPR's 2nd MMFM Challenge Technical Report},
+    title={{M}ultimodal {S}tructured {G}eneration: {CVPR}'s 2nd {MMFM} {C}hallenge {T}echnical {R}eport},
     author={Franz Louis Cesista},
     year={2024},
     eprint={2406.11403},

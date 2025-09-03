@@ -294,7 +294,7 @@ if __name__ == "__main__":
 ```bibtex
 @misc{cesista2025muonoptcoeffs,
   author = {Franz Louis Cesista and YouJiacheng and Keller Jordan},
-  title = {Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients},
+  title = {{S}queezing 1-2% Efficiency Gains Out of {M}uon by Optimizing the {N}ewton-{S}chulz {C}oefficients},
   year = {2025},
   month = {February},
   day = {21},

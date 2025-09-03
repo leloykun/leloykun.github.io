@@ -782,7 +782,7 @@ In the next post, we'll talk about faster ways to calculate $A^\*\_{c}$ and $B^\
 
 ## Acknowledgements
 
-Big thanks to Songlin Yang, Julien Siems, and @Smerky, @BeeGass, @safelix, and @jacobbuckman for their feedback and discussions!
+Big thanks to Songlin Yang, Julien Siems, and @Smerky, @BeeGass, @safelix, and @jacobbuckman for their feedback and discussions! All remaining mistakes are mine.
 
 ## How to Cite
 

@@ -344,14 +344,14 @@ $$
 
 ## Acknowledgements
 
-Big thanks to Jeremy Bernstein, Cédric Simal, and Antonio Silveti-Falls for productive discussions on the topic!
+Big thanks to Jeremy Bernstein, Cédric Simal, and Antonio Silveti-Falls for productive discussions on the topic! All remaining mistakes are mine.
 
 ## How to cite
 
 ```bibtex
 @misc{cesista2025steepestdescentfinsler,
   author = {Franz Louis Cesista},
-  title = {"Steepest Descent on Finsler-Structured (Matrix) Manifolds"},
+  title = {{S}teepest {D}escent on {F}insler-Structured (Matrix) {M}anifolds},
   year = {2025},
   month = {August},
   day = {20},
