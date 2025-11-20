@@ -8,3 +8,7 @@ resources/
 
 # Local secrets
 .env
+
+*.ipynb_checkpoints
+*.ipynb
+data/
