@@ -4,7 +4,7 @@ name: Deploy Hugo website to Pages
 on:
   # Run on pushes targeting the default branch
   push:
-    branches: ["main"]
+    branches: ["prod"]
 
   # Permission to run this workflow manually from the Actions tab
   workflow_dispatch:
