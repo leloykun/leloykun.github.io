@@ -149,9 +149,9 @@ Following Large et al. (2024), we use the following shorthand which is crucial f
 
 > **Proposition 8 (Crucial inequalities regarding $[B, x]$):** For any $\underbrace{T \times T \times \ldots \times T}_{n+1}$ tensor $B$ with non-negative entries and $\sum_J B_{iJ} = 1$ for all $1 \leq i \leq T$,
 > $$\begin{aligned}
-    \sum_{J} B_{iJ} \| [B, x]_{iJ} \| &\leq \\max_J \| x_J \| \\
-    \sum_{J} B_{iJ} \| [B, x]_{iJ} \|^2 &\leq \\max_J \| x_J \|^2 \\
-    \sum_{J} B_{iJ} \| [B, x]_{iJ} \| \| [B, y]_{iJ} \| &\leq (\\max_J \| x_J \|)(\max_J \| y_J \|) \\
+    \sum_{J} B_{iJ} \| [B, x]_{iJ} \| &\leq \max_J \| x_J \| \\
+    \sum_{J} B_{iJ} \| [B, x]_{iJ} \|^2 &\leq \max_J \| x_J \|^2 \\
+    \sum_{J} B_{iJ} \| [B, x]_{iJ} \| \| [B, y]_{iJ} \| &\leq (\max_J \| x_J \|)(\max_J \| y_J \|) \\
 \end{aligned}$$
 > All three inequalities can be proven via standard probability theory.
 
@@ -169,10 +169,10 @@ We wish to show that the n-simplicial attention is unit sensitive for unit RMS n
 To prove this, let's first take the derivative of $\texttt{F}$ towards $(\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)})$,
 
 $$\begin{align}
-    \nabla \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) &= (\Delta A) V + A (\Delta V) \\
+    \nabla \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) &= (\Delta A) V + A (\Delta V) \label{eq:ffirstdiv} \\
     \| \nabla \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} ) \|_{\infty RMS}
-        &\leq \| (\Delta A) V \|_{\infty RMS} + \| A (\Delta V) \|_{\infty RMS}\nonumber\\
-        &\leq \| \Delta A \|_{\infty -op} \| V \|_{\infty RMS} + \| A \|_{\infty -op} \| \Delta V \|_{\infty RMS}\\
+        &\leq \| (\Delta A) V \|_{\infty RMS} + \| A (\Delta V) \|_{\infty RMS} \nonumber \\
+        &\leq \| \Delta A \|_{\infty -op} \| V \|_{\infty RMS} + \| A \|_{\infty -op} \| \Delta V \|_{\infty RMS} \label{eq:ffirstdivnorm} \\
 \end{align}$$
 
 By construction we have,
@@ -185,7 +185,7 @@ To calculate the norm of $\Delta V$, we have by the product rule,
 
 $$\begin{align}
     \Delta V
-        &= \frac{1}{d^{(n-1)/2}}  \sum_{t=1}^{n} \left[ \Delta v^{(t)} \circ \left( \prod_{s=1,s\neq t}^n \circ v^{(s)} \right)\right]
+        &= \frac{1}{d^{(n-1)/2}}  \sum_{t=1}^{n} \left[ \Delta v^{(t)} \circ \left( \prod_{s=1,s\neq t}^n \circ v^{(s)} \right)\right] \label{eq:vfirstdiv}
 \end{align}$$
 
 Thus,
@@ -194,12 +194,12 @@ $$\begin{align}
     \| \Delta V \|_{\infty RMS}
         &\leq \frac{1}{d^{(n-1)/2}}  \sum_{t=1}^{n} \left\| \Delta v^{(t)} \circ \prod_{s=1,s\neq t}^n \circ v^{(s)} \right\|_{\infty RMS}\nonumber\\
         &\leq \cancel{\frac{d^{(n-1)/2}}{d^{(n-1)/2}}}  \sum_{t=1}^{n} \| \Delta v^{(t)} \|_{\infty RMS} \prod_{s=1,s\neq t}^n \left\| v^{(s)} \right\|_{\infty RMS} &\text{(from Proposition 5)}\nonumber\\
-    \| \Delta V \|_{\infty RMS} &\leq \sum_{t=1}^{n} \| \Delta v^{(t)} \|_{\infty RMS}
+    \| \Delta V \|_{\infty RMS} &\leq \sum_{t=1}^{n} \| \Delta v^{(t)} \|_{\infty RMS} \label{eq:vfirstdivnorm}
 \end{align}$$
 
 Following the same calculation for $\Delta K$ yields,
 $$\begin{equation}
-    \| \Delta K \|_{\infty RMS} \leq d^{(n-1)/2} \sum_{t=1}^{n} \| \Delta k^{(t)} \|_{\infty RMS}
+    \| \Delta K \|_{\infty RMS} \leq d^{(n-1)/2} \sum_{t=1}^{n} \| \Delta k^{(t)} \|_{\infty RMS} \label{eq:kfirstdivnorm}
 \end{equation}$$
 
 ---
@@ -208,30 +208,31 @@ Following Large et al.'s proof (2024), a direct calculation of $\Delta A$ yields
 
 $$\begin{equation}
     \Delta A_{iJ}
-        = \frac{1}{d^{(n+1)/2}} A_{iJ} (\langle \Delta q_i, [A, K]_{iJ} \rangle + \langle q_i, [A, \Delta K]_{iJ} \rangle)
+        = \frac{1}{d^{(n+1)/2}} A_{iJ} (\langle \Delta q_i, [A, K]_{iJ} \rangle + \langle q_i, [A, \Delta K]_{iJ} \rangle) \label{eq:afirstdiv}
 \end{equation}$$
 
 Thus,
 
 $$\begin{align}
     \| \Delta A_{iJ} \|_{\infty -op}
-        &= \max_i \sum_J \| \Delta A_{iJ} \| \nonumber\\
-        &= \max_i \sum_J \left| \frac{1}{d^{(n+1)/2}} A_{iJ} (\langle \Delta q_i, [A, K]_{iJ} \rangle + \langle q_i, [A, \Delta K]_{iJ} \rangle) \right| \nonumber\\
-        &\leq \frac{1}{d^{(n+1)/2}} \max_i \sum_J A_{iJ} ( \| \Delta q_i \|_{2} \left\| [A, K]_{iJ} \right\|_{2} + \| q_i \|_{2} \left\| [A, \Delta K]_{iJ} \right\|_{2} ) &\text{(from Cauchy-Schwarz)} \nonumber\\
-        &\leq \frac{d}{d^{(n+1)/2}} \max_i \| \Delta q_i \|_{RMS} \sum_J A_{iJ} \left\| [A, K]_{iJ} \right\|_{RMS} \nonumber\\
-            &\quad+ \frac{d}{d^{(n+1)/2}} \max_i \| q_i \|_{RMS} \sum_J A_{iJ} \left\| [A, \Delta K]_{iJ} \right\|_{RMS} &\text{(from Proposition 5)} \nonumber\\
+        &= \max_i \sum_J \| \Delta A_{iJ} \| \nonumber \\
+        &= \max_i \sum_J \left| \frac{1}{d^{(n+1)/2}} A_{iJ} (\langle \Delta q_i, [A, K]_{iJ} \rangle + \langle q_i, [A, \Delta K]_{iJ} \rangle) \right| \nonumber \\
+        &\leq \frac{1}{d^{(n+1)/2}} \max_i \sum_J A_{iJ} ( \| \Delta q_i \|_{2} \left\| [A, K]_{iJ} \right\|_{2} + \| q_i \|_{2} \left\| [A, \Delta K]_{iJ} \right\|_{2} ) \nonumber \\
+        &\leq \frac{d}{d^{(n+1)/2}} \max_i \| \Delta q_i \|_{RMS} \sum_J A_{iJ} \left\| [A, K]_{iJ} \right\|_{RMS} \nonumber \\
+            &\quad+ \frac{d}{d^{(n+1)/2}} \max_i \| q_i \|_{RMS} \sum_J A_{iJ} \left\| [A, \Delta K]_{iJ} \right\|_{RMS} \nonumber \\
         &\leq \frac{1}{d^{(n-1)/2}} \max_i \| \Delta q_i \|_{RMS} \max_J \left\| K_{J} \right\|_{RMS} \nonumber\\
-            &\quad+ \frac{1}{d^{(n-1)/2}} \max_i \| q_i \|_{RMS} \max_J \left\| \Delta K_{J} \right\|_{RMS} &\text{(from Proposition 8)}  \nonumber\\
+            &\quad+ \frac{1}{d^{(n-1)/2}} \max_i \| q_i \|_{RMS} \max_J \left\| \Delta K_{J} \right\|_{RMS} \nonumber \\
         &\leq \frac{1}{d^{(n-1)/2}} \left(\| \Delta q \|_{\infty RMS} \left\| K \right\|_{\infty RMS} + \| q \|_{\infty RMS} \left\| \Delta K \right\|_{\infty RMS} \right) \\
         &\leq \cancel{\frac{d^{(n-1)/2}}{d^{(n-1)/2}}} \left(\| \Delta q \|_{\infty RMS}
-            + \sum_{t=1}^{n} \left\| \Delta k^{(t)} \right\|_{\infty RMS} \right) &\text{(from Lemma 6 \& Inequality 15)} \nonumber\\
+            + \sum_{t=1}^{n} \left\| \Delta k^{(t)} \right\|_{\infty RMS} \right) \nonumber \\
     \| \Delta A_{iJ} \|_{\infty -op}
-        &\leq \| \Delta q \|_{\infty RMS} + \sum_{t=1}^{n} \| \Delta k^{(t)} \|_{\infty RMS}
+        &\leq \| \Delta q \|_{\infty RMS} + \sum_{t=1}^{n} \| \Delta k^{(t)} \|_{\infty RMS} \label{eq:afirstdivnorm}
 \end{align}$$
+where the first inequality follows from Cauchy-Schwarz, the second from Proposition 5, the third from Proposition 8, and the second last from Lemma 6 and Inequality $\eqref{eq:kfirstdivnorm}$.
 
 ---
 
-Combining Inequalities (12), (14), and (18) then yields,
+Combining Inequalities $\eqref{eq:ffirstdivnorm}$, $\eqref{eq:vfirstdivnorm}$, and $\eqref{eq:afirstdivnorm}$ then yields,
 
 $$\begin{aligned}
     \| \nabla \texttt{F} \diamond \langle \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} \rangle \|_{\infty RMS}
@@ -256,43 +257,44 @@ Next, we wish to show that the n-simplicial attention is $3$-sharp for unit RMS 
 > To simplify notation, let's define,
 > $$\Delta^2 \texttt{F} := (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \diamond \nabla^2 \texttt{F} \diamond ( \Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)} )$$
 
-To prove this, let's first take the derivative of Equation (11) towards $(\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)})$,
+To prove this, let's first take the derivative of Equation $\eqref{eq:ffirstdiv}$ towards $(\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)})$,
 
 $$\begin{align}
     \Delta^2 \texttt{F}
-        &= (\Delta^2 A) V + (\tilde{\Delta} A) (\Delta V) + (\Delta A) (\tilde{\Delta} V) + A (\Delta^2 V) \nonumber\\
+        &= (\Delta^2 A) V + (\tilde{\Delta} A) (\Delta V) + (\Delta A) (\tilde{\Delta} V) + A (\Delta^2 V) \label{eq:fseconddiv} \\
     \| \Delta^2 \texttt{F}\|_{\infty RMS}
         &\leq \| (\Delta^2 A) V \|_{\infty RMS} + \| (\tilde{\Delta} A) (\Delta V) \|_{\infty RMS} \nonumber\\
         &\quad+ \| (\Delta A) (\tilde{\Delta} V) \|_{\infty RMS} + \| A (\Delta^2 V) \|_{\infty RMS} \nonumber\\
         &\leq \| \Delta^2 A \|_{\infty -op} \cancel{\| V \|_{\infty RMS}} + \| \tilde{\Delta} A \|_{\infty -op} \| \Delta V \|_{\infty RMS} \nonumber\\
-        &\quad + \| \Delta A \|_{\infty -op} \| \tilde{\Delta} V \|_{\infty RMS} + \cancel{\| A \|_{\infty -op}} \| \Delta^2 V \|_{\infty RMS} \\
+        &\quad + \| \Delta A \|_{\infty -op} \| \tilde{\Delta} V \|_{\infty RMS} + \cancel{\| A \|_{\infty -op}} \| \Delta^2 V \|_{\infty RMS} \label{eq:fseconddivnorm} \\
 \end{align}$$
 
 We have already derived $\| \Delta A \|_{\infty -op}$ and $\| \Delta V \|_{\infty RMS}$ in the previous section. And for $\| \tilde{\Delta} A \|_{\infty -op}$ and $\| \tilde{\Delta} V \|_{\infty RMS}$, it would suffice to replace $\Delta$ with $\tilde{\Delta}$ in the previous derivations. Again, we also have $\| V \|_{\infty RMS} \leq 1$ and $ \| A \|_{\infty -op} = 1$ by construction. So, we only need to derive $\| \Delta^2 A \|_{\infty -op}$ and $\| \Delta^2 V \|_{\infty RMS}$.
 
 ---
 
-To calculate the norm of the $\Delta^2 V$ term, let's take the derivative of Equation (13) towards $\tilde{\Delta}$,
+To calculate the norm of the $\Delta^2 V$ term, let's take the derivative of Equation $\eqref{eq:vfirstdiv}$ towards $\tilde{\Delta}$,
 
 $$\begin{align}
     \Delta^2 V
-        &= \frac{1}{d^{(n-1)/2}}  \sum_{1 \leq t < s \leq n} \left[ \Delta v^{(t)} \circ \tilde{\Delta} v^{(s)} \circ \left( \prod_{r=1,r\neq t,r\neq s}^n \circ v^{(r)} \right)\right]
+        &= \frac{1}{d^{(n-1)/2}}  \sum_{1 \leq t < s \leq n} \left[ \Delta v^{(t)} \circ \tilde{\Delta} v^{(s)} \circ \left( \prod_{r=1,r\neq t,r\neq s}^n \circ v^{(r)} \right)\right] \label{eq:vseconddiv}
 \end{align}$$
 
 Thus,
 
 $$\begin{align}
     \| \Delta^2 V \|_{\infty RMS}
-        &\leq \frac{1}{d^{(n-1)/2}}  \sum_{1 \leq t < s \leq n} \left\| \Delta v^{(t)} \circ \tilde{\Delta} v^{(s)} \circ \prod_{r=1,r\neq t,r\neq s}^n \circ v^{(r)} \right\|_{\infty RMS} \nonumber\\
-        &\leq \frac{d}{d^{(n-1)/2}}  \sum_{1 \leq t < s \leq n} \| \Delta v^{(t)} \|_{\infty RMS} \| \tilde{\Delta} v^{(s)} \|_{\infty RMS} \left\| \prod_{r=1,r\neq t,r\neq s}^n \circ v^{(r)} \right\|_{\infty RMS} &\text{(from Proposition 5)}\nonumber\\
-        &\leq \cancel{\frac{dd^{(n-3)/2}}{d^{(n-1)/2}}} \sum_{1 \leq t < s \leq n} \| \Delta v^{(t)} \|_{\infty RMS} \| \tilde{\Delta} v^{(s)} \|_{\infty RMS} &\text{(from Lemma 6)}\nonumber\\
+        &\leq \frac{1}{d^{(n-1)/2}}  \sum_{1 \leq t < s \leq n} \left\| \Delta v^{(t)} \circ \tilde{\Delta} v^{(s)} \circ \prod_{r=1,r\neq t,r\neq s}^n \circ v^{(r)} \right\|_{\infty RMS} \nonumber \\
+        &\leq \frac{d}{d^{(n-1)/2}}  \sum_{1 \leq t < s \leq n} \| \Delta v^{(t)} \|_{\infty RMS} \| \tilde{\Delta} v^{(s)} \|_{\infty RMS} \left\| \prod_{r=1,r\neq t,r\neq s}^n \circ v^{(r)} \right\|_{\infty RMS} \nonumber \\
+        &\leq \cancel{\frac{dd^{(n-3)/2}}{d^{(n-1)/2}}} \sum_{1 \leq t < s \leq n} \| \Delta v^{(t)} \|_{\infty RMS} \| \tilde{\Delta} v^{(s)} \|_{\infty RMS} \nonumber \\
     \| \Delta^2 V \|_{\infty RMS}
-        &\leq \left( \sum_{t=1}^n \| \Delta v^{(t)} \|_{\infty RMS} \right) \left( \sum_{t=1}^n \| \tilde{\Delta} v^{(t)} \|_{\infty RMS} \right)
+        &\leq \left( \sum_{t=1}^n \| \Delta v^{(t)} \|_{\infty RMS} \right) \left( \sum_{t=1}^n \| \tilde{\Delta} v^{(t)} \|_{\infty RMS} \right) \label{eq:vseconddivnorm}
 \end{align}$$
+where the second inequality follows from Proposition 5 and the third from Lemma 6.
 
 ---
 
-To calculate the norm of $\Delta^2 A$, let's first take the derivative of Equation (16) towards $\tilde{\Delta}$,
+To calculate the norm of $\Delta^2 A$, let's first take the derivative of Equation $\eqref{eq:afirstdiv}$ towards $\tilde{\Delta}$,
 $$\begin{align}
     \Delta^2 A_{iJ}
         &= \frac{1}{d^{(n+1)/2}} A_{iJ} \langle \Delta q_i, [A, \tilde{\Delta} K]_{iJ} \rangle
@@ -303,7 +305,7 @@ $$\begin{align}
             + \frac{1}{d^{(n+1)/2}} A_{iJ} \langle q_i, -\sum_M(\tilde{\Delta} A)_{iM}\Delta K_M \rangle\nonumber
 \end{align}$$
 
-where $\tilde{\Delta} A$ is just Equation (16), except we replace $\Delta$ with $\tilde{\Delta}$.
+where $\tilde{\Delta} A$ is just Equation $\eqref{eq:afirstdiv}$, except we replace $\Delta$ with $\tilde{\Delta}$.
 
 As for the first two terms, following our reasoning in the previous section yields,
 
@@ -322,21 +324,22 @@ As for the third term,
 
 $$\begin{align}
     \| \text{ [term 3] } \|_{\infty -op}
-        &\leq \max_i\sum_J \left|\frac{1}{d^{(n+1)/2}} (\tilde{\Delta} A_{iJ}) \langle \Delta q_i, [A, K]_{iJ} \rangle \right| \nonumber\\
-        &= \frac{1}{d^{n+1}} \max_i\sum_J A_{iJ} \left| \left( \langle \tilde{\Delta} q_i, [A, K]_{iJ} \rangle + \langle q_i, [A, \tilde{\Delta} K]_{iJ} \rangle \right)\langle \Delta q_i, [A, K]_{iJ} \rangle \right| \nonumber\\
-        &\leq \frac{1}{d^{n+1}} \max_i\sum_J A_{iJ} \| \tilde{\Delta} q_i \|_2 \| \Delta q_i \|_2 \| [A, K]_{iJ} \|_2^2 \nonumber\\
-            &\quad+ \frac{1}{d^{n+1}} \max_i\sum_J A_{iJ}\| q_i \|_2 \| \Delta q_i \|_2 \| [A, \tilde{\Delta} K]_{iJ} \|_2 \| [A, K]_{iJ} \|_2 \nonumber\\
-        &= \frac{d^2}{d^{n+1}} \max_i \| \tilde{\Delta} q_i \|_{RMS} \| \Delta q_i \|_{RMS} \sum_J A_{iJ} \| [A, K]_{iJ} \|_{RMS}^2 \nonumber\\
-            &\quad+ \frac{d^2}{d^{n+1}}\max_i \| q_i \|_{RMS} \| \Delta q_i \|_{RMS} \sum_J A_{iJ} \| [A, \tilde{\Delta} K]_{iJ} \|_{RMS} \| [A, K]_{iJ} \|_{RMS}  \nonumber\\
-        &\leq \frac{1}{d^{n-1}} \max_i \| \tilde{\Delta} q_i \|_{RMS} \| \Delta q_i \|_{RMS} \max_{J} \| K_{iJ} \|_{RMS}^2 \nonumber\\
-            &\quad+ \frac{1}{d^{n-1}}\max_i \| q_i \|_{RMS} \| \Delta q_i \|_{RMS} (\max_{J} \| \tilde{\Delta} K_{J} \|_{RMS}) (\max_{J} \| K_{J} \|_{RMS}) &\text{(from Proposition 8)} \nonumber\\
-        &\leq \frac{1}{d^{n-1}} \| \tilde{\Delta} q \|_{\infty RMS} \| \Delta q \|_{\infty RMS} \| K \|_{\infty RMS}^2 \nonumber\\
-            &\quad+ \frac{1}{d^{n-1}} \| q \|_{\infty RMS} \| \Delta q \|_{\infty RMS} \| \tilde{\Delta} K \|_{\infty RMS} \| K \|_{\infty RMS} \nonumber\\
-        &\leq \cancel{\frac{(d^{(n-1)/2})^2}{d^{n-1}}} \| \tilde{\Delta} q \|_{\infty RMS} \| \Delta q \|_{\infty RMS} &\text{(from Lemma 6\quad} \nonumber\\
-            &\quad+ \cancel{\frac{(d^{(n-1)/2})^2}{d^{n-1}}} \| \Delta q \|_{\infty RMS} \sum_{t=1}^n \| \tilde{\Delta} k^{(t)} \|_{\infty RMS} &\text{\ Inequality 15)} \nonumber\\
+        &\leq \max_i\sum_J \left|\frac{1}{d^{(n+1)/2}} (\tilde{\Delta} A_{iJ}) \langle \Delta q_i, [A, K]_{iJ} \rangle \right| \nonumber \\
+        &= \frac{1}{d^{n+1}} \max_i\sum_J A_{iJ} \left| \left( \langle \tilde{\Delta} q_i, [A, K]_{iJ} \rangle + \langle q_i, [A, \tilde{\Delta} K]_{iJ} \rangle \right)\langle \Delta q_i, [A, K]_{iJ} \rangle \right| \nonumber \\
+        &\leq \frac{1}{d^{n+1}} \max_i\sum_J A_{iJ} \| \tilde{\Delta} q_i \|_2 \| \Delta q_i \|_2 \| [A, K]_{iJ} \|_2^2 \nonumber \\
+            &\quad+ \frac{1}{d^{n+1}} \max_i\sum_J A_{iJ}\| q_i \|_2 \| \Delta q_i \|_2 \| [A, \tilde{\Delta} K]_{iJ} \|_2 \| [A, K]_{iJ} \|_2 \nonumber \\
+        &= \frac{d^2}{d^{n+1}} \max_i \| \tilde{\Delta} q_i \|_{RMS} \| \Delta q_i \|_{RMS} \sum_J A_{iJ} \| [A, K]_{iJ} \|_{RMS}^2 \nonumber \\
+            &\quad+ \frac{d^2}{d^{n+1}}\max_i \| q_i \|_{RMS} \| \Delta q_i \|_{RMS} \sum_J A_{iJ} \| [A, \tilde{\Delta} K]_{iJ} \|_{RMS} \| [A, K]_{iJ} \|_{RMS}  \nonumber \\
+        &\leq \frac{1}{d^{n-1}} \max_i \| \tilde{\Delta} q_i \|_{RMS} \| \Delta q_i \|_{RMS} \max_{J} \| K_{iJ} \|_{RMS}^2 \nonumber \\
+            &\quad+ \frac{1}{d^{n-1}}\max_i \| q_i \|_{RMS} \| \Delta q_i \|_{RMS} (\max_{J} \| \tilde{\Delta} K_{J} \|_{RMS}) (\max_{J} \| K_{J} \|_{RMS}) \nonumber \\
+        &\leq \frac{1}{d^{n-1}} \| \tilde{\Delta} q \|_{\infty RMS} \| \Delta q \|_{\infty RMS} \| K \|_{\infty RMS}^2 \nonumber \\
+            &\quad+ \frac{1}{d^{n-1}} \| q \|_{\infty RMS} \| \Delta q \|_{\infty RMS} \| \tilde{\Delta} K \|_{\infty RMS} \| K \|_{\infty RMS} \nonumber \\
+        &\leq \cancel{\frac{(d^{(n-1)/2})^2}{d^{n-1}}} \| \tilde{\Delta} q \|_{\infty RMS} \| \Delta q \|_{\infty RMS} \nonumber \\
+            &\quad+ \cancel{\frac{(d^{(n-1)/2})^2}{d^{n-1}}} \| \Delta q \|_{\infty RMS} \sum_{t=1}^n \| \tilde{\Delta} k^{(t)} \|_{\infty RMS} \nonumber \\
     \| \text{ [term 3] } \|_{\infty -op}
-        &\leq \| \Delta q \|_{\infty RMS} \left(\| \tilde{\Delta} q \|_{\infty RMS} + \sum_{t=1}^n \| \tilde{\Delta} k^{(t)} \|_{\infty RMS}\right) \nonumber\\
+        &\leq \| \Delta q \|_{\infty RMS} \left(\| \tilde{\Delta} q \|_{\infty RMS} + \sum_{t=1}^n \| \tilde{\Delta} k^{(t)} \|_{\infty RMS}\right) \nonumber \\
 \end{align}$$
+where the third inequality follows from Proposition 8 and the fourth from Lemma 6 and Inequality $\eqref{eq:kfirstdivnorm}$.
 
 Similarly for the fourth term,
 
@@ -398,24 +401,24 @@ $$\begin{align}
 
 Taking them all together then yields,
 $$\begin{equation}
-    \| \Delta^2 A \|_{\infty -op} \leq 3\left(\| \Delta q \|_{\infty RMS} + \sum_{t=1}^{n} \| \Delta k^{(t)} \|_{\infty RMS} \right) \left(\| \tilde{\Delta} q \|_{\infty RMS} + \sum_{t=1}^{n} \| \tilde{\Delta} k^{(t)} \|_{\infty RMS} \right)
+    \| \Delta^2 A \|_{\infty -op} \leq 3\left(\| \Delta q \|_{\infty RMS} + \sum_{t=1}^{n} \| \Delta k^{(t)} \|_{\infty RMS} \right) \left(\| \tilde{\Delta} q \|_{\infty RMS} + \sum_{t=1}^{n} \| \tilde{\Delta} k^{(t)} \|_{\infty RMS} \right) \label{eq:aseconddivnorm}
 \end{equation}$$
 
 ---
 
-Combining Equations (19), (21), and (25) then gives us,
+Combining Inequalities $\eqref{eq:fseconddivnorm}$, $\eqref{eq:vseconddivnorm}$, and $\eqref{eq:aseconddivnorm}$ then yields,
 
-$$\begin{aligned}
+$$\begin{align}
     \| \Delta^2 \texttt{F} \|_{\infty RMS}
-        &\leq 3 \left( \| \Delta q \|_{\infty RMS} + \sum_{t=1}^n \| \Delta k^{(t)} \|_{\infty RMS} \right) \left( \| \tilde{\Delta} q \|_{\infty RMS} + \sum_{t=1}^n \| \tilde{\Delta} k^{(t)} \|_{\infty RMS} \right)\\
-        &\qquad + \left( \| \tilde{\Delta} q \|_{\infty RMS} + \sum_{t=1}^{n} \| \tilde{\Delta} k^{(t)} \|_{\infty RMS} \right) \left( \sum_{t=1}^{n} \| \Delta v^{(t)} \|_{\infty RMS} \right) \\
-        &\qquad + \left( \| \Delta q \|_{\infty RMS} + \sum_{t=1}^{n} \| \Delta k^{(t)} \|_{\infty RMS} \right) \left( \sum_{t=1}^{n} \| \tilde{\Delta} v^{(t)} \|_{\infty RMS} \right) \\
-        &\qquad + \left( \sum_{t=1}^n \| \Delta v^{(t)} \|_{\infty RMS} \right) \left( \sum_{t=1}^n \| \tilde{\Delta} v^{(t)} \|_{\infty RMS} \right) \\
-        &\leq 3 \left( \| \Delta q \|_{\infty RMS} + \sum_{t=1}^{n} \| \Delta k^{(t)} \|_{\infty RMS} + \sum_{t=1}^{n} \| \Delta v^{(t)} \|_{\infty RMS} \right) \\
-        &\qquad \left( \| \tilde{\Delta} q \|_{\infty RMS} + \sum_{t=1}^{n} \| \tilde{\Delta} k^{(t)} \|_{\infty RMS} + \sum_{t=1}^{n} \| \tilde{\Delta} v^{(t)} \|_{\infty RMS} \right) \\
+        &\leq 3 \left( \| \Delta q \|_{\infty RMS} + \sum_{t=1}^n \| \Delta k^{(t)} \|_{\infty RMS} \right) \left( \| \tilde{\Delta} q \|_{\infty RMS} + \sum_{t=1}^n \| \tilde{\Delta} k^{(t)} \|_{\infty RMS} \right) \nonumber\\
+        &\qquad + \left( \| \tilde{\Delta} q \|_{\infty RMS} + \sum_{t=1}^{n} \| \tilde{\Delta} k^{(t)} \|_{\infty RMS} \right) \left( \sum_{t=1}^{n} \| \Delta v^{(t)} \|_{\infty RMS} \right) \nonumber \\
+        &\qquad + \left( \| \Delta q \|_{\infty RMS} + \sum_{t=1}^{n} \| \Delta k^{(t)} \|_{\infty RMS} \right) \left( \sum_{t=1}^{n} \| \tilde{\Delta} v^{(t)} \|_{\infty RMS} \right) \nonumber \\
+        &\qquad + \left( \sum_{t=1}^n \| \Delta v^{(t)} \|_{\infty RMS} \right) \left( \sum_{t=1}^n \| \tilde{\Delta} v^{(t)} \|_{\infty RMS} \right) \nonumber \\
+        &\leq 3 \left( \| \Delta q \|_{\infty RMS} + \sum_{t=1}^{n} \| \Delta k^{(t)} \|_{\infty RMS} + \sum_{t=1}^{n} \| \Delta v^{(t)} \|_{\infty RMS} \right) \nonumber \\
+        &\qquad \left( \| \tilde{\Delta} q \|_{\infty RMS} + \sum_{t=1}^{n} \| \tilde{\Delta} k^{(t)} \|_{\infty RMS} + \sum_{t=1}^{n} \| \tilde{\Delta} v^{(t)} \|_{\infty RMS} \right) \nonumber \\
     \| \Delta^2 \texttt{F} \|_{\infty RMS}
         &\leq 3 \| (\Delta q, \Delta k^{(1:n)}, \Delta v^{(1:n)}) \|_{\infty RMS} \| (\tilde{\Delta} q, \tilde{\Delta} k^{(1:n)}, \tilde{\Delta} v^{(1:n)}) \|_{\infty RMS}
-\end{aligned}$$
+\end{align}$$
 
 Hence, n-simplicial attention is $3$-sharp under the $\infty RMS$ operator norm as claimed.
 

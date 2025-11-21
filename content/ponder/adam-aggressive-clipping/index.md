@@ -31,24 +31,28 @@ citation:
 Smoothed SignSGD and Smoothed NormSGD are special cases of ALMOND (Averaged LMO directioNal Descent) optimizers by Pethick et al. (2025). Unlike Signum which applies momentum first before taking the sign, Smoothed SignSGD applies the sign first before applying momentum.
 > **Definition 1 (Smoothed SignSGD).** Let $\eta > 0$ be the learning rate, $\beta \in [0, 1)$ be the momentum coefficient, and $G_t$ be the gradient at time step $t$. The update rule for Smoothed SignSGD is given by:
 > $$\begin{align}
-M_{t}^{\text{sssgd}} &= \beta M_{t-1}^{\text{sssgd}} + (1 - \beta) \text{sign}(G_t) \\
-W_{t+1} &= W_t - \eta M_{t}^{\text{sssgd}}\nonumber
+M_{t}^{\text{sssgd}} &= \beta M_{t-1}^{\text{sssgd}} + (1 - \beta) \text{sign}(G_t) \label{eq:smoothedsignsgd} \\
+W_{t+1} &= W_t - \eta M_{t}^{\text{sssgd}} \nonumber
 \end{align}$$
 > where $M_t$ is the momentum at time step $t$, $W_t$ is the model parameters at time step $t$, and $\text{sign}(\cdot)$ is the element-wise sign function.
 
-Note that unfolding the recurrence in Equation (1) gives us,
-$$\begin{equation}M_{t}^{\text{sssgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\text{sign}(G_{t-k})\end{equation}$$
+Note that unfolding the recurrence in Equation $\eqref{eq:smoothedsignsgd}$ yields,
+$$\begin{equation}
+    M_{t}^{\text{sssgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\text{sign}(G_{t-k}) \label{eq:smoothedsignsgdunfold}
+\end{equation}$$
 
 Likewise, we can define Smoothed NormSGD as follows:
 > **Definition 2 (Smoothed NormSGD).** Let $\eta > 0$ be the learning rate, $\beta \in [0, 1)$ be the momentum coefficient, $||\cdot||$ be a norm chosen a priori, and $G_t$ be the gradient at time step $t$. The update rule for Smoothed NormSGD is given by:
 > $$\begin{align}
-M_{t}^{\text{snsgd}} &= \beta M_{t-1}^{\text{snsgd}} + (1 - \beta) \frac{G_t}{||G_t||} \\
+M_{t}^{\text{snsgd}} &= \beta M_{t-1}^{\text{snsgd}} + (1 - \beta) \frac{G_t}{||G_t||} \label{eq:smoothednormsgd}\\
 W_{t+1} &= W_t - \eta M_{t}^{\text{snsgd}}\nonumber
 \end{align}$$
 > where $M_t$ is the momentum at time step $t$, $W_t$ is the model parameters at time step $t$.
 
-And again, unfolding the recurrence in Equation (3) gives us,
-$$\begin{equation}M_{t}^{\text{snsgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\frac{G_{t-k}}{||G_{t-k}||}\end{equation}$$
+And again, unfolding the recurrence in Equation $\eqref{eq:smoothednormsgd}$ yields,
+$$\begin{equation}
+    M_{t}^{\text{snsgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\frac{G_{t-k}}{||G_{t-k}||} \label{eq:smoothednormsgdunfold}
+\end{equation}$$
 
 ## Adam with aggressive gradient *value* clipping is equivalent to Smoothed SignSGD
 
@@ -97,7 +101,7 @@ Hence Adam with aggressive gradient value clipping is just Smoothed SignSGD!
 
 ### Why are Smoothed SignSGD updates sparse?
 
-Let's go back to Equation (2):
+Let's go back to Equation $\eqref{eq:smoothedsignsgdunfold}$:
 $$M_{t}^{\text{sssgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\text{sign}(G_{t-k})$$
 and let's pick an arbitrary entry $G_{t,i,j}$. Notice that if the signs of the recent $G_{t,i,j}$s flip too much, then the $\beta^0$, $\beta^1$, $\beta^2$, ... terms effectively cancel each other out. Thus that entry will not contribute to the update. On the other hand, if the signs of the recent $G_{t,i,j}$s are aligned, then $M_{t,i,j}^{\text{sssgd}} \to \pm 1$. What this means is that for a given entry, the weights only get updated if the signs of the recent gradients are aligned.
 
@@ -148,7 +152,7 @@ Hence Adam with aggressive gradient norm clipping is essentially just Smoothed N
 Roughly the same reasoning applies as in the case of Smoothed SignSGD. The main difference is that the weights to the betas are, in a sense, "denser":
 $$\text{sign}(G_{t-k,i,j}) \in \{-1, 0, 1\}\qquad\text{ vs. }\qquad\frac{G_{t-k,i,j}}{||G_{t-k}||} \in [-1, 1]$$
 
-And so, we do have to be careful of the case where the gradient norms have a lot of variance. But in practice, the norms of the gradients are usually stable, except for some gradient spikes here and there, so it's a non-issue. That said, let's go back to Equation (4):
+And so, we do have to be careful of the case where the gradient norms have a lot of variance. But in practice, the norms of the gradients are usually stable, except for some gradient spikes here and there, so it's a non-issue. That said, let's go back to Equation $\eqref{eq:smoothednormsgdunfold}$:
 $$M_{t}^{\text{snsgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\frac{G_{t-k}}{||G_{t-k}||}$$
 and let's pick an arbitrary entry $G_{t,i,j}$. Like before, if the signs of the recent $G_{t,i,j}$s flip too much, then the $\beta^0$, $\beta^1$, $\beta^2$, ... terms effectively cancel each other out (we use the assumption that the norms are stable here). Otherwise, if they're aligned, then $M_{t,i,j}^{\text{snsgd}} \to \pm 1$. Thus, as before, the weights only get updated if the recent gradients are aligned.
 
