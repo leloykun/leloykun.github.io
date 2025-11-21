@@ -65,10 +65,10 @@ as a good candidate for the "natural" weight norm. [Yang et al. (2024)](https://
 Let $\mathcal{M}$ be our Finsler geometry of interest. That is, a constraint set $\mathcal{M} \subseteq \mathbb{R}^{m \times n}$ equipped with a (possibly point-dependent) norm $\|\cdot\|_{W_t}$ on each tangent set, $T_{W_t}\mathcal{M}$, at each point $W_t \in \mathcal{M}$. First-order optimization on such geometries goes as follows:
 
 1. Let $W_t \in \mathcal{M}$ be the 'weight' parameter at time step $t$. Compute the "raw gradient" $G_t = \nabla f(W_t)$ via e.g. backpropagation.
-2. Compute an 'optimal' descent direction $A^*_t \in T_{W_t} \mathcal{M}$ under the norm in the tangent set at $W_t$, $$\begin{equation} A^*_t = \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta,\quad A \in T_{W_t}\mathcal{M}, \end{equation}$$ where $\eta > 0$ is the learning rate hyperparameter.
+2. Compute an 'optimal' descent direction $A^*_t \in T_{W_t} \mathcal{M}$ under the norm in the tangent set at $W_t$, $$\begin{equation} A^*_t = \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta,\quad A \in T_{W_t}\mathcal{M}, \label{eq:optimaldescent}\end{equation}$$ where $\eta > 0$ is the learning rate hyperparameter.
 3. Update the weight in the direction of $A^*_t$ and retract the result back to the manifold via a retraction map, $\texttt{retract}_{\mathcal{M}}: \mathbb{R}^{m \times n} \to \mathcal{M}$, $$W_{t+1} \leftarrow \texttt{retract}_{\mathcal{M}}(W_t + A^*_t).$$ 
 
-Note that both constraints on $A$ in Equation (1) are membership constraints to closed convex sets, and so it is simply a convex optimization problem.
+Note that both constraints on $A$ in Equation $\eqref{eq:optimaldescent}$ are membership constraints to closed convex sets, and so it is simply a convex optimization problem.
 
 $\blacksquare$ Special case: if $T_{W_t}\mathcal{M} = \mathbb{R}^{m \times n}$, then we can solve the problem via a Linear Minimization Oracle (LMO) [(Pethick et al., 2025)](https://arxiv.org/abs/2502.07529) for the chosen norm,
 $$\begin{align}
@@ -78,29 +78,29 @@ $$\begin{align}
         &= -\eta \cdot \text{LMO}_{\|\cdot\|_{W_t}}(G_t). \nonumber
 \end{align}$$
 
-Unfortunately, as we have discussed in [Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel), LMOs typically do not preserve tangency for general $T_{W_t}\mathcal{M}$, requiring more complicated solutions to solve Equation (1). We will discuss one such solution via dual ascent in the next section.
+Unfortunately, as we have discussed in [Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel), LMOs typically do not preserve tangency for general $T_{W_t}\mathcal{M}$, requiring more complicated solutions to solve Equation $\eqref{eq:optimaldescent}$. We will discuss one such solution via dual ascent in the next section.
 
 ## 3. Steepest descent on Finsler geometries via dual ascent
 
 ### 3.1. General strategy
 
-Our goal is to solve Equation (1) for any choice of norm $\|\cdot\|_{W_t}$ and tangent set $T_{W_t}\mathcal{M}$. Let the latter be represented as,
+Our goal is to solve Equation $\eqref{eq:optimaldescent}$ for any choice of norm $\|\cdot\|_{W_t}$ and tangent set $T_{W_t}\mathcal{M}$. Let the latter be represented as,
 $$\begin{equation}
-    T_{W_t}\mathcal{M} = \{ A \in \mathbb{R}^{m \times n} \mid L(A) \in -K \}
+    T_{W_t}\mathcal{M} = \{ A \in \mathbb{R}^{m \times n} \mid L(A) \in -K \} \label{eq:tangentset}
 \end{equation}$$
 for some linear map $L: \mathbb{R}^{m \times n} \to \mathcal{Y}$ and a closed convex cone $K \subseteq \mathcal{Y}$. Equality constraints can be represented by setting $K = \{0\}$. For example, for the Stiefel manifold, we have $L(A) = W^\top A + A^\top W$ and $K = \{0\}$.
 
 $\blacksquare$ Let $\mathcal{Y}^*$ be the dual space of $\mathcal{Y}$, then the adjoint of $L$, $L^*: \mathcal{Y}^* \to \mathbb{R}^{m \times n}$, is defined as the unique linear map satisfying,
 $$\langle L(A), Y \rangle = \langle A, L^*(Y) \rangle, \quad \forall A \in \mathbb{R}^{m \times n}, Y \in \mathcal{Y}^*.$$
-Restricting $Y$ to the dual space $K^* \subseteq \mathcal{Y}^*$ then yields the Lagrangian of Equation (1),
+Restricting $Y$ to the dual space $K^* \subseteq \mathcal{Y}^*$ then yields the Lagrangian of Equation $\eqref{eq:optimaldescent}$,
 $$\begin{align}
     \mathcal{L}(A, Y) &= \langle G_t, A \rangle + \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle Y, L(A) \rangle \nonumber \\
         &= \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle,
 \end{align}$$
-where $\mathcal{i}_\mathcal{S}$ is the indicator function of set $\mathcal{S}$ defined as,
-$$\mathcal{i}_\mathcal{S}(X) = \begin{cases}
-    0 & X \in \mathcal{S} \\
-    +\infty & X \notin \mathcal{S}
+where $\mathcal{i}_S$ is the indicator function of set $S$ defined as,
+$$\mathcal{i}_S(X) = \begin{cases}
+    0 & X \in S \\
+    +\infty & X \notin S
 \end{cases}.$$
 
 One can then check that,
@@ -145,12 +145,12 @@ In all, we only need three components to implement the above algorithm:
 
 #### 3.1.1. Scales and the projection-projection heuristic
 
-First, notice that scaling $L$ in Equation (2) by some positive constant $c > 0$ yields the same tangent set and therefore the same update rules for the primal and dual variables, except for $L^*$ being scaled as well. And so, we have an infinite degree of freedom in choosing $L$. Here we argue that it is most natural to choose scales such that,
+First, notice that scaling $L$ in Equation $\eqref{eq:tangentset}$ by some positive constant $c > 0$ yields the same tangent set and therefore the same update rules for the primal and dual variables, except for $L^*$ being scaled as well. And so, we have an infinite degree of freedom in choosing $L$. Here we argue that it is most natural to choose scales such that,
 $$L L^* = I.$$
 
 This is because, under a certain initialization strategy, one step of dual ascent is equivalent to one step of the projection-projection heuristic that we have previously shown in [Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) to be optimal in some cases (and arguably already close-to-optimal in most cases).
 
-To see this, note that the orthogonal projection onto the tangent set $T_{W_t}\mathcal{M}$ given by Equation (2) is as follows,
+To see this, note that the orthogonal projection onto the tangent set $T_{W_t}\mathcal{M}$ given by Equation $\eqref{eq:tangentset}$ is as follows,
 $$\begin{equation} \texttt{proj}_{T_{W_t}\mathcal{M}}(X) = X - L^*\texttt{proj}^{L L^*}_{K^*}(LX) \end{equation}$$
 where $\texttt{proj}^{L L^*}_{K^*}$ is the projection onto $K^*$ under the inner product induced by $L L^*$. And if $L L^* = I$, then $\texttt{proj}^{L L^*}_{K^*} = \texttt{proj}_{K^*}$ which is often what we already have. We will discuss the proof in more detail in a future blog post, but in short, it follows from solving the orthogonal projection problem via Lagrangian optimization and the Moreau decomposition.
 
@@ -162,7 +162,7 @@ $$\begin{align}
         &= -\eta\cdot\left(\texttt{LMO}_{\| \cdot \|_{W_t}} \circ \texttt{proj}_{T_{W_t}\mathcal{M}} \right)(G_t) \nonumber \\
         &= \left(\texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_t}\mathcal{M}} \right)(-G_t) \qquad\qquad\text{(1-step AP)} \nonumber \\
 \end{align}$$
-As to why it is reasonable to initialize $A^0_t$ as $-G_t$, note that $-G_t$ is the optimal solution to $\arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle$, or Equation (1) without the norm ball and tangency constraints.
+As to why it is reasonable to initialize $A^0_t$ as $-G_t$, note that $-G_t$ is the optimal solution to $\arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle$, or Equation $\eqref{eq:optimaldescent}$ without the norm ball and tangency constraints.
 
 #### 3.1.2. JAX implementation
 
@@ -211,7 +211,7 @@ where $\texttt{sym}(X) = (X + X^T)/2$ is the symmetrization operator, $U_\alpha$
 
 We will discuss the proof in more detail in a future blog post, but in short, it follows from polarizing the normal cones at the upper $\beta$-level and lower $\alpha$-level boundary sets of the spectral band which turns out to be $\pm$ the subdifferential of the spectral norm at those levels.
 
-$\blacksquare$ We can represent $T_{W_t} \mathcal{S}_{[\alpha, \beta]}$ as in Equation (2) by setting,
+$\blacksquare$ We can represent $T_{W_t} \mathcal{S}_{[\alpha, \beta]}$ as in Equation $\eqref{eq:tangentset}$ by setting,
 $$\begin{align}
     K &= \mathbb{S}^{r_{\alpha}}_{-} \times \mathbb{S}^{r_{\beta}}_{+} \qquad\text{ s.t. }\qquad -K = \mathbb{S}^{r_{\alpha}}_{+} \times \mathbb{S}^{r_{\beta}}_{-}\nonumber \\
     L(A) &= (\texttt{sym}(U_{\alpha}^T A V_{\alpha}), \texttt{sym}(U_{\beta}^T A V_{\beta})). \nonumber

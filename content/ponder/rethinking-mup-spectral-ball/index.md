@@ -51,11 +51,11 @@ x & \texttt{if } \alpha \leq x \leq \beta \\
 The naive implementation of this requires computing the eigenvalue decomposition of $W$, which is computationally expensive and requires high numerical precision (typically `float32`). Instead, we make use of the GPU/TPU-friendly method to compute the matrix sign function $\texttt{msign}$ by [Jordan et al. (2024)](https://kellerjordan.github.io/posts/muon/) and the following identity from [the previous blog post](../spectral-clipping/):
 
 > **Proposition 2 (Computing $\texttt{clip}$ via $\texttt{sign}$).** Let $\alpha, \beta \in \mathbb{R} \cup \{-\infty, \infty\}$ and $\texttt{clip}: \mathbb{R} \to \mathbb{R}$ be the clipping function defined in Definition 1. Then,
-> $$\begin{equation}\texttt{clip}_{[\alpha, \beta]}(x) = \frac{\alpha + \beta + (\alpha - x)\texttt{sign}(\alpha - x) - (\beta - x)\texttt{sign}(\beta - x)}{2}\label{4}\end{equation}$$
+> $$\begin{equation} \texttt{clip}_{[\alpha, \beta]}(x) = \frac{\alpha + \beta + (\alpha - x)\texttt{sign}(\alpha - x) - (\beta - x)\texttt{sign}(\beta - x)}{2} \label{eq:clipviasign} \end{equation}$$
 
 ### 2.1 Lifting to matrix form
 
-We can lift Equation 3 to matrix form as follows:
+We can lift Equation $\eqref{eq:clipviasign}$ to matrix form as follows:
 
 $$\begin{align}
     \texttt{eig\_clip}_{[\alpha, \beta]}(W)
@@ -94,7 +94,7 @@ def eig_clip(W: jax.Array, alpha: float=-1., beta: float=1.) -> jax.Array:
 
 ### 2.2 Eigenvalue ReLU and orthogonal projection onto the positive semidefinite cone
 
-Suppose we want to bound the eigenvalues of $W$ from below by a minimum value $\alpha$. For $\alpha = 0$, this is equivalent to projecting $W$ onto the positive semidefinite cone which is useful in e.g. finance and quantum mechanics where objects are typically required to be positive semidefinite. We can do this by setting $\beta = +\infty$ in Equation 3:
+Suppose we want to bound the eigenvalues of $W$ from below by a minimum value $\alpha$. For $\alpha = 0$, this is equivalent to projecting $W$ onto the positive semidefinite cone which is useful in e.g. finance and quantum mechanics where objects are typically required to be positive semidefinite. We can do this by setting $\beta = +\infty$ in Equation $\eqref{eq:clipviasign}$:
 
 $$\begin{align}
     \texttt{clip}_{[\alpha, \infty]}(x)
@@ -144,7 +144,7 @@ def proj_psd(W: jax.Array) -> jax.Array:
 
 ### 2.3 Eigenvalue Hardcapping and orthogonal projection onto the negative semidefinite cone
 
-Suppose we have symmetric matrices $W$ as weights in a neural network and we want to guarantee that the weights do not blow up *during* training. We can do this by capping the eigenvalues of $W$ to a maximum value $\beta$ after each gradient update. To do this, we can set $\alpha = -\infty$ in Equation 3:
+Suppose we have symmetric matrices $W$ as weights in a neural network and we want to guarantee that the weights do not blow up *during* training. We can do this by capping the eigenvalues of $W$ to a maximum value $\beta$ after each gradient update. To do this, we can set $\alpha = -\infty$ in Equation $\eqref{eq:clipviasign}$:
 
 $$\begin{align}
     \texttt{clip}_{[-\infty, \beta]}(x)
