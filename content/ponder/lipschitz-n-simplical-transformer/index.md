@@ -27,7 +27,7 @@ citation:
 
 ## Introduction
 
-A team from Meta have recently shown that 2-simplicial attention improves the exponent in the scaling laws vs. vanilla attention (Roy et al., 2025; Clift et al., 2019, Vaswani et al., 2017). This means that while it may be worse than vanilla attention flops-vs-loss-wise at smaller scales, the trade-off gets better and better at larger scales. This could also be useful for e.g. large-scale reasoning-LLM training runs where context lengths could blow up to millions, even billions of tokens. It is also very Bitter Lesson-pilled: compute exponentially scales over time and having a compute sponge which we can pour more compute into and get better results is great.
+A team from Meta have recently shown that 2-simplicial attention improves the exponent in the scaling laws vs. vanilla attention ([Roy et al., 2025](https://arxiv.org/abs/2507.02754v1); [Clift et al., 2019](https://arxiv.org/abs/1909.00668), [Vaswani et al., 2017](https://arxiv.org/abs/1706.03762)). This means that while it may be worse than vanilla attention flops-vs-loss-wise at smaller scales, the trade-off gets better and better at larger scales. This could also be useful for e.g. large-scale reasoning-LLM training runs where context lengths could blow up to millions, even billions of tokens. It is also very Bitter Lesson-pilled: compute exponentially scales over time and having a compute sponge which we can pour more compute into and get better results is great.
 
 And if we are to scale this up, we have to consider two questions:
 1. If 2-simplicial attention is better than (vanilla) 1-simplicial attention at scale, then would $n$-simplicial attention be better than 2-simplicial attention for $n \geq 3$?
@@ -49,14 +49,14 @@ In this blog post, we will focus on the latter, however we will consider $n$-sim
 > Note that the operation $\left(\prod_{t=1}^n \circ\right)$ above produces an $(n+1)$-dimensional tensor, $n$ from the sequence dimensions of the keys/values and one from the $d$-dimension. That is, we only reduce the last index.
 
 Examples:
-1. Vanilla Attention (Vaswani et al., 2017), $$\texttt{F}(q, k, v) = \texttt{softmax}\left(\frac{1}{\sqrt{d}} qk^T + \texttt{mask}\right) v$$
-2. 2-Simplicial Attention (Clift et al., 2019), $$\texttt{F}(q, k^{(1)}, k^{(2)}, v^{(1)}, v^{(2)}) = \texttt{softmax}\left(\frac{1}{\sqrt{d}} \langle q, k^{(1)}, k^{(2)} \rangle + \texttt{mask}\right) ( v^{(1)} \circ v^{(2)} )$$
+1. Vanilla Attention ([Vaswani et al., 2017](https://arxiv.org/abs/1706.03762)), $$\texttt{F}(q, k, v) = \texttt{softmax}\left(\frac{1}{\sqrt{d}} qk^T + \texttt{mask}\right) v$$
+2. 2-Simplicial Attention ([Roy et al., 2025](https://arxiv.org/abs/2507.02754v1); [Clift et al., 2019](https://arxiv.org/abs/1909.00668)), $$\texttt{F}(q, k^{(1)}, k^{(2)}, v^{(1)}, v^{(2)}) = \texttt{softmax}\left(\frac{1}{\sqrt{d}} \langle q, k^{(1)}, k^{(2)} \rangle + \texttt{mask}\right) ( v^{(1)} \circ v^{(2)} )$$
 
 Note that for both of these examples, $s_1 = 1/\sqrt{d}$ and $s_2 = 1$.
 
 ### Module sensitivity and sharpness
 
-More formally, what we mean by activation norms being "stable" is that tiny changes in the inputs should not cause unexpectedly large changes in the outputs. We call this property *module sensitivity*. Likewise, we want the gradients to not blow up either, i.e. tiny changes in the inputs should not cause unexpectedly large changes in the gradients. We call this property *module sharpness*. And following Large et al. (2024), we formalize module sensitivity and sharpness as follows,
+More formally, what we mean by activation norms being "stable" is that tiny changes in the inputs should not cause unexpectedly large changes in the outputs. We call this property *module sensitivity*. Likewise, we want the gradients to not blow up either, i.e. tiny changes in the inputs should not cause unexpectedly large changes in the gradients. We call this property *module sharpness*. And following [Large et al. (2024)](https://arxiv.org/abs/2405.14813), we formalize module sensitivity and sharpness as follows,
 
 > **Definition 2 (Sensitivity):** Let $\texttt{M}$ be a module on $(\mathcal{X}, \mathcal{Y}, \mathcal{W})$ where $\mathcal{X}$ is the input space with norm $\|\cdot\|_{\mathcal{X}}$, $\mathcal{Y}$ is the output space with norm $\|\cdot\|_\mathcal{Y}$, and $\mathcal{W}$ is the parameter space. We define $\texttt{M}$ to be $\sigma$-sensitive if,
 > $$\begin{equation}
@@ -78,7 +78,7 @@ $$\begin{equation}
 \end{equation}$$
 > is unit sensitive and $3$-sharp under the $\infty RMS$ operator norm.
 
-Note that for $n=1$, $s_1 = 1/d^{(1+1)/2} = 1/d$ and $s_2 = 1/d^{(1-1)/2} = 1$ which matches Large et al.'s (2024) parametrization, but not the standard parametrization discussed above.
+Note that for $n=1$, $s_1 = 1/d^{(1+1)/2} = 1/d$ and $s_2 = 1/d^{(1-1)/2} = 1$ which matches [Large et al.'s (2024)](https://arxiv.org/abs/2405.14813) parametrization, but not the standard parametrization discussed above.
 
 ## Preliminaries
 
@@ -141,7 +141,7 @@ The proof follows directly from Proposition 5.
 
 ### Useful shorthands
 
-Following Large et al. (2024), we use the following shorthand which is crucial for our proofs below.
+Following [Large et al. (2024)](https://arxiv.org/abs/2405.14813), we use the following shorthand which is crucial for our proofs below.
 
 > **Definition 7 (Bracket notation):** Let $B$ be a $\underbrace{T \times T \times \ldots \times T}_{n+1}$ tensor and $x$ be a $\underbrace{T \times T \times \ldots \times T}_{n}\times d$ tensor. Then,
 > $$[B, x]_{iJ} := x_J - \sum_M B_{iM}x_{M}$$
@@ -204,7 +204,7 @@ $$\begin{equation}
 
 ---
 
-Following Large et al.'s proof (2024), a direct calculation of $\Delta A$ yields,
+Following [Large et al. (2024)](https://arxiv.org/abs/2405.14813), a direct calculation of $\Delta A$ yields,
 
 $$\begin{equation}
     \Delta A_{iJ}
@@ -426,11 +426,11 @@ Hence, n-simplicial attention is $3$-sharp under the $\infty RMS$ operator norm 
 
 Here we have devised a parametrization that allows us to have width-independent sensitivity and sharpness bounds for n-simplicial attention. We hope that this will allow us to construct a maximum update parametrization of some sort for such modules and networks containing them.
 
-Note however that for $n = 1$, we have to set the scaling factor $s_1 = \frac{1}{d^{(1+1)/2}} = \frac{1}{d}$, which is the same scaling factor suggested by Large et al. (2024), but is different from the more standard $s_1 = \frac{1}{\sqrt{d}}$. Likewise, for 2-simplicial attention, we have to set the scaling factor $s_1 = \frac{1}{d^{(2+1)/2}} = \frac{1}{d^{3/2}}$, which is different from the $s_1 = \frac{1}{\sqrt{d}}$ used by Roy et al. (2025). Additionally, we also have to set $s_2 = \frac{1}{d^{(2-1)/2}} = \frac{1}{\sqrt{d}}$ for the outer scale in 2-simplicial attention, which, for larger dimensions, scales down the outputs significantly. Empirically, such parametrization leads to worse performance early in training, but guarantees stable training, especially at the tail end of training where the queries, keys, and values are more often aligned than not.
+Note however that for $n = 1$, we have to set the scaling factor $s_1 = \frac{1}{d^{(1+1)/2}} = \frac{1}{d}$, which is the same scaling factor suggested by [Large et al. (2024)](https://arxiv.org/abs/2405.14813), but is different from the more standard $s_1 = \frac{1}{\sqrt{d}}$. Likewise, for 2-simplicial attention, we have to set the scaling factor $s_1 = \frac{1}{d^{(2+1)/2}} = \frac{1}{d^{3/2}}$, which is different from the $s_1 = \frac{1}{\sqrt{d}}$ used by [Roy et al. (2025)](https://arxiv.org/abs/2507.02754v1). Additionally, we also have to set $s_2 = \frac{1}{d^{(2-1)/2}} = \frac{1}{\sqrt{d}}$ for the outer scale in 2-simplicial attention, which, for larger dimensions, scales down the outputs significantly. Empirically, such parametrization leads to worse performance early in training, but guarantees stable training, especially at the tail end of training where the queries, keys, and values are more often aligned than not.
 
 The main benefit of having low (and width-independent) sensitivity and sharpness really is that it allows us to have larger update step sizes without worrying about suddenly exploding or vanishing activations and gradients. Additionally, bounding the sensitivity allows us to control how much the gradients change as they pass through the module via backpropagation--the smaller the sensitivity, the smaller the change in the gradients. And bounding the sharpness allows us to have more trust in the momentum term more knowing that gradient spikes would rarely happen, if at all. These gradient spikes notoriously 'break' the momentum term at larger traning runs, especially near the end of training.
 
-This parametrization could also be useful in distributed training setups where gradient all-reduces are expensive and thus sparsifying the gradients before sending them over the network is a must (Douillard et al., 2024; Thérien et al., 2025). Problem arises when the gradients have outliers, requiring us to use more expensive quantization schemes to avoid losing information. But having control over the gradient norms should allow us to eliminate such outliers and get low-precision (and thus low-communication) training basically "for free".
+This parametrization could also be useful in distributed training setups where gradient all-reduces are expensive and thus sparsifying the gradients before sending them over the network is a must ([Douillard et al., 2024](https://arxiv.org/abs/2311.08105); [Thérien et al., 2025](https://arxiv.org/abs/2505.23725)). Problem arises when the gradients have outliers, requiring us to use more expensive quantization schemes to avoid losing information. But having control over the gradient norms should allow us to eliminate such outliers and get low-precision (and thus low-communication) training basically "for free".
 
 Lastly, this could also be used to parametrize a continuous n-simplicial attention module, where $n$ is continous instead of discrete. At test time, we could then scale $n$ as a sort of test-time scaling.
 

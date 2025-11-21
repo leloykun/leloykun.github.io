@@ -42,16 +42,16 @@ $$\begin{equation}
 \end{equation}$$
 
 Likewise, we can define Smoothed NormSGD as follows:
-> **Definition 2 (Smoothed NormSGD).** Let $\eta > 0$ be the learning rate, $\beta \in [0, 1)$ be the momentum coefficient, $||\cdot||$ be a norm chosen a priori, and $G_t$ be the gradient at time step $t$. The update rule for Smoothed NormSGD is given by:
+> **Definition 2 (Smoothed NormSGD).** Let $\eta > 0$ be the learning rate, $\beta \in [0, 1)$ be the momentum coefficient, $\|\cdot\|$ be a norm chosen a priori, and $G_t$ be the gradient at time step $t$. The update rule for Smoothed NormSGD is given by:
 > $$\begin{align}
-M_{t}^{\text{snsgd}} &= \beta M_{t-1}^{\text{snsgd}} + (1 - \beta) \frac{G_t}{||G_t||} \label{eq:smoothednormsgd}\\
+M_{t}^{\text{snsgd}} &= \beta M_{t-1}^{\text{snsgd}} + (1 - \beta) \frac{G_t}{\|G_t\|} \label{eq:smoothednormsgd}\\
 W_{t+1} &= W_t - \eta M_{t}^{\text{snsgd}}\nonumber
 \end{align}$$
 > where $M_t$ is the momentum at time step $t$, $W_t$ is the model parameters at time step $t$.
 
 And again, unfolding the recurrence in Equation $\eqref{eq:smoothednormsgd}$ yields,
 $$\begin{equation}
-    M_{t}^{\text{snsgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\frac{G_{t-k}}{||G_{t-k}||} \label{eq:smoothednormsgdunfold}
+    M_{t}^{\text{snsgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\frac{G_{t-k}}{\|G_{t-k}\|} \label{eq:smoothednormsgdunfold}
 \end{equation}$$
 
 ## Adam with aggressive gradient *value* clipping is equivalent to Smoothed SignSGD
@@ -109,32 +109,32 @@ and let's pick an arbitrary entry $G_{t,i,j}$. Notice that if the signs of the r
 
 Unlike the previous case, here we apply the clipping on the norm of the gradient. That is, for a given threshold $\alpha > 0$, we have:
 $$G_{t}^{\text{clipped}} = \begin{cases}
-    \frac{\alpha}{||G_{t}||}G_{t} & \text{if } ||G_{t,i,j}|| \geq \alpha \\
-    G_{t,i,j} & \text{if } ||G_{t,i,j}|| < \alpha
+    \frac{\alpha}{\|G_{t}\|}G_{t} & \text{if } \|G_{t,i,j}\| \geq \alpha \\
+    G_{t,i,j} & \text{if } \|G_{t,i,j}\| < \alpha
 \end{cases}$$
-And with *aggressive gradient norm clipping*, we can assume that $||G_{t}|| \geq \alpha$ for all $t$.
+And with *aggressive gradient norm clipping*, we can assume that $\|G_{t}\| \geq \alpha$ for all $t$.
 
 And like before, passing this through Adam's update rule, we get:
 $$\begin{align*}
 M_{t}^{\text{adam}}
     &= \beta_1 M_{t-1}^{\text{adam}} + (1 - \beta_1)G_{t}^{\text{clipped}} \\\
-    &= \beta_1 M_{t-1}^{\text{adam}} + (1 - \beta_1)\frac{\alpha}{||G_{t}||}G_{t} \\
-    &= \alpha(1 - \beta_1)\sum_{k=0}^{t-1}\beta_1^k \frac{G_{t-k}}{||G_{t}||} \\
+    &= \beta_1 M_{t-1}^{\text{adam}} + (1 - \beta_1)\frac{\alpha}{\|G_{t}\|}G_{t} \\
+    &= \alpha(1 - \beta_1)\sum_{k=0}^{t-1}\beta_1^k \frac{G_{t-k}}{\|G_{t}\|} \\
 M_{t}^{\text{adam}} &= \alpha M_{t}^{\text{snsgd}}
 \end{align*}$$
 and,
 $$\begin{align*}
 V_{t}^{\text{adam}}
     &= \beta_2 V_{t-1}^{\text{adam}} + (1 - \beta_2)(G_{t}^{\text{clipped}})^2 \\
-    &= \beta_2 V_{t-1}^{\text{adam}} + (1 - \beta_2)\left(\frac{\alpha}{||G_{t}||}G_{t}\right)^2 \\
-    &= \alpha^2(1 - \beta_2)\sum_{k=0}^{t-1}\beta_2^k\left(\frac{G_{t-k}}{||G_{t-k}||}\right)^2 \\
+    &= \beta_2 V_{t-1}^{\text{adam}} + (1 - \beta_2)\left(\frac{\alpha}{\|G_{t}\|}G_{t}\right)^2 \\
+    &= \alpha^2(1 - \beta_2)\sum_{k=0}^{t-1}\beta_2^k\left(\frac{G_{t-k}}{\|G_{t-k}\|}\right)^2 \\
 V_{t}^{\text{adam}}
     &= \alpha^2(1 - \beta_2^t) S_t
 \end{align*}$$
 where
-$$S_t = \frac{1 - \beta_2}{1 - \beta_2^t} \sum_{k=0}^{t-1}\beta_2^k\left(\frac{G_{t-k}}{||G_{t-k}||}\right)^2$$
+$$S_t = \frac{1 - \beta_2}{1 - \beta_2^t} \sum_{k=0}^{t-1}\beta_2^k\left(\frac{G_{t-k}}{\|G_{t-k}\|}\right)^2$$
 
-For an arbitrary index $i,j$, notice that $|G_{t-k,i,j}| / ||G_{t-k}|| \leq 1$ for all $k$. The (entrywise) sum in the RHS then is minimized when $G_{t-k,i,j} = 0$ for all $k$. And the sum is maximized when $|G_{t-k,i,j}| / ||G_{t-k}|| = 1$ for all $k$. Together, we have:
+For an arbitrary index $i,j$, notice that $|G_{t-k,i,j}| / \|G_{t-k}\| \leq 1$ for all $k$. The (entrywise) sum in the RHS then is minimized when $G_{t-k,i,j} = 0$ for all $k$. And the sum is maximized when $|G_{t-k,i,j}| / \|G_{t-k}\| = 1$ for all $k$. Together, we have:
 $$0 \leq S_{t,i,j} \leq \frac{1 - \beta_2}{1 - \beta_2^t} \sum_{k=0}^{t-1}\beta_2^k = \frac{1 - \beta_2}{1 - \beta_2^t} \left( \frac{1 - \beta_2^t}{1 - \beta_2} \right) = 1$$
 
 The (Adam) update direction then becomes:
@@ -150,10 +150,10 @@ Hence Adam with aggressive gradient norm clipping is essentially just Smoothed N
 ### Why are Smoothed NormSGD updates sparse?
 
 Roughly the same reasoning applies as in the case of Smoothed SignSGD. The main difference is that the weights to the betas are, in a sense, "denser":
-$$\text{sign}(G_{t-k,i,j}) \in \{-1, 0, 1\}\qquad\text{ vs. }\qquad\frac{G_{t-k,i,j}}{||G_{t-k}||} \in [-1, 1]$$
+$$\text{sign}(G_{t-k,i,j}) \in \{-1, 0, 1\}\qquad\text{ vs. }\qquad\frac{G_{t-k,i,j}}{\|G_{t-k}\|} \in [-1, 1]$$
 
 And so, we do have to be careful of the case where the gradient norms have a lot of variance. But in practice, the norms of the gradients are usually stable, except for some gradient spikes here and there, so it's a non-issue. That said, let's go back to Equation $\eqref{eq:smoothednormsgdunfold}$:
-$$M_{t}^{\text{snsgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\frac{G_{t-k}}{||G_{t-k}||}$$
+$$M_{t}^{\text{snsgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\frac{G_{t-k}}{\|G_{t-k}\|}$$
 and let's pick an arbitrary entry $G_{t,i,j}$. Like before, if the signs of the recent $G_{t,i,j}$s flip too much, then the $\beta^0$, $\beta^1$, $\beta^2$, ... terms effectively cancel each other out (we use the assumption that the norms are stable here). Otherwise, if they're aligned, then $M_{t,i,j}^{\text{snsgd}} \to \pm 1$. Thus, as before, the weights only get updated if the recent gradients are aligned.
 
 ### Why do Smoothed SignSGD and Smoothed NormSGD do well with higher learning rates?

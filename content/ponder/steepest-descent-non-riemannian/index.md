@@ -108,12 +108,12 @@ Since we are trying to optimize a differentiable function, it is useful to defin
 
 Since the tangent spaces $T_p\mathcal{W}$ are vector spaces, we can define a notion of "length" on them. This notion of length is formalized by the concept of a norm. Some, but not all, norms can also be induced by an inner product which formalizes the notion of "angle" between two directions.
 
-> **Definition 8 (Norm).** A norm $||\cdot||$ on a (real matrix-valued) vector space $V$ is a function $||\cdot||: V \to \mathbb{R}$ that satisfies the following properties:
-> 1. **Non-negativity:** $||x|| \geq 0$ for all $x \in V$, and $||x|| = 0$ if and only if $x = 0$.
-> 2. **Homogeneity:** $||ax|| = |a| \cdot ||x||$ for all $x \in V$ and $a \in \mathbb{R}$.
-> 3. **Triangle Inequality:** $||x + y|| \leq ||x|| + ||y||$ for all $x, y \in V$.
+> **Definition 8 (Norm).** A norm $\|\cdot\|$ on a (real matrix-valued) vector space $V$ is a function $\|\cdot\|: V \to \mathbb{R}$ that satisfies the following properties:
+> 1. **Non-negativity:** $\|x\| \geq 0$ for all $x \in V$, and $\|x\| = 0$ if and only if $x = 0$.
+> 2. **Homogeneity:** $\|ax\| = |a| \cdot \|x\|$ for all $x \in V$ and $a \in \mathbb{R}$.
+> 3. **Triangle Inequality:** $\|x + y\| \leq \|x\| + \|y\|$ for all $x, y \in V$.
 
-If the norm depends on the point $p \in \mathcal{W}$, we denote it by $||\cdot||_p$.
+If the norm depends on the point $p \in \mathcal{W}$, we denote it by $\|\cdot\|_p$.
 
 > **Definition 9 (Inner Product).** An inner product on a (real) vector space $V$ is a bilinear form $\langle \cdot, \cdot \rangle: V \times V \rightarrow \mathbb{R}$ that satisfies the following properties:
 > 1. **Bilinearity:** $\langle ax + by, z \rangle = a\langle x, z \rangle + b\langle y, z \rangle$ for all $x, y, z \in V$ and $a, b \in \mathbb{R}$.
@@ -121,12 +121,12 @@ If the norm depends on the point $p \in \mathcal{W}$, we denote it by $||\cdot||
 > 3. **Positive Definiteness:** $\langle x, x \rangle > 0$ for all $x \in V$ such that $x \neq 0$.
 > 4. **Non-degeneracy:** $\langle x, y \rangle = 0$ for all $y \in V$ implies $x = 0$.
 >
-> Every inner product has a corresponding matrix form $G_*$ such that $\langle x, y \rangle = x^T G_{*} y$ for all $x, y \in V$. The inner product also induces a norm $||\cdot||$ on $V$ defined by $||x|| = \sqrt{\langle x, x \rangle}$ for all $x \in V$.
+> Every inner product has a corresponding matrix form $G_*$ such that $\langle x, y \rangle = x^T G_{*} y$ for all $x, y \in V$. The inner product also induces a norm $\|\cdot\|$ on $V$ defined by $\|x\| = \sqrt{\langle x, x \rangle}$ for all $x \in V$.
 
-However, not all norms are induced by an inner product. For example, the spectral norm $||\cdot||_{2 \to 2}$ is not induced by an inner product. The parallelogram law is a necessary and sufficient condition for the existence of an inner product that induces the norm (Jordan et al., 1935).
+However, not all norms are induced by an inner product. For example, the spectral norm $\|\cdot\|_{2 \to 2}$ is not induced by an inner product. The parallelogram law is a necessary and sufficient condition for the existence of an inner product that induces the norm (Jordan et al., 1935).
 
-> **Definition 10 (Parallelogram Law).** A norm $||\cdot||$ on a (real matrix-valued) vector space $V$ is said to satisfy the parallelogram law if, for all $x, y \in V$, we have,
-> $$||x + y||^2 + ||x - y||^2 = 2||x||^2 + 2||y||^2.$$
+> **Definition 10 (Parallelogram Law).** A norm $\|\cdot\|$ on a (real matrix-valued) vector space $V$ is said to satisfy the parallelogram law if, for all $x, y \in V$, we have,
+> $$\|x + y\|^2 + \|x - y\|^2 = 2\|x\|^2 + 2\|y\|^2.$$
 
 Note that we can vary the norm or inner product on the tangent spaces $T_p\mathcal{W}$ at each point $p \in \mathcal{W}$,
 
@@ -139,9 +139,9 @@ Note that we can vary the norm or inner product on the tangent spaces $T_p\mathc
 
 Finally, we can now formally define Riemannian and non-Riemannian differentiable matrix manifolds,
 
-> **Definition 13 (Riemannian and Non-Riemannian Differentiable Matrix Manifolds).** Given a differentiable matrix manifold $(\mathcal{W}, \mathcal{A})$ whose tangent spaces $T_p\mathcal{W}$ are equipped with a norm $||\cdot||_p$, we say that it is a **Riemannian manifold** if the norm $||\cdot||_p$ is induced by an inner product $\langle \cdot, \cdot \rangle_p$ (i.e., the Parallelogram Law holds) and the inner product varies smoothly along $p$. Otherwise, it is a **non-Riemannian manifold**.
+> **Definition 13 (Riemannian and Non-Riemannian Differentiable Matrix Manifolds).** Given a differentiable matrix manifold $(\mathcal{W}, \mathcal{A})$ whose tangent spaces $T_p\mathcal{W}$ are equipped with a norm $\|\cdot\|_p$, we say that it is a **Riemannian manifold** if the norm $\|\cdot\|_p$ is induced by an inner product $\langle \cdot, \cdot \rangle_p$ (i.e., the Parallelogram Law holds) and the inner product varies smoothly along $p$. Otherwise, it is a **non-Riemannian manifold**.
 
-Note that if the norm $||\cdot||_p$ smoothly varies along $p \in \mathcal{W}$, then it is also common to refer to the manifold as a *Finsler Manifold* (Flynn, 2017). However, we will not use this terminology in this work.
+Note that if the norm $\|\cdot\|_p$ smoothly varies along $p \in \mathcal{W}$, then it is also common to refer to the manifold as a *Finsler Manifold* (Flynn, 2017). However, we will not use this terminology in this work.
 
 {{< /collapse >}}
 
@@ -221,7 +221,7 @@ $$
 
 We consider the following optimization problem,
 $$\begin{equation} \arg\min_{W \in \mathcal{W}} \mathcal{L}(W), \end{equation}$$
-where $\mathcal{L}(\cdot): \mathcal{W} \rightarrow \mathbb{R}$ is a bounded-below and differentiable objective function, and $\mathcal{W}$ is a real-valued, finite-dimensional, differentiable matrix manifold whose tangent spaces are equipped with a norm $||\cdot||$ chosen a priori.
+where $\mathcal{L}(\cdot): \mathcal{W} \rightarrow \mathbb{R}$ is a bounded-below and differentiable objective function, and $\mathcal{W}$ is a real-valued, finite-dimensional, differentiable matrix manifold whose tangent spaces are equipped with a norm $\|\cdot\|$ chosen a priori.
 
 If the norm is induced by a smoothly-varying inner product (i.e., the parallelogram law holds), then $\mathcal{W}$ is a Riemannian manifold. Otherwise, it is a non-Riemannian manifold. And as we will show in the succeeding sections, not only does the choice of norm naturally lead to different optimization algorithms, but also to two *flavors* of deep learning optimizers, preconditioners and dualizers, depending on whether $\mathcal{W}$ is Riemannian or non-Riemannian.
 
@@ -231,13 +231,13 @@ where $W_t, W_{t+1} \in \mathcal{W}$ are the "current" and "updated" points at s
 
 There are multiple ways to estimate the optimal update direction $\widehat{U}_t$ at each step $t$. And in deep learning literature, it is common to use (approximate) second-order methods involving the Hessian of $\mathcal{L}$ at $W_t$. However, computing this Hessian is often intractable and/or computationally expensive. Thus, researchers often resort to approximating it via assumptions on its structure. And different assumptions lead to different deep learning optimizers. E.g., diagonal structure assumption leads to Adam (Kingma et al., 2014), while Kronecker product structure leads to PSGD, Shampoo, KFAC (Li, 2015; Gupta et al., 2018; Martens et al., 2015), and etcetera. We argue that these assumptions are hard to justify from a first-principles basis, and that a more natural to follow the direction of Steepest Descent on the manifold $\mathcal{W}$ instead.
 
-> **Definition 18 (Steepest Descent).** Let $D\mathcal{L}(W_t)[\cdot]: T_{W_t}\mathcal{W} \rightarrow \mathbb{R}$ be the differential of $\mathcal{L}$ at $W_t$. Given that we equip the tangent spaces of $\mathcal{W}$ with the norm $||\cdot||$, the direction of Steepest Descent at $W_t$ is given by,
+> **Definition 18 (Steepest Descent).** Let $D\mathcal{L}(W_t)[\cdot]: T_{W_t}\mathcal{W} \rightarrow \mathbb{R}$ be the differential of $\mathcal{L}$ at $W_t$. Given that we equip the tangent spaces of $\mathcal{W}$ with the norm $\|\cdot\|$, the direction of Steepest Descent at $W_t$ is given by,
 > $$\begin{equation}
-    \widehat{U}_t = \arg\min_{\substack{\Delta W \in T_{W_t}\mathcal{W}\newline ||\Delta W|| = 1}} D\mathcal{L}(W_t)[\Delta W],
+    \widehat{U}_t = \arg\min_{\substack{\Delta W \in T_{W_t}\mathcal{W}\newline \|\Delta W\| = 1}} D\mathcal{L}(W_t)[\Delta W],
 \end{equation}$$
 > or equivalently,
 > $$\begin{equation}
-    \widehat{U}_t = - \arg\max_{\substack{\Delta W \in T_{W_t}\mathcal{W}\newline ||\Delta W|| = 1}} D\mathcal{L}(W_t)[\Delta W],
+    \widehat{U}_t = - \arg\max_{\substack{\Delta W \in T_{W_t}\mathcal{W}\newline \|\Delta W\| = 1}} D\mathcal{L}(W_t)[\Delta W],
 \end{equation}$$
 > where $D\mathcal{L}(W_t)[\Delta W] \in \mathbb{R}$ gives the *directional derivative* of $\mathcal{L}$ at $W_t$ in the direction of $\Delta W \in T_{W_t}\mathcal{W}$. Intuitively, this can be understood as the update direction of unit length that leads to the largest decrease in the objective function $\mathcal{L}$.
 
@@ -250,54 +250,54 @@ Again, in practice, we often do not have access to the exact differential $D\mat
 > $$
 \begin{align*}
     &\mathbb{E}_{\xi \sim D}[\partial\mathcal{L}(W; \xi)] = \partial\mathcal{L}(W) && \forall W \in \mathcal{W}\newline
-    &\mathbb{E}_{\xi \sim D}[||\partial\mathcal{L}(W; \xi) - \partial\mathcal{L}(W) ||_F^2] \leq \sigma^2 && \forall W \in \mathcal{W}
+    &\mathbb{E}_{\xi \sim D}[\|\partial\mathcal{L}(W; \xi) - \partial\mathcal{L}(W) \|_F^2] \leq \sigma^2 && \forall W \in \mathcal{W}
 \end{align*}
 $$
-> where $\xi$ is a random variable sampled from a  distribution $D$, $\sigma > 0$ is a positive variance parameter, and $||\cdot||_F = \sqrt{\langle \cdot, \cdot \rangle_F}$ is the corresponding Frobenius norm.
+> where $\xi$ is a random variable sampled from a  distribution $D$, $\sigma > 0$ is a positive variance parameter, and $\|\cdot\|_F = \sqrt{\langle \cdot, \cdot \rangle_F}$ is the corresponding Frobenius norm.
 > Note that in the Riemannian case, the above is equivalent to,
 > $$
 \begin{align*}
     &\mathbb{E}_{\xi \sim D}[\nabla\mathcal{L}(W; \xi)] = \nabla\mathcal{L}(W) && \forall W \in \mathcal{W}\newline
-    &\mathbb{E}_{\xi \sim D}[||\nabla\mathcal{L}(W; \xi) - \nabla\mathcal{L}(W) ||_F^2] \leq \hat{\sigma}^2 && \forall W \in \mathcal{W}
+    &\mathbb{E}_{\xi \sim D}[\|\nabla\mathcal{L}(W; \xi) - \nabla\mathcal{L}(W) \|_F^2] \leq \hat{\sigma}^2 && \forall W \in \mathcal{W}
 \end{align*}
 $$
-> where $\nabla\mathcal{L}(W)$ is the "true" gradient of $\mathcal{L}$ at $W$, $\nabla\mathcal{L}(W; \xi) = G_W^{-1}\partial\mathcal{L}(W; \xi)$ is the equivalent stochastic estimator of the gradient, $\hat{\sigma} = \sigma(\max_{W \in \mathcal{W}}||G_W^{-1}||_F) > 0$ is the adjusted variance parameter, and $G_W$ is the metric tensor at $W \in \mathcal{W}$.
+> where $\nabla\mathcal{L}(W)$ is the "true" gradient of $\mathcal{L}$ at $W$, $\nabla\mathcal{L}(W; \xi) = G_W^{-1}\partial\mathcal{L}(W; \xi)$ is the equivalent stochastic estimator of the gradient, $\hat{\sigma} = \sigma(\max_{W \in \mathcal{W}}\|G_W^{-1}\|_F) > 0$ is the adjusted variance parameter, and $G_W$ is the metric tensor at $W \in \mathcal{W}$.
 
 We also make the following standard continuity assumption on the differential $\partial\mathcal{L}(\cdot)$ (Mokhtari et al., 2018; Kovalev, 2025),
-> **Assumption 2:** The differential $\partial\mathcal{L}(\cdot)$ is Lipschitz continuous with respect to the norm $||\cdot||$ with Lipschitz constant $L > 0$. That is, for all $W \in \mathcal{W}$,
+> **Assumption 2:** The differential $\partial\mathcal{L}(\cdot)$ is Lipschitz continuous with respect to the norm $\|\cdot\|$ with Lipschitz constant $L > 0$. That is, for all $W \in \mathcal{W}$,
 > $$
 \begin{equation}
-    ||\partial\mathcal{L}(W + \Delta W) - \partial\mathcal{L}(W)||^\dagger \leq L||\Delta W|| \quad \forall \Delta W \in T_W\mathcal{W}
+    \|\partial\mathcal{L}(W + \Delta W) - \partial\mathcal{L}(W)\|^\dagger \leq L\|\Delta W\| \quad \forall \Delta W \in T_W\mathcal{W}
 \end{equation}
 $$
-> where $||\cdot||^\dagger$ is the dual norm of $||\cdot||$.
+> where $\|\cdot\|^\dagger$ is the dual norm of $\|\cdot\|$.
 > Note that in the Riemannian case, this is equivalent to,
 > $$
 \begin{equation}
-    ||\nabla\mathcal{L}(W + \Delta W) - \nabla\mathcal{L}(W)||^\dagger \leq \hat{L}||\Delta W|| \quad \forall \Delta W \in T_W\mathcal{W}
+    \|\nabla\mathcal{L}(W + \Delta W) - \nabla\mathcal{L}(W)\|^\dagger \leq \hat{L}\|\Delta W\| \quad \forall \Delta W \in T_W\mathcal{W}
 \end{equation}
 $$
-> where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$, $\hat{L} = L(\max_{W \in \mathcal{W}}||G_W^{-1}||^\dagger) > 0$, and $G_W$ is the metric tensor at $W \in \mathcal{W}$.
+> where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$, $\hat{L} = L(\max_{W \in \mathcal{W}}\|G_W^{-1}\|^\dagger) > 0$, and $G_W$ is the metric tensor at $W \in \mathcal{W}$.
 
 ## 2. Why do Steepest Descent Under the Spectral Norm?
 
-The geometry of $\mathcal{W}$ and the optimizer we will need both depend on the choice of norm $||\cdot||$. Our core argument is that it is most natural to do steepest descent under the spectral norm $||\cdot||_{2 \to 2}$ in the context of training the linear weights $W$ of a neural network. The spectral norm induces $\mathcal{W}$ to be non-Riemannian, and therefore, intuitions on optimization we have developed in Riemannian manifolds may not apply.
+The geometry of $\mathcal{W}$ and the optimizer we will need both depend on the choice of norm $\|\cdot\|$. Our core argument is that it is most natural to do steepest descent under the spectral norm $\|\cdot\|_{2 \to 2}$ in the context of training the linear weights $W$ of a neural network. The spectral norm induces $\mathcal{W}$ to be non-Riemannian, and therefore, intuitions on optimization we have developed in Riemannian manifolds may not apply.
 
 ### 2.1. Majorization-Minimization Perspective
 
 We can upper bound our objective function $\mathcal{L}$ by the following approximation at an arbitrary point $W \in \mathcal{W}$,
 $$
 \begin{equation}
-    \mathcal{U}(\Delta W; W) = \mathcal{L}(W) + \langle \partial\mathcal{L}(W), \Delta W \rangle_F + \frac{\lambda}{2}||\Delta W||^2
+    \mathcal{U}(\Delta W; W) = \mathcal{L}(W) + \langle \partial\mathcal{L}(W), \Delta W \rangle_F + \frac{\lambda}{2}\|\Delta W\|^2
 \end{equation}
 $$
-for some norm $||\cdot||$ chosen a priori. Note that in the Riemannian case, the above is equivalent to the more standard presentation,
+for some norm $\|\cdot\|$ chosen a priori. Note that in the Riemannian case, the above is equivalent to the more standard presentation,
 $$
 \begin{equation}
-    \mathcal{U}(\Delta W; W) = \mathcal{L}(W) + \langle \nabla\mathcal{L}(W), \Delta W \rangle + \frac{\lambda}{2}||\Delta W||^2
+    \mathcal{U}(\Delta W; W) = \mathcal{L}(W) + \langle \nabla\mathcal{L}(W), \Delta W \rangle + \frac{\lambda}{2}\|\Delta W\|^2
 \end{equation}
 $$
-where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$, and $\langle \cdot, \cdot \rangle$ is the inner product that induces the norm $||\cdot||$.
+where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$, and $\langle \cdot, \cdot \rangle$ is the inner product that induces the norm $\|\cdot\|$.
 Using standard arguments, we can show that,
 $$\mathcal{L}(W + \Delta W) \leq \mathcal{U}(\Delta W; W),\quad\quad\Delta W \in T_W\mathcal{W}$$
 as long as $\lambda \leq L$ (Hunter et al., 2004), where $L$ is the Lipschitz constant from Assumption 2.
@@ -317,7 +317,7 @@ Ideally, we want the sizes of both the hidden representations $x_l$ and their up
 > **Desideratum 1 (Feature Learning).** We desire that our features $x_l$ and feature updates $\Delta x_l$ be of size,
 $$
 \begin{equation}
-    ||x_l||_2 = \Theta(\sqrt{d_l})\quad\text{and}\quad ||\Delta x_l||_2 = \Theta(\sqrt{d_l})\quad\text{for all layers } l = 1, 2, \ldots, L-1
+    \|x_l\|_2 = \Theta(\sqrt{d_l})\quad\text{and}\quad \|\Delta x_l\|_2 = \Theta(\sqrt{d_l})\quad\text{for all layers } l = 1, 2, \ldots, L-1
 \end{equation}
 $$
 > where $f(d) = \Theta(g(d))$ means that $f(d)$ "scales like" or "grows in the order of" $g(d)$. More formally, there exists positive real constants $c, C > 0$ and positive integer $D$ such that, for all $d > D$, we have $c \cdot g(d) \leq f(d) \leq C \cdot g(d)$.
@@ -328,20 +328,20 @@ We ensure this by imposing constraints on the size of the weights $W_l$ and thei
 $$
 \begin{align*}
     x_{l+1} &= W_l x_l\newline
-    ||x_{l+1}||_2 &\leq ||W_l||_{2\to 2} \cdot ||x_l||_2
+    \|x_{l+1}\|_2 &\leq \|W_l\|_{2\to 2} \cdot \|x_l\|_2
 \end{align*}
 $$
 Combining this with Desideratum 1, we have,
 $$
 \begin{align*}
-    \underbrace{||x_{l+1}||_2}_{\Theta(\sqrt{d_{l+1}})}
-        &\leq ||W_l||_{2\to 2} \cdot \underbrace{||x_l||_2}_{\Theta(\sqrt{d_l})}
+    \underbrace{\|x_{l+1}\|_2}_{\Theta(\sqrt{d_{l+1}})}
+        &\leq \|W_l\|_{2\to 2} \cdot \underbrace{\|x_l\|_2}_{\Theta(\sqrt{d_l})}
 \end{align*}
 $$
 Thus the size of the weights $W_l$ must be,
 $$
 \begin{equation}
-    ||W_l||_{2 \to 2} = \Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)
+    \|W_l\|_{2 \to 2} = \Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)
 \end{equation}
 $$
 
@@ -350,28 +350,28 @@ $$
 \begin{align*}
     x_{l+1} + \Delta x_{l+1} &= (W_l + \Delta W_l)(x_l + \Delta x_l)\newline
     \Delta x_{l+1} &= W_l \Delta x_l + \Delta W_l x_l + \Delta W_l \Delta x_l\newline
-    ||\Delta x_{l+1}||_2 &\leq ||W_l||_{2\to 2} \cdot ||\Delta x_l||_2 + ||\Delta W_l||_{2\to 2} \cdot ||x_l||_2 + ||\Delta W_l||_{2\to 2} \cdot ||\Delta x_l||_2
+    \|\Delta x_{l+1}\|_2 &\leq \|W_l\|_{2\to 2} \cdot \|\Delta x_l\|_2 + \|\Delta W_l\|_{2\to 2} \cdot \|x_l\|_2 + \|\Delta W_l\|_{2\to 2} \cdot \|\Delta x_l\|_2
 \end{align*}
 $$
 Combining this with Desideratum 1 and our result above, we have,
 $$
 \begin{align*}
-    \underbrace{||\Delta x_{l+1}||_2}_{\Theta(\sqrt{d_{l+1}})}
+    \underbrace{\|\Delta x_{l+1}\|_2}_{\Theta(\sqrt{d_{l+1}})}
         &\leq
-            \underbrace{||W_l||_{2\to 2}}_{\Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)} \cdot \underbrace{||\Delta x_l||_2}_{\Theta\left(\sqrt{d_l}\right)}
-            + ||\Delta W_l||_{2\to 2} \cdot \underbrace{||x_l||_2}_{\Theta\left(\sqrt{d_l}\right)}
-            + ||\Delta W_l||_{2\to 2} \cdot \underbrace{||\Delta x_l||_2}_{\Theta\left(\sqrt{d_l}\right)}
+            \underbrace{\|W_l\|_{2\to 2}}_{\Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)} \cdot \underbrace{\|\Delta x_l\|_2}_{\Theta\left(\sqrt{d_l}\right)}
+            + \|\Delta W_l\|_{2\to 2} \cdot \underbrace{\|x_l\|_2}_{\Theta\left(\sqrt{d_l}\right)}
+            + \|\Delta W_l\|_{2\to 2} \cdot \underbrace{\|\Delta x_l\|_2}_{\Theta\left(\sqrt{d_l}\right)}
 \end{align*}
 $$
 Thus the size of the weight updates $\Delta W_l$ must be,
-$$||\Delta W_l||_{2 \to 2} = \Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)$$
+$$\|\Delta W_l\|_{2 \to 2} = \Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)$$
 
 These become our *Spectral Scaling Conditions* (Yang et al., 2024),
 
 > **Condition 1 (Spectral Scaling).** The spectral norms of our weights $W_l$ and weight updates $\Delta W_l$ must be,
 $$
 \begin{equation}
-    ||W_l||_{2\to 2} = \Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)\quad\text{and}\quad||\Delta W_l||_{2\to 2} = \Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)\quad\text{at layers } l = 1, \ldots, L-1
+    \|W_l\|_{2\to 2} = \Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)\quad\text{and}\quad\|\Delta W_l\|_{2\to 2} = \Theta\left(\sqrt{\frac{d_{l+1}}{d_l}}\right)\quad\text{at layers } l = 1, \ldots, L-1
 \end{equation}
 $$
 
@@ -379,19 +379,19 @@ $$
 
 ## 3. Steepest Descent in Riemannian and Non-Riemannian Manifolds
 
-Let us consider the different cases of the geometry of $\mathcal{W}$ induced by the choice of norm $||\cdot||$.
+Let us consider the different cases of the geometry of $\mathcal{W}$ induced by the choice of norm $\|\cdot\|$.
 
 ### 3.1. $\mathcal{W}$ is Euclidean
 
-That is, we pick the Frobenius norm $||\cdot||_F$ as our norm. In this case, our points, differentials, and gradients are all already in standard Euclidean coordinates. Thus,
+That is, we pick the Frobenius norm $\|\cdot\|_F$ as our norm. In this case, our points, differentials, and gradients are all already in standard Euclidean coordinates. Thus,
 
 $$
 \begin{align*}
     \widehat{U}
-        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline ||\Delta W|| = 1}} D\mathcal{L}(W)[\Delta W]\newline
-        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline ||\Delta W|| = 1}} \langle \partial\mathcal{L}(W), \Delta W \rangle_F\newline
-        &= -\frac{\partial\mathcal{L}(W)}{||\partial\mathcal{L}(W)||_F}\newline
-    \widehat{U} &\approx -\frac{\partial\mathcal{L}(W; \xi)}{||\partial\mathcal{L}(W; \xi)||_F}\newline
+        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline \|\Delta W\| = 1}} D\mathcal{L}(W)[\Delta W]\newline
+        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline \|\Delta W\| = 1}} \langle \partial\mathcal{L}(W), \Delta W \rangle_F\newline
+        &= -\frac{\partial\mathcal{L}(W)}{\|\partial\mathcal{L}(W)\|_F}\newline
+    \widehat{U} &\approx -\frac{\partial\mathcal{L}(W; \xi)}{\|\partial\mathcal{L}(W; \xi)\|_F}\newline
 \end{align*}
 $$
 
@@ -402,14 +402,14 @@ $$
     W_{t+1} &= W_t - \hat{\lambda} \partial\mathcal{L}(W; \xi)
 \end{align*}
 $$
-where $\hat{\lambda} = \frac{\lambda}{||\partial\mathcal{L}(W; \xi)||_F}$. This is simply Stochastic Gradient Descent (SGD) with an adaptive learning rate.
+where $\hat{\lambda} = \frac{\lambda}{\|\partial\mathcal{L}(W; \xi)\|_F}$. This is simply Stochastic Gradient Descent (SGD) with an adaptive learning rate.
 
 ### 3.2. $\mathcal{W}$ is a Riemannian Manifold
 
-That is, our choice of norm $||\cdot||$ is induced by a smoothly-varying metric $g_W(\cdot, \cdot): T_W \mathcal{W} \times T_W \mathcal{W} \rightarrow \mathbb{R}$ for each $W \in \mathcal{W}$ such that the parallelogram law holds and that,
+That is, our choice of norm $\|\cdot\|$ is induced by a smoothly-varying metric $g_W(\cdot, \cdot): T_W \mathcal{W} \times T_W \mathcal{W} \rightarrow \mathbb{R}$ for each $W \in \mathcal{W}$ such that the parallelogram law holds and that,
 $$
 \begin{align*}
-    ||X|| &= \sqrt{g_W(X, X)}&&\forall X \in T_W\mathcal{W}\newline
+    \|X\| &= \sqrt{g_W(X, X)}&&\forall X \in T_W\mathcal{W}\newline
     \text{and}\quad g_W(X, Y) &= \langle X, Y \rangle_{G_W} = \langle G_W X, Y \rangle_F = \text{tr}(X^T G_W Y) &&\forall X,Y \in T_W\mathcal{W}
 \end{align*}
 $$
@@ -417,10 +417,10 @@ for some (symmetric) positive-definite matrix $G_W$ that may depend on the point
 
 > **Special Cases.**
 > 1. *Euclidean Manifold:* $G_W = I$ for all $W \in \mathcal{W}$. In this case we have,
-$$||X|| = \sqrt{g_W(X, X)} = \sqrt{\langle I X, X \rangle_F} = \sqrt{\langle X, X \rangle_F} = ||X||_F,\quad\forall X \in T_W\mathcal{W}$$
+$$\|X\| = \sqrt{g_W(X, X)} = \sqrt{\langle I X, X \rangle_F} = \sqrt{\langle X, X \rangle_F} = \|X\|_F,\quad\forall X \in T_W\mathcal{W}$$
 which is simply the Euclidean case above.
 > 2. *Euclidean Manifold in Disguise:* $G_W$ is a constant matrix, i.e. it does not depend on $W$, but may not be the identity matrix. Since the metric matrix $G_W$ is guaranteed to be (symmetric) positive-definite, we can always factor it as $G_W = C^T C$ for some invertible matrix $C$. Thus,
-$$||X|| = \sqrt{g_W(X, X)} = \sqrt{\text{tr}(X^T C^T C X)} = \sqrt{\langle \overline{X}, \overline{X} \rangle_F} = ||\overline{X}||_F\quad\forall X \in T_W\mathcal{W}$$
+$$\|X\| = \sqrt{g_W(X, X)} = \sqrt{\text{tr}(X^T C^T C X)} = \sqrt{\langle \overline{X}, \overline{X} \rangle_F} = \|\overline{X}\|_F\quad\forall X \in T_W\mathcal{W}$$
 where $\overline{X} = CX\in CT_W\mathcal{W}$. This means that, up to a simple, linear change of coordinates, this case is equivalent to the Euclidean case above.
 > 
 > Our proofs below still hold in these special cases. But note that, the metric matrix $G_W$ may depend on the point $W \in \mathcal{W}$ and thus potentially induce a non-zero curvature somewhere on the manifold, making it non-Euclidean.
@@ -443,49 +443,49 @@ Thus,
 $$
 \begin{align}
     \widehat{U}
-        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline ||\Delta W|| = 1}} D\mathcal{L}(W)[\Delta W]\nonumber\newline
-        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline ||\Delta W|| = 1}} \langle \nabla \mathcal{L}(W), \Delta W \rangle\nonumber\newline
-        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline ||\Delta W|| = 1}} \langle G_W^{-1} \partial\mathcal{L}(W), \Delta W \rangle\newline
-        &= -\frac{G_W^{-1} \partial\mathcal{L}(W)}{||G_W^{-1}\partial\mathcal{L}(W)||}\nonumber\newline
+        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline \|\Delta W\| = 1}} D\mathcal{L}(W)[\Delta W]\nonumber\newline
+        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline \|\Delta W\| = 1}} \langle \nabla \mathcal{L}(W), \Delta W \rangle\nonumber\newline
+        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline \|\Delta W\| = 1}} \langle G_W^{-1} \partial\mathcal{L}(W), \Delta W \rangle\newline
+        &= -\frac{G_W^{-1} \partial\mathcal{L}(W)}{\|G_W^{-1}\partial\mathcal{L}(W)\|}\nonumber\newline
     \widehat{U}
-        &\approx -\frac{G_W^{-1}\partial\mathcal{L}(W; \xi)}{||G_W^{-1}\partial\mathcal{L}(W; \xi)||}\nonumber\newline
+        &\approx -\frac{G_W^{-1}\partial\mathcal{L}(W; \xi)}{\|G_W^{-1}\partial\mathcal{L}(W; \xi)\|}\nonumber\newline
 \end{align}
 $$
-where the maximum above can be achieved by aligning $\Delta W$ with $G_W^{-1}\partial\mathcal{L}(W)$ and scaling such that $||\Delta W|| = 1$ (Absil, 2008). Thus our update rule becomes,
+where the maximum above can be achieved by aligning $\Delta W$ with $G_W^{-1}\partial\mathcal{L}(W)$ and scaling such that $\|\Delta W\| = 1$ (Absil, 2008). Thus our update rule becomes,
 $$
 \begin{align*}
     W_{t+1} &= W_t + \lambda \widehat{U}\newline
     W_{t+1} &= W_t - \hat{\lambda} G_{W_t}^{-1}\partial\mathcal{L}(W_t)
 \end{align*}
 $$
-where $\hat{\lambda} = \frac{\lambda}{||G_{W_t}^{-1}\partial\mathcal{L}(W_t)||}$. This is Riemannian Stochastic Gradient Descent (RSGD) with an adaptive learning rate. And if we let $P_W = G_W^{-1}$ be the preconditioner at point $W$, we can relate this to Preconditioned Stochastic Gradient Descent (PSGD) algorithms (Li, 2015; Pooladzandi et al., 2024).
+where $\hat{\lambda} = \frac{\lambda}{\|G_{W_t}^{-1}\partial\mathcal{L}(W_t)\|}$. This is Riemannian Stochastic Gradient Descent (RSGD) with an adaptive learning rate. And if we let $P_W = G_W^{-1}$ be the preconditioner at point $W$, we can relate this to Preconditioned Stochastic Gradient Descent (PSGD) algorithms (Li, 2015; Pooladzandi et al., 2024).
 
 > **Important Takeaway:** In a Riemannian manifold, the preconditioner $P_W$ is *unique* and *well-defined* at each point $W \in \mathcal{W}$, but *may not be constant* across the manifold. Thus, as we move across the manifold, we may need to recompute or update our running estimate of the preconditioner. However, if our updates are "small-enough" by some definition, then we may not need to update it at every step; near convergence, or even earlier, it would suffice to update only every $K > 1$ steps for some positive integer $K$ chosen a priori.
 
 ### 3.3. $\mathcal{W}$ is a Non-Riemannian Manifold
 
-In this case, our choice of norm $||\cdot||$ does not admit a well-behaved metric $g_W(\cdot, \cdot)$ and consequently also does not admit a well-behaved inner product $\langle \cdot, \cdot \rangle$ such that $||\cdot|| = \sqrt{\langle \cdot, \cdot \rangle}$ for all $W \in \mathcal{W}$. Our differentials $D\mathcal{L}(W)[\cdot]$ are still well-defined, but we no longer have the bijective relationship between differentials and gradients. And so, we do not always have a unique $V \in T_W\mathcal{W}$ such that $D\mathcal{L}(W)[\cdot] = \langle V, \cdot \rangle$ if this inner product even exists.
+In this case, our choice of norm $\|\cdot\|$ does not admit a well-behaved metric $g_W(\cdot, \cdot)$ and consequently also does not admit a well-behaved inner product $\langle \cdot, \cdot \rangle$ such that $\|\cdot\| = \sqrt{\langle \cdot, \cdot \rangle}$ for all $W \in \mathcal{W}$. Our differentials $D\mathcal{L}(W)[\cdot]$ are still well-defined, but we no longer have the bijective relationship between differentials and gradients. And so, we do not always have a unique $V \in T_W\mathcal{W}$ such that $D\mathcal{L}(W)[\cdot] = \langle V, \cdot \rangle$ if this inner product even exists.
 
 While we still have access to the stochastic estimator of the differential in standard Euclidean coordinates $\partial\mathcal{L}(W)$ from Assumption 1, it no longer has geometric meaning by itself. More precisely, we no longer have information on how to transform $\partial\mathcal{L}(W)$ to the direction of steepest descent by a (possibly point-dependent) change of coordinates on the tangent space $T_W\mathcal{W}$.
 
-We can, however, still use Assumption 1 to define a dualizer for our norm, $\text{dualizer}_{||\cdot||}(\cdots; W) : T^*_W\mathcal{W} \rightarrow T_W\mathcal{W}$ for $W \in \mathcal{W}$, that maps the differential we get empirically to a direction of steepest descent,
+We can, however, still use Assumption 1 to define a dualizer for our norm, $\text{dualizer}_{\|\cdot\|}(\cdots; W) : T^*_W\mathcal{W} \rightarrow T_W\mathcal{W}$ for $W \in \mathcal{W}$, that maps the differential we get empirically to a direction of steepest descent,
 $$
 \begin{align*}
     \widehat{U}
-        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline ||\Delta W|| = 1}} D\mathcal{L}(W)[\Delta W]\newline
-        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline ||\Delta W|| = 1}} \langle \partial\mathcal{L}(W), \Delta W \rangle_F\newline
-        &\approx -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline ||\Delta W|| = 1}} \langle \partial\mathcal{L}(W; \xi), \Delta W \rangle_F\newline
-    \widehat{U} &= -\text{dualizer}_{||\cdot||}(\partial\mathcal{L}(W; \xi); W)
+        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline \|\Delta W\| = 1}} D\mathcal{L}(W)[\Delta W]\newline
+        &= -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline \|\Delta W\| = 1}} \langle \partial\mathcal{L}(W), \Delta W \rangle_F\newline
+        &\approx -\arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline \|\Delta W\| = 1}} \langle \partial\mathcal{L}(W; \xi), \Delta W \rangle_F\newline
+    \widehat{U} &= -\text{dualizer}_{\|\cdot\|}(\partial\mathcal{L}(W; \xi); W)
 \end{align*}
 $$
 where,
 $$
 \begin{equation}
-    \text{dualizer}_{||\cdot||}(\cdots; W) = \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline ||\Delta W|| = 1}} \langle \cdots, \Delta W \rangle_F
+    \text{dualizer}_{\|\cdot\|}(\cdots; W) = \arg\max_{\substack{\Delta W \in T_W\mathcal{W}\newline \|\Delta W\| = 1}} \langle \cdots, \Delta W \rangle_F
 \end{equation}
 $$
 
-And to simplify our notation, we use $\text{dualizer}_{||\cdot||}(\cdots)$ if this map is independent of $W$.
+And to simplify our notation, we use $\text{dualizer}_{\|\cdot\|}(\cdots)$ if this map is independent of $W$.
 
 > **Important Takeaways:**
 > 1. In the Riemannian case, the dualization is equivalent to preconditioning. But in the non-Riemannian case, the dualizer may not be linear and may even have multiple solutions! However, as we will discuss in the next section, it may suffice to approximate the dualizer with a (linear) preconditioner in practice.
@@ -537,10 +537,10 @@ We can fold the momentum term into $\partial\mathcal{L}(W; \xi)$ as it can be se
 
 And while Muon only approximately (semi-)orthogonalizes the gradient, we have found that it still empirically performs just as well as exact orthogonalization. We will discuss this in more detail in the next sections. Muon is also not the first optimizer that does approximate orthogonalization. For example, Carlson et al.'s randomized algorithm Sketching (2015) does this explicitly, and so does Shampoo (Gupta et al., 2018), CASPR (Surya et al., 2024), and PSGD (Li, 2015) implicitly through their preconditioners. However, Muon is the first, non-randomized, preconditioner-free optimizer that explicitly aims to orthogonalize the gradient.
 
-An interesting fact from prior work (Carlson et al., 2015; Flynn, 2017; Mokhtari et al., 2018, Bernstein et al., 2024) is that the dualizer for steepest descent under the spectral norm $||\cdot||_{2 \to 2}$ is exactly this orthogonalization process,
+An interesting fact from prior work (Carlson et al., 2015; Flynn, 2017; Mokhtari et al., 2018, Bernstein et al., 2024) is that the dualizer for steepest descent under the spectral norm $\|\cdot\|_{2 \to 2}$ is exactly this orthogonalization process,
 $$
 \begin{equation}
-    \text{dualizer}_{||\cdot||_{2\to 2}}(\partial\mathcal{L}(W; \xi)) = UV^T
+    \text{dualizer}_{\|\cdot\|_{2\to 2}}(\partial\mathcal{L}(W; \xi)) = UV^T
 \end{equation}
 $$
 where $U\Sigma V^T$ is the singular value decomposition (SVD) of $\partial\mathcal{L}(W; \xi)$. The spectral norm does not admit a well-behaved inner product. And so, Muon, and related optimizers, can be thought of as steepest descent in a non-Riemannian manifold.
@@ -621,8 +621,8 @@ which is Muon's update rule. $\blacksquare$
 
 **4.2.4. PSGD Family. [Under Review]** This family of optimizers (Li, 2015 & 2018; Pooladzandi, 2024) explicitly tries to learn the preconditioner $\mathcal{P}(\cdot; W)$ according to some criterion to ensure training stability and, potentially, faster convergence.  This criterion is involved with the noise suppression gain which is defined as,
 $$
-\text{noise\_suppresion\_gain}_{||\cdot||_F}(P)
-    = \frac{\mathbb{E}[||H_0^{-1}\epsilon'||_F^2]}{\mathbb{E}[||P\epsilon'||_F^2]}
+\text{noise\_suppresion\_gain}_{\|\cdot\|_F}(P)
+    = \frac{\mathbb{E}[\|H_0^{-1}\epsilon'\|_F^2]}{\mathbb{E}[\|P\epsilon'\|_F^2]}
     = \frac{\mathbb{E}[(\epsilon')^T H_0^{-2} \epsilon']}{\mathbb{E}[(\epsilon')^T P^2 \epsilon']},
 $$
 where $\epsilon'$ is some (matrix-valued) noise term on the Hessian $H$, which aims to reduce the noise of the preconditioned gradients.
@@ -631,54 +631,54 @@ We get different update rules depending on which Lie group we restrict the preco
 
 For future work, it would also be interesting to see what kind of update rules we get if we measure the noise suppression gain with respect to the spectral norm instead of the Frobenius norm. That is,
 $$
-\text{noise\_suppresion\_gain}_{||\cdot||_{2\to 2}}(P) = \frac{\mathbb{E}[||H_0^{-1}\epsilon'||_{2\to 2}]}{\mathbb{E}[||P\epsilon'||_{2\to 2}]}
+\text{noise\_suppresion\_gain}_{\|\cdot\|_{2\to 2}}(P) = \frac{\mathbb{E}[\|H_0^{-1}\epsilon'\|_{2\to 2}]}{\mathbb{E}[\|P\epsilon'\|_{2\to 2}]}
 $$
 
 ## 5. Steepest Descent under Elementwise $p$-Norms and Schatten-$p$ Norms
 
 > **Definition 2 (Vector $p$-Norms).** Given $p \in [1, \infty]$, the vector $p$-norm of a finite-dimensional, real-valued vector $x \in \mathbb{R}^n$ is defined as,
 > $$
-||x||_p = \begin{cases}
+\|x\|_p = \begin{cases}
     \left(\sum_{i=1}^{n} |x_i|^p\right)^{1/p} & \text{if } 1 \leq p < \infty\newline
     \max_{i} |x_i| & \text{if } p = \infty
 \end{cases}
 $$
 >
 > **Examples:**
-> 1. $p = 1$: The Manhattan/Taxicab norm, $||x||_1 = \sum_{i=1}^{n} |x_i|$
-> 2. $p = 2$: The Euclidean norm, $||x||_2 = \sqrt{\sum_{i=1}^{n} |x_i|^2} = ||x||_F$
-> 3. $p = \infty$: The Max norm, $||x||_\infty = \max_{i} |x_i|$
+> 1. $p = 1$: The Manhattan/Taxicab norm, $\|x\|_1 = \sum_{i=1}^{n} |x_i|$
+> 2. $p = 2$: The Euclidean norm, $\|x\|_2 = \sqrt{\sum_{i=1}^{n} |x_i|^2} = \|x\|_F$
+> 3. $p = \infty$: The Max norm, $\|x\|_\infty = \max_{i} |x_i|$
 
 > **Definition 3 (Matrix Elementwise $p$-Norms).** Given $p = [1, \infty]$, the elementwise $p$-norm of a finite-dimensional, real-valued matrix $X \in \mathbb{R}^{m \times n}$ is defined as,
 > $$
-||X||_{e,p} = \begin{cases}
+\|X\|_{e,p} = \begin{cases}
     \left(\sum_{i=1}^{m} \sum_{j=1}^{n} |X_{ij}|^p\right)^{1/p} & \text{if } 1 \leq p < \infty\newline
     \max_{i,j} |X_{ij}| & \text{if } p = \infty
 \end{cases}
 $$
 or equivalently,
-> $$||X||_{e,p} = ||\text{vec}(X)||_p,$$
+> $$\|X\|_{e,p} = \|\text{vec}(X)\|_p,$$
 > where $\text{vec}(\cdot)$ is the vectorization operator that stacks the columns of $X$ into a single vector.
 >
 > **Examples:**
-> 1. $p = 1$: The Sum-of-Sums norm, $||X||_{e,1} = \sum_{i=1}^{m} \sum_{j=1}^{n} |X_{ij}|$
-> 2. $p = 2$: The Frobenius norm, $||X||_{e,2} = \sqrt{\sum_{i=1}^{m} \sum_{j=1}^{n} |X_{ij}|^2} = ||X||_F$
-> 3. $p = \infty$: The Max-of-Max norm, $||X||_{e,\infty} = \max_{i,j} |X_{ij}|$
+> 1. $p = 1$: The Sum-of-Sums norm, $\|X\|_{e,1} = \sum_{i=1}^{m} \sum_{j=1}^{n} |X_{ij}|$
+> 2. $p = 2$: The Frobenius norm, $\|X\|_{e,2} = \sqrt{\sum_{i=1}^{m} \sum_{j=1}^{n} |X_{ij}|^2} = \|X\|_F$
+> 3. $p = \infty$: The Max-of-Max norm, $\|X\|_{e,\infty} = \max_{i,j} |X_{ij}|$
 
 > **Definition 4 (Schatten-$p$ Norms).** Given $p = [1, \infty]$, the Schatten-$p$ norm of a finite-dimensional, real-valued matrix $X \in \mathbb{R}^{m \times n}$ is defined as,
 $$
-||X||_{S_p} = \begin{cases}
+\|X\|_{S_p} = \begin{cases}
     \left(\sum_{i=1}^{\min(m, n)} |\sigma_i(X)|^p\right)^{1/p} & \text{if } 1 \leq p < \infty\newline
     \max_{i} \sigma_i(X) & \text{if } p = \infty
 \end{cases}
 $$
 where $\sigma(X) = (\sigma_1(X), \ldots, \sigma_{\min(m,n)}(X))$ are the singular values of $X$. Or equivalently,
-> $$||X||_{S_p} = ||\sigma(X)||_p$$
+> $$\|X\|_{S_p} = \|\sigma(X)\|_p$$
 > 
 > **Examples:**
-> 1. $p = 1$: The Nuclear norm, $||A||_{S_1} = \sum_{i=1}^{\min(m,n)} |\sigma_i(A)| = ||A||_{\text{nuc}}$
-> 2. $p = 2$: The Frobenius norm, $||A||_{S_2} = \left(\sum_{i=1}^{\min(m,n)} |\sigma_i(A)|^2\right)^{\frac{1}{2}} = ||A||_F$
-> 3. $p = \infty$: The Spectral norm, $||A||_{S_{\infty}} = \max_{i} \sigma_i(A) = ||A||_{2 \to 2}$
+> 1. $p = 1$: The Nuclear norm, $\|A\|_{S_1} = \sum_{i=1}^{\min(m,n)} |\sigma_i(A)| = \|A\|_{\text{nuc}}$
+> 2. $p = 2$: The Frobenius norm, $\|A\|_{S_2} = \left(\sum_{i=1}^{\min(m,n)} |\sigma_i(A)|^2\right)^{\frac{1}{2}} = \|A\|_F$
+> 3. $p = \infty$: The Spectral norm, $\|A\|_{S_{\infty}} = \max_{i} \sigma_i(A) = \|A\|_{2 \to 2}$
 
 A special case is when $p = 2$, and so we have the Frobenius norm. Equipping $\mathcal{W}$ with this norm gives us the standard Euclidean manifold, which is Riemannian. However, Propositions (6) and (7) below still applies.
 
@@ -698,8 +698,8 @@ $$
 
 > **Proposition 7.** Given $p = [1, \infty]$, the dualizer for the Schatten-$p$ norm is:
 $$
-\text{dualizer}_{||\cdot||_{S_p}}(X) = \begin{cases}
-    U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{||X||_{S_q}^{q-1}} V^T & \text{if } 1 \leq p < \infty\newline
+\text{dualizer}_{\|\cdot\|_{S_p}}(X) = \begin{cases}
+    U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T & \text{if } 1 \leq p < \infty\newline
     UV^T & \text{if } p = \infty
 \end{cases}
 $$
@@ -708,44 +708,44 @@ where $\frac{1}{p} + \frac{1}{q} = 1$, and $X = U\Sigma V^T$ is the singular val
 > **Proof:** For a given $X \in T_W\mathcal{W}$ at $W \in \mathcal{W}$, let $T^* \in T_W\mathcal{W}$ be,
 $$
 \begin{align*}
-    T^* &= \text{dualizer}_{||\cdot||_{S_p}}(X; W)\newline
-    T^* &= \arg\max_{\substack{T \in T_W\mathcal{W}\newline ||T||_{S_p} = 1}} \langle X, T \rangle_F\newline
-    T^* &= \arg\max_{\substack{T \in T_W\mathcal{W}\newline ||T||_{S_p} = 1}} \text{tr}(X^T T)
+    T^* &= \text{dualizer}_{\|\cdot\|_{S_p}}(X; W)\newline
+    T^* &= \arg\max_{\substack{T \in T_W\mathcal{W}\newline \|T\|_{S_p} = 1}} \langle X, T \rangle_F\newline
+    T^* &= \arg\max_{\substack{T \in T_W\mathcal{W}\newline \|T\|_{S_p} = 1}} \text{tr}(X^T T)
 \end{align*}
 $$
 Then from von Neumann's Trace Inequality, we know that $T^*$ must share singular vectors with $X$ and that,
 $$
 \begin{align*}
-    T^* &= \arg\max_{\substack{T \in T_W\mathcal{W}\newline ||T||_{S_p} = 1}} \sum_{i=1}^{\min(m,n)} \sigma_i(X) \sigma_i(T)\newline
-    T^* &= \arg\max_{\substack{T \in T_W\mathcal{W}\newline ||\sigma(T)||_{p} = 1}} \langle \sigma(X), \sigma(T) \rangle_F
+    T^* &= \arg\max_{\substack{T \in T_W\mathcal{W}\newline \|T\|_{S_p} = 1}} \sum_{i=1}^{\min(m,n)} \sigma_i(X) \sigma_i(T)\newline
+    T^* &= \arg\max_{\substack{T \in T_W\mathcal{W}\newline \|\sigma(T)\|_{p} = 1}} \langle \sigma(X), \sigma(T) \rangle_F
 \end{align*}
 $$
 Thus, our optimization problem reduces to,
 $$\arg\max_{\sigma(T)} \sum_{i=1}^{\min(m,n)} \sigma_i(X) \sigma_i(T) \quad\text{s.t.}\quad \sum_{i=1}^{\min(m,n)} \sigma_{i}(T)^p = 1$$
 And solving via Lagrange multipliers, we have,
-$$\sigma_i(T) = \frac{\sigma_i(X)^{q-1}}{||X||_{S_q}^{q-1}}$$
+$$\sigma_i(T) = \frac{\sigma_i(X)^{q-1}}{\|X\|_{S_q}^{q-1}}$$
 where $\frac{1}{p} + \frac{1}{q} = 1$. Note that this is indepdent of $W$. Hence,
-$$T^* = \text{dualizer}_{||\cdot||_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{||X||_{S_q}^{q-1}} V^T\quad\blacksquare$$
+$$T^* = \text{dualizer}_{\|\cdot\|_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T\quad\blacksquare$$
 
 ### 5.2. Stochastic Gradient Descent and Muon as Special Cases of Steepest Descent under Schatten-$p$ Norms
 
-**5.2.1. Recovering SGD.** Let $p = 2$, and so we have $q = 2$ and $||\cdot||_{S_2} = ||\cdot||_F$. Thus for $\partial\mathcal{L}(W; \xi) \in T^*_W\mathcal{W}$ at $W \in \mathcal{W}$, we have,
+**5.2.1. Recovering SGD.** Let $p = 2$, and so we have $q = 2$ and $\|\cdot\|_{S_2} = \|\cdot\|_F$. Thus for $\partial\mathcal{L}(W; \xi) \in T^*_W\mathcal{W}$ at $W \in \mathcal{W}$, we have,
 $$
 \begin{align*}
     \Delta W
-        &= \text{dualizer}_{||\cdot||_{S_\infty}}(\partial\mathcal{L}(W; \xi); W)\newline
-        &= U \frac{\text{diag}\left(\sigma_1(\partial\mathcal{L}(W; \xi))^{2-1}, \ldots, \sigma_{\min(m,n)}(\partial\mathcal{L}(W; \xi))^{2-1}\right)}{||\partial\mathcal{L}(W; \xi)||_{S_2}^{2-1}} V^T\newline
-    \Delta W &= \frac{\partial\mathcal{L}(W; \xi)}{||\partial\mathcal{L}(W; \xi)||_F}
+        &= \text{dualizer}_{\|\cdot\|_{S_\infty}}(\partial\mathcal{L}(W; \xi); W)\newline
+        &= U \frac{\text{diag}\left(\sigma_1(\partial\mathcal{L}(W; \xi))^{2-1}, \ldots, \sigma_{\min(m,n)}(\partial\mathcal{L}(W; \xi))^{2-1}\right)}{\|\partial\mathcal{L}(W; \xi)\|_{S_2}^{2-1}} V^T\newline
+    \Delta W &= \frac{\partial\mathcal{L}(W; \xi)}{\|\partial\mathcal{L}(W; \xi)\|_F}
 \end{align*}
 $$
 which matches the update rule we expect from SGD.
 
-**5.2.2. Recovering Muon.** Let $p = \infty$, and so we have $q = 1$ and $||\cdot||_{S_\infty} = ||\cdot||_{2\to 2}$. Thus for $\partial\mathcal{L}(W; \xi) \in T^*_W\mathcal{W}$ at $W \in \mathcal{W}$, we have,
+**5.2.2. Recovering Muon.** Let $p = \infty$, and so we have $q = 1$ and $\|\cdot\|_{S_\infty} = \|\cdot\|_{2\to 2}$. Thus for $\partial\mathcal{L}(W; \xi) \in T^*_W\mathcal{W}$ at $W \in \mathcal{W}$, we have,
 $$
 \begin{align*}
     \Delta W
-        &= \text{dualizer}_{||\cdot||_{2 \to 2}}(\partial\mathcal{L}(W; \xi); W)\newline
-        &= U \frac{\text{diag}\left(\sigma_1(\partial\mathcal{L}(W; \xi))^{1-1}, \ldots, \sigma_{\min(m,n)}(\partial\mathcal{L}(W; \xi))^{1-1}\right)}{||\partial\mathcal{L}(W; \xi)||_{S_1}^{1-1}} V^T\newline
+        &= \text{dualizer}_{\|\cdot\|_{2 \to 2}}(\partial\mathcal{L}(W; \xi); W)\newline
+        &= U \frac{\text{diag}\left(\sigma_1(\partial\mathcal{L}(W; \xi))^{1-1}, \ldots, \sigma_{\min(m,n)}(\partial\mathcal{L}(W; \xi))^{1-1}\right)}{\|\partial\mathcal{L}(W; \xi)\|_{S_1}^{1-1}} V^T\newline
     \Delta W &= UV^T
 \end{align*}
 $$
@@ -764,16 +764,16 @@ To support this, we show that the (1) variance of singular values post-dualizati
 > **Proof:** Let $X \in \mathbb{R}^{m \times n}$ and let $t_i$ be the $i$-th singular value post-dualization. From Proposition 7 earlier, we have
 $$
 \begin{align*}
-    t_i &= \left(\frac{\sigma_i(X)}{||X||_{S_q}}\right)^{q-1}\newline
-    t_i &= \exp\left((q-1)\ln\frac{\sigma_i(X)}{||X||_{S_q}}\right)\newline
-    t_i &\approx 1 + (q-1)\ln\frac{\sigma_i(X)}{||X||_{S_q}}
+    t_i &= \left(\frac{\sigma_i(X)}{\|X\|_{S_q}}\right)^{q-1}\newline
+    t_i &= \exp\left((q-1)\ln\frac{\sigma_i(X)}{\|X\|_{S_q}}\right)\newline
+    t_i &\approx 1 + (q-1)\ln\frac{\sigma_i(X)}{\|X\|_{S_q}}
 \end{align*}
 $$
 where the last line follows from first-order Taylor approximation of $t_i$. Thus, the mean and variance are:
 $$
 \begin{align*}
-    \mathbb{E}[t_i] &\approx 1 + (q-1)\mathbb{E}\left[\ln\frac{\sigma_i(X)}{||X||_{S_q}}\right]\newline
-    \mathbb{E}[t_i] &\approx 1 + (q-1)\ln\frac{\mathbb{E}[\sigma_i(X)]}{||X||_{S_q}}\newline
+    \mathbb{E}[t_i] &\approx 1 + (q-1)\mathbb{E}\left[\ln\frac{\sigma_i(X)}{\|X\|_{S_q}}\right]\newline
+    \mathbb{E}[t_i] &\approx 1 + (q-1)\ln\frac{\mathbb{E}[\sigma_i(X)]}{\|X\|_{S_q}}\newline
     t_i - \mathbb{E}[t_i] &\approx (q-1)\ln\left[\sigma_i(X) - \mathbb{E}[\sigma_i(X)]\right]\newline
     Var[t_i] &\approx (q-1)^2\mathbb{E}\left[\ln^2\left[\sigma_i(X) - \mathbb{E}[\sigma_i(X)]\right]\right]\newline
     Var[t_i] &\approx \frac{1}{(p-1)^2}\mathbb{E}\left[\ln^2\left[\sigma_i(X) - \mathbb{E}[\sigma_i(X)]\right]\right]
@@ -786,10 +786,10 @@ Empirically, we can see this in the following plot. And at $p = 32$, the varianc
 
 **5.3.2. On the relative size and stable rank of gradients**
 
-> **Definition 6: Relative Size of a Gradient.** Given a norm $||\cdot||$ chosen a priori, the relative size of a gradient-update $\Delta W$ relative to the parameter matrix $W$ is defined as:
-$$\text{relsize}(\Delta W) = \frac{||\Delta W||}{||W||}$$
+> **Definition 6: Relative Size of a Gradient.** Given a norm $\|\cdot\|$ chosen a priori, the relative size of a gradient-update $\Delta W$ relative to the parameter matrix $W$ is defined as:
+$$\text{relsize}(\Delta W) = \frac{\|\Delta W\|}{\|W\|}$$
 
-> **Definition 7: Stable Rank.** The stable rank of a matrix $A$ is defined as $$srank(A) = \frac{||A||_F^2}{||A||_{2 \to 2}^2}$$
+> **Definition 7: Stable Rank.** The stable rank of a matrix $A$ is defined as $$srank(A) = \frac{\|A\|_F^2}{\|A\|_{2 \to 2}^2}$$
 
 As we can see in the following plot, the raw gradients have very low-stable rank. But the stable rank of the gradients post-dualization under the Schatten-$p$ norm converges very quickly to that of the Spectral norm as $p$ approaches $\infty$.
 

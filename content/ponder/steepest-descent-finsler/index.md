@@ -37,7 +37,7 @@ For (1), note that we have *two* degrees of freedom here: the choice of the unde
 
 While it might seem that we're just inventing a difficult problem for bored mathematicians to solve, we will show in the next sections that we can motivate such problems with simple arguments and even lead to 1.5x to 2x speedup in large-scale LLM training.
 
-This blog post generalizes work by [Jeremy Bernstein](https://docs.modula.systems/algorithms/manifold/stiefel/) and [Jianlin Su](https://kexue.fm/archives/11221) on 'Stiefel Muon' to optimization on Finsler-structured (matrix) manifolds.
+This blog post generalizes work by [Bernstein (2025)](https://docs.modula.systems/algorithms/manifold/stiefel/) and [Su (2025)](https://kexue.fm/archives/11221) on 'Stiefel Muon' to optimization on Finsler-structured (matrix) manifolds.
 
 ## 2. Case studies
 
@@ -88,7 +88,7 @@ Inspired by a partial solution by Jianlin (which did not yet work at the time), 
 
 Let $\mathcal{M}$ be a (matrix) manifold and $\| \cdot \|$ be a Finsler norm defined on the tangent spaces of $\mathcal{M}$, both chosen a priori. We want to solve the problem,
 > Given the current weight $W \in \mathcal{M}$ and a "raw gradient" or differential we get via e.g. backpropagation $G \in T_{W}^*\mathcal{M} \subseteq \mathbb{R}^{m \times n}$, we want to find the optimal update $A^* \in T_{W}\mathcal{M} \subseteq \mathbb{R}^{m \times n}$ such that,
-> $$\begin{equation} A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \| A \|_{W} \leq \eta,\quad A \in T_{W}\mathcal{M} \end{equation}$$
+> $$\begin{equation} A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \| A \|_{W} \leq \eta,\quad A \in T_{W}\mathcal{M}, \label{eq:astarproblem} \end{equation}$$
 > where $\eta > 0$ is the learning rate parameter.
 
 The $\langle \cdot, \cdot \rangle: T^*_{W}\mathcal{M} \times T_{W}\mathcal{M} \to \mathbb{R}$ operator above is *not* an inner product, but the canonical pairing between the cotangent and tangent spaces. It holds no geometric meaning by itself. But in the standard basis of $R^{m \times n}$, it *coincidentally behaves like* the Frobenius/Euclidean inner product. More intuitively, we can think of $\langle G, A \rangle$ as the *directional derivative* of the loss function in the direction of $A$. And we want to find the direction $A^*$ that maximally decreases the loss function while satisfying the constraints.
@@ -102,7 +102,7 @@ First, notice that the feasible sets for the constraints on $A$ above are convex
 There are many ways to solve this problem such as Alternating Direction Method of Multipliers (ADMM), Douglas-Rachford, and etc. In this blog post, we will focus on the Primal-Dual Hybrid Gradient (PDHG) method.
 
 First, replace the constraints with indicator functions,
-$$\begin{equation} A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \left\{ \langle G, A \rangle + \mathcal{i}_{\| \cdot \|_{W} \leq \eta}(A) + \mathcal{i}_{T_{W}\mathcal{M}}(A) \right\} \end{equation}$$
+$$\begin{equation} A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \left\{ \langle G, A \rangle + \mathcal{i}_{\| \cdot \|_{W} \leq \eta}(A) + \mathcal{i}_{T_{W}\mathcal{M}}(A) \right\}, \end{equation}$$
 where,
 $$ \mathcal{i}_{\| \cdot \|_{W} \leq \eta}(A) =
 \begin{cases}
@@ -114,15 +114,20 @@ $$ \mathcal{i}_{\| \cdot \|_{W} \leq \eta}(A) =
 \begin{cases}
     0 &\text{ if } A \in T_{W}\mathcal{M} \\
     \infty &\text{ otherwise}
-\end{cases}
+\end{cases}.
 $$
 
 Equivalently,
-$$\begin{equation} A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \left\{ f_{\eta}(A) + g(A) \right\} \end{equation}$$
+$$\begin{equation}
+    A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \left\{ f_{\eta}(A) + g(A) \right\}, \label{eq:astarviaindicators}
+\end{equation}$$
 where $f_{\eta}(\cdot) := \mathcal{i}_{\| \cdot \|_{W} \leq \eta}(\cdot)$ and $g(\cdot) := \mathcal{i}_{T_{W}\mathcal{M}}(\cdot) + \langle G, \cdot \rangle$. Note that we can move the $\langle G, \cdot \rangle$ term to $f$ instead, but as we will see later, the proximal operator for $g$ is simpler so we keep it there for improved numerical stability.
 
-We can then split Equation (4) into two subproblems by 'copying' $A$,
-$$\begin{equation} A^* = \left[\arg\min_{A,B \in \mathbb{R}^{m \times n}} \{f_{\eta}(A) + g(B)\} \quad \text{ s.t. } \quad A - B = 0\right]_{A} \end{equation}$$
+We can then split Equation $\eqref{eq:astarviaindicators}$ into two subproblems by 'copying' $A$,
+$$\begin{equation}
+    A^* = \left[\arg\min_{A,B \in \mathbb{R}^{m \times n}} \{f_{\eta}(A) + g(B)\} \quad \text{ s.t. } \quad A - B = 0\right]_{A}. \label{eq:astarviacopies}
+\end{equation}$$
+
 This effectively blows up our solution search space, but one can easily prove that the optimal solution to the problem above also solves our original problem!
 
 ### 3.3. Recasting as a primal-dual problem
@@ -144,7 +149,7 @@ $$
 $$
 where $X \in \mathcal{X} = \mathbb{R}^{2m \times n}$, $Y \in \mathcal{Y} = \mathbb{R}^{m \times n}$, $L: \mathcal{X} \to \mathcal{Y}$ is a linear operator, $\mathcal{F}_{\eta}: \mathcal{X} \to \mathbb{R}$, and $\mathcal{G}: \mathcal{Y} \to \mathbb{R}$.
 
-Then Equation (5) can be rewritten to,
+Then Equation $\eqref{eq:astarviacopies}$ can be rewritten to,
 $$\begin{align}
     A^* &= \left[ \arg\min_{X \in \mathcal{X}} \{\mathcal{F}_{\eta}(X) + \mathcal{G}(LX)\} \right]_{1}
 \end{align}$$
@@ -176,7 +181,7 @@ $$\begin{align*}
     Y_{k+1}
         &= \texttt{prox}_{\sigma \mathcal{G}^*} (Y_{k} + \sigma L \widetilde{X}_{k}) \\
         &= \arg\min_{Y \in \mathcal{Y}} \left\{ \sigma \cancel{\mathcal{G}^*(Y)} + \frac{1}{2} \| Y - (Y_{k} + \sigma L \widetilde{X}_{k}) \|_F^2 \right\} \\
-        &= Y_{k} + \sigma L \widetilde{X}_{k}
+        &= Y_{k} + \sigma L \widetilde{X}_{k} \label{eq:yupdate}
 \end{align*}$$
 
 For the $X$-variable,
@@ -215,7 +220,7 @@ $$
     X_{k+1} = \begin{bmatrix}
         \texttt{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A Y_{k+1}) \\
         \texttt{proj}_{T_W\mathcal{M}} (B_k + \tau_B Y_{k+1} - \tau_B G)
-    \end{bmatrix}
+    \end{bmatrix} \label{eq:xupdate}
 \end{equation}
 $$
 
@@ -231,7 +236,7 @@ $$\begin{align}
     \widetilde{B}_{k+1} &= B_{k+1} + \theta (B_{k+1} - B_{k})
 \end{align}$$
 
-Note that if we had moved the $\langle G, \cdot \rangle$ to the $f$ term in Equation (4), then our iteration for $A$ and $B$ would instead be,
+Note that if we had moved the $\langle G, \cdot \rangle$ to the $f$ term in Equation $\eqref{eq:astarviaindicators}$, then our iteration for $A$ and $B$ would instead be,
 
 $$\begin{align}
     A_{k+1} &= \texttt{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A Y_{k+1} - \tau_A G) \\
@@ -391,7 +396,7 @@ As a minimal example for learning rate transfer, we train a $1$-Lipschitz, $2 \t
 
 Our solution above generalizes to arbitrary number of constraints on $A$ so long as the feasible set for each constraint is convex. We then only need to find the metric projection onto each feasible set.
 
-For example, suppose we add another constraint $A \in S$ in Equation (2) above where $S$ is a convex set and $\texttt{proj}_{S}(\cdot)$ is the (metric) projection onto $S$. Then our Equation (5) becomes,
+For example, suppose we add another constraint $A \in S$ in Equation $\eqref{eq:astarproblem}$ above where $S$ is a convex set and $\texttt{proj}_{S}(\cdot)$ is the (metric) projection onto $S$. Then our Equation $\eqref{eq:astarviacopies}$ becomes,
 $$\begin{equation} A^* = -\left[\arg\min_{A,B,C \in \mathbb{R}^{m \times n}} \{f(A) + g(B) + h(C)\} \quad \text{ s.t. } \quad A - B = A - C = 0\right]_{A} \end{equation}$$
 where,
 $$
@@ -417,7 +422,7 @@ $$
     \mathcal{F}(X) &:= f(A) + g(B) + h(C) \\
 \end{align*}
 $$
-and the rest then follows and Equation (11) becomes,
+and the rest then follows and Equation $\eqref{eq:xupdate}$ becomes,
 $$
 \begin{equation}
     X_{k+1} = \begin{bmatrix}

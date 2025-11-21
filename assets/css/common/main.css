@@ -38,6 +38,7 @@
 
 code {
     direction: ltr;
+    font-family: 'Google Sans Code';
 }
 
 code, .archive-entry-title, .entry-header {

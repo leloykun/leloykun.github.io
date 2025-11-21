@@ -39,58 +39,58 @@ $$\Delta W_l^* = -H(W_l)^{-1} \nabla L(W_l)$$
 However, computing the Hessian, let alone inverting it, is computationally expensive. Thus, second-order optimizers like Shampoo and CASPR resort to adding more assumptions to the structure of the Hessian to get the job done. We will discuss more on this in a future post.
 
 2. **First-order with a soft norm penalty.** Here, we approximate the second-order and subsequent terms in the Taylor expansion with a (squared-) norm penalty:
-$$\Delta W_l^* = \arg\min_{\Delta W_l} \{\langle\nabla L(W_l), \Delta W_l\rangle_F + \frac{\lambda}{2} ||\Delta W_l||^2\},$$
-for some norm $||\cdot||$ and some sharpness parameter $\lambda$ chosen a priori. This leads to the work of Bernstein & Newhouse (2024) on Steepest Descent Under Operator Norms where they show that the optimal $\Delta W_l^*$ is:
-$$\Delta W_l^* = -\frac{||\nabla L(W_l)||^{\dagger}}{\lambda}\text{dualizer}_{||\cdot||}(\nabla L(W_l)),$$
-where $||\cdot||^{\dagger}$ is the dual norm of $||\cdot||$ and $$\text{dualizer}_{||\cdot||}(X) = \arg\max_{||T|| = 1}\langle X, T \rangle_F.$$
+$$\Delta W_l^* = \arg\min_{\Delta W_l} \{\langle\nabla L(W_l), \Delta W_l\rangle_F + \frac{\lambda}{2} \|\Delta W_l\|^2\},$$
+for some norm $\|\cdot\|$ and some sharpness parameter $\lambda$ chosen a priori. This leads to the work of Bernstein & Newhouse (2024) on Steepest Descent Under Operator Norms where they show that the optimal $\Delta W_l^*$ is:
+$$\Delta W_l^* = -\frac{\|\nabla L(W_l)\|^{\dagger}}{\lambda}\text{dualizer}_{\|\cdot\|}(\nabla L(W_l)),$$
+where $\|\cdot\|^{\dagger}$ is the dual norm of $\|\cdot\|$ and $$\text{dualizer}_{\|\cdot\|}(X) = \arg\max_{\|T\| = 1}\langle X, T \rangle_F.$$
 
-3. **First-order with a hard norm constraint.** This is similar to the previous choice but we require that $\Delta W_l$ be of some fixed "length" $r$ with respect to the norm $||\cdot||$:
-$$\Delta W_l^* = \arg\min_{\Delta W_l} \langle\nabla L(W_l), \Delta W_l\rangle_F \quad \text{s.t.} \quad ||\Delta W_l|| = r.$$
+3. **First-order with a hard norm constraint.** This is similar to the previous choice but we require that $\Delta W_l$ be of some fixed "length" $r$ with respect to the norm $\|\cdot\|$:
+$$\Delta W_l^* = \arg\min_{\Delta W_l} \langle\nabla L(W_l), \Delta W_l\rangle_F \quad \text{s.t.} \quad \|\Delta W_l\| = r.$$
 This leads to the work of Pethick et al. (2025) on Linear Minimization Oracle (LMO) over a norm ball.
 
-Now, notice that for $r = 1$, the only difference between the second and third choices is actually the scaling factor or the "learning rate", the schedule of which we can tune separately. Either way, the crucial part is how we choose the norm $||\cdot||$--if we pick a different norm, we get a different class of optimizers.
+Now, notice that for $r = 1$, the only difference between the second and third choices is actually the scaling factor or the "learning rate", the schedule of which we can tune separately. Either way, the crucial part is how we choose the norm $\|\cdot\|$--if we pick a different norm, we get a different class of optimizers.
 
 ## Steepest Descent Under Operator Norms
 
 Previous work by Bernstein & Newhouse (2024) and Pethick et al. (2025) have already worked out the dualizers for different operator norms and how they give rise to different optimizers.
 
-1. **Frobenius Norm $||\cdot||_F$:** The dual norm of the Frobenius norm is the Frobenius norm itself. And its dualizer is fairly simple:
+1. **Frobenius Norm $\|\cdot\|_F$:** The dual norm of the Frobenius norm is the Frobenius norm itself. And its dualizer is fairly simple:
 $$
 \begin{align*}
-    ||\nabla L(W_l)||_F^{\dagger} &= ||\nabla L(W_l)||_F\\
-    \text{dualizer}_{||\cdot||_F}(\nabla L(W_l)) &= \frac{\nabla L(W_l)}{||\nabla L(W_l)||_F}
+    \|\nabla L(W_l)\|_F^{\dagger} &= \|\nabla L(W_l)\|_F\\
+    \text{dualizer}_{\|\cdot\|_F}(\nabla L(W_l)) &= \frac{\nabla L(W_l)}{\|\nabla L(W_l)\|_F}
 \end{align*}
 $$
 Thus, the update rule for steepest descent under the Frobenius norm is:
 $$
 \begin{align*}
-\Delta W_l^* &= -\frac{||\nabla L(W_l)||_F}{\lambda} \frac{\nabla L(W_l)}{||\nabla L(W_l)||_F}\\
+\Delta W_l^* &= -\frac{\|\nabla L(W_l)\|_F}{\lambda} \frac{\nabla L(W_l)}{\|\nabla L(W_l)\|_F}\\
 \Delta W_l^* &= -\frac{1}{\lambda} \nabla L(W_l)
 \end{align*}
 $$
 which is just the update rule for Stochastic Gradient Descent (SGD).
 
-2. **Max-of-Max Norm $||\cdot||_{1 \to \infty}$:** A unit-length matrix under this norm is a matrix where all entries are $\pm 1$. And we can show that the unit-length matrix $T$ that maximizes the Frobenius inner product with the gradient $\nabla L(W_l)$ is the matrix whose entries are the signs of the entries of $\nabla L(W_l)$:
-$$\text{dualizer}_{||\cdot||_{1 \to \infty}}(\nabla L(W_l)) = \text{sign}(\nabla L(W_l))$$
+2. **Max-of-Max Norm $\|\cdot\|_{1 \to \infty}$:** A unit-length matrix under this norm is a matrix where all entries are $\pm 1$. And we can show that the unit-length matrix $T$ that maximizes the Frobenius inner product with the gradient $\nabla L(W_l)$ is the matrix whose entries are the signs of the entries of $\nabla L(W_l)$:
+$$\text{dualizer}_{\|\cdot\|_{1 \to \infty}}(\nabla L(W_l)) = \text{sign}(\nabla L(W_l))$$
 Thus, the update rule for steepest descent under the max-of-max norm is:
 $$
 \begin{align*}
-    \Delta W_l^* &= -\frac{||\nabla L(W_l)||_{1 \to \infty}^\dagger}{\lambda} \text{sign}(\nabla L(W_l))\\
+    \Delta W_l^* &= -\frac{\|\nabla L(W_l)\|_{1 \to \infty}^\dagger}{\lambda} \text{sign}(\nabla L(W_l))\\
     \Delta W_l^* &= -\frac{1}{\hat{\lambda}} \frac{\nabla L(W_l)}{\sqrt{\nabla L(W_l) \odot \nabla L(W_l)}}
 \end{align*}
 $$
-where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||_{1 \to \infty}^\dagger}$ and $\odot$ is the element-wise (Hadamard) product. Note that this is the update rule for Adam without accumulation.
+where $\hat{\lambda} = \frac{\lambda}{\|\nabla L(W_l)\|_{1 \to \infty}^\dagger}$ and $\odot$ is the element-wise (Hadamard) product. Note that this is the update rule for Adam without accumulation.
 
-3. **Spectral Norm $||\cdot||_{2 \to 2}$:** A unit-length matrix under this norm is a matrix whose singular values are all 1. And we can show that the unit-length matrix $T$ that maximizes the Frobenius inner product with the gradient $\nabla L(W_l)$ is the matrix whose singular vectors are also the singular vectors of $\nabla L(W_l)$. We will prove this more rigorously in the next section. But for now, the dualizer for the spectral norm is:
-$$\text{dualizer}_{||\cdot||_{2 \to 2}}(\nabla L(W_l)) = UV^T,$$
+3. **Spectral Norm $\|\cdot\|_{2 \to 2}$:** A unit-length matrix under this norm is a matrix whose singular values are all 1. And we can show that the unit-length matrix $T$ that maximizes the Frobenius inner product with the gradient $\nabla L(W_l)$ is the matrix whose singular vectors are also the singular vectors of $\nabla L(W_l)$. We will prove this more rigorously in the next section. But for now, the dualizer for the spectral norm is:
+$$\text{dualizer}_{\|\cdot\|_{2 \to 2}}(\nabla L(W_l)) = UV^T,$$
 where $\nabla L(W_l) = U\Sigma V^T$ is the singular value decomposition of $\nabla L(W_l)$. Thus, the update rule for steepest descent under the spectral norm is: 
 $$
 \begin{align*}
-    \Delta W_l^* &= -\frac{||\nabla L(W_l)||_{2 \to 2}^{\dagger}}{\lambda} UV^T\\
+    \Delta W_l^* &= -\frac{\|\nabla L(W_l)\|_{2 \to 2}^{\dagger}}{\lambda} UV^T\\
     \Delta W_l^* &= -\frac{1}{\hat{\lambda}} UV^T
 \end{align*}
 $$
-where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||^{\dagger}_{2 \to 2}}$
+where $\hat{\lambda} = \frac{\lambda}{\|\nabla L(W_l)\|^{\dagger}_{2 \to 2}}$
 which is just the update rule for Muon.
 
 ## Steepest Descent Under Schatten-$p$ Norms
@@ -100,22 +100,22 @@ We can generalize the above to the Schatten-$p$ norms.
 ### Schatten-$p$ Norms
 
 > **Definition 1: Schatten-$p$ Norm.** The Schatten-$p$ norm of a matrix $A$ is defined as:
-$$||A||_p = \left(\sum_{i=1}^{\min(m, n)} |\sigma_i(A)|^p\right)^{1/p},$$
+$$\|A\|_p = \left(\sum_{i=1}^{\min(m, n)} |\sigma_i(A)|^p\right)^{1/p},$$
 where $\sigma_i(A)$ are the singular values of $A$.
 
 In a sense, you can think of the Schatten-$p$ norm of $A$ as the $p$-norm of the singular values of $A.$
 
 **Examples:**
 
-1. $p = 1$: The Nuclear norm, $||A||_{S_1} = \sum_{i=1}^{\min(m,n)} |\sigma_i(A)|$
-2. $p = 2$: The Frobenius norm, $||A||_{S_2} = \left(\sum_{i=1}^{\min(m,n)} |\sigma_i(A)|^2\right)^{\frac{1}{2}} = ||A||_F$
-3. $p = \infty$: The Spectral norm, $||A||_{S_{\infty}} = \max_{i} \sigma_i(A) = ||A||_{2 \to 2}$
+1. $p = 1$: The Nuclear norm, $\|A\|_{S_1} = \sum_{i=1}^{\min(m,n)} |\sigma_i(A)|$
+2. $p = 2$: The Frobenius norm, $\|A\|_{S_2} = \left(\sum_{i=1}^{\min(m,n)} |\sigma_i(A)|^2\right)^{\frac{1}{2}} = \|A\|_F$
+3. $p = \infty$: The Spectral norm, $\|A\|_{S_{\infty}} = \max_{i} \sigma_i(A) = \|A\|_{2 \to 2}$
 
 $(2)$ may be non-obvious to some, but here's a short proof:
 $$
 \begin{align*}
-    ||A||_F &= \sqrt{\sum_{ij} A_{ij}^2} = \sqrt{tr(A^TA)} = \sqrt{tr((U\Sigma V^T)^T(U\Sigma V^T))}\\
-    &= \sqrt{tr(V \Sigma^2 V^T)} = \left(\sum_i \sigma_i(A)^2\right)^{\frac{1}{2}} = ||A||_{S_2}
+    \|A\|_F &= \sqrt{\sum_{ij} A_{ij}^2} = \sqrt{tr(A^TA)} = \sqrt{tr((U\Sigma V^T)^T(U\Sigma V^T))}\\
+    &= \sqrt{tr(V \Sigma^2 V^T)} = \left(\sum_i \sigma_i(A)^2\right)^{\frac{1}{2}} = \|A\|_{S_2}
 \end{align*}
 $$
 
@@ -132,54 +132,54 @@ where $\sigma_i(A)$ are the singular values of $A$. And equality holds if and on
 Here, we derive the dualizer for an arbitrary Schatten-$p$ norm.
 
 > **Proposition 2.** The dualizer for the Schatten-$p$ norm is:
-$$\text{dualizer}_{||\cdot||_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{||X||_{S_q}^{q-1}} V^T$$
+$$\text{dualizer}_{\|\cdot\|_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T$$
 where $X = U\Sigma V^T$ is the singular value decomposition of $X$ and $\frac{1}{p} + \frac{1}{q} = 1$.
 
 > **Proof:** For a given $X$, let $T^*$ be:
 $$
 \begin{align*}
-    T^* &= \text{dualizer}_{||\cdot||_{S_p}}(X)\\
-    T^* &= \arg\max_{||T||_{S_p} = 1} \langle X, T \rangle_F\\
-    T^* &= \arg\max_{||T||_{S_p} = 1} \text{tr}(X^T T)
+    T^* &= \text{dualizer}_{\|\cdot\|_{S_p}}(X)\\
+    T^* &= \arg\max_{\|T\|_{S_p} = 1} \langle X, T \rangle_F\\
+    T^* &= \arg\max_{\|T\|_{S_p} = 1} \text{tr}(X^T T)
 \end{align*}
 $$
 Then, from von Neumann's Trace Inequality, we know that $T^*$ must share singular vectors with $X$ and that:
-$$T^* = \arg\max_{||T||_{S_p} = 1} \sum_{i=1} \sigma_i(X) \sigma_i(T)$$
+$$T^* = \arg\max_{\|T\|_{S_p} = 1} \sum_{i=1} \sigma_i(X) \sigma_i(T)$$
 Thus, our optimization problem reduces to
 $$\max_{\{\sigma_i(T)\}} \sum_i \sigma_i(X) \sigma_i(T) \quad\text{s.t.}\quad \sum \sigma_i(T)^p = 1$$
 which we can solve via Lagrange multipliers. See appendix for the full proof. For now, the solution is:
-$$\sigma_i(T) = \frac{\sigma_i(X)^{q-1}}{||X||_{S_q}^{q-1}}$$
+$$\sigma_i(T) = \frac{\sigma_i(X)^{q-1}}{\|X\|_{S_q}^{q-1}}$$
 Hence,
-$$T^* = \text{dualizer}_{||\cdot||_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{||X||_{S_q}^{q-1}} V^T\quad\blacksquare$$
+$$T^* = \text{dualizer}_{\|\cdot\|_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T\quad\blacksquare$$
 
 The proof that the dual norm of the Schatten-$p$ norm is the Schatten-$q$ norm where $\frac{1}{p} + \frac{1}{q} = 1$ actually follows directly from here:
 
 > **Corollary 3.** The dual norm of the Schatten-$p$ norm is the Schatten-$q$ norm where $\frac{1}{p} + \frac{1}{q} = 1$.
 
-> **Proof:** For a given $X$, we want to show that $$||X||_{S_p}^{\dagger} = ||X||_{S_q}$$
+> **Proof:** For a given $X$, we want to show that $$\|X\|_{S_p}^{\dagger} = \|X\|_{S_q}$$
 From the definition of the dual norm, we have:
 $$
 \begin{align*}
-    ||X||_{S_p}^{\dagger} &= \sup_{||T||_{S_p} \leq 1} \langle X, T \rangle_F\\
-    ||X||_{S_p}^{\dagger} &= \sup_{||T||_{S_p} \leq 1} \text{tr}(X^T T)
+    \|X\|_{S_p}^{\dagger} &= \sup_{\|T\|_{S_p} \leq 1} \langle X, T \rangle_F\\
+    \|X\|_{S_p}^{\dagger} &= \sup_{\|T\|_{S_p} \leq 1} \text{tr}(X^T T)
 \end{align*}
 $$
-Following Proposition 2, we know that we can achieve the supremum by choosing $T = \text{dualizer}_{||\cdot||_{S_p}}(X)$. Thus,
+Following Proposition 2, we know that we can achieve the supremum by choosing $T = \text{dualizer}_{\|\cdot\|_{S_p}}(X)$. Thus,
 $$
 \begin{align*}
-    ||X||_{S_p}^{\dagger} &= \text{tr}\left(X^T U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{||X||_{S_q}^{q-1}} V^T\right)\\
-    &= \sum_i \sigma_i(X) \frac{\sigma_i(X)^{q-1}}{||X||_{S_q}^{q-1}}\\
-    &= \frac{1}{||X||_{S_q}^{q-1}} \sum_i \sigma_i(X)^q\\
-    &= \frac{||X||_{S_q}^q}{||X||_{S_q}^{q-1}}\\
-    ||X||_{S_p}^{\dagger} &= ||X||_{S_q}\quad\blacksquare
+    \|X\|_{S_p}^{\dagger} &= \text{tr}\left(X^T U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T\right)\\
+    &= \sum_i \sigma_i(X) \frac{\sigma_i(X)^{q-1}}{\|X\|_{S_q}^{q-1}}\\
+    &= \frac{1}{\|X\|_{S_q}^{q-1}} \sum_i \sigma_i(X)^q\\
+    &= \frac{\|X\|_{S_q}^q}{\|X\|_{S_q}^{q-1}}\\
+    \|X\|_{S_p}^{\dagger} &= \|X\|_{S_q}\quad\blacksquare
 \end{align*}
 $$
 
 Finally,
 
 > **Theorem 4.** The update rule for steepest descent under the Schatten-$p$ norm is:
-$$\Delta W_l^* = -\frac{1}{\hat{\lambda}} U \frac{\text{diag}\left(\sigma_1(\nabla L(W_l))^{q-1}, \ldots, \sigma_{\min(m,n)}(\nabla L(W_l))^{q-1}\right)}{||\nabla L(W_l)||_{S_q}^{q-1}} V^T$$
-where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||_{S_q}}$, $\nabla L(W_l) = U\Sigma V^T$ is the singular value decomposition of $\nabla L(W_l)$, and $\frac{1}{p} + \frac{1}{q} = 1$.
+$$\Delta W_l^* = -\frac{1}{\hat{\lambda}} U \frac{\text{diag}\left(\sigma_1(\nabla L(W_l))^{q-1}, \ldots, \sigma_{\min(m,n)}(\nabla L(W_l))^{q-1}\right)}{\|\nabla L(W_l)\|_{S_q}^{q-1}} V^T$$
+where $\hat{\lambda} = \frac{\lambda}{\|\nabla L(W_l)\|_{S_q}}$, $\nabla L(W_l) = U\Sigma V^T$ is the singular value decomposition of $\nabla L(W_l)$, and $\frac{1}{p} + \frac{1}{q} = 1$.
 
 The proof follows directly from Proposition 2 and Corollary 3.
 
@@ -187,36 +187,36 @@ The proof follows directly from Proposition 2 and Corollary 3.
 
 Our results should match prior results for $p = 2, \infty$:
 
-1. **For $p = 2$, the Frobenius norm:** $q = 2$ and $||\cdot||_{S_2}^\dagger = ||\cdot||_{S_2} = ||\cdot||_F$. Thus,
+1. **For $p = 2$, the Frobenius norm:** $q = 2$ and $\|\cdot\|_{S_2}^\dagger = \|\cdot\|_{S_2} = \|\cdot\|_F$. Thus,
 $$
 \begin{align*}
-    \text{dualizer}_{||\cdot||_{S_2}}(X) &= U \frac{\text{diag}\left(\sigma_1(X)^{2-1}, \ldots, \sigma_{\min(m,n)}(X)^{2-1}\right)}{||X||_{S_2}^{2-1}} V^T\\
-    \text{dualizer}_{||\cdot||_F}(X) &= \frac{X}{||X||_F}
+    \text{dualizer}_{\|\cdot\|_{S_2}}(X) &= U \frac{\text{diag}\left(\sigma_1(X)^{2-1}, \ldots, \sigma_{\min(m,n)}(X)^{2-1}\right)}{\|X\|_{S_2}^{2-1}} V^T\\
+    \text{dualizer}_{\|\cdot\|_F}(X) &= \frac{X}{\|X\|_F}
 \end{align*}
 $$
 Thus,
 $$
 \begin{align*}
-    \Delta W_l^* &= -\frac{||\nabla L(W_l)||_F}{\lambda} \frac{\nabla L(W_l)}{||\nabla L(W_l)||_F}\\
+    \Delta W_l^* &= -\frac{\|\nabla L(W_l)\|_F}{\lambda} \frac{\nabla L(W_l)}{\|\nabla L(W_l)\|_F}\\
     \Delta W_l^* &= -\frac{1}{\lambda} \nabla L(W_l)
 \end{align*}
 $$
 
-1. **For $p = \infty$, the Spectral norm:** $q = 1$ and $||\cdot||_{S_\infty}^\dagger = ||\cdot||_{S_1}$. Thus,
+1. **For $p = \infty$, the Spectral norm:** $q = 1$ and $\|\cdot\|_{S_\infty}^\dagger = \|\cdot\|_{S_1}$. Thus,
 $$
 \begin{align*}
-    \text{dualizer}_{||\cdot||_{S_\infty}}(X) &= U \frac{\text{diag}\left(\sigma_1(X)^{1-1}, \ldots, \sigma_{\min(m,n)}(X)^{1-1}\right)}{||X||_{S_1}^{1-1}} V^T\\
-    \text{dualizer}_{||\cdot||_{2 \to 2}}(X) &= UV^T
+    \text{dualizer}_{\|\cdot\|_{S_\infty}}(X) &= U \frac{\text{diag}\left(\sigma_1(X)^{1-1}, \ldots, \sigma_{\min(m,n)}(X)^{1-1}\right)}{\|X\|_{S_1}^{1-1}} V^T\\
+    \text{dualizer}_{\|\cdot\|_{2 \to 2}}(X) &= UV^T
 \end{align*}
 $$
 Thus,
 $$
 \begin{align*}
-    \Delta W_l^* &= -\frac{||\nabla L(W_l)||_{S_1}}{\lambda} UV^T\\
+    \Delta W_l^* &= -\frac{\|\nabla L(W_l)\|_{S_1}}{\lambda} UV^T\\
     \Delta W_l^* &= -\frac{1}{\hat{\lambda}} UV^T
 \end{align*}
 $$
-where $\hat{\lambda} = \frac{\lambda}{||\nabla L(W_l)||_{S_1}}$.
+where $\hat{\lambda} = \frac{\lambda}{\|\nabla L(W_l)\|_{S_1}}$.
 
 Both of which matches prior results. And as a fun exercise, try to prove that the dualizer for the Schatten-$1$ norm, or the Nuclear norm, results in a rank-$k$ matrix where $k$ is the multiplicity of the largest singular value.
 
@@ -256,7 +256,7 @@ Empirically, we can see this in the following plot. And at $p = 32$, the varianc
 ### On the relative size and stable rank of gradients
 
 > **Definition 6: Relative Size of a Gradient.** Given a norm $\|\cdot\|$ chosen a priori, the relative size of a gradient-update $\Delta W$ relative to the parameter matrix $W$ is defined as:
-$$\text{relsize}(\Delta W) = \frac{||\Delta W||}{||W||}$$
+$$\text{relsize}(\Delta W) = \frac{\|\Delta W\|}{\|W\|}$$
 
 > **Definition 7: Stable Rank.** The stable rank of a matrix $A$ is defined as $$srank(A) = \frac{\|A\|_F^2}{\|A\|_{2 \to 2}^2}$$
 
