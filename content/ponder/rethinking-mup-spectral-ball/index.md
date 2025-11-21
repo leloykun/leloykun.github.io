@@ -37,8 +37,8 @@ In [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newt
 
 Let $W \in \mathbb{S}^{n}$ where $\mathbb{S}^{n} = \{W \in \mathbb{R}^{n \times n} | W = W^T\}$ is the set of all $n \times n$ real symmetric matrices. Symmetric matrices have real eigenvalues and can be diagonalized by an orthogonal matrix. We define Eigenvalue Clipping as follows:
 
-> **Definition 1 (Eigenvalue Clipping)**. Let $W \in \mathbb{S}^{n}$ be a symmetric matrix and $W = Q \Lambda Q^T$ be its eigenvalue decomposition where $\Lambda = \text{diag}(\lambda_1, \ldots, \lambda_n)$ are the eigenvalues of $W$, $\lambda_i \in \mathbb{R}$ for all $i$, and $Q^T Q = I$. Then we define Eigenvalue Clipping as the following matrix function $\texttt{eig_clip}_{[\lambda_{min}, \lambda_{max}]}: \mathbb{S}^{n} \to \mathbb{S}^{n}$,
-> $$\begin{equation}\texttt{eig_clip}_{[\lambda_{min}, \lambda_{max}]}(W) = Q \texttt{clip}_{[\lambda_{min}, \lambda_{max}]}(\Lambda) Q^T\label{1}\end{equation}$$
+> **Definition 1 (Eigenvalue Clipping)**. Let $W \in \mathbb{S}^{n}$ be a symmetric matrix and $W = Q \Lambda Q^T$ be its eigenvalue decomposition where $\Lambda = \text{diag}(\lambda_1, \ldots, \lambda_n)$ are the eigenvalues of $W$, $\lambda_i \in \mathbb{R}$ for all $i$, and $Q^T Q = I$. Then we define Eigenvalue Clipping as the following matrix function $\texttt{eig\_clip}_{[\lambda_{min}, \lambda_{max}]}: \mathbb{S}^{n} \to \mathbb{S}^{n}$,
+> $$\begin{equation}\texttt{eig\_clip}_{[\lambda_{min}, \lambda_{max}]}(W) = Q \texttt{clip}_{[\lambda_{min}, \lambda_{max}]}(\Lambda) Q^T\label{1}\end{equation}$$
 > where $\lambda_{min}, \lambda_{max} \in (-\infty, \infty)$ are hyperparameters that control the minimum and maximum attainable eigenvalues of the resulting matrix and $\texttt{clip}_{[\alpha, \beta]}: \mathbb{R} \to \mathbb{R}$ is applied element-wise on the eigenvalues of $W$,
 > 
 > $$\begin{equation}\texttt{clip}_{[\alpha, \beta]}(x) = \begin{cases}
@@ -58,7 +58,7 @@ The naive implementation of this requires computing the eigenvalue decomposition
 We can lift Equation 3 to matrix form as follows:
 
 $$\begin{align}
-    \texttt{eig_clip}_{[\alpha, \beta]}(W)
+    \texttt{eig\_clip}_{[\alpha, \beta]}(W)
         &= Q \texttt{clip}_{[\alpha, \beta]}(\Lambda) Q^T\nonumber\\
         &= Q \frac{(\alpha + \beta) I + (\alpha I - \Lambda)\texttt{sign}(\alpha I - \Lambda) - (\beta I - \Lambda)\texttt{sign}(\beta I - \Lambda)}{2} Q^T\nonumber\\
         &= \frac{1}{2} [(\alpha + \beta) QQ^T\nonumber\\
@@ -67,7 +67,7 @@ $$\begin{align}
         &= \frac{1}{2} [(\alpha + \beta) I\nonumber\\
             &\qquad+ Q (\alpha I - \Lambda ) (Q^T Q) \texttt{sign}(\alpha I - \Lambda) Q^T\nonumber\\
             &\qquad- Q (\beta I - \Lambda ) (Q^T Q) \texttt{sign}(\beta I - \Lambda) Q^T]\nonumber\\
-    \texttt{eig_clip}_{[\alpha, \beta]}(W)
+    \texttt{eig\_clip}_{[\alpha, \beta]}(W)
         &= \frac{1}{2} [(\alpha + \beta) I \nonumber \\
             &\qquad+ (\alpha I - W ) \texttt{msign}(\alpha I - W) \nonumber \\
             &\qquad- (\beta I - W ) \texttt{msign}(\beta I - W)]
@@ -107,10 +107,10 @@ $$\begin{align}
 Lifting this to matrix form yields,
 
 $$\begin{align}
-    \texttt{eig_relu}_\alpha(W)
-        &= \texttt{eig_clip}_{[\alpha, \infty]}(W)\nonumber\\
+    \texttt{eig\_relu}_\alpha(W)
+        &= \texttt{eig\_clip}_{[\alpha, \infty]}(W)\nonumber\\
         &= Q \texttt{clip}_{[\alpha, \infty]}(\Lambda) Q^T\nonumber\\
-    \texttt{eig_relu}_\alpha(W)
+    \texttt{eig\_relu}_\alpha(W)
         &= \frac{1}{2} [\alpha I + W + (\alpha I - W) \texttt{msign}(\alpha I - W)]
 \end{align}$$
 
@@ -128,7 +128,7 @@ For the orthogonal projection onto the positive semidefinite cone, we set $\alph
 
 $$\begin{align}
     \texttt{proj\_psd}(W)
-        &= \texttt{eig_relu}_0(W) \nonumber \\
+        &= \texttt{eig\_relu}_0(W) \nonumber \\
         &= \frac{1}{2} [0 + W + (0 - W) \texttt{msign}(0 - W)] \nonumber \\
     \texttt{proj\_psd}(W)
         &= \frac{1}{2} [W + W \texttt{msign}(W)].
@@ -157,10 +157,10 @@ $$\begin{align}
 Lifting this to matrix form yields,
 
 $$\begin{align}
-    \texttt{eig_hardcap}_\beta(W)
-        &= \texttt{eig_clip}_{[-\infty, \beta]}(W) \nonumber\\
+    \texttt{eig\_hardcap}_\beta(W)
+        &= \texttt{eig\_clip}_{[-\infty, \beta]}(W) \nonumber\\
         &= Q \texttt{clip}_{[-\infty, \beta]}(\Lambda) Q^T \nonumber\\
-    \texttt{eig_hardcap}_\beta(W)
+    \texttt{eig\_hardcap}_\beta(W)
         &= \frac{1}{2} [\beta I + W - (\beta I - W) \texttt{msign}(\beta I - W)]
 \end{align}$$
 
@@ -177,7 +177,7 @@ def eig_hardcap(W: jax.Array, beta: float=1.) -> jax.Array:
 For the orthogonal projection onto the negative semidefinite cone, we set $\beta = 0$:
 $$\begin{align}
     \texttt{proj\_nsd}(W)
-        &= \texttt{eig_hardcap}_0(W) \nonumber \\
+        &= \texttt{eig\_hardcap}_0(W) \nonumber \\
         &= \frac{1}{2} [0 + W - (0 - W) \texttt{msign}(0 - W)] \nonumber \\
     \texttt{proj\_nsd}(W)
         &= \frac{1}{2} [W - W \texttt{msign}(W)] \\
@@ -200,12 +200,12 @@ Stepfun applies the step function on the singular values/eigenvalues of a matrix
 
 [You (2025)](https://x.com/YouJiacheng/status/1930988035195478303) first devised a implementation for the rectangular case requiring only matrix multiplications. But as can be seen in the figure above, when applied to the symmetric matrix case, it (1) also acts symmetrically to the negative eigenvalues which is not what we want, and (2) requires two (expensive) $\texttt{msign}$ calls. But a simple modification fixes both issues,
 $$\begin{align}
-    \texttt{eig_stepfun}_{\alpha}(X)
+    \texttt{eig\_stepfun}_{\alpha}(X)
         &= Q \texttt{step}_{\alpha}(\Lambda) Q^T \nonumber \\
         &= Q \frac{I + \texttt{sign}(\Lambda - \alpha I)}{2} Q^T \nonumber \\
         &= \frac{1}{2}[QQ^T + Q \texttt{sign}(\Lambda - \alpha I) Q^T] \nonumber \\
         &= \frac{1}{2}[I + \texttt{msign}(Q(\Lambda - \alpha I) Q^T)] \nonumber \\
-    \texttt{eig_stepfun}_{\alpha}(X)
+    \texttt{eig\_stepfun}_{\alpha}(X)
         &= \frac{1}{2}[I + \texttt{msign}(X - \alpha I)]
 \end{align}$$
 As can be seen in the figure above, this implementation applies the step function properly and only requires one $\texttt{msign}$ call.
@@ -229,7 +229,7 @@ Suppose we want to do steepest descent on the PSD cone under a norm $\|\cdot\|$ 
 4. Retract the result back to the manifold via a retraction map $W_{t+1} \leftarrow \texttt{retract}_{\mathcal{M}}(\widetilde{W}_{t+1})$.
 
 In our case, the manifold is the PSD cone, $\mathcal{M} := \mathbb{S}^n_{+} = \{W \in \mathbb{S}^n : W \succeq 0\}$. And so, we use the $\texttt{proj\_psd}$ function defined in [Section 2.2](#22-eigenvalue-relu-and-orthogonal-projection-onto-the-positive-semidefinite-cone) as our retraction map.
-$$\texttt{retract}_{\mathbb{S}^n_{+}} := \texttt{proj\_psd} = \texttt{eig_relu}_0.$$
+$$\texttt{retract}_{\mathbb{S}^n_{+}} := \texttt{proj\_psd} = \texttt{eig\_relu}_0.$$
 
 To find an 'optimal' descent direction $A^*$, we can, in some cases, use known Linear Minimization Oracles (LMOs) [(Pethick et al., 2025)](https://arxiv.org/abs/2502.07529). Or, as we discussed in [Steepest Descent on Finsler-Structured (Matrix) Manifolds](../steepest-descent-finsler/), we can compute an 'optimal' descent direction $A^*$ via two orthogonal projection functions: (i) the projection onto the norm ball, $\texttt{proj}_{\| \cdot \|_{W_t} \leq \eta}$, and (ii) the projection onto the tangent space at $W_t$, $\texttt{proj}_{T_{W_t}\mathcal{M}}$.
 
@@ -239,7 +239,7 @@ $$\texttt{proj}_{\| \cdot \|_F \leq \eta}(X) := \begin{cases}
     X & \text{otherwise}
 \end{cases}$$
 Alternatively, we can also choose to do steepest descent under the $2 \to 2$ induced operator norm. As to why we might want to do this, you need to binge-read my previous blog posts. In short, controlling the $2 \to 2$ induced operator norm of our weights allows us to control the Lipschitzness of our model which has been shown to improve robustness, generalization, and training stability. In this case, we can use the eigenvalue clipping function defined in [Section 2.1](#21-lifting-to-matrix-form) to do the projection onto the spectral norm ball,
-$$\texttt{proj}_{\| \cdot \|_{2 \to 2} \leq \eta} := \texttt{eig_clip}_{[-\eta,\eta]}.$$
+$$\texttt{proj}_{\| \cdot \|_{2 \to 2} \leq \eta} := \texttt{eig\_clip}_{[-\eta,\eta]}.$$
 
 The tricky part is the projection onto the tangent space/cone at $W_{t} \in \mathbb{S}^n_{+}$, $\texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}}$.
 
@@ -305,7 +305,7 @@ $$\begin{align}
         &\approx Q (\mathcal{i}_{(-\epsilon < \lambda_i < \epsilon)}(\Lambda)) Q^T && \text{for small } \epsilon > 0 \nonumber \\
         &= Q (\mathcal{i}_{(\lambda_i < \epsilon)}(\Lambda)) Q^T && \text{since } W \text{ is PSD}\nonumber \\
         &= Q (1 - \texttt{step}(\Lambda, \epsilon)) Q^T \nonumber \\
-        &= I - \texttt{eig_stepfun}(W, \epsilon)
+        &= I - \texttt{eig\_stepfun}(W, \epsilon)
 \end{align}$$
 where the second line is a relaxation to handle numerical precision issues.
 
@@ -395,7 +395,7 @@ Voilà, we now have an efficient, factorization-free, and GPU/TPU-friendly metho
 Suppose we want to constrain our weights to have eigenvalues bounded within some range $[\alpha, \beta] \subseteq \mathbb{R}$. That is, we "place" our weights on the Convex Spectrahedron,
 $$\mathcal{K}_{[\alpha, \beta]} := \{W \in \mathbb{S}^n : \alpha I \preceq W \preceq \beta I\},\qquad(\alpha < \beta)$$
 and do steepest descent there under some norm chosen a priori. For the retraction map, we can use the eigenvalue clipping function defined in [Section 2.1](#21-lifting-to-matrix-form),
-$$\texttt{retract}_{\mathcal{K}_{[\alpha, \beta]}} := \texttt{eig_clip}_{[\alpha,\beta]}.$$
+$$\texttt{retract}_{\mathcal{K}_{[\alpha, \beta]}} := \texttt{eig\_clip}_{[\alpha,\beta]}.$$
 
 ### 4.1. Projection onto the tangent space/cone at a point on the Convex Spectrahedron
 
@@ -438,9 +438,9 @@ $$\begin{align}
         &= Q (\mathcal{i}_{(\lambda_i = \alpha)}(\Lambda)) Q^T \nonumber \\
         &\approx Q (\mathcal{i}_{(\alpha - \epsilon < \lambda_i < \alpha + \epsilon)}(\Lambda)) Q^T && \text{for small } \epsilon > 0 \nonumber \\
         &= Q (\mathcal{i}_{(\lambda_i < \alpha + \epsilon)}(\Lambda)) Q^T && \text{since } \alpha I \preceq W \nonumber \\
-        &= I - \texttt{eig_stepfun}(W, \alpha + \epsilon)
+        &= I - \texttt{eig\_stepfun}(W, \alpha + \epsilon)
 \end{align}$$
-Likewise, $P_\beta \approx \texttt{eig_stepfun}(W, \beta - \epsilon)$ for small $\epsilon > 0$.
+Likewise, $P_\beta \approx \texttt{eig\_stepfun}(W, \beta - \epsilon)$ for small $\epsilon > 0$.
 
 Taking everything together yields,
 ```python
@@ -460,7 +460,7 @@ def project_to_tangent_convex_spectrahedron(W: jax.Array, X: jax.Array, alpha: f
 If $W_t$ is an interior point of the Convex Spectrahedron $\mathcal{K}_{[\alpha, \beta]}$ (that is, $\alpha I \prec W_t \prec \beta I$), then the tangent space at that point is simply the space of all symmetric matrices. Thus, as in the [Section 3.3.1](#331-special-case--is-an-interior-point-of-the-psd-cone), we can use known LMOs that preserve symmetry. Our update rule would then be,
 $$\begin{align}
     W_{t+1}
-        &= \texttt{eig_clip}_{[\alpha,\beta]}\left(W_{t} + \texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(\texttt{sym}(-G_t)) \right)
+        &= \texttt{eig\_clip}_{[\alpha,\beta]}\left(W_{t} + \texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(\texttt{sym}(-G_t)) \right)
 \end{align}$$
 
 #### 4.2.2. General case
@@ -468,11 +468,11 @@ $$\begin{align}
 In general, we can use either the heuristic or the PDHG method discussed in [Section 3.3.2](#332-general-case),
 
 $$\begin{align}
-    W_{t+1} &= \texttt{eig_clip}_{[\alpha,\beta]}\left(W_{t} + \left(\texttt{LMO}_{\|\cdot\|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_t}\mathcal{K}_{[\alpha, \beta]}} \right)^K (-G_t) \right)
+    W_{t+1} &= \texttt{eig\_clip}_{[\alpha,\beta]}\left(W_{t} + \left(\texttt{LMO}_{\|\cdot\|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_t}\mathcal{K}_{[\alpha, \beta]}} \right)^K (-G_t) \right)
 \end{align}$$
 or,
 $$\begin{align}
-    W_{t+1} &= \texttt{eig_clip}_{[\alpha,\beta]}(W_{t} + \texttt{pdhg}(W_t, G_t, \texttt{proj}_{\| \cdot \|_{W_t} \leq \eta}, \texttt{proj}_{T_{W_t}\mathcal{K}_{[\alpha, \beta]}}))
+    W_{t+1} &= \texttt{eig\_clip}_{[\alpha,\beta]}(W_{t} + \texttt{pdhg}(W_t, G_t, \texttt{proj}_{\| \cdot \|_{W_t} \leq \eta}, \texttt{proj}_{T_{W_t}\mathcal{K}_{[\alpha, \beta]}}))
 \end{align}$$
 
 ## 5. Steepest descent on the Spectral Ball
@@ -569,8 +569,8 @@ $$\begin{align}
         &= V (\mathcal{i}_{(\lambda_i = R^2)}(\Sigma^2)) V^T && \text{where } \lambda_i = [\Sigma^2]_i = \sigma_i^2 \nonumber \\
         &\approx V (\mathcal{i}_{(R^2 - \epsilon < \lambda_i < R^2 + \epsilon)}(\Sigma^2)) V^T && \text{for small } \epsilon > 0 \nonumber \\
         &= V (\mathcal{i}_{(\lambda_i > R^2 - \epsilon)}(\Sigma^2)) V^T && \text{since } \| W \|_{2 \to 2} \leq R \nonumber \\
-        &= \texttt{eig_stepfun}(V \Sigma^2 V^T, R^2 - \epsilon) \nonumber \\
-        &= \texttt{eig_stepfun}(W_t^T W_t, R^2 - \epsilon).
+        &= \texttt{eig\_stepfun}(V \Sigma^2 V^T, R^2 - \epsilon) \nonumber \\
+        &= \texttt{eig\_stepfun}(W_t^T W_t, R^2 - \epsilon).
 \end{align}$$
 And,
 $$\begin{align}
@@ -623,8 +623,8 @@ In all of our experiments below, we constrain weight updates to have $\texttt{RM
 
 | Manifold             | retraction map                                      | dualization map (interior)          | dualization map (boundary), PDHG                                                                                                                                                           |
 | :------------------- | :-------------------------------------------------- | :---------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PSD Cone             | $\texttt{proj\_psd}$                               | $\texttt{msign} \circ \texttt{sym}$ | $\texttt{pdhg}\left(\cdots, \texttt{eig_clip}_{[-\eta, \eta]}, \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}}\right)$                                                              |
-| Convex Spectrahedron | $\texttt{eig_clip}_{[-1,1]}$                     | $\texttt{msign} \circ \texttt{sym}$ | $\texttt{pdhg}\left(\cdots, \texttt{eig_clip}_{[-\eta, \eta]}, \texttt{proj}_{T_{W_{t}}\mathcal{K}_{[-1,1]}}\right)$                                                          |
+| PSD Cone             | $\texttt{proj\_psd}$                               | $\texttt{msign} \circ \texttt{sym}$ | $\texttt{pdhg}\left(\cdots, \texttt{eig\_clip}_{[-\eta, \eta]}, \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}}\right)$                                                              |
+| Convex Spectrahedron | $\texttt{eig\_clip}_{[-1,1]}$                     | $\texttt{msign} \circ \texttt{sym}$ | $\texttt{pdhg}\left(\cdots, \texttt{eig\_clip}_{[-\eta, \eta]}, \texttt{proj}_{T_{W_{t}}\mathcal{K}_{[-1,1]}}\right)$                                                          |
 | Spectral Ball        | $\texttt{spectral\_hardcap}_{\sqrt{\frac{m}{n}}}$ | $\texttt{msign}$                    | $\texttt{pdhg}\left(\cdots, \texttt{spectral\_hardcap}_{\eta\sqrt{\frac{m}{n}}}, \texttt{proj}_{T_{W_{t}}\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq \sqrt{\frac{m}{n}}}}\right)$ |
 
 ### 6.1. Learning rate transfer, XOR problem
@@ -722,7 +722,7 @@ $$\mathcal{S}_{[\alpha, \beta]} := \{W \in \mathbb{R}^{m \times n} : \alpha \leq
 for some inner and outer radii $0 \leq \alpha \leq \beta$.
 
 For the retraction map, we can use the GPU/TPU-friendly Spectral Clip function discussed in [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
-$$\texttt{retract}_{\mathcal{S}_{[\alpha, \beta]}} := \texttt{spectral_clip}_{[\alpha, \beta]}.$$
+$$\texttt{retract}_{\mathcal{S}_{[\alpha, \beta]}} := \texttt{spectral\_clip}_{[\alpha, \beta]}.$$
 
 ### A1.1. Projection onto the tangent space/cone at a point on the Spectral Band
 
@@ -1040,7 +1040,7 @@ Intuitively, this means that, for example, Muon "pulls" all of the *singular val
 ### A2.2. Why we may want to hold $\eta\lambda$ constant as we scale
 
 Prior work has also (empirically) shown that if we want hyperparameters to transfer, we should hold the product $\eta\lambda$ constant (1) during hyperparameter search [(Schaipp, 2024)](https://fabian-sp.github.io/posts/2024/02/decoupling/) and (2) as we scale the model via muP [(Kosson et al., 2025)](https://arxiv.org/abs/2510.19093). One possible reason why is that this is (roughly) equivalent to holding the *relative* update size constant with respect to the implicit weight norm constraint radius $R = 1/\lambda$.
-$$\texttt{relative_update_size} = \frac{\texttt{update_size}}{\texttt{constraint_radius}} = \frac{\eta}{1/\lambda} = \eta\lambda$$
+$$\texttt{relative\_update\_size} = \frac{\texttt{update\_size}}{\texttt{constraint\_radius}} = \frac{\eta}{1/\lambda} = \eta\lambda$$
 
 Intuitively, this means that the amount of "effort" required to change an "absolutely yes" direction to an "absolutely no" direction remains the same no matter the model width.
 
