@@ -266,10 +266,10 @@ $$
 \begin{aligned}
     \texttt{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta}
         &= \texttt{proj}_{\| \cdot \|_{2 \to 2} \leq \sqrt{\frac{m}{n}}\eta} \\
-        &= \texttt{spectral_hardcap}_{\sqrt{\frac{m}{n}}\eta}
+        &= \texttt{spectral\_hardcap}_{\sqrt{\frac{m}{n}}\eta}
 \end{aligned}
 $$
-where $\texttt{spectral_hardcap}$ is the GPU/TPU-friendly Spectral Hardcap function discussed in [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/) and in [our latest paper](https://arxiv.org/abs/2507.13338),
+where $\texttt{spectral\_hardcap}$ is the GPU/TPU-friendly Spectral Hardcap function discussed in [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/) and in [our latest paper](https://arxiv.org/abs/2507.13338),
 ```python
 def spectral_hardcap(X: jax.Array, eta: float=1.):
     def _spectral_hardcap_util(X: jax.Array):
@@ -282,8 +282,8 @@ def spectral_hardcap(X: jax.Array, eta: float=1.):
     return eta * _spectral_hardcap_util(X / eta)
 ```
 
-But if $G$ small, we may be able to find larger update directions by scaling the input to $\texttt{spectral_hardcap}$ by some large constant $\kappa \geq 1$ yielding,
-$$\lim_{\kappa \to \infty} \texttt{spectral_hardcap}_{\sqrt{\frac{m}{n}}\eta}(\kappa X) = \sqrt{\frac{m}{n}}\eta \cdot \texttt{msign}(X).$$
+But if $G$ small, we may be able to find larger update directions by scaling the input to $\texttt{spectral\_hardcap}$ by some large constant $\kappa \geq 1$ yielding,
+$$\lim_{\kappa \to \infty} \texttt{spectral\_hardcap}_{\sqrt{\frac{m}{n}}\eta}(\kappa X) = \sqrt{\frac{m}{n}}\eta \cdot \texttt{msign}(X).$$
 
 ### 4.2. Full implementation with adaptive step sizes
 

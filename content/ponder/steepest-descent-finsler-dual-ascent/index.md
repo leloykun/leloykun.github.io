@@ -201,7 +201,7 @@ def dual_ascent(
 Suppose that, during training, we want to bound the singular values of our weights to be within some comfortable range $[\sigma_{\min}, \sigma_{\max}]$. This is to prevent features from either exploding or vanishing completely. Additionally, we pick the "natural" weight norm, the $\texttt{RMS}\to\texttt{RMS}$ norm, to maximally update the RMS norm of our features and enable learning rate transfer across model widths as discussed in [Section 2.2](#22-natural-feature-and-weight-norms). And hence, we want to do steepest descent on the spectral band $\mathcal{S}_{[\alpha, \beta]}$ under the $\texttt{RMS}\to\texttt{RMS}$ norm.
 
 For the retraction map, we can use the GPU/TPU-friendly Spectral Clip function discussed in [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
-$$\texttt{retract}_{\mathcal{S}_{[\alpha, \beta]}} := \texttt{spectral_clip}_{[\alpha, \beta]}.$$
+$$\texttt{retract}_{\mathcal{S}_{[\alpha, \beta]}} := \texttt\{spectral\_clip\}_{[\alpha, \beta]}.$$
 
 We also discussed several ways to compute the optimal update direction $A^*_t$ for the Spectral Band in Appendix A1 of [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/). Here, we show that the dual ascent approach we discussed in that blog post is a special case of the general dual ascent framework we discussed in the previous section. To see this, consider the tangent cone at a point $W$ in the spectral band,
 $$\begin{equation}
@@ -224,9 +224,9 @@ $$\begin{align}
     L^*(Y_{\alpha}, Y_{\beta})
         &= U_{\alpha} Y_{\alpha} V_{\alpha}^T + U_{\beta} Y_{\beta} V_{\beta}^T \nonumber \\
     \texttt{proj}_{K^*}(Y_{\alpha}, Y_{\beta})
-        &= (\texttt{proj_nsd}(Y_{\alpha}), \texttt{proj_psd}(Y_{\beta})), \nonumber
+        &= (\texttt{proj\_nsd}(Y_{\alpha}), \texttt{proj\_psd}(Y_{\beta})), \nonumber
 \end{align}$$
-where $\texttt{proj_nsd}$ and $\texttt{proj_psd}$ are the accelerator-friendly implementations of the (orthogonal) projectors to the negative and positive semidefinite cones discussed in [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), respectively.
+where $\texttt{proj\_nsd}$ and $\texttt{proj\_psd}$ are the accelerator-friendly implementations of the (orthogonal) projectors to the negative and positive semidefinite cones discussed in [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), respectively.
 
 And finally, the LMO for the $\texttt{RMS}\to\texttt{RMS}$ norm is given by,
 $$\texttt{LMO}_{\texttt{RMS}\to\texttt{RMS}}(G_t) = \sqrt{\frac{m}{n}} \texttt{msign}(G_t),$$
@@ -237,9 +237,9 @@ $$\begin{align}
     A_t^j
         &= -\eta \sqrt{\frac{m}{n}} \cdot \texttt{msign}\left(G_t + U_{\alpha} Y^j_{t, \alpha} V_{\alpha}^T + U_{\beta} Y^j_{t, \beta} V_{\beta}^T\right) \\
     Y^{j+1}_{t, \alpha}
-        &= \texttt{proj_nsd}\left(Y^j_{t, \alpha} + \sigma_j \cdot \texttt{sym}\left(U_{\alpha}^T A^j_t V_{\alpha}\right)\right) \\
+        &= \texttt{proj\_nsd}\left(Y^j_{t, \alpha} + \sigma_j \cdot \texttt{sym}\left(U_{\alpha}^T A^j_t V_{\alpha}\right)\right) \\
     Y^{j+1}_{t, \beta}
-        &= \texttt{proj_psd}\left(Y^j_{t, \beta} + \sigma_j \cdot \texttt{sym}\left(U_{\beta}^T A^j_t V_{\beta}\right)\right)
+        &= \texttt{proj\_psd}\left(Y^j_{t, \beta} + \sigma_j \cdot \texttt{sym}\left(U_{\beta}^T A^j_t V_{\beta}\right)\right)
 \end{align}$$
 which matches exactly with the update rule we derived in Appendix A1 of [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/).
 
@@ -305,11 +305,11 @@ $$\begin{align}
     A^j_t
         &= -\eta \sqrt{\frac{m}{n}} \cdot \texttt{msign}\left(G_t + U_{\beta} Y^j_{t, \beta} V_{\beta}^T\right) \\
     Y^{j+1}_{j, \beta}
-        &= \texttt{proj_psd}\left(Y^j_{t, \beta} + \sigma_j \cdot \texttt{sym}\left(U_{\beta}^T A^j_t V_{\beta}\right)\right)
+        &= \texttt{proj\_psd}\left(Y^j_{t, \beta} + \sigma_j \cdot \texttt{sym}\left(U_{\beta}^T A^j_t V_{\beta}\right)\right)
 \end{align}$$
 
-For the retraction map, we can use the accelerator-friendly Spectral Hardcap matrix function, $\texttt{spectral_hardcap}_{\beta} := \texttt{spectral_clip}_{[0, \beta]}$, discussed in [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
-$$\texttt{retract}_{\mathbb{B}_{\beta}} := \texttt{spectral_hardcap}_{\beta}.$$
+For the retraction map, we can use the accelerator-friendly Spectral Hardcap matrix function, $\texttt{spectral\_hardcap}_{\beta} := \texttt\{spectral\_clip\}_{[0, \beta]}$, discussed in [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
+$$\texttt{retract}_{\mathbb{B}_{\beta}} := \texttt{spectral\_hardcap}_{\beta}.$$
 
 #### 3.3.1. JAX implementation
 
@@ -374,7 +374,7 @@ where $\Lambda^j_t = Y^j_{t, \alpha} + Y^j_{t, \beta} \in \mathbb{S}^n$. And,
 $$\begin{align}
     \Lambda^{j+1}_{t}
         &= Y^{j+1}_{t, \alpha} + Y^{j+1}_{t, \beta} \nonumber \\
-        &= \texttt{proj_nsd}\left(Y^j_{t, \alpha} + \sigma_t L_{\alpha}( A^j_t )\right) + \texttt{proj_psd}\left(Y^j_{t, \beta} + \sigma_t L_{\beta}( A^j_t )\right) \nonumber \\
+        &= \texttt{proj\_nsd}\left(Y^j_{t, \alpha} + \sigma_t L_{\alpha}( A^j_t )\right) + \texttt{proj\_psd}\left(Y^j_{t, \beta} + \sigma_t L_{\beta}( A^j_t )\right) \nonumber \\
         &= \texttt{sym}\left(Y^j_{t, \alpha} + Y^j_{t, \beta} + \sigma_t \texttt{sym}\left(U^T A^j_t V \right)\right) \nonumber \\
         &= \texttt{sym}\left(\Lambda^j_t + \frac{\sigma_t}{s} \texttt{sym}\left(W_t^T A^j_t \right)\right)
 \end{align}$$

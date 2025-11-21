@@ -127,10 +127,10 @@ def eig_relu(W: jax.Array, alpha: float=0.) -> jax.Array:
 For the orthogonal projection onto the positive semidefinite cone, we set $\alpha = 0$:
 
 $$\begin{align}
-    \texttt{proj_psd}(W)
+    \texttt{proj\_psd}(W)
         &= \texttt{eig_relu}_0(W) \nonumber \\
         &= \frac{1}{2} [0 + W + (0 - W) \texttt{msign}(0 - W)] \nonumber \\
-    \texttt{proj_psd}(W)
+    \texttt{proj\_psd}(W)
         &= \frac{1}{2} [W + W \texttt{msign}(W)].
 \end{align}$$
 
@@ -176,10 +176,10 @@ def eig_hardcap(W: jax.Array, beta: float=1.) -> jax.Array:
 
 For the orthogonal projection onto the negative semidefinite cone, we set $\beta = 0$:
 $$\begin{align}
-    \texttt{proj_nsd}(W)
+    \texttt{proj\_nsd}(W)
         &= \texttt{eig_hardcap}_0(W) \nonumber \\
         &= \frac{1}{2} [0 + W - (0 - W) \texttt{msign}(0 - W)] \nonumber \\
-    \texttt{proj_nsd}(W)
+    \texttt{proj\_nsd}(W)
         &= \frac{1}{2} [W - W \texttt{msign}(W)] \\
 \end{align}$$
 
@@ -228,8 +228,8 @@ Suppose we want to do steepest descent on the PSD cone under a norm $\|\cdot\|$ 
 3. Update the weight in the direction of $A^*$, $$\widetilde{W}_{t+1} \leftarrow W_t + A^*.$$ Note that $\widetilde{W}_{t+1}$ may not be on the manifold $\mathcal{M}$. And so,
 4. Retract the result back to the manifold via a retraction map $W_{t+1} \leftarrow \texttt{retract}_{\mathcal{M}}(\widetilde{W}_{t+1})$.
 
-In our case, the manifold is the PSD cone, $\mathcal{M} := \mathbb{S}^n_{+} = \{W \in \mathbb{S}^n : W \succeq 0\}$. And so, we use the $\texttt{proj_psd}$ function defined in [Section 2.2](#22-eigenvalue-relu-and-orthogonal-projection-onto-the-positive-semidefinite-cone) as our retraction map.
-$$\texttt{retract}_{\mathbb{S}^n_{+}} := \texttt{proj_psd} = \texttt{eig_relu}_0.$$
+In our case, the manifold is the PSD cone, $\mathcal{M} := \mathbb{S}^n_{+} = \{W \in \mathbb{S}^n : W \succeq 0\}$. And so, we use the $\texttt{proj\_psd}$ function defined in [Section 2.2](#22-eigenvalue-relu-and-orthogonal-projection-onto-the-positive-semidefinite-cone) as our retraction map.
+$$\texttt{retract}_{\mathbb{S}^n_{+}} := \texttt{proj\_psd} = \texttt{eig_relu}_0.$$
 
 To find an 'optimal' descent direction $A^*$, we can, in some cases, use known Linear Minimization Oracles (LMOs) [(Pethick et al., 2025)](https://arxiv.org/abs/2502.07529). Or, as we discussed in [Steepest Descent on Finsler-Structured (Matrix) Manifolds](../steepest-descent-finsler/), we can compute an 'optimal' descent direction $A^*$ via two orthogonal projection functions: (i) the projection onto the norm ball, $\texttt{proj}_{\| \cdot \|_{W_t} \leq \eta}$, and (ii) the projection onto the tangent space at $W_t$, $\texttt{proj}_{T_{W_t}\mathcal{M}}$.
 
@@ -286,7 +286,7 @@ $$\begin{align}
         &= \widehat{X} - U_0 (U_0^T \widehat{X} U_0)_{-} U_0^T \nonumber \\
         &= \widehat{X} - (U_0 U_0^T \widehat{X} U_0 U_0^T)_{-} \nonumber \\
     \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}}(X)
-        &= \widehat{X} - \texttt{proj_nsd}(P_0 \widehat{X} P_0)
+        &= \widehat{X} - \texttt{proj\_nsd}(P_0 \widehat{X} P_0)
 \end{align}$$
 where the fifth equality follows from $I = UU^T$ and the orthogonal invariance of the Frobenius norm, and the second-to-last equality is from the similarity-equivariance of matrix functions that acts entrywise on the eigenvalues/singular values.
 
@@ -368,7 +368,7 @@ As we discussed in the previous section, if $W_t$ is full rank, then the tangent
 Therefore, it would suffice to symmetrize the "raw gradient" $G_t$ first and then apply the LMO. This guarantees that our updates are indeed on-tangent and maximal (via theory behind LMOs). Our update rule would then be,
 $$\begin{align}
     W_{t+1}
-        &= \texttt{proj_psd}\left(W_{t} + \texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(\texttt{sym}(-G_t)) \right)
+        &= \texttt{proj\_psd}\left(W_{t} + \texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(\texttt{sym}(-G_t)) \right)
 \end{align}$$
 
 #### 3.3.2. General case
@@ -378,13 +378,13 @@ In general, LMOs derived for the case without the tangency constraint often 'sen
 1. A *heuristic* solution such as the one discussed in [Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) where we iteratively apply the projection onto the tangent space and the LMO until convergence. That is,
 $$\begin{align}
     W_{t+1}
-        &= \texttt{proj_psd}\left(W_{t} + \left(\texttt{LMO}_{\|\cdot\|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}} \right)^K (-G_t) \right)
+        &= \texttt{proj\_psd}\left(W_{t} + \left(\texttt{LMO}_{\|\cdot\|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}} \right)^K (-G_t) \right)
 \end{align}$$
 for some integer $K \geq 1$ denoting the number of iterations (typically, $K = 4$ to $8$ suffices; but the iteration can be terminated upon convergence).
 2. An *exact* solution such as the primal-dual hybrid gradient method, $\texttt{pdhg}$, we discussed in [Steepest Descent on Finsler-Structured (Matrix) Manifolds](../steepest-descent-finsler/),
 $$\begin{align}
     W_{t+1}
-        &= \texttt{proj_psd}(W_{t} + \texttt{pdhg}(W_t, G_t, \texttt{proj}_{\| \cdot \|_{W_t} \leq \eta}, \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}}))
+        &= \texttt{proj\_psd}(W_{t} + \texttt{pdhg}(W_t, G_t, \texttt{proj}_{\| \cdot \|_{W_t} \leq \eta}, \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}}))
 \end{align}$$
 We can also speed up PDHG by warm-starting the initial iterate $A^0$ with the heuristic above or the solution from the previous time step $A^*_{t-1}$ (in theory, the solutions should not drift too much between time steps if we accumulate the gradients with a momentum rule).
 
@@ -425,7 +425,7 @@ $$\begin{align}
         \end{bmatrix} U^T \nonumber \\
         &= \widehat{X} - U_{\alpha} (U_{\alpha}^T \widehat{X} U_{\alpha})_{-} U_{\alpha}^T - U_{\beta} (U_{\beta}^T \widehat{X} U_{\beta})_{+} U_{\beta}^T \nonumber \\
     \texttt{proj}_{T_{W_t}\mathcal{K}_{[\alpha, \beta]}}(X)
-        &= \widehat{X} - \texttt{proj_nsd}(P_\alpha \widehat{X} P_\alpha) - \texttt{proj_psd}(P_\beta \widehat{X} P_\beta) \\
+        &= \widehat{X} - \texttt{proj\_nsd}(P_\alpha \widehat{X} P_\alpha) - \texttt{proj\_psd}(P_\beta \widehat{X} P_\beta) \\
 \end{align}$$
 or in words,
 > We first symmetrize the input $X$ into $\widehat{X}$ and then we subtract the negative eigenvalues of the projection of $\widehat{X}$ onto the $\alpha$-eigenspace of $W_t$ and the positive eigenvalues of the projection of $\widehat{X}$ onto the $\beta$-eigenspace of $W_t$.
@@ -482,7 +482,7 @@ The previous examples are arguably contrived. This example is more practical.
 Suppose we no longer constrain our weights to be symmetric, but we still want to bound their spectral norm. That is, we want to do steepest descent on the Spectral Ball,
 $$\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R} := \{W \in \mathbb{R}^{m \times n} : \| W \|_{2 \to 2} \leq R\},$$
 for some radius $R > 0$. For the retraction map, we can use the GPU/TPU-friendly Spectral Hardcap function discussed in [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
-$$\texttt{retract}_{\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R}} := \texttt{spectral_hardcap}_{R}.$$
+$$\texttt{retract}_{\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R}} := \texttt{spectral\_hardcap}_{R}.$$
 
 In [Appendix A1](#a1-steepest-descent-on-the-spectral-band), we generalize this to steepest descent on the Spectral Band where we bound the singular values within some range $[\alpha, \beta]$ to prevent weights from blowing up or vanishing.
 
@@ -539,7 +539,7 @@ $$\begin{align}
         &= X - (U_R V_R^T) (\texttt{sym}(V_R U_R^T X V_{R} V_R^T))_{+} \nonumber \\
         &= X - J_{R} (\texttt{sym}(J_{R}^T X P_{V_{R}}))_{+} \nonumber \\
     \texttt{proj}_{T_{W_t}\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R}}(X)
-        &= X - J_R \texttt{proj_psd}(\texttt{sym}(J_{R}^T X P_{V_{R}}))
+        &= X - J_R \texttt{proj\_psd}(\texttt{sym}(J_{R}^T X P_{V_{R}}))
 \end{align}$$
 where $P_{V_{R}} := V_{R} V_{R}^T$ is the projector onto the right $R$-singular subspace of $W_t$, and $J_R := U_R V_R^T$ is the partial isometry corresponding to the $R$-singular subspace of $W_t$. The fourth equality comes from,
 $$\begin{align}
@@ -603,18 +603,18 @@ If $W_t$ is inside the Spectral Ball, then the tangent space at that point is $\
 
 $$\begin{align}
     W_{t+1}
-        &= \texttt{spectral_hardcap}_{R}\left(W_{t} + \texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(-G_t) \right)
+        &= \texttt{spectral\_hardcap}_{R}\left(W_{t} + \texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(-G_t) \right)
 \end{align}$$
 
 #### 5.2.2. General case
 
 In general, we can use either the heuristic or the PDHG method discussed in [Section 3.3.2](#332-general-case),
 $$\begin{align}
-    W_{t+1} &= \texttt{spectral_hardcap}_{R}\left(W_{t} + \left(\texttt{LMO}_{\|\cdot\|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_t}\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R}} \right)^K (-G_t) \right)
+    W_{t+1} &= \texttt{spectral\_hardcap}_{R}\left(W_{t} + \left(\texttt{LMO}_{\|\cdot\|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_t}\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R}} \right)^K (-G_t) \right)
 \end{align}$$
 or,
 $$\begin{align}
-    W_{t+1} &= \texttt{spectral_hardcap}_{R}(W_{t} + \texttt{pdhg}(W_t, G_t, \texttt{proj}_{\| \cdot \|_{W_t} \leq \eta}, \texttt{proj}_{T_{W_t}\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R}}))
+    W_{t+1} &= \texttt{spectral\_hardcap}_{R}(W_{t} + \texttt{pdhg}(W_t, G_t, \texttt{proj}_{\| \cdot \|_{W_t} \leq \eta}, \texttt{proj}_{T_{W_t}\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R}}))
 \end{align}$$
 
 ## 6. Experiments
@@ -623,9 +623,9 @@ In all of our experiments below, we constrain weight updates to have $\texttt{RM
 
 | Manifold             | retraction map                                      | dualization map (interior)          | dualization map (boundary), PDHG                                                                                                                                                           |
 | :------------------- | :-------------------------------------------------- | :---------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PSD Cone             | $\texttt{proj_psd}$                               | $\texttt{msign} \circ \texttt{sym}$ | $\texttt{pdhg}\left(\cdots, \texttt{eig_clip}_{[-\eta, \eta]}, \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}}\right)$                                                              |
+| PSD Cone             | $\texttt{proj\_psd}$                               | $\texttt{msign} \circ \texttt{sym}$ | $\texttt{pdhg}\left(\cdots, \texttt{eig_clip}_{[-\eta, \eta]}, \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}}\right)$                                                              |
 | Convex Spectrahedron | $\texttt{eig_clip}_{[-1,1]}$                     | $\texttt{msign} \circ \texttt{sym}$ | $\texttt{pdhg}\left(\cdots, \texttt{eig_clip}_{[-\eta, \eta]}, \texttt{proj}_{T_{W_{t}}\mathcal{K}_{[-1,1]}}\right)$                                                          |
-| Spectral Ball        | $\texttt{spectral_hardcap}_{\sqrt{\frac{m}{n}}}$ | $\texttt{msign}$                    | $\texttt{pdhg}\left(\cdots, \texttt{spectral_hardcap}_{\eta\sqrt{\frac{m}{n}}}, \texttt{proj}_{T_{W_{t}}\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq \sqrt{\frac{m}{n}}}}\right)$ |
+| Spectral Ball        | $\texttt{spectral\_hardcap}_{\sqrt{\frac{m}{n}}}$ | $\texttt{msign}$                    | $\texttt{pdhg}\left(\cdots, \texttt{spectral\_hardcap}_{\eta\sqrt{\frac{m}{n}}}, \texttt{proj}_{T_{W_{t}}\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq \sqrt{\frac{m}{n}}}}\right)$ |
 
 ### 6.1. Learning rate transfer, XOR problem
 
@@ -758,7 +758,7 @@ $$\begin{align}
         &\qquad= X - (U_{\alpha} V_{\alpha}^T) (\texttt{sym}(V_{\alpha}U_{\alpha}^T X V_{\alpha} V_{\alpha}^T))_{-} - (U_{\beta} V_{\beta}^T) (\texttt{sym}(V_{\beta} U_{\beta}^T X V_{\beta} V_{\beta}^T))_{+} \nonumber \\
         &\qquad= X - J_{\alpha} (\texttt{sym}(J_{\alpha}^T X P_{V_{\alpha}}))_{-} - J_{\beta} (\texttt{sym}(J_{\beta}^T X P_{V_{\beta}}))_{+} \nonumber \\
     &\texttt{proj}_{T_{W_t}\mathcal{S}_{[\alpha, \beta]}}(X) \nonumber \\
-        &\qquad= X - J_{\alpha} \texttt{proj_nsd}(\texttt{sym}(J_{\alpha}^T X P_{V_{\alpha}})) - J_{\beta} \texttt{proj_psd}(\texttt{sym}(J_{\beta}^T X P_{V_{\beta}}))
+        &\qquad= X - J_{\alpha} \texttt{proj\_nsd}(\texttt{sym}(J_{\alpha}^T X P_{V_{\alpha}})) - J_{\beta} \texttt{proj\_psd}(\texttt{sym}(J_{\beta}^T X P_{V_{\beta}}))
 \end{align}$$
 where $P_{V_{\alpha}}$ and $P_{V_{\beta}}$ are the projectors onto the right $\alpha$- and $\beta$-singular subspaces of $W_t$, respectively, and $J_{\alpha} := U_{\alpha} V_{\alpha}^T$ and $J_{\beta} := U_{\beta} V_{\beta}^T$ are the polar factors of $W_t$ restricted to the respective singular subspaces. We can compute these in a numerically stable way as in [Section 5.1.3](#513-numerically-stable-computation-of-the-singular-subspace-projectors).
 
@@ -862,9 +862,9 @@ $$\begin{align}
     A_t
         &= -\texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(G_t + L_{\alpha}^*(S_{\alpha, t}) + L_{\beta}^*(S_{\beta, t})) \\
     S_{\alpha, t+1}
-        &= \texttt{proj_nsd}\left(S_{\alpha, t} + \sigma L_{\alpha}( A_t )\right) \\
+        &= \texttt{proj\_nsd}\left(S_{\alpha, t} + \sigma L_{\alpha}( A_t )\right) \\
     S_{\beta, t+1}
-        &= \texttt{proj_psd}\left(S_{\beta, t} + \sigma L_{\beta}( A_t )\right)
+        &= \texttt{proj\_psd}\left(S_{\beta, t} + \sigma L_{\beta}( A_t )\right)
 \end{align}$$
 where $\sigma > 0$ is the dual ascent learning rate. At convergence, we have $A_t \to A^*$.
 
@@ -882,10 +882,10 @@ $$\begin{align}
 where,
 $$\begin{align}
     \widetilde{S_{\alpha, 0}}
-        &= \texttt{proj_nsd}(L_{\alpha}(-G_t))
+        &= \texttt{proj\_nsd}(L_{\alpha}(-G_t))
         \qquad\qquad
     \widetilde{S_{\beta, 0}}
-        = \texttt{proj_psd}(L_{\beta}(-G_t)) \nonumber \\
+        = \texttt{proj\_psd}(L_{\beta}(-G_t)) \nonumber \\
 \end{align}$$
 
 #### A1.2.2. JAX implementation
@@ -970,7 +970,7 @@ where $\Lambda_t := S_{\alpha, t} + S_{\beta, t} \in \mathbb{S}^n$. And,
 $$\begin{align}
     \Lambda_{t+1}
         &= S_{\alpha, t+1} + S_{\beta, t+1} \nonumber \\
-        &= \texttt{proj_nsd}\left(S_{\alpha, t} + \sigma L_{\alpha}( A_t )\right) + \texttt{proj_psd}\left(S_{\beta, t} + \sigma L_{\beta}( A_t )\right) \nonumber \\
+        &= \texttt{proj\_nsd}\left(S_{\alpha, t} + \sigma L_{\alpha}( A_t )\right) + \texttt{proj\_psd}\left(S_{\beta, t} + \sigma L_{\beta}( A_t )\right) \nonumber \\
         &= S_{\alpha, t} + S_{\beta, t} + 2\sigma \texttt{sym}(U^T A_t V) \nonumber \\
         &= \Lambda_t + 2\sigma \texttt{sym}(W_t^T A_t) \nonumber \\
         &= \Lambda_t + \sigma \cdot (W_t^T A_t + A_t^T W_t).
