@@ -43,7 +43,7 @@ params:
   ShowToc: true
   disableScrollToTop: false
   TocOpen: true
-  ShowWordCount: true
+  ShowWordCount: false
   UseHugoToc: true
   comments: false
   math: true
