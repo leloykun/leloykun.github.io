@@ -35,7 +35,7 @@ In this blog post, we shall consider the general case where we constrain the wei
 
 Another neat consequence of doing steepest descent under the *induced* operator norm is that it enables learning rate transfer across model widths, given that the feature norms we induce the operator norms from also scale appropriately with model width ([Pethick et al., 2025](https://arxiv.org/abs/2502.07529); [Bernstein et al., 2024](https://arxiv.org/abs/2409.20325); [Filatov et al., 2025](https://arxiv.org/abs/2510.03871)). We will discuss this in more detail in [Section 2.2](#22-natural-feature-and-weight-norms).
 
-This work expands on and generalizes prior work by [Bernstein (2025)](https://docs.modula.systems/algorithms/manifold/stiefel/), [Keigwin (2025)](https://www.tilderesearch.com/vignettes/gram-space), [Cesista (2025)](https://leloykun.github.io/ponder/rethinking-mup-spectral-ball/), and [Su (2025)](https://kexue.fm/archives/11221) on 'Manifold Muon'.
+This work expands on and generalizes prior work by [Bernstein (2025)](https://docs.modula.systems/algorithms/manifold/stiefel/), [Keigwin, et al. (2025)](https://www.tilderesearch.com/vignettes/gram-space), [Cesista (2025)](https://leloykun.github.io/ponder/rethinking-mup-spectral-ball/), and [Su (2025)](https://kexue.fm/archives/11221) on 'Manifold Muon'.
 
 ## 2. Preliminaries
 
