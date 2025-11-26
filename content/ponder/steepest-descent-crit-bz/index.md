@@ -27,7 +27,16 @@ We consider the following optimization problem:
 $$\arg\min_{W \in \mathcal{W}} f(W)$$
 where $f(\cdot): \mathcal{W} \to \mathbb{R}$ is a bounded below and differentiable objective function, and $\mathcal{W}$ is a finite-dimensional vector space over $\mathbb{R}$, e.g., $\mathcal{W} = \mathbb{R}^{m \times n}$, equipped with an arbitrary norm $\| \cdot \|$ and its dual norm $\| \cdot \|^{\dagger}$.
 
-At iteration $t$, we sample an i.i.d. minibatch $S_t = \{ i_1, i_2, \ldots, i_b \}$ of size $b$ from the training dataset. For each data point $i$, we write the per-example stochastic gradient as,
+More generally, we often take $\mathcal{W}$ to be a product of layers' weight spaces, e.g.,
+$$\mathcal{W} = \prod_{l=1}^{L} \mathbb{R}^{m_l \times n_l},$$
+for an $L$-layer neural network with weight matrices $(W^{(l)})_{l=1}^L$ where $W^{(l)} \in \mathbb{R}^{m_l \times n_l}$ for each layer $l$. Given layer-wise norms $\| \cdot \|_{(l)}$ and their duals $\| \cdot \|_{(l)}^{\dagger}$, we can then define the product norm and its dual as,
+$$\begin{align}
+    \| W \| &:= h\left( \| W^{(1)} \|_{(1)}, \| W^{(2)} \|_{(2)}, \ldots, \| W^{(L)} \|_{(L)} \right) \nonumber \\
+    \| G \|^{\dagger} &:= h^{\dagger}\left( \| G^{(1)} \|_{(1)}^{\dagger}, \| G^{(2)} \|_{(2)}^{\dagger}, \ldots, \| G^{(L)} \|_{(L)}^{\dagger} \right) \nonumber
+\end{align}$$
+for some vector norm $h(\cdot)$ on $\mathbb{R}^L$ and its dual $h^{\dagger}(\cdot)$. Our results still hold under this more general setting.
+
+Now, at iteration $t$, we sample an i.i.d. minibatch $S_t = \{ i_1, i_2, \ldots, i_b \}$ of size $b$ from the training dataset. For each data point $i$, we write the per-example stochastic gradient as,
 $$ G_{\xi_{t, i}}(W_t) := \nabla f(W_t) - \xi_{t, i},$$
 where $\xi_{t,i}$ is the (additive) gradient noise at $(t, i)$. We then write the minibatch stochastic gradient and noise as,
 $$\begin{align}
@@ -43,23 +52,23 @@ $$\begin{align}
 $$\begin{equation} \mathbb{E}\left[ \xi_{t, i} \right] = 0, \end{equation}$$
 > and the samples $(\xi_{t,i})_{i=1}^b$ are conditionally independent given $W_t$.
 
-> **Assumption 2 (Bounded gradient noise variance).** There exists $\widetilde{\sigma} > 0$ such that for all time step $t$, data point $i \in S_t$ and for the dual norm $\| \cdot \|^{\dagger}$,
+> **Assumption 2 (Bounded gradient noise variance).** There exists $\widetilde{\sigma} > 0$ such that for all $t, i$,
 $$\begin{equation}
     \mathbb{E}\left[\| \xi_{t,i} \|^{\dagger 2} \right] \leq \widetilde{\sigma}^2
 \end{equation}$$
-By norm equivalence in finite dimensions, there exists $\kappa > 0$ such that,
-$$\begin{equation} \mathbb{E}\left[ \| \xi_{t,i} \|_F^2 \right] \leq \kappa^2 \widetilde{\sigma}^2 =: \sigma^2 \end{equation}$$
-where $\sigma := \kappa \widetilde{\sigma}$ and treat $\sigma$ as the gradient noise variance scale in the Frobenius norm.
+By norm equivalence in finite dimensions, there exists $\kappa_{\sigma} > 0$ such that,
+$$\begin{equation} \mathbb{E}\left[ \| \xi_{t,i} \|_F^2 \right] \leq \kappa_{\sigma}^2 \widetilde{\sigma}^2 =: \sigma^2 \end{equation}$$
+where $\sigma := \kappa_{\sigma} \widetilde{\sigma}$ and treat $\sigma$ as the gradient noise variance scale in the Frobenius norm.
 
 > **Assumption 3 (L-smoothness under $(\| \cdot \|, \| \cdot \|^{\dagger})$).** There exists $\widetilde{L} > 0$ such that for all $X, Y \in \mathcal{W}$,
 $$\begin{equation}
     \| \nabla f(Y) - \nabla f(X) \|^{\dagger} \leq \widetilde{L} \| Y - X \|
 \end{equation}$$
-By norm equivalence, there exists (possibly different) $\kappa > 0$ such that,
+By norm equivalence, there exists $\kappa_L > 0$ such that,
 $$\begin{equation}
-    \| \nabla f(Y) - \nabla f(X) \|_F \leq \kappa \widetilde{L} \| Y - X \|_F = L \| Y - X \|_F
+    \| \nabla f(Y) - \nabla f(X) \|_F \leq \kappa_L \widetilde{L} \| Y - X \|_F = L \| Y - X \|_F
 \end{equation}$$
-where $L := \kappa \widetilde{L}$.
+where $L := \kappa_L \widetilde{L}$.
 
 ### Nesterov momentum
 
