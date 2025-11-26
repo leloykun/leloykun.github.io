@@ -109,9 +109,7 @@ $$\begin{align}
             + 2 (1 - \beta) \frac{\sigma^2}{b}
 \end{align}$$
 
-**Proof.**
-
-Notice that,
+**Proof.** Notice that,
 $$\begin{align}
     E_t
         &= \nabla f(W_t) - M_t \nonumber \\
@@ -189,9 +187,7 @@ $$\begin{align}
         &\quad+ (2\beta + 1) (1 - \beta) \frac{\sigma^2}{b}
 \end{align}$$
 
-**Proof.**
-
-Observe that,
+**Proof.** Observe that,
 $$\begin{align}
     \nabla f(W_t) - C_t
         &= \nabla f(W_t) - (\beta M_t + (1 - \beta) \nabla f_{S_t}(W_t)) \nonumber \\
@@ -218,9 +214,7 @@ $$\begin{equation}
 where $T$ is the total number of time steps, $b$ is the batch size, and
 $$Y = \frac{(2 \beta + 1)(1 - \beta)}{2} \sigma^2.$$
 
-**Proof.**
-
-From the universality of norms in finite-dimensional vector spaces, there exist constants $\kappa_1 > 0, \kappa_2 > 0$ such that for all $X \in \mathbb{R}^{m \times n}$,
+**Proof.** From the universality of norms in finite-dimensional vector spaces, there exist constants $\kappa_1 > 0, \kappa_2 > 0$ such that for all $X \in \mathbb{R}^{m \times n}$,
 $$ \kappa_1 \| X \|_F \leq \| X \|^{\dagger} \leq \kappa_2 \| X \|_F $$
 For Muon, we have $\| X \|^{\dagger} = \| X \|_{\text{nuc}}$ (the nuclear norm), and so $\kappa_1 = 1, \kappa_2 = \sqrt{\text{rank}(X)} \leq \sqrt{\min{(m, n)}}$.
 
@@ -354,7 +348,7 @@ $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F] \leq \frac{X}{T} + \frac{Y}{b} + Z
 \end{equation}$$
 where $T$ is the total number of time steps, $b$ is the batch size, and
-$$Y = \frac{(2 \beta + 1)(1 - \beta) - \lambda}{2} \sigma^2.$$
+$$Y = \frac{(2 \beta + 1)(1 - \beta) + \lambda}{2} \sigma^2.$$
 
 We follow a similar proof strategy as Theorem (7).
 
@@ -363,17 +357,17 @@ $$\begin{align}
         &\leq f(W_t) + \langle \nabla f(W_t), W_{t+1} - W_t \rangle + \frac{L}{2} \| W_{t+1} - W_t \|^2 \nonumber \\
         &\leq f(W_t) + \langle \nabla f(W_t), \eta A_t^* - \lambda\eta W_{t} \rangle + \frac{L}{2} \| \eta A_t^* - \lambda\eta W_{t} \|^2 \nonumber \\
         &\leq f(W_t) + \langle \nabla f(W_t) - C_t + C_t, \eta A_t^* - \lambda\eta W_{t} \rangle_F + \frac{L \eta^2}{2} \nonumber \\
-        &\leq f(W_t) + \langle C_t, \eta A_t^* \rangle_F - \lambda\eta \langle C_t, W_{t} \rangle_F + \langle \nabla f(W_t) - C_t, \eta A_t^* - \lambda\eta W_{t} \rangle_F + \frac{L \eta^2}{2} \nonumber \\
+        &\leq f(W_t) + \langle C_t, \eta A_t^* \rangle_F + \lambda\eta \langle C_t, -W_{t} \rangle_F + \langle \nabla f(W_t) - C_t, \eta A_t^* - \lambda\eta W_{t} \rangle_F + \frac{L \eta^2}{2} \nonumber \\
         &\leq f(W_t)
             - \eta \| C_t \|^{\dagger}
-            - \lambda\eta \left(\frac{\epsilon'}{2} \| C_t \|^{\dagger 2} + \frac{1}{2\epsilon'} \| W_t \|^2 \right) \nonumber \\
+            + \lambda\eta \left(\frac{\epsilon'}{2} \| C_t \|^{\dagger 2} + \frac{1}{2\epsilon'} \| -W_t \|^2 \right) \nonumber \\
             &\qquad+ \left(\frac{\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2}
                 + \frac {\eta^2}{2 \epsilon} \| A_t^* - \lambda\eta W_{t} \|^2\right)
             + \frac{L \eta^2}{2} \nonumber \\
         &\leq f(W_t)
             - \eta \left(\| \nabla f(W_t) \|^{\dagger} - \| \nabla f(W_t) - C_t \|^{\dagger}\right)
-            - \frac{\lambda\eta\epsilon'}{2} \| C_t \|^{\dagger 2}
-            - \frac{\lambda\eta}{2\epsilon'} \| W_t \|^2
+            + \frac{\lambda\eta\epsilon'}{2} \| C_t \|^{\dagger 2}
+            + \frac{\lambda\eta}{2\epsilon'} \| W_t \|^2
             \nonumber \\
             &\qquad+ \frac{\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2}
                 + \frac {\eta^2}{2 \epsilon} \left(2\| A_t^* \| + 2\lambda\eta \| W_{t} \|^2 \right)
@@ -382,8 +376,8 @@ $$\begin{align}
             - \eta \| \nabla f(W_t) \|^{\dagger}
             + \eta \| \nabla f(W_t) - C_t \|^{\dagger}
             + \frac{\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2} \nonumber \\
-            &\qquad - \frac{\lambda\eta\epsilon'}{2} \| C_t \|^{\dagger 2} 
-                + \frac{\lambda\eta(2\eta^2/\epsilon-1/\epsilon')}{2} \| W_t \|^2
+            &\qquad + \frac{\lambda\eta\epsilon'}{2} \| C_t \|^{\dagger 2} 
+                + \frac{\lambda\eta(2\eta^2/\epsilon + 1/\epsilon')}{2} \| W_t \|^2
                 + \frac{(2/\epsilon + L)\eta^2}{2} \label{eq:descentlemma-weightdecay}
 \end{align}$$
 
@@ -394,16 +388,16 @@ $$\begin{align}
             + \| \nabla f(W_t) - C_t \|^{\dagger}
             + \frac{\epsilon}{2\eta} \| \nabla f(W_t) - C_t \|^{\dagger 2} \nonumber \\
         &\quad
-            - \frac{\lambda\epsilon'}{2} \| C_t \|^{\dagger 2}
-            + \frac{\lambda(2\eta^2/\epsilon-1/\epsilon')}{2} \| W_t \|^2
+            + \frac{\lambda\epsilon'}{2} \| C_t \|^{\dagger 2}
+            + \frac{\lambda(2\eta^2/\epsilon + 1/\epsilon')}{2} \| W_t \|^2
             + \frac{(2/\epsilon + L)\eta^2}{2} \nonumber \\
     \| \nabla f(W_t) \|_F
         &\leq \frac{f(W_t) - f(W_{t+1})}{\eta\kappa_1}
             + \frac{\kappa_2}{\kappa_1}\| \nabla f(W_t) - C_t \|_F
             + \frac{1}{2} \| \nabla f(W_t) - C_t \|^{2}_F \nonumber \\
         &\quad
-            - \frac{\lambda}{2} \frac{\sigma^2}{b}
-            + \frac{\kappa_2^2}{\kappa_1}\frac{2\eta^2 - 1}{2\lambda \eta}
+            + \frac{\lambda}{2} \frac{\sigma^2}{b}
+            + \frac{\kappa_2^2}{\kappa_1}\frac{2\eta^2 + 1}{2\lambda \eta}
             + \frac{(2 \kappa_2^2/\kappa_1 + L\eta)\eta}{2\kappa_1} \nonumber \\
 \end{align}$$
 
@@ -419,13 +413,13 @@ $$\begin{align}
             + \frac{2\sqrt{2}\beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} \| \nabla f(W_0) - M_0 \|_F
             + \frac{\beta}{1 - \beta} \| \nabla f(W_0) - M_0 \|_F^{2} \nonumber \\
     Y
-        &:= \frac{(2 \beta + 1)(1 - \beta) - \lambda}{2} \sigma^2 \nonumber \\
+        &:= \frac{(2 \beta + 1)(1 - \beta) + \lambda}{2} \sigma^2 \nonumber \\
     Z
         &:= \frac{2 (\kappa_2^2/\kappa_1 + L\eta)\eta}{2\kappa_1}
             + \frac{2 \beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} L \eta
             + \frac{2\beta}{(1 - \beta)^2} L^2 \eta^2 \nonumber \\
         &\qquad
-            + \frac{\kappa_2^2}{\kappa_1}\frac{2\eta^2 - 1}{2\lambda \eta}
+            + \frac{\kappa_2^2}{\kappa_1}\frac{2\eta^2 + 1}{2\lambda \eta}
             + \left(\sqrt{2 (1 - \beta)} + (1 - \beta)\right) \frac{\kappa_2}{\kappa_1} \frac{\sigma}{\sqrt{b}} \quad\blacksquare \nonumber
 \end{align}$$
 
@@ -435,7 +429,7 @@ $$\begin{align}
 
 > **Theorem 11 (Critical batch size for steepest descent under arbitrary norms with (Nesterov) momentum and weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach convergence according to the criterion in Equation $\eqref{eq:convergence-criterion}$ is given by,
 $$\begin{equation}
-    b_{crit} = \left( (2\beta + 1)(1 - \beta) - \lambda \right) \frac{\sigma^2}{\epsilon'}
+    b_{crit} = \left( (2\beta + 1)(1 - \beta) + \lambda \right) \frac{\sigma^2}{\epsilon'}
 \end{equation}$$
 
 **Proof.** We consider the steepest descent iteration process to have converged at time step $T$ when, for some $\epsilon > 0$,
@@ -466,5 +460,5 @@ $$\begin{align}
 \end{align}$$
 Thus, $b \cdot T(b)$ is a convex function for $b > \frac{Y}{\epsilon'}$, with a minimizer $b^* = \frac{2Y}{\epsilon'}$. This gives us the critical batch size,
 $$\begin{equation}
-    b_{crit} = \frac{2Y}{\epsilon'} = \left( (2\beta + 1)(1 - \beta) - \lambda \right) \frac{\sigma^2}{\epsilon'}
+    b_{crit} = \frac{2Y}{\epsilon'} = \left( (2\beta + 1)(1 - \beta) + \lambda \right) \frac{\sigma^2}{\epsilon'}
 \end{equation}$$
