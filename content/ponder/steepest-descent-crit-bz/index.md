@@ -19,7 +19,7 @@ citation:
     publication_date: "2025/11/22"
 ---
 
-## Introduction and preliminaries
+## 1. Introduction and preliminaries
 
 This work generalizes prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598) on the critical batch size for the Muon optimizer [(Jordan et al., 2025)](https://kellerjordan.github.io/posts/muon/) to steepest descent under arbitrary norms with Nesterov momentum and weight decay. We show that the same critical batch size formula holds universally across all norms.
 
@@ -46,7 +46,7 @@ $$\begin{align}
         &:= \nabla f(W_t) - \nabla f_{S_t}(W_t)
 \end{align}$$
 
-### Assumptions
+### 1.1. Assumptions
 
 > **Assumption 1 (Unbiased gradient noise, per sample).** At each time step $t$ and for each data point $i \in S_t$, the gradient noise satisfies,
 $$\begin{equation} \mathbb{E}\left[ \xi_{t, i} \right] = 0, \end{equation}$$
@@ -70,7 +70,7 @@ $$\begin{equation}
 \end{equation}$$
 where $L := \kappa_L \widetilde{L}$.
 
-### Nesterov momentum
+### 1.2. Nesterov momentum
 
 For a given momentum hyperparameter $\beta \in (0, 1)$, Nesterov momentum is defined in terms of the minibatch stochastic gradients as,
 $$\begin{align}
@@ -79,7 +79,7 @@ $$\begin{align}
 \end{align}$$
 where $M_t$ is the usual momentum accumulator and $C_t$ is the Nesterov "look-ahead" gradient. We then use $C_t$ to compute the steepest descent update direction under the norm $\| \cdot \|$.
 
-### Linear Minimization Oracles (LMOs) and dual norms
+### 1.3. Linear Minimization Oracles (LMOs) and dual norms
 
 Given a norm $\| \cdot \|$ on $\mathbb{R}^{m \times n}$ and its dual $\| \cdot \|^{\dagger}$, the linear minimization oracle (LMO) is defined as,
 $$\begin{align}
@@ -103,9 +103,9 @@ $$\begin{equation}
     W_{t+1} = (1 - \lambda\eta) W_t + \eta A_t^* \label{eq:updateweightdecay}
 \end{equation}$$
 
-## Convergence bound for steepest descent under arbitrary norms without weight decay
+## 2. Convergence bound for steepest descent under arbitrary norms without weight decay
 
-### Gradient noise and momentum error bounds
+### 2.1. Gradient noise and momentum error bounds
 
 We first control the variance of the mini-batch noise.
 
@@ -242,7 +242,7 @@ The result then follows from Proposition (4) and Proposition (5). $\quad\blacksq
 
 ---
 
-### Convergence bound without weight decay
+### 2.2. Convergence bound without weight decay
 
 > **Theorem 7 (Convergence bound without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$ (i.e., weight decay is disabled) and step size $\eta > 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, Z > 0$ such that,
 $$\begin{equation}
@@ -311,11 +311,11 @@ $$\begin{align}
             &\qquad+ \left(\sqrt{2 (1 - \beta)} + (1 - \beta)\right) \frac{\kappa_2}{\kappa_1} \frac{\sigma}{\sqrt{b}} \quad\blacksquare \nonumber
 \end{align}$$
 
-## Convergence bound for steepest descent under arbitrary norms with weight decay
+## 3. Convergence bound for steepest descent under arbitrary norms with weight decay
 
 We now analyze the case $\lambda > 0$.
 
-### Weight, gradient, and momentum norm bounds
+### 3.1. Weight, gradient, and momentum norm bounds
 
 > **Proposition 8 (Weight and gradient bound).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda > 0$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$ and $\| W_0 \| \leq \frac{1}{\lambda}$. Then, for all $t \geq 0$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
 $$\begin{align}
@@ -401,7 +401,7 @@ $$\begin{align}
 
 ---
 
-### Convergence bound with weight decay
+### 3.2. Convergence bound with weight decay
 
 > **Theorem 10 (Convergence bound with weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, Z > 0$ such that,
 $$\begin{equation}
@@ -486,7 +486,7 @@ $$\begin{align}
 
 ---
 
-## Deriving the critical batch size
+## 4. Deriving the critical batch size
 
 > **Theorem 11 (Critical batch size for steepest descent under arbitrary norms with (Nesterov) momentum and weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach convergence according to the criterion in Equation $\eqref{eq:convergence-criterion}$ is given by,
 $$\begin{equation}
@@ -524,7 +524,7 @@ $$\begin{equation}
     b_{crit} = \frac{2Y}{\epsilon'} = \left( (2\beta + 1)(1 - \beta) + \lambda \right) \frac{\sigma^2}{\epsilon'}
 \end{equation}$$
 
-## Discussion
+## 5. Discussion
 
 The main result of this work is that the *shape* of the convergence bound:
 $$\frac{X}{T} + \frac{Y}{b} + Z$$
