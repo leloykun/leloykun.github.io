@@ -397,7 +397,7 @@ $$\begin{align}
             + \frac{1}{2} \| \nabla f(W_t) - C_t \|^{2}_F \nonumber \\
         &\quad
             + \frac{\lambda}{2} \frac{\sigma^2}{b}
-            + \frac{\kappa_2^2}{\kappa_1}\frac{2\eta^2 + 1}{2\lambda \eta}
+            + \frac{\kappa_2^2}{\kappa_1^2}\frac{2\eta^2 + 1}{2\lambda \eta}
             + \frac{(2 \kappa_2^2/\kappa_1 + L\eta)\eta}{2\kappa_1} \nonumber \\
 \end{align}$$
 
@@ -419,7 +419,7 @@ $$\begin{align}
             + \frac{2 \beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} L \eta
             + \frac{2\beta}{(1 - \beta)^2} L^2 \eta^2 \nonumber \\
         &\qquad
-            + \frac{\kappa_2^2}{\kappa_1}\frac{2\eta^2 + 1}{2\lambda \eta}
+            + \frac{\kappa_2^2}{\kappa_1^2}\frac{2\eta^2 + 1}{2\lambda \eta}
             + \left(\sqrt{2 (1 - \beta)} + (1 - \beta)\right) \frac{\kappa_2}{\kappa_1} \frac{\sigma}{\sqrt{b}} \quad\blacksquare \nonumber
 \end{align}$$
 
