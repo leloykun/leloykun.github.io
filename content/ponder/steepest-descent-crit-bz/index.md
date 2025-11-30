@@ -624,3 +624,41 @@ also holds universally across all norms. Intuitively, this means that first-orde
 
 1. Naoki Sato, Hiroki Naganuma, Hideaki Iiduka (2025). Convergence Bound and Critical Batch Size of Muon Optimizer. URL https://arxiv.org/abs/2507.01598
 2. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
+
+## Appendix
+
+### A1. How to scale learning rate with batch size
+
+In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto \sqrt{b}$ when increasing the batch size $b$. Here we provide a mathematical justification *why*. The crux is that increasing the batch size reduces the gradient noise variance, which in turn means that we can make larger weight updates without destabilizing training.
+
+To see this, we first make the following assumption.
+
+> **Assumption A1.12 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm $\| \cdot \|$. Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2$ denoting nesterov momentum terms, we have,
+$$\| \texttt{LMO}_{\| \cdot \|}(C_1) - \texttt{LMO}_{\| \cdot \|}(C_2) \| \leq L_{\text{LMO}} \| C_1 - C_2 \|$$
+
+> **Proposition A1.13 (Gradient noise variance is proportional to $\eta^2/b$).** Under Assumptions 1-3 and Assumption (A1.12), we have,
+$$\mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] \propto \frac{\eta^2}{b}$$
+
+**Proof.** We can then decompose our weight update rule in Equation $\eqref{eq:updateweightdecay}$ into deterministic and stochastic components as follows,
+$$\begin{equation}
+    \nabla W_t = W_{t+1} - W_t =  \underbrace{-\eta W_t + \eta A_t^{\text{det}}}_{\Delta W_t^{\text{det}}} + \underbrace{\eta A_t^{\text{noise}}}_{\Delta W_t^{\text{noise}}}
+\end{equation}$$
+where $A_t^* = A_t^{\text{det}} + A_t^{\text{noise}}$ is the decomposition of the steepest descent direction into its deterministic and stochastic components.
+
+$$\begin{align}
+    \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]
+        &= \eta^2 \mathbb{E} \left[ \| A_t^{\text{noise}} \|^2 \right] \nonumber \\
+        &= \eta^2 \mathbb{E} \left[ \| A_t^* - A_t^{\text{det}} \|^2 \right] \nonumber \\
+        &\lesssim \eta^2 L_{\text{LMO}}^2 \mathbb{E} \left[ \| C_t - \Delta f(W_t) \|^2 \right] \nonumber \\
+        &\lesssim \eta^2 L_{\text{LMO}}^2 \frac{\sigma^2}{b} + O\left(\frac{1}{T} + 1 \right) \nonumber \\
+        &\propto \frac{\eta^2}{b} \quad\blacksquare \nonumber
+\end{align}$$
+
+Now, if we already know that training is stable for some gradient noise variance level $\mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]$, then it is natural to preserve it as we scale the batch size $b$. Thus, we have,
+$$\begin{align}
+    \frac{\eta_{\text{new}}^2}{b_{\text{new}}}
+        &= \frac{\eta_{\text{old}}^2}{b_{\text{old}}} = \text{constant} \nonumber \\
+    \eta_{\text{new}}
+        &= \eta_{\text{old}}\sqrt{\frac{b_{\text{new}}}{b_{\text{old}}}}. \nonumber
+\end{align}$$
+This means that, e.g., if we $4\times$ the batch size, then increasing the learning rate by a factor of $2$ preserves training stability.
