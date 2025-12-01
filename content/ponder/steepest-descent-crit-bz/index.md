@@ -133,6 +133,17 @@ and later the Nesterov momentum error term $\nabla f(W_t) - C_t$.
 
 > **Proposition 5 (Average first and second moments of the momentum error term).** Let $\beta \in (0, 1)$. Under Assumptions 1-3, for any $T \geq 1$ and any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$ induced by an inner product (i.e., satisfying the parallelogram law),
 $$\begin{align}
+    \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
+        &\leq \left( \sqrt{\frac{1 + \beta}{2}} \right)^t \| \nabla f(W_0) - M_0 \|^{\dagger}
+            + \frac{2}{1 - \beta} L \eta
+            + \sqrt{2 (1 - \beta)} \frac{\sigma}{\sqrt{b}} \\
+    \mathbb{E}\left[\| E_t \|^{\dagger 2} \right]
+        &\leq \left( \frac{1 + \beta}{2} \right)^t \| \nabla f(W_0) - M_0 \|^{\dagger 2}
+            + \frac{4}{(1 - \beta)^2} L^2 \eta^2
+            + 2 (1 - \beta) \frac{\sigma^2}{b}
+\end{align}$$
+Moreover, averaging over $T$ iterations yields,
+$$\begin{align}
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
         &\leq \frac{2\sqrt{2}}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) - M_0 \|^{\dagger}
             + \frac{2}{1 - \beta} L \eta
@@ -209,7 +220,7 @@ $$\begin{align}
 
 We now bound the Nesterov momentum error term.
 
-> **Corollary 6 (Average first and second moments of the Nesterov momentum error term).** Under the same assumptions as Proposition 5, for any $T \geq 1$ and any norm $\| \cdot \|^{\dagger}$ induced by an inner product (i.e., satisfying the parallelogram law),
+> **Corollary 6 (Average first and second moments of the Nesterov momentum error term).** Under the same assumptions as Proposition 5, for any $T \geq 1$ and any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$ induced by an inner product (i.e., satisfying the parallelogram law),
 $$\begin{align}
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger} \right]
         &\leq \frac{2\sqrt{2}\beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) - M_0 \|^{\dagger}
@@ -634,22 +645,27 @@ In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto
 To see this, we first make the following assumption.
 
 > **Assumption A1.12 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm $\| \cdot \|$. Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2$ denoting nesterov momentum terms, we have,
-$$\| \texttt{LMO}_{\| \cdot \|}(C_1) - \texttt{LMO}_{\| \cdot \|}(C_2) \| \leq L_{\text{LMO}} \| C_1 - C_2 \|$$
+$$\begin{equation}
+    \| \texttt{LMO}_{\| \cdot \|}(C_1) - \texttt{LMO}_{\| \cdot \|}(C_2) \| \leq L_{\text{LMO}} \| C_1 - C_2 \|^{\dagger}
+\end{equation}$$
 
-> **Proposition A1.13 (Gradient noise variance is proportional to $\eta^2/b$).** Under Assumptions 1-3 and Assumption (A1.12), we have,
-$$\mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] \propto \frac{\eta^2}{b}$$
+> **Proposition A1.13 (Gradient noise variance is proportional to $\eta^2/b$).** Let $\eta > 0$ be the learning rate and $b \geq 1$ be the batch size. Under Assumptions 1-3 and Assumption (A1.12), we have,
+$$\begin{equation}
+    \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] \propto \frac{\eta^2}{b}
+\end{equation}$$
 
-**Proof.** We can then decompose our weight update rule in Equation $\eqref{eq:updateweightdecay}$ into deterministic and stochastic components as follows,
+**Proof.** We can decompose our weight update rule in Equation $\eqref{eq:updateweightdecay}$ into deterministic and stochastic components as follows,
 $$\begin{equation}
     \nabla W_t = W_{t+1} - W_t =  \underbrace{-\eta W_t + \eta A_t^{\text{det}}}_{\Delta W_t^{\text{det}}} + \underbrace{\eta A_t^{\text{noise}}}_{\Delta W_t^{\text{noise}}}
 \end{equation}$$
 where $A_t^* = A_t^{\text{det}} + A_t^{\text{noise}}$ is the decomposition of the steepest descent direction into its deterministic and stochastic components.
 
+Taking norms and expectations, and using Proposition (5) then yields,
 $$\begin{align}
     \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]
         &= \eta^2 \mathbb{E} \left[ \| A_t^{\text{noise}} \|^2 \right] \nonumber \\
         &= \eta^2 \mathbb{E} \left[ \| A_t^* - A_t^{\text{det}} \|^2 \right] \nonumber \\
-        &\lesssim \eta^2 L_{\text{LMO}}^2 \mathbb{E} \left[ \| C_t - \Delta f(W_t) \|^2 \right] \nonumber \\
+        &\lesssim \eta^2 L_{\text{LMO}}^2 \mathbb{E} \left[ \| C_t - \Delta f(W_t) \|^{\dagger 2} \right] \nonumber \\
         &\lesssim \eta^2 L_{\text{LMO}}^2 \frac{\sigma^2}{b} + O\left(\frac{1}{T} + 1 \right) \nonumber \\
         &\propto \frac{\eta^2}{b} \quad\blacksquare \nonumber
 \end{align}$$
