@@ -109,19 +109,19 @@ $$\begin{equation}
 
 We first control the variance of the mini-batch noise.
 
-> **Proposition 4 (Bounded minibatch gradient noise variance).** Under Assumptions 1-2, for any minibatch size $b \geq 1$ and any norm $\| \cdot \|$,
+> **Lemma 4 (Bounded minibatch gradient noise variance).** Under Assumptions 1-2, for any minibatch size $b \geq 1$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$ induced by an inner product (i.e., satisfying the parallelogram law),
 $$\begin{equation}
-    \mathbb{E}\left[ \| \xi_{S_t} \|^2 \right] \leq \frac{\sigma^2}{b}
+    \mathbb{E}\left[ \| \xi_{S_t} \|^{\dagger 2} \right] \leq \frac{\sigma^2}{b}
 \end{equation}$$
 
 **Proof.**
 $$\begin{align}
-    \mathbb{E}\left[ \| \xi_{S_t} \|^2 \right]
-        &= \mathbb{E}\left[ \left\| \nabla f(W_t) - \nabla f_{S_t}(W_t) \right\|^2 \right] \nonumber \\
-        &= \mathbb{E}\left[ \left\| \nabla f(W_t) - \frac{1}{b} \sum_{i=1}^{b} G_{\xi_{t,i}}(W_t) \right\|^2 \right] \nonumber \\
-        &= \mathbb{E}\left[ \left\| \frac{1}{b} \sum_{i=1}^{b} (\nabla f(W_t) - G_{\xi_{t,i}}(W_t)) \right\|^2 \right] \nonumber \\
-        &= \mathbb{E}\left[ \left\| \frac{1}{b} \sum_{i=1}^{b} \xi_{t,i} \right\|^2 \right] \nonumber \\
-        &\leq \frac{1}{b^2} \sum_{i=1}^{b} \mathbb{E}\left[ \| \xi_{t,i} \|^2 \right] \nonumber \\
+    \mathbb{E}\left[ \| \xi_{S_t} \|^{\dagger 2} \right]
+        &= \mathbb{E}\left[ \left\| \nabla f(W_t) - \nabla f_{S_t}(W_t) \right\|^{\dagger 2} \right] \nonumber \\
+        &= \mathbb{E}\left[ \left\| \nabla f(W_t) - \frac{1}{b} \sum_{i=1}^{b} G_{\xi_{t,i}}(W_t) \right\|^{\dagger 2} \right] \nonumber \\
+        &= \mathbb{E}\left[ \left\| \frac{1}{b} \sum_{i=1}^{b} (\nabla f(W_t) - G_{\xi_{t,i}}(W_t)) \right\|^{\dagger 2} \right] \nonumber \\
+        &= \mathbb{E}\left[ \left\| \frac{1}{b} \sum_{i=1}^{b} \xi_{t,i} \right\|^{\dagger 2} \right] \nonumber \\
+        &\leq \frac{1}{b^2} \sum_{i=1}^{b} \mathbb{E}\left[ \| \xi_{t,i} \|^{\dagger 2} \right] \nonumber \\
         &\leq \frac{\sigma^2}{b} \quad\blacksquare \nonumber
 \end{align}$$
 
@@ -131,7 +131,7 @@ We then bound the average first and second moments of the momentum error term,
 $$E_t := \nabla f(W_t) - M_t,$$
 and later the Nesterov momentum error term $\nabla f(W_t) - C_t$.
 
-> **Proposition 5 (Average first and second moments of the momentum error term).** Under Assumptions 1-3, for any $T \geq 1$ and any norm $\| \cdot \|^{\dagger}$ induced by an inner product (i.e., satisfying the parallelogram law),
+> **Proposition 5 (Average first and second moments of the momentum error term).** Let $\beta \in (0, 1)$. Under Assumptions 1-3, for any $T \geq 1$ and any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$ induced by an inner product (i.e., satisfying the parallelogram law),
 $$\begin{align}
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
         &\leq \frac{2\sqrt{2}}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) - M_0 \|^{\dagger}
@@ -153,7 +153,7 @@ $$\begin{align}
         &= \beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1})) + (1 - \beta) \xi_{S_t} \nonumber
 \end{align}$$
 
-Taking norms, expectations, and using Peter-Paul inequality, together with Assumption (1), Assumption (3), and Proposition (4) then yields,
+Taking norms, expectations, and using Peter-Paul inequality, together with Assumption (1), Assumption (3), and Lemma (4) then yields,
 $$\begin{align}
     \mathbb{E}\left[ \| E_t \|^{\dagger 2} \right]
         &= \mathbb{E}\left[ \| \beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1})) + (1 - \beta) \xi_{S_t} \|^{\dagger 2} \right] \nonumber \\
@@ -235,7 +235,7 @@ $$\begin{align}
     \| \nabla f(W_t) - C_t \|^{\dagger}
         &\leq \beta \| E_t \|^{\dagger} + (1 - \beta) \| \xi_{S_t} \|^{\dagger} \nonumber
 \end{align}$$
-The result then follows from Proposition (4) and Proposition (5). $\quad\blacksquare$
+The result then follows from Lemma (4) and Proposition (5). $\quad\blacksquare$
 
 ---
 
@@ -404,7 +404,7 @@ $$\begin{align}
         &\leq \frac{\sigma^2}{b} + \frac{4 L^2}{\lambda^2 \kappa_1^2}
 \end{align}$$
 
-**Proof.** From Assumption (1) and Proposition (4), we have,
+**Proof.** From Assumption (1) and Lemma (4), we have,
 $$\begin{align}
     \mathbb{E}\left[ \| \nabla f_{S_t}(W_t) - \nabla f(W_t) \|^{\dagger 2} \right]
         &= \mathbb{E}\left[ \| \nabla f_{S_t}(W_t) \|^{\dagger 2} \right]
