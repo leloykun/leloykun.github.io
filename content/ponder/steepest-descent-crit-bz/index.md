@@ -162,25 +162,25 @@ We then bound the average first and second moments of the momentum error term,
 $$E_t := \nabla f(W_t) - M_t,$$
 and later the Nesterov momentum error term $\nabla f(W_t) - C_t$.
 
-> **Proposition 6 (Average first and second moments of the momentum error term).** Let $\beta \in (0, 1)$. Under Assumptions 1-4, for any $T \geq 1$ and any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
+> **Proposition 6 (Average first and second moments of the momentum error term).** Let $\beta \in (0, 1)$, and $M_0 = 0$. Under Assumptions 1-4, for any $T \geq 1$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
 $$\begin{align}
     \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
-        &\leq \left( \sqrt{\frac{1 + \beta}{2}} \right)^t \| \nabla f(W_0) - M_0 \|^{\dagger}
+        &\leq \left( \sqrt{\frac{1 + \beta}{2}} \right)^t \| \nabla f(W_0) \|^{\dagger}
             + \frac{2}{1 - \beta} L \eta
             + \sqrt{2 (1 - \beta)} D \frac{\sigma}{\sqrt{b}} \\
     \mathbb{E}\left[\| E_t \|^{\dagger 2} \right]
-        &\leq \left( \frac{1 + \beta}{2} \right)^t \| \nabla f(W_0) - M_0 \|^{\dagger 2}
+        &\leq \left( \frac{1 + \beta}{2} \right)^t \| \nabla f(W_0) \|^{\dagger 2}
             + \frac{4}{(1 - \beta)^2} L^2 \eta^2
             + 2 (1 - \beta) D^2 \frac{\sigma^2}{b}
 \end{align}$$
 Moreover, averaging over $T$ iterations yields,
 $$\begin{align}
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
-        &\leq \frac{2\sqrt{2}}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) - M_0 \|^{\dagger}
+        &\leq \frac{2\sqrt{2}}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
             + \frac{2}{1 - \beta} L \eta
             + \sqrt{2 (1 - \beta)} D \frac{\sigma}{\sqrt{b}} \\
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| E_t \|^{\dagger 2} \right]
-        &\leq \frac{2}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) - M_0 \|^{\dagger 2}
+        &\leq \frac{2}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
             + \frac{4}{(1 - \beta)^2} L^2 \eta^2
             + 2 (1 - \beta) D^2 \frac{\sigma^2}{b}
 \end{align}$$
@@ -258,8 +258,9 @@ $$\begin{align}
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| E_t \|^{\dagger}\right]
         &\leq \frac{2\sqrt{2}}{1 - \beta} \frac{1}{T} \| E_{0} \|^{\dagger}
             + \frac{2}{1 - \beta} L \eta
-            + \sqrt{2 (1 - \beta)} D \frac{\sigma}{\sqrt{b}} \quad\blacksquare \nonumber \\
+            + \sqrt{2 (1 - \beta)} D \frac{\sigma}{\sqrt{b}} \nonumber \\
 \end{align}$$
+Substituting $E_0 = \nabla f(W_0) - M_0 = \nabla f(W_0)$ completes the proof. $\quad\blacksquare$
 
 ---
 
@@ -268,11 +269,11 @@ We now bound the Nesterov momentum error term.
 > **Corollary 7 (Average first and second moments of the Nesterov momentum error term).** Under the same assumptions as Proposition (6), for any $T \geq 1$ and any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
 $$\begin{align}
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger} \right]
-        &\leq \frac{2\sqrt{2}\beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) - M_0 \|^{\dagger}
+        &\leq \frac{2\sqrt{2}\beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
             + \frac{2 \beta}{1 - \beta} L \eta \nonumber \\
         &\quad+ \left(\sqrt{2 (1 - \beta)} D \beta + (1 - \beta)\right) \frac{\sigma}{\sqrt{b}} \\
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger 2}\right]
-        &\leq \frac{2\beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) - M_0 \|^{\dagger 2}
+        &\leq \frac{2\beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
             + \frac{4\beta}{(1 - \beta)^2} L^2 \eta^2 \nonumber \\
         &\quad+ (2 D^2 \beta + 1) (1 - \beta) \frac{\sigma^2}{b}
 \end{align}$$
@@ -378,8 +379,8 @@ where,
 $$\begin{align}
     X
         &:= \frac{f(W_0) - f^*}{\eta}
-            + \frac{2\sqrt{2}\beta}{1 - \beta} \| \nabla f(W_0) - M_0 \|^{\dagger}
-            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) - M_0 \|^{\dagger 2} \nonumber \\
+            + \frac{2\sqrt{2}\beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger}
+            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) \|^{\dagger 2} \nonumber \\
     Y
         &:= \frac{(2 \beta + 1 / D^2)(1 - \beta)}{2} \sigma^2 \nonumber \\
     Z
@@ -421,8 +422,8 @@ where,
 $$\begin{align}
     X_F
         &:= \frac{f(W_0) - f^*}{\eta\kappa_1}
-            + \frac{2\sqrt{2}\beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} \| \nabla f(W_0) - M_0 \|_F
-            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) - M_0 \|_F^2 \nonumber \\
+            + \frac{2\sqrt{2}\beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} \| \nabla f(W_0) \|_F
+            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) \|_F^2 \nonumber \\
     Y_F
         &:= \frac{(2 \beta + 1 / D^2)(1 - \beta)}{2} \sigma_F^2 \nonumber \\
     Z_F
@@ -503,8 +504,10 @@ Then, let us unroll the momentum recurrence,
 $$\begin{align}
     \mathbb{E}\left[ \| M_t \|^{\dagger 2} \right]
         &= \mathbb{E}\left[ \| \beta M_{t-1} + (1 - \beta) \nabla f_{S_t}(W_t) \|^{\dagger 2} \right] \nonumber \\
-        &\leq \beta \mathbb{E}\left[ \| M_{t-1} \|^{\dagger 2} \right] + (1 - \beta) \mathbb{E}\left[ \| \nabla f_{S_t}(W_t) \|^{\dagger 2} \right] \nonumber \\
-        &\leq \beta^t \| M_0 \|^{\dagger 2} + (1 - \beta) \sum_{i=0}^{t-1} \left( \frac{2 D\sigma^2}{b} + \frac{8 L^2}{\lambda^2} \right) \beta^i \nonumber \\
+        &\leq \beta \mathbb{E}\left[ \| M_{t-1} \|^{\dagger 2} \right]
+            + (1 - \beta) \mathbb{E}\left[ \| \nabla f_{S_t}(W_t) \|^{\dagger 2} \right] \nonumber \\
+        &\leq \cancel{\beta^t \| M_0 \|^{\dagger 2}}
+            + (1 - \beta) \sum_{i=0}^{t-1} \left( \frac{2 D\sigma^2}{b} + \frac{8 L^2}{\lambda^2} \right) \beta^i \nonumber \\
         &\leq \frac{2 D\sigma^2}{b} + \frac{8 L^2}{\lambda^2} \nonumber
 \end{align}$$
 
@@ -602,8 +605,8 @@ where,
 $$\begin{align}
     X
         &:= \frac{f(W_0) - f^*}{\eta}
-            + \frac{2\sqrt{2}\beta}{1 - \beta} \| \nabla f(W_0) - M_0 \|^{\dagger}
-            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) - M_0 \|^{\dagger 2} \nonumber \\
+            + \frac{2\sqrt{2}\beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger}
+            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) \|^{\dagger 2} \nonumber \\
     Y
         &:= \frac{(2 \beta + 1 / D^2)(1 - \beta) + \lambda}{2} \sigma^2 \nonumber \\
     Z
@@ -637,8 +640,8 @@ where,
 $$\begin{align}
     X_F
         &:= \frac{f(W_0) - f^*}{\eta\kappa_1}
-            + \frac{2\sqrt{2}\beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} \| \nabla f(W_0) - M_0 \|_F
-            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) - M_0 \|_F^2 \nonumber \\
+            + \frac{2\sqrt{2}\beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} \| \nabla f(W_0) \|_F
+            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) \|_F^2 \nonumber \\
     Y_F
         &:= \frac{(2 \beta + 1 / D^2)(1 - \beta) + \lambda}{2} \sigma_F^2 \nonumber \\
     Z_F
