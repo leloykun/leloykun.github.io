@@ -106,7 +106,7 @@ $$\begin{align}
         &= - \| C_t \|^{\dagger} \label{eq:lmo-inner-product}
 \end{align}$$
 
-The update rule for steepest descent with step size $\eta > 0$ and weight decay term $\lambda \geq 0$ is then given by,
+The update rule for steepest descent with step size $\eta > 0$ at time $t$ and weight decay term $\lambda \geq 0$ is then given by,
 $$\begin{equation}
     W_{t+1} = (1 - \lambda\eta) W_t + \eta A_t^* \label{eq:updateweightdecay}
 \end{equation}$$
@@ -195,10 +195,17 @@ $$\begin{align}
         &= \beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1})) + (1 - \beta) \xi_{S_t} \nonumber
 \end{align}$$
 
-Taking norms, expectations, and using the descent lemma together with Lemma (5) yields,
+Applying the descent lemma on $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger}$, taking expectations, and using Lemma (5) then gives,
 $$\begin{align}
+    g(E_t)
+        &\leq g(\beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1}))) \nonumber \\
+            &\quad+ \langle \nabla g(\beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1}))), (1 - \beta) \xi_{S_t} \rangle \nonumber \\
+            &\quad+ \frac{D}{2} \| (1 - \beta) \xi_{S_t} \|^{\dagger 2} \nonumber \\
+    \frac{1}{2} \| E_t \|^{\dagger 2}
+        &\leq \frac{\beta^2}{2} \| E_{t-1} + (\nabla f(W_t) - \nabla f(W_{t-1})) \|^{\dagger 2} \nonumber \\
+            &\quad+ (1 - \beta) \langle \nabla g(\beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1}))), \xi_{S_t} \rangle \nonumber \\
+            &\quad+ \frac{D}{2} (1 - \beta)^2 \| \xi_{S_t} \|^{\dagger 2} \nonumber \\
     \mathbb{E}\left[ \| E_t \|^{\dagger 2} \right]
-        &\leq \mathbb{E}\left[ \| \beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1})) + (1 - \beta) \xi_{S_t} \|^{\dagger 2} \right] \nonumber \\
         &\leq \beta^2 \mathbb{E}\left[ \| E_{t-1} + \nabla f(W_t) - \nabla f(W_{t-1}) \|^{\dagger 2} \right] \nonumber \\
             &\quad+ \cancel{\beta(1 - \beta) \langle \nabla \| E_{t-1} + \nabla f(W_t) - \nabla f(W_{t-1}) \|^{\dagger 2},  \mathbb{E}\left[ \xi_{S_t} \right] \rangle} \nonumber \\
             &\quad+ (1 - \beta)^2 D \mathbb{E}\left[ \| \xi_{S_t} \|^{\dagger 2} \right] \nonumber \\
@@ -311,32 +318,54 @@ $$\begin{align*}
 **Proof.** Let us first disable weight decay, i.e., set $\lambda = 0$. Since $f$ is $L$-smooth, the descent lemma, Equation $\eqref{eq:lmo-inner-product}$, and Equation $\eqref{eq:lmo-norm}$ yields,
 $$\begin{align}
     f(W_{t+1})
-        &\leq f(W_t) + \langle \nabla f(W_t), W_{t+1} - W_t \rangle + \frac{L}{2} \| W_{t+1} - W_t \|^2 \label{eq:descentlemma} \\
-        &\leq f(W_t) + \langle \nabla f(W_t), \eta A_t^* \rangle_F + \frac{L}{2} \| \eta A_t^* \|^2 \nonumber \\
-        &\leq f(W_t) + \langle \nabla f(W_t) - C_t + C_t, \eta A_t^* \rangle_F + \frac{L \eta^2}{2} \nonumber \\
-        &\leq f(W_t) + \langle C_t, \eta A_t^* \rangle_F + \langle \nabla f(W_t) - C_t, \eta A_t^* \rangle_F + \frac{L \eta^2}{2} \nonumber \\
-        &\leq f(W_t) - \eta \| C_t \|^{\dagger} + \left(\frac{\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2} + \frac {\eta^2}{2 \epsilon} \| A_t^* \|^2\right) + \frac{L \eta^2}{2} \nonumber \\
-        &\leq f(W_t) - \eta \left(\| \nabla f(W_t) \|^{\dagger} - \| \nabla f(W_t) - C_t \|^{\dagger}\right) \nonumber \\
-            &\qquad+ \frac{\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2}
-                + \frac{(1/\epsilon + L)\eta^2}{2} \nonumber \\
-        &\leq f(W_t) - \eta \| \nabla f(W_t) \|^{\dagger} + \eta \| \nabla f(W_t) - C_t \|^{\dagger} \nonumber \\
-            &\qquad+ \frac{\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2}
-                + \frac{(1/\epsilon + L)\eta^2}{2} \label{eq:descentlemma-final}
+        &\leq f(W_t)
+            + \langle \nabla f(W_t), W_{t+1} - W_t \rangle
+            + \frac{L}{2} \| W_{t+1} - W_t \|^2 \label{eq:descentlemma} \\
+        &\leq f(W_t)
+            + \langle \nabla f(W_t), \eta A_t^* \rangle
+            + \frac{L}{2} \| \eta A_t^* \|^2 \nonumber \\
+        &\leq f(W_t)
+            + \eta \langle \nabla f(W_t) - C_t + C_t, A_t^* \rangle
+            + \frac{L \eta^2}{2} \nonumber \\
+        &\leq f(W_t)
+            + \eta \langle C_t, A_t^* \rangle
+            + \eta \langle \nabla f(W_t) - C_t, A_t^* \rangle
+            + \frac{L \eta^2}{2} \nonumber \\
+        &\leq f(W_t)
+            - \eta \| C_t \|^{\dagger}
+            + \eta \left(
+                \frac{\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2}
+                + \frac {1}{2 \epsilon} \| A_t^* \|^2\right)
+            + \frac{L \eta^2}{2} \nonumber \\
+        &\leq f(W_t)
+            - \eta \left(
+                \| \nabla f(W_t) \|^{\dagger}
+                - \| \nabla f(W_t) - C_t \|^{\dagger}\right) \nonumber \\
+            &\qquad+ \frac{\eta \epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2}
+                + \frac{(1/\epsilon + L\eta)\eta}{2} \nonumber \\
+        &\leq f(W_t) - \eta \| \nabla f(W_t) \|^{\dagger}
+            + \eta \| \nabla f(W_t) - C_t \|^{\dagger} \nonumber \\
+            &\qquad+ \frac{\eta \epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2}
+                + \frac{(1/\epsilon + L\eta)\eta}{2} \label{eq:descentlemma-final}
 \end{align}$$
 Note that the $\langle \cdot, \cdot \rangle$ operator in Equation $\eqref{eq:descentlemma}$ is *not* an inner product, but the canonical pairing between cotangent and tangent spaces ($\nabla f(W_t) \in T_{W_t}^* \mathcal{W}$ while $A_t^* \in T_{W_t}\mathcal{W}$). Under the standard basis of $\mathbb{R}^{m \times n}$, however, it *behaves like* the Frobenius inner product.
 
 Rearranging Equation $\eqref{eq:descentlemma-final}$ then gives,
 $$\| \nabla f(W_t) \|^{\dagger}
-    \leq \frac{f(W_t) - f(W_{t+1})}{\eta} + \| \nabla f(W_t) - C_t \|^{\dagger} + \frac{\epsilon}{2\eta} \| \nabla f(W_t) - C_t \|^{\dagger 2} + \frac{(1/\epsilon + L)\eta}{2}$$
+    \leq \frac{f(W_t) - f(W_{t+1})}{\eta}
+        + \| \nabla f(W_t) - C_t \|^{\dagger}
+        + \frac{\epsilon}{2} \| \nabla f(W_t) - C_t \|^{\dagger 2}
+        + \frac{1/\epsilon + L\eta}{2}$$
 
-**Approach 1: We measure the gradient norm with $\| \cdot \|^{\dagger}$.** Then we can set $\epsilon = \frac{\eta}{D^2}$. And after taking expectations, and averaging, we have,
+**Approach 1: We measure the gradient norm with $\| \cdot \|^{\dagger}$.** Then we can set $\epsilon = \frac{1}{D^2}$. And after taking expectations, and averaging, we have,
 $$\begin{align}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
         &\leq \frac{f(W_0) - f(W_T)}{\eta T}
-            + \frac{(D^2/\eta + L)\eta}{2} \nonumber \\
+            + \frac{D^2 + L\eta}{2} \nonumber \\
         &\quad+ \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|^{\dagger}]
             + \frac{1}{2 D^2 T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|^{\dagger 2}] \nonumber \\
-        &\leq \frac{f(W_0) - f(W_T)}{\eta T}  + \frac{(D^2/\eta + L)\eta}{2} \nonumber \\
+        &\leq \frac{f(W_0) - f(W_T)}{\eta T} 
+            + \frac{D^2 + L\eta}{2} \nonumber \\
         &\quad+  \left(\frac{2\sqrt{2}\beta}{1 - \beta}\frac{1}{T} \| E_0 \|^{\dagger}
             + \frac{2 \beta}{1 - \beta} L \eta
             + \left(\sqrt{2(1 - \beta)}D\beta + (1 - \beta) \right) \frac{\sigma}{\sqrt{b}} \right) \nonumber \\
@@ -354,7 +383,7 @@ $$\begin{align}
     Y
         &:= \frac{(2 \beta + 1 / D^2)(1 - \beta)}{2} \sigma^2 \nonumber \\
     Z
-        &:= \frac{(D^2/\eta + L)\eta}{2}
+        &:= \frac{D^2 + L\eta}{2}
             + \frac{2 \beta}{1 - \beta} L \eta
             + \frac{2\beta}{D^2 (1 - \beta)^2} L^2 \eta^2 \nonumber \\
             &\qquad+ \left(\sqrt{2 (1 - \beta)} D \beta + (1 - \beta)\right) \frac{\sigma}{\sqrt{b}} \nonumber
@@ -364,21 +393,22 @@ $$\begin{align}
 $$ \kappa_1 \| X \|_F \leq \| X \|^{\dagger} \leq \kappa_2 \| X \|_F $$
 For Muon, we have $\| X \|^{\dagger} = \| X \|_{\text{nuc}}$ (the nuclear norm), and so $\kappa_1 = 1, \kappa_2 \leq \sqrt{\min{(m, n)}}$.
 
-We then set $\epsilon = \frac{\kappa_1 \eta}{\kappa_2^2 D^2}$ and substitute the norm equivalence bounds to obtain,
+We then set $\epsilon = \frac{\kappa_1}{\kappa_2^2 D^2}$ and substitute the norm equivalence bounds to obtain,
 $$\| \nabla f(W_t) \|_F
     \leq \frac{f(W_t) - f(W_{t+1})}{\eta\kappa_1}
         + \frac{\kappa_2}{\kappa_1}\| \nabla f(W_t) - C_t \|_F
         + \frac{1}{2 D^2} \| \nabla f(W_t) - C_t \|_F^2
-        + \frac{(\kappa_2^2 D^2/\kappa_1\eta + L_F)\eta}{2\kappa_1}$$
+        + \frac{\kappa_2^2 D^2/\kappa_1 + L_F\eta}{2\kappa_1}$$
 
 After taking expectations, averaging, and using Corollary (7), we have,
 $$\begin{align}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F]
         &\leq \frac{f(W_0) - f(W_T)}{\eta \kappa_1 T}
-            + \frac{(\kappa_2^2 D^2/\kappa_1\eta + L_F)\eta}{2\kappa_1} \nonumber \\
+            + \frac{\kappa_2^2 D^2/\kappa_1 + L_F\eta}{2\kappa_1} \nonumber \\
         &\quad+ \frac{1}{T}\frac{\kappa_2}{\kappa_1}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|_F]
             + \frac{1}{2 D^2 T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|_F^2] \nonumber \\
-        &\leq \frac{f(W_0) - f(W_T)}{\eta \kappa_1 T}  + \frac{(\kappa_2^2 D^2/\kappa_1\eta + L_F)\eta}{2\kappa_1} \nonumber \\
+        &\leq \frac{f(W_0) - f(W_T)}{\eta \kappa_1 T}
+            + \frac{\kappa_2^2 D^2/\kappa_1 + L_F\eta}{2\kappa_1} \nonumber \\
         &\quad+ \frac{\kappa_2}{\kappa_1} \left(\frac{2\sqrt{2}\beta}{1 - \beta}\frac{1}{T} \| E_0 \|_F
             + \frac{2 \beta}{1 - \beta} L_F \eta
             + \left(\sqrt{2(1 - \beta)} D \beta + (1 - \beta) \right) \frac{\sigma_F}{\sqrt{b}} \right) \nonumber \\
@@ -511,31 +541,44 @@ $$\begin{align*}
 
 $$\begin{align}
     f(W_{t+1})
-        &\leq f(W_t) + \langle \nabla f(W_t), W_{t+1} - W_t \rangle + \frac{L}{2} \| W_{t+1} - W_t \|^2 \nonumber \\
-        &\leq f(W_t) + \langle \nabla f(W_t), \eta A_t^* - \lambda\eta W_{t} \rangle_F + \frac{L}{2} \| \eta A_t^* - \lambda\eta W_{t} \|^2 \nonumber \\
-        &\leq f(W_t) + \langle \nabla f(W_t) - C_t + C_t, \eta A_t^* - \lambda\eta W_{t} \rangle_F + \frac{L \eta^2}{2} \nonumber \\
-        &\leq f(W_t) + \langle C_t, \eta A_t^* \rangle_F + \lambda\eta \langle C_t, -W_{t} \rangle_F + \langle \nabla f(W_t) - C_t, \eta A_t^* - \lambda\eta W_{t} \rangle_F + \frac{L \eta^2}{2} \nonumber \\
+        &\leq f(W_t)
+            + \langle \nabla f(W_t), W_{t+1} - W_t \rangle
+            + \frac{L}{2} \| W_{t+1} - W_t \|^2 \nonumber \\
+        &\leq f(W_t)
+            + \langle \nabla f(W_t), \eta A_t^* - \lambda\eta W_{t} \rangle
+            + \frac{L}{2} \| \eta A_t^* - \lambda\eta W_{t} \|^2 \nonumber \\
+        &\leq f(W_t)
+            + \eta \langle \nabla f(W_t) - C_t + C_t, A_t^* - \lambda W_{t} \rangle
+            + \frac{L \eta^2}{2} \nonumber \\
+        &\leq f(W_t)
+            + \eta \langle C_t, A_t^* \rangle
+            + \lambda\eta \langle C_t, -W_{t} \rangle
+            + \eta \langle \nabla f(W_t) - C_t, A_t^* - \lambda W_{t} \rangle
+            + \frac{L \eta^2}{2} \nonumber \\
         &\leq f(W_t)
             - \eta \| C_t \|^{\dagger}
-            + \lambda\eta \left(\frac{\epsilon'}{2} \| C_t \|^{\dagger 2} + \frac{1}{2\epsilon'} \| -W_t \|^2 \right) \nonumber \\
-            &\qquad+ \left(\frac{\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2}
-                + \frac {\eta^2}{2 \epsilon} \| A_t^* - \lambda W_{t} \|^2\right)
+            + \lambda\eta \left(
+                \frac{\epsilon'}{2} \| C_t \|^{\dagger 2}
+                + \frac{1}{2\epsilon'} \| -W_t \|^2 \right) \nonumber \\
+        &\qquad+ \eta\left(
+                \frac{\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2}
+                + \frac {1}{2 \epsilon} \| A_t^* - \lambda W_{t} \|^2\right)
             + \frac{L \eta^2}{2} \nonumber \\
         &\leq f(W_t)
             - \eta \left(\| \nabla f(W_t) \|^{\dagger} - \| \nabla f(W_t) - C_t \|^{\dagger}\right)
             + \frac{\lambda\eta\epsilon'}{2} \| C_t \|^{\dagger 2}
             + \frac{\lambda\eta}{2\epsilon'} \| W_t \|^2
             \nonumber \\
-            &\qquad+ \frac{\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2}
-                + \frac {\eta^2}{2 \epsilon} \left(2\| A_t^* \|^2 + 2\lambda^2 \| W_{t} \|^2 \right)
-                + \frac{L\eta^2}{2} \nonumber \\
+        &\qquad+ \frac{\eta\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2}
+            + \frac {\eta}{2 \epsilon} \left(2\| A_t^* \|^2 + 2\lambda^2 \| W_{t} \|^2 \right)
+            + \frac{L\eta^2}{2} \nonumber \\
         &\leq f(W_t)
             - \eta \| \nabla f(W_t) \|^{\dagger}
             + \eta \| \nabla f(W_t) - C_t \|^{\dagger}
-            + \frac{\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2} \nonumber \\
-            &\qquad + \frac{\lambda\eta\epsilon'}{2} \| C_t \|^{\dagger 2}
-                + \frac{\lambda\eta(2\lambda\eta/\epsilon + 1/\epsilon')}{2} \| W_t \|^2
-                + \frac{(2/\epsilon + L)\eta^2}{2}
+            + \frac{\eta\epsilon}{2}\| \nabla f(W_t) - C_t \|^{\dagger 2} \nonumber \\
+        &\qquad + \frac{\lambda\eta\epsilon'}{2} \| C_t \|^{\dagger 2}
+            + \frac{\lambda\eta(2\lambda/\epsilon + 1/\epsilon')}{2} \| W_t \|^2
+            + \frac{(2/\epsilon + L\eta)\eta}{2}
 \end{align}$$
 
 Rearranging then gives,
@@ -543,14 +586,14 @@ $$\begin{align}
     \| \nabla f(W_t) \|^{\dagger}
         &\leq \frac{f(W_t) - f(W_{t+1})}{\eta}
             + \| \nabla f(W_t) - C_t \|^{\dagger}
-            + \frac{\epsilon}{2\eta} \| \nabla f(W_t) - C_t \|^{\dagger 2} \nonumber \\
+            + \frac{\epsilon}{2} \| \nabla f(W_t) - C_t \|^{\dagger 2} \nonumber \\
         &\quad
             + \frac{\lambda\epsilon'}{2} \| C_t \|^{\dagger 2}
-            + \frac{\lambda(2\lambda\eta/\epsilon + 1/\epsilon')}{2} \| W_t \|^2
-            + \frac{(2/\epsilon + L)\eta}{2} \nonumber
+            + \frac{\lambda(2\lambda/\epsilon + 1/\epsilon')}{2} \| W_t \|^2
+            + \frac{2/\epsilon + L\eta}{2} \nonumber
 \end{align}$$
 
-**Approach 1: We measure the gradient norm with $\| \cdot \|^{\dagger}$.** Then we set $\epsilon = \frac{\eta}{D^2}$ and $\epsilon' = \frac{1}{2 D}$. Following the same strategy as in Theorem (8) with Proposition (9) and Proposition (10) then yields,
+**Approach 1: We measure the gradient norm with $\| \cdot \|^{\dagger}$.** Then we set $\epsilon = \frac{1}{D^2}$ and $\epsilon' = \frac{1}{2 D}$. Following the same strategy as in Theorem (8) with Proposition (9) and Proposition (10) then yields,
 $$\begin{align}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
         &\leq \frac{X}{T} + \frac{Y}{b} + Z
@@ -569,11 +612,11 @@ $$\begin{align}
             + \frac{2 L^2}{\lambda D}
             + \frac{\lambda D^2 + D}{\lambda} \nonumber \\
         &\qquad
-            + \frac{(2 D^2 /\eta + L)\eta}{2}
+            + \frac{2 D^2 + L\eta}{2}
             + \left(\sqrt{2 (1 - \beta)} D \beta + (1 - \beta)\right) \frac{\sigma}{\sqrt{b}} \nonumber
 \end{align}$$
 
-**Approach 2: We measure the gradient norm with $\| \cdot \|_F$.** We set $\epsilon = \frac{\kappa_1 \eta}{\kappa_2^2 D^2}$ and $\epsilon' = \frac{\kappa_1}{2 \kappa_2^2 D}$, and substitute the norm equivalence bounds to obtain,
+**Approach 2: We measure the gradient norm with $\| \cdot \|_F$.** We set $\epsilon = \frac{\kappa_1}{\kappa_2^2 D^2}$ and $\epsilon' = \frac{\kappa_1}{2 \kappa_2^2 D}$, and substitute the norm equivalence bounds to obtain,
 $$\begin{align}
     \mathbb{E}\left[ \| \nabla f(W_t) \|_F \right]
         &\leq \frac{f(W_t) - f(W_{t+1})}{\eta\kappa_1}
@@ -582,7 +625,7 @@ $$\begin{align}
         &\quad
             + \frac{\lambda}{4 D} \left( \frac{2 D \sigma_F^2}{b} + \frac{8 L_F^2}{\lambda^2 \kappa_1} \right)
             + \frac{\kappa_2^2}{\kappa_1^2}\frac{\lambda D^2 + D}{\lambda}
-            + \frac{(2 \kappa_2^2 D^2/\kappa_1\eta + L_F)\eta}{2\kappa_1} \nonumber \\
+            + \frac{2 \kappa_2^2 D^2/\kappa_1 + L_F\eta}{2\kappa_1} \nonumber \\
 \end{align}$$
 
 And after taking expectations and averaging, we have,
@@ -604,7 +647,7 @@ $$\begin{align}
             + \frac{2 L_F^2}{\lambda \kappa_1 D}
             + \frac{\kappa_2^2}{\kappa_1^2}\frac{\lambda D^2 + D}{\lambda} \nonumber \\
         &\qquad
-            + \frac{(2\kappa_2^2 D^2/\kappa_1\eta + L_F)\eta}{2\kappa_1}
+            + \frac{2\kappa_2^2 D^2/\kappa_1 + L_F\eta}{2\kappa_1}
             + \left(\sqrt{2 (1 - \beta)} D \beta + (1 - \beta)\right) \frac{\kappa_2}{\kappa_1} \frac{\sigma_F}{\sqrt{b}} \quad\blacksquare \nonumber
 \end{align}$$
 
