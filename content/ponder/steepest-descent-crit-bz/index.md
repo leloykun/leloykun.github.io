@@ -34,7 +34,7 @@ $$\begin{align}
     \| W \| &:= h\left( \| W^{(1)} \|_{(1)}, \| W^{(2)} \|_{(2)}, \ldots, \| W^{(L)} \|_{(L)} \right) \nonumber \\
     \| G \|^{\dagger} &:= h^{\dagger}\left( \| G^{(1)} \|_{(1)}^{\dagger}, \| G^{(2)} \|_{(2)}^{\dagger}, \ldots, \| G^{(L)} \|_{(L)}^{\dagger} \right) \nonumber
 \end{align}$$
-for some vector norm $h(\cdot)$ on $\mathbb{R}^L$ and its dual $h^{\dagger}(\cdot)$. Our results still hold under this more general setting.
+for some vector norm $h$ and its dual $h^{\dagger}$ on $\mathbb{R}^L$. Our results still hold under this more general setting.
 
 Now, at iteration $t$, we sample an i.i.d. minibatch $S_t = \{ i_1, i_2, \ldots, i_b \}$ of size $b$ from the training dataset. For each data point $i$, we write the per-example stochastic gradient as,
 $$ G_{\xi_{t, i}}(W_t) := \nabla f(W_t) - \xi_{t, i},$$
@@ -49,8 +49,8 @@ $$\begin{align}
 ### 1.1. Assumptions
 
 > **Assumption 1 (Unbiased gradient noise, per sample).** At each time step $t$ and for each data point $i \in S_t$, the gradient noise satisfies,
-$$\begin{equation} \mathbb{E}\left[ \xi_{t, i} \right] = 0, \end{equation}$$
-> and the samples $(\xi_{t,i})_{i=1}^b$ are conditionally independent given $W_t$.
+$$\begin{equation} \mathbb{E}\left[ \xi_{t, i} | W_t \right] = 0, \end{equation}$$
+and the samples $(\xi_{t,i})_{i=1}^b$ are conditionally independent given $W_t$. To simplify notation, we will often omit the conditioning on $W_t$ when it is clear from context.
 
 > **Assumption 2 (Bounded gradient noise variance).** There exists $\sigma > 0$ such that for all $t, i$,
 $$\begin{equation}
@@ -195,7 +195,7 @@ $$\begin{align}
         &= \beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1})) + (1 - \beta) \xi_{S_t} \nonumber
 \end{align}$$
 
-Applying the descent lemma on $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger}$, taking expectations, and using Lemma (5) then gives,
+Applying the descent lemma on $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$, taking expectations, and using Lemma (5) then gives,
 $$\begin{align}
     g(E_t)
         &\leq g(\beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1}))) \nonumber \\
@@ -378,15 +378,15 @@ where,
 $$\begin{align}
     X
         &:= \frac{f(W_0) - f^*}{\eta}
-            + \frac{2\sqrt{2}\beta}{1 - \beta} \| \nabla f(W_0) - M_0 \|
-            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) - M_0 \|^2 \nonumber \\
+            + \frac{2\sqrt{2}\beta}{1 - \beta} \| \nabla f(W_0) - M_0 \|^{\dagger}
+            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) - M_0 \|^{\dagger 2} \nonumber \\
     Y
         &:= \frac{(2 \beta + 1 / D^2)(1 - \beta)}{2} \sigma^2 \nonumber \\
     Z
         &:= \frac{D^2 + L\eta}{2}
             + \frac{2 \beta}{1 - \beta} L \eta
-            + \frac{2\beta}{D^2 (1 - \beta)^2} L^2 \eta^2 \nonumber \\
-            &\qquad+ \left(\sqrt{2 (1 - \beta)} D \beta + (1 - \beta)\right) \frac{\sigma}{\sqrt{b}} \nonumber
+            + \frac{2\beta}{D^2 (1 - \beta)^2} L^2 \eta^2
+            + \left(\sqrt{2 (1 - \beta)} D \beta + (1 - \beta)\right) \frac{\sigma}{\sqrt{b}} \nonumber
 \end{align}$$
 
 **Approach 2: We measure the gradient norm with $\| \cdot \|_F$.** By norm equivalence, there exist constants $\kappa_1 > 0, \kappa_2 > 0$ such that for all $X \in \mathbb{R}^{m \times n}$,
@@ -438,7 +438,7 @@ We now analyze the case $\lambda > 0$.
 
 ### 3.1. Weight, gradient, and momentum norm bounds
 
-> **Proposition 9 (Weight and gradient bound).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda > 0$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$ and $\| W_0 \| \leq \frac{1}{\lambda}$. Then, for all $t \geq 0$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
+> **Proposition 9 (Weight and gradient bound).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda > 0$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$ and $\| W_0 \| \leq \frac{1}{\lambda}$. Additionally, suppose that there exists a minimizer $W^*$ with $\nabla f(W^*) = 0$ and $\| W^* \| \leq \frac{1}{\lambda}$. Then, for all $t \geq 0$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
 $$\begin{align}
     \| W_t \|
         &\leq \frac{1}{\lambda} \\
@@ -463,7 +463,7 @@ $$\begin{align}
         &\leq \frac{1}{\lambda} \nonumber
 \end{align}$$
 
-For the gradient norm bound, we use the fact that $\nabla f(W^*) = 0$ at the global minimum $W^*$, together with the $L$-smoothness of $f$,
+For the gradient norm bound, we use the fact that $\nabla f(W^*) = 0$ at a minimizer $W^*$, together with the $L$-smoothness of $f$,
 $$\begin{align}
     \| \nabla f(W_t) \|^{\dagger}
         &= \| \nabla f(W_t) - 0 \|^{\dagger} \nonumber \\
@@ -663,7 +663,7 @@ where $\epsilon' := \epsilon - Z > 0$, for some constant $Z$ defined in Theorem 
 
 **Proof.** We consider the steepest descent iteration process to have converged at time step $T$ when, for some $\epsilon > 0$,
 $$\begin{equation}
-    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F] \leq \frac{X}{T} + \frac{Y}{b} + Z \leq \epsilon \label{eq:convergence-criterion}
+    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{b} + Z \leq \epsilon \label{eq:convergence-criterion}
 \end{equation}$$
 Since $Z$ is a constant independent of $T$ and $b$, we can simply fold it into $\epsilon$ by defining $\epsilon' := \epsilon - Z > 0$. Simple algebra then yields the number of iterations to satisfy the convergence criterion in Equation $\eqref{eq:convergence-criterion}$ as,
 $$\begin{align}
@@ -673,7 +673,7 @@ $$\begin{align}
     \frac{Xb}{\epsilon' b - Y} &\leq T \nonumber \\
     \frac{Xb}{\epsilon' b - Y} &=: T(b)
 \end{align}$$
-Note that we also have to constraint $b > \frac{Y}{\epsilon'}$ to ensure that $T(b) > 0$. Taking the first and second derivatives then yields,
+Note that we also have to constrain $b > \frac{Y}{\epsilon'}$ to ensure that $T(b) > 0$. Taking the first and second derivatives then yields,
 $$\begin{align}
     \frac{dT(b)}{db} &= -\frac{XY}{(\epsilon' b - Y)^2} \leq 0 \nonumber \\
     \frac{d^2T(b)}{db^2} &= \frac{2XY\epsilon'}{(\epsilon' b - Y)^3} \geq 0 \nonumber
@@ -692,7 +692,7 @@ $$b_{crit} = \frac{2Y}{\epsilon'} = \left( (2\beta + 1 / D^2)(1 - \beta) + \lamb
 
 ---
 
-### 4.1. Estimating $D$-smoothness for various optimizers
+### 4.1. Estimating D-smoothness for various optimizers
 
 Optimizers we use in practice can be viewed as performing steepest descent under different norms [(Bernstein et al., 2024)](https://arxiv.org/abs/2409.20325). We summarize the relevant norm choices and their corresponding $D$-smoothness constants below.
 
@@ -815,7 +815,7 @@ $$\begin{equation}
 
 **Proof.** We can decompose our weight update rule in Equation $\eqref{eq:updateweightdecay}$ into deterministic and stochastic components as follows,
 $$\begin{equation}
-    \nabla W_t = W_{t+1} - W_t =  \underbrace{-\eta W_t + \eta A_t^{\text{det}}}_{\Delta W_t^{\text{det}}} + \underbrace{\eta A_t^{\text{noise}}}_{\Delta W_t^{\text{noise}}}
+    \nabla W_t = W_{t+1} - W_t =  \underbrace{-\lambda\eta W_t + \eta A_t^{\text{det}}}_{\Delta W_t^{\text{det}}} + \underbrace{\eta A_t^{\text{noise}}}_{\Delta W_t^{\text{noise}}}
 \end{equation}$$
 where $A_t^* = A_t^{\text{det}} + A_t^{\text{noise}}$ is the decomposition of the steepest descent direction into its deterministic and stochastic components.
 
