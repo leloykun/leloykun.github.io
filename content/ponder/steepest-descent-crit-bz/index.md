@@ -618,6 +618,10 @@ is universal across all norms used for steepest descent, with only the constants
 $$b_{crit} = \left( (2\beta + 1)(1 - \beta) + \lambda \right) \frac{\sigma^2}{\epsilon'}$$
 also holds universally across all norms. Intuitively, this means that first-order optimization does not 'favor' any particular norm in terms speed of convergence nor performance with respect to batch size scaling.
 
+## Acknowledgements
+
+Big thanks to Antonio Silveti-Falls and Volkan Cevher for providing helpful feedback on an earlier draft of this work.
+
 ## How to cite
 
 ```bibtex
@@ -635,6 +639,7 @@ also holds universally across all norms. Intuitively, this means that first-orde
 
 1. Naoki Sato, Hiroki Naganuma, Hideaki Iiduka (2025). Convergence Bound and Critical Batch Size of Muon Optimizer. URL https://arxiv.org/abs/2507.01598
 2. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
+3. Simo Ryu (2025). Empirical observation that AdamW, Shampoo, and Muon follow the lr ~ sqrt(batch size) scaling rule on X/Twitter. URL https://x.com/cloneofsimo/status/1907731069878825400
 
 ## Appendix
 
@@ -677,4 +682,4 @@ $$\begin{align}
     \eta_{\text{new}}
         &= \eta_{\text{old}}\sqrt{\frac{b_{\text{new}}}{b_{\text{old}}}}. \nonumber
 \end{align}$$
-This means that, e.g., if we $4\times$ the batch size, then increasing the learning rate by a factor of $2$ preserves training stability.
+This means that, e.g., if we $4\times$ the batch size, then increasing the learning rate by a factor of $2$ preserves training stability. This matches empirical observations first reported by [Ryu (2025)](https://x.com/cloneofsimo/status/1907731069878825400).
