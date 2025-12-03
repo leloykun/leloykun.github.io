@@ -46,7 +46,40 @@ $$\begin{align}
         &:= \nabla f(W_t) - \nabla f_{S_t}(W_t)
 \end{align}$$
 
-### 1.1. Assumptions
+### 1.1. Nesterov momentum
+
+For a given momentum hyperparameter $\beta \in (0, 1)$, Nesterov momentum is defined in terms of the minibatch stochastic gradients as,
+$$\begin{align}
+    M_t &= \beta M_{t-1} + (1 - \beta) \nabla f_{S_t}(W_t) \nonumber \\
+    C_t &= \beta M_t + (1 - \beta) \nabla f_{S_t}(W_t) \nonumber \\
+\end{align}$$
+where $M_t$ is the usual momentum accumulator and $C_t$ is the Nesterov "look-ahead" gradient. We then use $C_t$ to compute the steepest descent update direction under the norm $\| \cdot \|$.
+
+### 1.2. Linear Minimization Oracles (LMOs) and dual norms
+
+Given a norm $\| \cdot \|$ on $\mathbb{R}^{m \times n}$ and its dual $\| \cdot \|^{\dagger}$, the linear minimization oracle (LMO) is defined as,
+$$\begin{align}
+    A_t^*
+        &:= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle C_t, A \rangle_F \quad \text{ s.t. } \quad \| A \| \leq 1 \nonumber \\
+        &= \texttt{LMO}_{\| \cdot \|}(C_t) \nonumber
+\end{align}$$
+such that,
+$$\begin{align}
+    \| A_t^* \|
+        &= 1 \label{eq:lmo-norm} \\
+    \langle C_t, A_t^* \rangle_F
+        &= \langle C_t, \texttt{LMO}_{\| \cdot \|}(C_t) \rangle_F \nonumber \\
+        &= \arg\min_{A \leq 1} \langle C_t, A \rangle_F \nonumber \\
+        &= -\arg\max_{A \leq 1} \langle C_t, A \rangle_F \nonumber \\
+        &= - \| C_t \|^{\dagger} \label{eq:lmo-inner-product}
+\end{align}$$
+
+The update rule for steepest descent with step size $\eta > 0$ at time $t$ and weight decay term $\lambda \geq 0$ is then given by,
+$$\begin{equation}
+    W_{t+1} = (1 - \lambda\eta) W_t + \eta A_t^* \label{eq:updateweightdecay}
+\end{equation}$$
+
+### 1.3. Assumptions
 
 > **Assumption 1 (Unbiased gradient noise, per sample).** At each time step $t$ and for each data point $i \in S_t$, the gradient noise satisfies,
 $$\begin{equation} \mathbb{E}\left[ \xi_{t, i} | W_t \right] = 0, \end{equation}$$
@@ -70,46 +103,16 @@ $$\begin{equation}
 \end{equation}$$
 where $L_F := \kappa_L L$.
 
-> **Assumption 4 (Local D-smoothness of $\| \cdot \|^{\dagger}$).** For arbitrary dual norm $\| \cdot \|^{\dagger}$, define the auxiliary function $g: \mathcal{W}^{\dagger} \to \mathbb{R}$ as,
-$$g(\cdot) = \frac{1}{2} \| \cdot \|^{\dagger 2}.$$
-There exists $D > 0$ such that for all $X^{\dagger}, Y^{\dagger} \in \mathcal{W}^{\dagger}$ at some local neighborhood of interest,
+> **Assumption 4 (Local D-smoothness of $\| \cdot \|^{\dagger}$ in the noise region).** There exists a large enough $R > 0$ such that $\mathbb{P}(\| \xi_{t,i} \|^{\dagger}, \| \nabla f(W_t) - M_t \|^{\dagger}, \| \nabla f(W_t) - C_t \|^{\dagger} \leq R) = 1$ for all $t, i$. For minibatch size $b$, let,
+$$\begin{align}
+    K &:= \{ X^{\dagger} \in W^{\dagger} : \| X^{\dagger} \|^{\dagger} \leq bR \} \nonumber \\
+    g(X^{\dagger}) &:= \frac{1}{2} \| X^{\dagger} \|^{\dagger 2} \quad \forall X^{\dagger} \in K \nonumber
+\end{align}$$
+Intuitively, $K$ is the region where the (accumulated) gradient noise and momentum errors lie almost surely. Then there exists $D > 0$ such that for all $X^{\dagger}, Y^{\dagger} \in K$,
 $$\begin{equation}
     \| \nabla g(Y^{\dagger}) - \nabla g(X^{\dagger}) \| \leq D \| Y^{\dagger} - X^{\dagger} \|^{\dagger}
 \end{equation}$$
 > Note that if $\| \cdot \|^{\dagger}$ is induced by an inner product, then $D = 1$.
-
-### 1.2. Nesterov momentum
-
-For a given momentum hyperparameter $\beta \in (0, 1)$, Nesterov momentum is defined in terms of the minibatch stochastic gradients as,
-$$\begin{align}
-    M_t &= \beta M_{t-1} + (1 - \beta) \nabla f_{S_t}(W_t) \nonumber \\
-    C_t &= \beta M_t + (1 - \beta) \nabla f_{S_t}(W_t) \nonumber \\
-\end{align}$$
-where $M_t$ is the usual momentum accumulator and $C_t$ is the Nesterov "look-ahead" gradient. We then use $C_t$ to compute the steepest descent update direction under the norm $\| \cdot \|$.
-
-### 1.3. Linear Minimization Oracles (LMOs) and dual norms
-
-Given a norm $\| \cdot \|$ on $\mathbb{R}^{m \times n}$ and its dual $\| \cdot \|^{\dagger}$, the linear minimization oracle (LMO) is defined as,
-$$\begin{align}
-    A_t^*
-        &:= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle C_t, A \rangle_F \quad \text{ s.t. } \quad \| A \| \leq 1 \nonumber \\
-        &= \texttt{LMO}_{\| \cdot \|}(C_t) \nonumber
-\end{align}$$
-such that,
-$$\begin{align}
-    \| A_t^* \|
-        &= 1 \label{eq:lmo-norm} \\
-    \langle C_t, A_t^* \rangle_F
-        &= \langle C_t, \texttt{LMO}_{\| \cdot \|}(C_t) \rangle_F \nonumber \\
-        &= \arg\min_{A \leq 1} \langle C_t, A \rangle_F \nonumber \\
-        &= -\arg\max_{A \leq 1} \langle C_t, A \rangle_F \nonumber \\
-        &= - \| C_t \|^{\dagger} \label{eq:lmo-inner-product}
-\end{align}$$
-
-The update rule for steepest descent with step size $\eta > 0$ at time $t$ and weight decay term $\lambda \geq 0$ is then given by,
-$$\begin{equation}
-    W_{t+1} = (1 - \lambda\eta) W_t + \eta A_t^* \label{eq:updateweightdecay}
-\end{equation}$$
 
 ## 2. Convergence bound for steepest descent under arbitrary norms without weight decay
 
