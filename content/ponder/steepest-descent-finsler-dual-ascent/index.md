@@ -1,5 +1,5 @@
 ---
-title: "Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent"
+title: "Rethinking Maximal Update Parametrization: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent"
 date: 2025-10-29
 tags: ["Machine Learning", "Optimizers"]
 author: "Franz Louis Cesista"
@@ -13,7 +13,7 @@ cover:
 #     URL: "https://x.com/leloykun/status/1958915061793075549"
 #     Text: "Crossposted from X (formerly Twitter)"
 citation:
-    title: "Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent"
+    title: "Rethinking Maximal Update Parametrization: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent"
     author:
         - "Franz Louis Cesista"
     publication_date: "2025/10/29"
@@ -448,7 +448,7 @@ Big thanks to Jeremy Bernstein, Cédric Simal, and Antonio Silveti-Falls for pro
 ```bibtex
 @misc{cesista2025steepestdescentfinslerdualascent,
   author = {Franz Louis Cesista},
-  title = {{S}teepest {D}escent on {F}insler-Structured (Matrix) Geometries via Dual Ascent},
+  title = {{R}ethinking Maximal Update Parametrization: {S}teepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent},
   year = {2025},
   month = {October},
   day = {29},
