@@ -532,7 +532,7 @@ $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{b} + Z
 \end{equation}$$
 where $T$ is the total number of time steps, $b$ is the batch size, and,
-$$Y = \frac{(3 \beta + 1)(1 - \beta) + \lambda}{2(1 + \beta)} \sigma^2.$$
+$$Y = \left( \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} + \frac{\lambda}{2} \right)\sigma^2.$$
 If we instead choose to measure the gradient norm in the Frobenius norm, i.e., $\| \cdot \|_F$, then there exist constants $X_F, Y_F, Z_F > 0$ such that,
 $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F] \leq \frac{X_F}{T} + \frac{Y_F}{b} + Z_F
@@ -540,7 +540,7 @@ $$\begin{equation}
 and,
 $$\begin{align*}
     X_F &\propto X \\
-    Y_F &= \frac{(3 \beta + 1)(1 - \beta) + \lambda}{2(1 + \beta)} \sigma_F^2 \\
+    Y_F &= \left( \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} + \frac{\lambda}{2} \right) \sigma_F^2 \\
     Z_F &\propto Z
 \end{align*}$$
 
@@ -612,7 +612,7 @@ $$\begin{align}
             + \frac{2 \beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger}
             + \frac{2 \beta}{D (1 - \beta^2)} \| \nabla f(W_0) \|^{\dagger 2} \nonumber \\
     Y
-        &:= \frac{(3 \beta + 1)(1 - \beta) + \lambda}{2(1 + \beta)} \sigma^2 \nonumber \\
+        &:= \left(\frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} + \frac{\lambda}{2} \right) \sigma^2 \nonumber \\
     Z
         &:= \frac{2 \beta^2}{1 - \beta} L \eta
             + \frac{2 \beta^3}{D (1 - \beta)^2} L^2 \eta^2
@@ -647,7 +647,7 @@ $$\begin{align}
             + \frac{2 \beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} \| \nabla f(W_0) \|_F
             + \frac{2 \beta}{D (1 - \beta^2)} \| \nabla f(W_0) \|_F^2 \nonumber \\
     Y_F
-        &:= \frac{(3 \beta + 1)(1 - \beta) + \lambda}{2(1 + \beta)} \sigma_F^2 \nonumber \\
+        &:= \left(\frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} + \frac{\lambda}{2} \right) \sigma_F^2 \nonumber \\
     Z_F
         &:= \frac{2 \beta^2}{1 - \beta} \frac{\kappa_2}{\kappa_1} L_F \eta
             + \frac{2 \beta^3}{D (1 - \beta)^2} L_F^2 \eta^2
@@ -664,7 +664,7 @@ $$\begin{align}
 
 > **Theorem 12 (Critical batch size for steepest descent under arbitrary norms with (Nesterov) momentum and weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach $\epsilon$-convergence according to the criterion in Equation $\eqref{eq:convergence-criterion}$ is given by,
 $$\begin{equation}
-    b_{crit} = \left( \frac{(3 \beta + 1)(1 - \beta) + \lambda}{1 + \beta} \right) \frac{\sigma^2}{\epsilon'} \label{eq:critical-batch-size}
+    b_{crit} = \left( \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} + \lambda \right) \frac{\sigma^2}{\epsilon'} \label{eq:critical-batch-size}
 \end{equation}$$
 where $\epsilon' := \epsilon - Z > 0$, for some constant $Z$ defined in Theorem (11).
 
@@ -695,80 +695,9 @@ $$\begin{align}
     \frac{d^2(b \cdot T(b))}{db^2} &= \frac{2XY^2}{(\epsilon' b - Y)^3} \geq 0 \nonumber
 \end{align}$$
 Thus, $b \cdot T(b)$ is a convex function for $b > \frac{Y}{\epsilon'}$, with a minimizer $b^* = \frac{2Y}{\epsilon'}$. This gives us the critical batch size,
-$$b_{crit} = \frac{2Y}{\epsilon'} = \left( \frac{(3 \beta + 1)(1 - \beta) + \lambda}{1 + \beta} \right) \frac{\sigma^2}{\epsilon'}\quad\blacksquare$$
-
----
-
-### 4.1. Estimating D-smoothness for various optimizers
-
-Optimizers we use in practice can be viewed as performing steepest descent under different norms [(Bernstein et al., 2024)](https://arxiv.org/abs/2409.20325). We summarize the relevant norm choices and their corresponding $D$-smoothness constants below.
-
-| Optimizer | Steepest descent norm              | Dual norm                  |
-| --------- | ---------------------------------- | -------------------------- |
-| SGD       | $\| \cdot \|_F$                    | $\| \cdot \|_F$            |
-| SignSGD   | $\| \cdot \|_{\infty}$             | $\| \cdot \|_{1}$          |
-| AdamW     | $\| \cdot \|_{\infty}$ (adaptive)  | $\| \cdot \|_{1}$          |
-| Muon      | $\| \cdot \|_{2 \to 2}$            | $\| \cdot \|_{\text{nuc}}$ |
-| SOAP      | $\| \cdot \|_{2 \to 2}$ (adaptive) | $\| \cdot \|_{\text{nuc}}$ |
-
-We can then use the following JAX code to estimate the $D$-smoothness for steepest descent under various norms. This typically results in $D \approx 1$ for SignSGD/AdamW and Muon/SOAP. And thus, we can typically approximate the critical batch size formula as,
-$$\begin{align}
-    b_{crit} &= \left( \frac{(3 \beta + 1)(1 - \beta) + \lambda}{1 + \beta} \right) \frac{\sigma^2}{\epsilon'} \nonumber \\
-\end{align}$$
-
-```python
-import jax
-import jax.numpy as jnp
-
-def lipschitz_estimate(grad_g, norm_fn, dual_norm_fn, lmo, key, shape, n_pairs=10000, radius=1.0):
-    def one_ratio(key):
-        k1, k2 = jax.random.split(key)
-        # The LMO guarantees that W1, W2 are on the unit ball of the norm
-        W1 = radius * lmo(jax.random.normal(k1, shape))
-        W2 = radius * lmo(jax.random.normal(k2, shape))
-
-        g1 = grad_g(W1)
-        g2 = grad_g(W2)
-
-        num = norm_fn((g1 - g2))
-        denom = dual_norm_fn((W1 - W2))
-        return num / denom
-
-    keys = jax.random.split(key, n_pairs)
-    ratios = jax.vmap(one_ratio)(keys)
-    return jnp.max(ratios), jnp.mean(ratios)
-
-def f_inf_norm(W):
-    return jnp.max(jnp.abs(W))
-
-def f1_norm(W):
-    return jnp.sum(jnp.abs(W))
-
-def spectral_norm(W):
-    s = jnp.linalg.svd(W, compute_uv=False)
-    return s.max()
-
-def nuclear_norm(W):
-    s = jnp.linalg.svd(W, compute_uv=False)
-    return jnp.sum(s)
-
-def orthogonalize(W):
-    u, s, vh = jnp.linalg.svd(W, full_matrices=False)
-    return u @ vh
-
-def g(W, norm_fn):
-    return 0.5 * norm_fn(W)**2
-
-grad_g_f1 = jax.grad(lambda W: g(W, f1_norm))
-grad_g_nuclear = jax.grad(lambda W: g(W, nuclear_norm))
-
-key = jax.random.PRNGKey(0)
-m, n = 128, 32
-shape = (m, n)
-n_pairs = 1000
-print(m*n, float(lipschitz_estimate(grad_g_f1, f_inf_norm, f1_norm, jnp.sign, key, shape, n_pairs=n_pairs)[0]))
-print(min(m, n), float(lipschitz_estimate(grad_g_nuclear, spectral_norm, nuclear_norm, orthogonalize, key, shape, n_pairs=n_pairs)[0]))
-```
+$$b_{crit}
+    = \frac{2Y}{\epsilon'}
+    = \left( \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} + \lambda \right) \frac{\sigma^2}{\epsilon'}\quad\blacksquare$$
 
 ## 5. Discussion
 
@@ -778,7 +707,7 @@ The main result of this work is that the *shape* of the convergence bound:
 $$\frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] = \frac{X}{T} + \frac{Y}{b} + Z$$
 is universal across all norms used for steepest descent, with only the constants $X$ and $Z$ being sensitive to the choice of norm. As a consequence, the critical batch size formula:
 $$b_{crit}
-    = \left( \frac{(3 \beta + 1)(1 - \beta) + \lambda}{1 + \beta} \right) \frac{\sigma^2}{\epsilon'}
+    = \left( \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} + \lambda \right) \frac{\sigma^2}{\epsilon'}
     \approx \left( (2 \beta + 1)(1 - \beta) + \lambda \right) \frac{\sigma^2}{\epsilon'}
 $$
 also holds universally across all norms. This matches prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598). Intuitively, this means that first-order optimization does not ‘favor’ any particular norm in terms speed of convergence nor performance with respect to batch size scaling.
@@ -849,3 +778,71 @@ $$\begin{align}
         &= \eta_{\text{old}}\sqrt{\frac{b_{\text{new}}}{b_{\text{old}}}}. \nonumber
 \end{align}$$
 This means that, e.g., if we $4\times$ the batch size, then increasing the learning rate by a factor of $2$ preserves training stability. This matches empirical observations first reported by [Ryu (2025)](https://x.com/cloneofsimo/status/1907731069878825400).
+
+### A2. Estimating D-smoothness for various optimizers
+
+Optimizers we use in practice can be viewed as performing steepest descent under different norms [(Bernstein et al., 2024)](https://arxiv.org/abs/2409.20325). We summarize the relevant norm choices and their corresponding $D$-smoothness constants below.
+
+| Optimizer | Steepest descent norm              | Dual norm                  |
+| --------- | ---------------------------------- | -------------------------- |
+| SGD       | $\| \cdot \|_F$                    | $\| \cdot \|_F$            |
+| SignSGD   | $\| \cdot \|_{\infty}$             | $\| \cdot \|_{1}$          |
+| AdamW     | $\| \cdot \|_{\infty}$ (adaptive)  | $\| \cdot \|_{1}$          |
+| Muon      | $\| \cdot \|_{2 \to 2}$            | $\| \cdot \|_{\text{nuc}}$ |
+| SOAP      | $\| \cdot \|_{2 \to 2}$ (adaptive) | $\| \cdot \|_{\text{nuc}}$ |
+
+We can then use the following JAX code to estimate the $D$-smoothness for steepest descent under various norms. Empirically, $D$ is typically close to $1$ for SignSGD/AdamW and Muon/SOAP even for high-dimensional weight matrices.
+
+```python
+import jax
+import jax.numpy as jnp
+
+def lipschitz_estimate(grad_g, norm_fn, dual_norm_fn, lmo, key, shape, n_pairs=10000, radius=1.0):
+    def one_ratio(key):
+        k1, k2 = jax.random.split(key)
+        # The LMO guarantees that W1, W2 are on the unit ball of the norm
+        W1 = radius * lmo(jax.random.normal(k1, shape))
+        W2 = radius * lmo(jax.random.normal(k2, shape))
+
+        g1 = grad_g(W1)
+        g2 = grad_g(W2)
+
+        num = norm_fn((g1 - g2))
+        denom = dual_norm_fn((W1 - W2))
+        return num / denom
+
+    keys = jax.random.split(key, n_pairs)
+    ratios = jax.vmap(one_ratio)(keys)
+    return jnp.max(ratios), jnp.mean(ratios)
+
+def f_inf_norm(W):
+    return jnp.max(jnp.abs(W))
+
+def f1_norm(W):
+    return jnp.sum(jnp.abs(W))
+
+def spectral_norm(W):
+    s = jnp.linalg.svd(W, compute_uv=False)
+    return s.max()
+
+def nuclear_norm(W):
+    s = jnp.linalg.svd(W, compute_uv=False)
+    return jnp.sum(s)
+
+def orthogonalize(W):
+    u, s, vh = jnp.linalg.svd(W, full_matrices=False)
+    return u @ vh
+
+def g(W, norm_fn):
+    return 0.5 * norm_fn(W)**2
+
+grad_g_f1 = jax.grad(lambda W: g(W, f1_norm))
+grad_g_nuclear = jax.grad(lambda W: g(W, nuclear_norm))
+
+key = jax.random.PRNGKey(0)
+m, n = 128, 32
+shape = (m, n)
+n_pairs = 1000
+print(m*n, float(lipschitz_estimate(grad_g_f1, f_inf_norm, f1_norm, jnp.sign, key, shape, n_pairs=n_pairs)[0]))
+print(min(m, n), float(lipschitz_estimate(grad_g_nuclear, spectral_norm, nuclear_norm, orthogonalize, key, shape, n_pairs=n_pairs)[0]))
+```
