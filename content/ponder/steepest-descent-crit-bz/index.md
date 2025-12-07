@@ -3,8 +3,8 @@ title: "Critical Batch Size for Steepest Descent Under Arbitrary Norms"
 date: 2025-11-22
 tags: ["Machine Learning", "Optimizers"]
 author: "Franz Louis Cesista"
-description: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields the same critical batch size."
-summary: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields the same critical batch size."
+description: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal critical batch size formula."
+summary: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal critical batch size formula."
 # cover:
 #     image: lr_transfer_pdhg_stiefel_spectral.png
 #     alt: "Cover"
@@ -25,7 +25,7 @@ This work generalizes prior results by [Sato et al. (2025)](https://arxiv.org/ab
 
 We consider the following optimization problem:
 $$\arg\min_{W \in \mathcal{W}} f(W)$$
-where $f(\cdot): \mathcal{W} \to \mathbb{R}$ is a bounded below and differentiable objective function, and $\mathcal{W}$ is a finite-dimensional vector space over $\mathbb{R}$, e.g., $\mathcal{W} = \mathbb{R}^{m \times n}$, equipped with an arbitrary norm $\| \cdot \|$ and its dual norm $\| \cdot \|^{\dagger}$.
+where $f(\cdot): \mathcal{W} \to \mathbb{R}$ is a bounded from below and differentiable objective function, and $\mathcal{W}$ is a finite-dimensional vector space over $\mathbb{R}$, e.g., $\mathcal{W} = \mathbb{R}^{m \times n}$, equipped with an arbitrary norm $\| \cdot \|$ and its dual norm $\| \cdot \|^{\dagger}$.
 
 More generally, we often take $\mathcal{W}$ to be a product of layers' weight spaces, e.g.,
 $$\mathcal{W} = \prod_{l=1}^{L} \mathbb{R}^{m_l \times n_l},$$
@@ -103,12 +103,12 @@ $$\begin{equation}
 \end{equation}$$
 where $L_F := \kappa_L L$.
 
-> **Assumption 4 (Local D-smoothness of $\| \cdot \|^{\dagger}$ in the noise region).** There exists a large enough $R > 0$ such that $\mathbb{P}(\| \xi_{t,i} \|^{\dagger}, \| \nabla f(W_t) - M_t \|^{\dagger}, \| \nabla f(W_t) - C_t \|^{\dagger} \leq R) = 1$ for all $t, i$. For minibatch size $b$, let,
+> **Assumption 4 (Local D-smoothness of $\| \cdot \|^{\dagger}$ in the noise region).** There exists a large enough $R > 0$ such that $\mathbb{P}(\| \xi_{t,i} \|^{\dagger} \leq R) = 1$ for all $t, i$. For minibatch size $b$, let,
 $$\begin{align}
     K &:= \{ X^{\dagger} \in W^{\dagger} : \| X^{\dagger} \|^{\dagger} \leq bR \} \nonumber \\
     g(X^{\dagger}) &:= \frac{1}{2} \| X^{\dagger} \|^{\dagger 2} \quad \forall X^{\dagger} \in K \nonumber
 \end{align}$$
-Intuitively, $K$ is the region where the (accumulated) gradient noise and momentum errors lie almost surely. Then there exists $D > 0$ such that for all $X^{\dagger}, Y^{\dagger} \in K$,
+Intuitively, $K$ is the region where the (accumulated) gradient noise lie almost surely. Then there exists $D > 0$ such that for all $X^{\dagger}, Y^{\dagger} \in K$,
 $$\begin{equation}
     \| \nabla g(Y^{\dagger}) - \nabla g(X^{\dagger}) \| \leq D \| Y^{\dagger} - X^{\dagger} \|^{\dagger}
 \end{equation}$$
@@ -123,9 +123,14 @@ We first control the variance of the mini-batch noise.
 > **Lemma 5 (Minibatch gradient noise bounds).** Under Assumptions 1-2 and 4, for any minibatch size $b \geq 1$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
 $$\begin{align}
     \mathbb{E}\left[ \xi_{S_t} \right]
-        &= 0 \label{eq:minibatchmean} \\
+        &= 0 \label{eq:minibatchmean}, \\
+    \mathbb{E}\left[ \left\| \sum_{t,i} \alpha_{t,i} \xi_{t,i} \right\|^{\dagger 2} \right]
+        &\leq D \sigma^2 \sum_{t,i} \alpha_{t,i}^2
+\end{align}$$
+In particular,
+$$\begin{align}
     \mathbb{E}\left[ \| \xi_{S_t} \|^{\dagger 2} \right]
-        &\leq \frac{D\sigma^2}{b}
+        &\leq \frac{D\sigma^2}{b} \label{eq:minibatchvariance}
 \end{align}$$
 
 **Proof.** For the minibatch gradient noise mean, we have,
@@ -139,25 +144,30 @@ $$\begin{align}
         &= 0 \nonumber
 \end{align}$$
 
-And for the minibatch gradient noise variance, we have,
+Now, let $S_{t,k} = \sum_{t,i=1}^{i=k} \alpha_{t,i} \xi_{t,i}$ be the partial (weighted) sum of the first $k$ noise terms. We can then apply the descent lemma on $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$, taking expectations, and using Assumption (1) to get,
 $$\begin{align}
-    \mathbb{E}\left[ \| \xi_{S_t} \|^{\dagger 2} \right]
-        &= \mathbb{E}\left[ \left\| \nabla f(W_t) - \nabla f_{S_t}(W_t) \right\|^{\dagger 2} \right] \nonumber \\
-        &= \mathbb{E}\left[ \left\| \nabla f(W_t) - \frac{1}{b} \sum_{i=1}^{b} G_{\xi_{t,i}}(W_t) \right\|^{\dagger 2} \right] \nonumber \\
-        &= \mathbb{E}\left[ \left\| \frac{1}{b} \sum_{i=1}^{b} (\nabla f(W_t) - G_{\xi_{t,i}}(W_t)) \right\|^{\dagger 2} \right] \nonumber \\
-        &= \frac{1}{b^2} \mathbb{E}\left[ \left\| \sum_{i=1}^{b} \xi_{t,i} \right\|^{\dagger 2} \right] \nonumber
+    g(S_{t,k})
+        &\leq g(S_{t,k-1})
+            + \langle \nabla g(S_{t,k-1}), \alpha_{t,k} \xi_{t,k} \rangle
+            + \frac{D}{2} \| \alpha_{t,k} \xi_{t,k} \|^{\dagger 2} \nonumber \\
+    \frac{1}{2} \| S_{t,k} \|^{\dagger 2}
+        &\leq \frac{1}{2} \| S_{t,k-1} \|^{\dagger 2}
+            + \alpha_{t,k} \langle \nabla g(S_{t,k-1}), \xi_{t,k} \rangle
+            + \frac{D}{2} \alpha_{t,k}^2 \| \xi_{t,k} \|^{\dagger 2} \nonumber \\
+    \mathbb{E}\left[ \| S_{t,k} \|^{\dagger 2} \right]
+        &\leq \mathbb{E}\left[ \| S_{t,k-1} \|^{\dagger 2} \right]
+            + \cancel{2 \alpha_{t,k} \left\langle \nabla g(S_{t,k-1}), \mathbb{E}\left[ \xi_{t,k} \right] \right\rangle}
+            + D \alpha_{t,k}^2 \mathbb{E}\left[ \| \xi_{t,k} \|^{\dagger 2} \right] \nonumber \\
+        &\leq \mathbb{E}\left[ \| S_{t,k-1} \|^{\dagger 2} \right]
+            + D \alpha_{t,k}^2 \sigma^2 \nonumber
 \end{align}$$
-From Assumption (4), we can apply the descent lemma on the running sum up to $b-1$ and $\xi_{t, b}$, then unroll the recurrence to get,
+Unrolling the recurrence then gives,
 $$\begin{align}
-    \mathbb{E}\left[ \| \xi_{S_t} \|^{\dagger 2} \right]
-        &\leq \frac{1}{b^2} \left(
-            \mathbb{E}\left[ \left\| \sum_{i=1}^{b-1} \xi_{t,i} \right\|^{\dagger 2} \right]
-            + \cancel{\left\langle \nabla \left\|\sum_{i=1}^{b-1} \xi_{t,i} \right\|^{\dagger 2}, \mathbb{E}\left[ \xi_{t,b} \right] \right\rangle}
-            + D \mathbb{E}\left[ \| \xi_{t,b} \|^{\dagger 2} \right]
-        \right) \nonumber \\
-        &\leq \frac{D}{b^2} \sum_{i=1}^{b} \mathbb{E}\left[ \left\| \xi_{t,i} \right\|^{\dagger 2} \right] \nonumber \\
-        &\leq \frac{D\sigma^2}{b} \quad\blacksquare \nonumber
+    \mathbb{E}[ \| S_{t,b} \| ]
+        &\leq D \sum_{t,i} \alpha_{t,i}^2 \mathbb{E}[ \| \xi_{t,i} \|^{\dagger 2} ]
+        \leq D \sigma^2 \sum_{t,i} \alpha_{t,i}^2 \nonumber
 \end{align}$$
+Setting $\alpha_{t,i} = \frac{1}{b}$ for all $i$ then gives Equation $\eqref{eq:minibatchvariance} \quad\blacksquare$.
 
 ---
 
@@ -167,101 +177,88 @@ and later the Nesterov momentum error term $\nabla f(W_t) - C_t$.
 
 > **Proposition 6 (Average first and second moments of the momentum error term).** Let $\beta \in (0, 1)$, and $M_0 = 0$. Under Assumptions 1-4, for any $T \geq 1$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
 $$\begin{align}
-    \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
-        &\leq \left( \sqrt{\frac{1 + \beta}{2}} \right)^t \| \nabla f(W_0) \|^{\dagger}
-            + \frac{2}{1 - \beta} L \eta
-            + \sqrt{2 (1 - \beta)} D \frac{\sigma}{\sqrt{b}} \\
-    \mathbb{E}\left[\| E_t \|^{\dagger 2} \right]
-        &\leq \left( \frac{1 + \beta}{2} \right)^t \| \nabla f(W_0) \|^{\dagger 2}
-            + \frac{4}{(1 - \beta)^2} L^2 \eta^2
-            + 2 (1 - \beta) D^2 \frac{\sigma^2}{b}
+    \mathbb{E}\left[ \| \nabla f(W_t) - M_t \|^{\dagger} \right]
+        &\leq 2\beta^t \| \nabla f(W_0) \|^{\dagger}
+            + \frac{2 \beta}{1 - \beta} L \eta
+            + \sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \frac{\sqrt{D}\sigma}{\sqrt{b}} \\
+    \mathbb{E}\left[\| \nabla f(W_t) - M_t \|^{\dagger 2} \right]
+        &\leq 4\beta^{2t} \| \nabla f(W_0) \|^{\dagger 2}
+            + \frac{4 \beta^2}{(1 - \beta)^2} L^2 \eta^2
+            + \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
 \end{align}$$
 Moreover, averaging over $T$ iterations yields,
 $$\begin{align}
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
-        &\leq \frac{2\sqrt{2}}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
-            + \frac{2}{1 - \beta} L \eta
-            + \sqrt{2 (1 - \beta)} D \frac{\sigma}{\sqrt{b}} \\
+        &\leq \frac{2}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
+            + \frac{2 \beta}{1 - \beta} L \eta
+            + \sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \frac{\sqrt{D}\sigma}{\sqrt{b}} \\
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| E_t \|^{\dagger 2} \right]
-        &\leq \frac{2}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
-            + \frac{4}{(1 - \beta)^2} L^2 \eta^2
-            + 2 (1 - \beta) D^2 \frac{\sigma^2}{b}
+        &\leq \frac{4}{1 - \beta^2} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
+            + \frac{4 \beta^2}{(1 - \beta)^2} L^2 \eta^2
+            + \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
 \end{align}$$
 
-**Proof.** Notice that,
+**Proof.** First, let us unroll the recurrence for $E_t$,
 $$\begin{align}
     E_t
         &= \nabla f(W_t) - M_t \nonumber \\
         &= \nabla f(W_t) - (\beta M_{t-1} + (1 - \beta) \nabla f_{S_t}(W_t)) \nonumber \\
         &= \beta (\nabla f(W_t) - M_{t-1}) + (1 - \beta)\xi_{S_t} \nonumber \\
         &= \beta (\nabla f(W_t) - \nabla f(W_{t-1}) + \nabla f(W_{t-1}) - M_{t-1}) + (1 - \beta)\xi_{S_t} \nonumber \\
-        &= \beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1})) + (1 - \beta) \xi_{S_t} \nonumber
+        &= \beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1})) + (1 - \beta) \xi_{S_t} \nonumber \\
+        &= \underbrace{\beta^t E_0
+            + \sum_{k=1}^t \beta^{t-k+1} (\nabla f(W_k) - \nabla f(W_{k-1}))}_{E_t^{\text{drift}}}
+            + \underbrace{\sum_{k=1}^t \beta^{t-k}(1 - \beta)\xi_{S_k}}_{E_t^{\text{noise}}} \nonumber \\
+        &= E_t^{\text{drift}} + E_t^{\text{noise}} \label{eq:momentum-error-decomposition}
 \end{align}$$
+with $E_0^{\text{drift}} = \nabla f(W_0)$ and $E_0^{\text{noise}} = 0$.
 
-Applying the descent lemma on $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$, taking expectations, and using Lemma (5) then gives,
+Thus, from Assumption (3), the drift term can be bounded as,
 $$\begin{align}
-    g(E_t)
-        &\leq g(\beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1}))) \nonumber \\
-            &\quad+ \langle \nabla g(\beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1}))), (1 - \beta) \xi_{S_t} \rangle \nonumber \\
-            &\quad+ \frac{D}{2} \| (1 - \beta) \xi_{S_t} \|^{\dagger 2} \nonumber \\
-    \frac{1}{2} \| E_t \|^{\dagger 2}
-        &\leq \frac{\beta^2}{2} \| E_{t-1} + (\nabla f(W_t) - \nabla f(W_{t-1})) \|^{\dagger 2} \nonumber \\
-            &\quad+ (1 - \beta) \langle \nabla g(\beta E_{t-1} + \beta (\nabla f(W_t) - \nabla f(W_{t-1}))), \xi_{S_t} \rangle \nonumber \\
-            &\quad+ \frac{D}{2} (1 - \beta)^2 \| \xi_{S_t} \|^{\dagger 2} \nonumber \\
-    \mathbb{E}\left[ \| E_t \|^{\dagger 2} \right]
-        &\leq \beta^2 \mathbb{E}\left[ \| E_{t-1} + \nabla f(W_t) - \nabla f(W_{t-1}) \|^{\dagger 2} \right] \nonumber \\
-            &\quad+ \cancel{\beta(1 - \beta) \langle \nabla \| E_{t-1} + \nabla f(W_t) - \nabla f(W_{t-1}) \|^{\dagger 2},  \mathbb{E}\left[ \xi_{S_t} \right] \rangle} \nonumber \\
-            &\quad+ (1 - \beta)^2 D \mathbb{E}\left[ \| \xi_{S_t} \|^{\dagger 2} \right] \nonumber \\
-        &\leq \beta^2 \mathbb{E}\left[ \| E_{t-1} + \nabla f(W_t) - \nabla f(W_{t-1}) \|^{\dagger 2} \right]
-            + (1 - \beta)^2 D^2 \frac{\sigma^2}{b} \nonumber
+    \| E_t^{\text{drift}} \|^{\dagger}
+        &\leq \beta^t \| \nabla f(W_0) \|^{\dagger}
+            + \sum_{k=1}^t \beta^{t-k+1} \| \nabla f(W_k) - \nabla f(W_{k-1}) \|^{\dagger} \nonumber \\
+        &\leq \beta^t \| \nabla f(W_0) \|^{\dagger}
+            + L \sum_{k=1}^t \beta^{t-k+1} \| W_k - W_{k-1} \|^{\dagger} \nonumber \\
+        &\leq \beta^t \| \nabla f(W_0) \|^{\dagger}
+            + L \eta \sum_{k=1}^t \beta^{t-k+1} \nonumber \\
+        &\leq \beta^t \| \nabla f(W_0) \|^{\dagger}
+            + \frac{\beta}{1 - \beta} L \eta \nonumber \\
+    \mathbb{E} \left[ \| E_t^{\text{drift}} \|^{\dagger 2} \right]
+        &\leq 2 \beta^{2t} \| \nabla f(W_0) \|^{\dagger 2}
+            + \frac{2 \beta^2}{(1 - \beta)^2} L \eta \nonumber
 \end{align}$$
-
-Using the Peter-Paul inequality, together with Assumption (3) then yields,
+And for the noise term, we have from Lemma (5),
 $$\begin{align}
-    \mathbb{E}\left[ \| E_t \|^{\dagger 2} \right]
-        &\leq \beta^2 (1 + \epsilon) \mathbb{E}\left[ \| E_{t-1} \|^{\dagger 2} \right]
-            + \beta^2 \left(1 + \frac{1}{\epsilon}\right) \mathbb{E}\left[ \| \nabla f(W_t) - \nabla f(W_{t-1}) \|^{\dagger 2} \right] \nonumber \\
-            &\quad+ (1 - \beta)^2 D^2 \frac{\sigma^2}{b} \nonumber \\
-        &\leq \beta^2 (1 + \epsilon) \mathbb{E}\left[ \| E_{t-1} \|^{\dagger 2} \right]
-            + \beta^2 \left(1 + \frac{1}{\epsilon}\right) L^2 \eta^2
-            + (1 - \beta)^2 D^2 \frac{\sigma^2}{b} \nonumber
+    \mathbb{E} \left[ \| E_t^{\text{noise}} \|^{\dagger 2} \right]
+        &\leq D \sigma^2 \sum_{k=1}^t \sum_{i=1}^b \left( \frac{(1 - \beta) \beta^{t-k}}{b} \right)^2 \nonumber \\
+        &\leq \frac{1 - \beta}{1 + \beta} \frac{D \sigma^2}{b} \nonumber
 \end{align}$$
-for any $\epsilon > 0$. Setting $\epsilon = \frac{1 - \beta}{2}$ and unrolling the recurrence then gives,
+Thus, using $(a + b)^2 \leq 2a^2 + 2b^2$,
 $$\begin{align}
-    \mathbb{E}\left[ \| E_t \|^{\dagger 2} \right]
-        &\leq \frac{\beta^2(3 - \beta)}{2} \mathbb{E}\left[ \| E_{t-1} \|^{\dagger 2} \right]
-            + \frac{\beta^2 (3 - \beta)}{1 - \beta} L^2 \eta^2
-            + (1 - \beta)^2 D^2 \frac{\sigma^2}{b} \nonumber \\
-        &\leq \frac{1 + \beta}{2} \mathbb{E}\left[ \| E_{t-1} \|^{\dagger 2} \right]
-            + \frac{2}{1 - \beta} L^2 \eta^2
-            + (1 - \beta)^2 D^2 \frac{\sigma^2}{b} \label{eq:approxub} \\
-        &\leq \left( \frac{1 + \beta}{2} \right)^t \mathbb{E}\left[ \| E_{0} \|^{\dagger 2} \right]
-            + \left(\frac{2}{1 - \beta} L^2 \eta^2
-            + (1 - \beta)^2 D^2 \frac{\sigma^2}{b}\right) \sum_{k=0}^{t-1} \left(\frac{1 + \beta}{2}\right)^k \nonumber \\
-        &\leq \left( \frac{1 + \beta}{2} \right)^t \| E_{0} \|^{\dagger 2}
-            + \left(\frac{2}{1 - \beta} L^2 \eta^2
-            + (1 - \beta)^2 D^2 \frac{\sigma^2}{b}\right) \frac{2}{1 - \beta} \nonumber \\
-        &\leq \left( \frac{1 + \beta}{2} \right)^t \| E_{0} \|^{\dagger 2}
-            + \frac{4}{(1 - \beta)^2} L^2 \eta^2
-            + 2(1 - \beta) D^2 \frac{\sigma^2}{b} \nonumber \\
-    \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| E_t \|^{\dagger 2}\right]
-        &\leq \frac{2}{1 - \beta} \frac{1}{T} \| E_{0} \|^{\dagger 2}
-            + \frac{4}{(1 - \beta)^2} L^2 \eta^2
-            + 2 (1 - \beta) D^2 \frac{\sigma^2}{b} \nonumber
+    \mathbb{E} \left[ \| E_t \|^{\dagger 2} \right]
+        &\leq 2 \mathbb{E} \left[ \| E_t^{\text{drift}} \|^{\dagger 2} \right]
+            + 2 \mathbb{E} \left[ \| E_t^{\text{noise}} \|^{\dagger 2} \right] \nonumber \\
+        &\leq 4 \beta^{2t} \| \nabla f(W_0) \|^{\dagger 2}
+            + \frac{4 \beta^2}{(1 - \beta)^2} L^2 \eta^2
+            + \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} \nonumber \\
+    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E} \left[ \| E_t \|^{\dagger 2} \right]
+        &\leq \frac{1}{T} \frac{4}{1 - \beta^2} \| \nabla f(W_0) \|^{\dagger 2}
+            + \frac{4 \beta^2}{(1 - \beta)^2} L^2 \eta^2
+            + \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} \nonumber
 \end{align}$$
-where we use the crude upper bound $\frac{\beta^2 (3 - \beta)}{2} \leq \frac{1 + \beta}{2} \leq 1$ in Equation $\eqref{eq:approxub}$ to simplify the algebra.
 
 For the first moment, Jensen's inequality and $\sqrt{a + b + c} \leq \sqrt{a} + \sqrt{b} + \sqrt{c}$ for $a, b, c > 0$ yields,
 $$\begin{align}
     \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
         &\leq \sqrt{\mathbb{E}\left[ \| E_t \|^{\dagger 2} \right]} \nonumber \\
-        &\leq \left( \sqrt{\frac{1 + \beta}{2}} \right)^t \| E_{0} \|^{\dagger}
-            + \frac{2}{1 - \beta} L \eta
-            + \sqrt{2 (1 - \beta)} D \frac{\sigma}{\sqrt{b}} \nonumber \\
+        &\leq 2 \beta^t \| E_{0} \|^{\dagger}
+            + \frac{2\beta}{1 - \beta} L \eta
+            + \sqrt{\frac{2 (1 - \beta)}{1 + \beta}}  \frac{\sqrt{D}\sigma}{\sqrt{b}} \nonumber \\
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| E_t \|^{\dagger}\right]
-        &\leq \frac{2\sqrt{2}}{1 - \beta} \frac{1}{T} \| E_{0} \|^{\dagger}
-            + \frac{2}{1 - \beta} L \eta
-            + \sqrt{2 (1 - \beta)} D \frac{\sigma}{\sqrt{b}} \nonumber \\
+        &\leq \frac{2}{1 - \beta} \frac{1}{T} \| E_{0} \|^{\dagger}
+            + \frac{2\beta}{1 - \beta} L \eta
+            + \sqrt{\frac{2 (1 - \beta)}{1 + \beta}}  \frac{\sqrt{D}\sigma}{\sqrt{b}} \nonumber \\
 \end{align}$$
 Substituting $E_0 = \nabla f(W_0) - M_0 = \nabla f(W_0)$ completes the proof. $\quad\blacksquare$
 
@@ -272,13 +269,13 @@ We now bound the Nesterov momentum error term.
 > **Corollary 7 (Average first and second moments of the Nesterov momentum error term).** Under the same assumptions as Proposition (6), for any $T \geq 1$ and any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
 $$\begin{align}
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger} \right]
-        &\leq \frac{2\sqrt{2}\beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
-            + \frac{2 \beta}{1 - \beta} L \eta \nonumber \\
-        &\quad+ \left(\sqrt{2 (1 - \beta)} D \beta + (1 - \beta)\right) \frac{\sigma}{\sqrt{b}} \\
+        &\leq \frac{2 \beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
+            + \frac{2 \beta^2}{1 - \beta} L \eta \nonumber \\
+        &\quad+ \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \\
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger 2}\right]
-        &\leq \frac{2\beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
-            + \frac{4\beta}{(1 - \beta)^2} L^2 \eta^2 \nonumber \\
-        &\quad+ (2 D^2 \beta + 1) (1 - \beta) \frac{\sigma^2}{b}
+        &\leq \frac{4 \beta}{1 - \beta^2} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
+            + \frac{4 \beta^3}{(1 - \beta)^2} L^2 \eta^2 \nonumber \\
+        &\quad+ \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
 \end{align}$$
 
 **Proof.** We have,
@@ -288,7 +285,7 @@ $$\begin{align}
         &= \beta (\nabla f(W_t) - M_t) + (1 - \beta) (\nabla f(W_t) - \nabla f_{S_t}(W_t)) \nonumber \\
         &= \beta E_t + (1 - \beta) \xi_{S_t} \nonumber
 \end{align}$$
-Since $x \mapsto \| x \|^{\dagger}$ and $x \mapsto \| x \|^{\dagger 2}$ are convex
+Since $x \mapsto \| x \|^{\dagger}$ and $x \mapsto \| x \|^{\dagger 2}$ are convex,
 $$\begin{align}
     \| \nabla f(W_t) - C_t \|^{\dagger 2}
         &\leq \beta \| E_t \|^{\dagger 2} + (1 - \beta) \| \xi_{S_t} \|^{\dagger 2} \nonumber \\
@@ -307,7 +304,7 @@ $$\begin{equation}
         \leq \frac{X}{T} + \frac{Y}{b} + Z
 \end{equation}$$
 where $T$ is the total number of time steps, $b$ is the batch size, and
-$$Y = \frac{(2 \beta + 1 / D^2)(1 - \beta)}{2} \sigma^2.$$
+$$Y = \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} \sigma^2.$$
 If we instead choose to measure the gradient norm in the Frobenius norm, i.e., $\| \cdot \|_F$, then there exist constants $X_F, Y_F, Z_F > 0$ such that,
 $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F] \leq \frac{X_F}{T} + \frac{Y_F}{b} + Z_F
@@ -315,7 +312,7 @@ $$\begin{equation}
 and,
 $$\begin{align*}
     X_F &\propto X \\
-    Y_F &= \frac{(2 \beta + 1 / D^2)(1 - \beta)}{2} \sigma_F^2 \\
+    Y_F &= \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} \sigma_F^2 \\
     Z_F &\propto Z
 \end{align*}$$
 
@@ -361,79 +358,83 @@ $$\| \nabla f(W_t) \|^{\dagger}
         + \frac{\epsilon}{2} \| \nabla f(W_t) - C_t \|^{\dagger 2}
         + \frac{1/\epsilon + L\eta}{2}$$
 
-**Approach 1: We measure the gradient norm with $\| \cdot \|^{\dagger}$.** Then we can set $\epsilon = \frac{1}{D^2}$. And after taking expectations, and averaging, we have,
+**Approach 1: We measure the gradient norm with $\| \cdot \|^{\dagger}$.** Then we can set $\epsilon = \frac{1}{D}$. And after taking expectations, and averaging, we have, by Corollary (7),
 $$\begin{align}
-    \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
-        &\leq \frac{f(W_0) - f(W_T)}{\eta T}
-            + \frac{D^2 + L\eta}{2} \nonumber \\
-        &\quad+ \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|^{\dagger}]
-            + \frac{1}{2 D^2 T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|^{\dagger 2}] \nonumber \\
-        &\leq \frac{f(W_0) - f(W_T)}{\eta T} 
-            + \frac{D^2 + L\eta}{2} \nonumber \\
-        &\quad+  \left(\frac{2\sqrt{2}\beta}{1 - \beta}\frac{1}{T} \| E_0 \|^{\dagger}
-            + \frac{2 \beta}{1 - \beta} L \eta
-            + \left(\sqrt{2(1 - \beta)}D\beta + (1 - \beta) \right) \frac{\sigma}{\sqrt{b}} \right) \nonumber \\
-        &\quad+ \frac{1}{2 D^2} \left(\frac{2\beta}{1 - \beta}\frac{1}{T} \| E_{0} \|^{\dagger 2}
-            + \frac{4 \beta}{(1 - \beta)^2} L^2 \eta^2
-            + (2 D^2 \beta + 1) (1 - \beta) \frac{\sigma^2}{b} \right) \nonumber \\
-        &\leq \frac{X}{T} + \frac{Y}{b} + Z
+    &\frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \nonumber \\
+        &\qquad\leq \frac{f(W_0) - f(W_T)}{\eta T}
+            + \frac{D + L\eta}{2} \nonumber \\
+        &\qquad\quad+ \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|^{\dagger}]
+            + \frac{1}{2 D T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|^{\dagger 2}] \nonumber \\
+        &\qquad\leq \frac{f(W_0) - f(W_T)}{\eta T} 
+            + \frac{D + L\eta}{2} \nonumber \\
+        &\qquad\quad+  \left(\frac{2\beta}{1 - \beta}\frac{1}{T} \| E_0 \|^{\dagger}
+            + \frac{2 \beta^2}{1 - \beta} L \eta
+            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}}\beta + (1 - \beta) \right) \frac{\sqrt{D}\sigma}{\sqrt{b}} \right) \nonumber \\
+        &\qquad\quad+ \frac{1}{2 D} \left(
+            \frac{4 \beta}{1 - \beta^2}\frac{1}{T} \| E_{0} \|^{\dagger 2}
+            + \frac{4 \beta^3}{(1 - \beta)^2} L^2 \eta^2
+            + \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} \right) \nonumber \\
+        &\qquad\leq \frac{X}{T} + \frac{Y}{b} + Z
 \end{align}$$
 where,
 $$\begin{align}
     X
         &:= \frac{f(W_0) - f^*}{\eta}
-            + \frac{2\sqrt{2}\beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger}
-            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) \|^{\dagger 2} \nonumber \\
+            + \frac{2 \beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger}
+            + \frac{2 \beta}{D (1 - \beta^2)} \| \nabla f(W_0) \|^{\dagger 2} \nonumber \\
     Y
-        &:= \frac{(2 \beta + 1 / D^2)(1 - \beta)}{2} \sigma^2 \nonumber \\
+        &:= \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} \sigma^2 \nonumber \\
     Z
-        &:= \frac{D^2 + L\eta}{2}
-            + \frac{2 \beta}{1 - \beta} L \eta
-            + \frac{2\beta}{D^2 (1 - \beta)^2} L^2 \eta^2
-            + \left(\sqrt{2 (1 - \beta)} D \beta + (1 - \beta)\right) \frac{\sigma}{\sqrt{b}} \nonumber
+        &:= \frac{D + L\eta}{2}
+            + \frac{2 \beta^2}{1 - \beta} L \eta
+            + \frac{2 \beta^3}{D (1 - \beta)^2} L^2 \eta^2
+            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D}\sigma}{\sqrt{b}} \nonumber
 \end{align}$$
+and $f^*$ is the global minimum of $f$.
 
 **Approach 2: We measure the gradient norm with $\| \cdot \|_F$.** By norm equivalence, there exist constants $\kappa_1 > 0, \kappa_2 > 0$ such that for all $X \in \mathbb{R}^{m \times n}$,
 $$ \kappa_1 \| X \|_F \leq \| X \|^{\dagger} \leq \kappa_2 \| X \|_F $$
 For Muon, we have $\| X \|^{\dagger} = \| X \|_{\text{nuc}}$ (the nuclear norm), and so $\kappa_1 = 1, \kappa_2 \leq \sqrt{\min{(m, n)}}$.
 
-We then set $\epsilon = \frac{\kappa_1}{\kappa_2^2 D^2}$ and substitute the norm equivalence bounds to obtain,
+We then set $\epsilon = \frac{\kappa_1}{\kappa_2^2 D}$ and substitute the norm equivalence bounds to obtain,
 $$\| \nabla f(W_t) \|_F
     \leq \frac{f(W_t) - f(W_{t+1})}{\eta\kappa_1}
         + \frac{\kappa_2}{\kappa_1}\| \nabla f(W_t) - C_t \|_F
-        + \frac{1}{2 D^2} \| \nabla f(W_t) - C_t \|_F^2
-        + \frac{\kappa_2^2 D^2/\kappa_1 + L_F\eta}{2\kappa_1}$$
+        + \frac{1}{2 D} \| \nabla f(W_t) - C_t \|_F^2
+        + \frac{\kappa_2^2 D/\kappa_1 + L_F\eta}{2\kappa_1}$$
 
 After taking expectations, averaging, and using Corollary (7), we have,
 $$\begin{align}
-    \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F]
-        &\leq \frac{f(W_0) - f(W_T)}{\eta \kappa_1 T}
-            + \frac{\kappa_2^2 D^2/\kappa_1 + L_F\eta}{2\kappa_1} \nonumber \\
-        &\quad+ \frac{1}{T}\frac{\kappa_2}{\kappa_1}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|_F]
-            + \frac{1}{2 D^2 T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|_F^2] \nonumber \\
-        &\leq \frac{f(W_0) - f(W_T)}{\eta \kappa_1 T}
-            + \frac{\kappa_2^2 D^2/\kappa_1 + L_F\eta}{2\kappa_1} \nonumber \\
-        &\quad+ \frac{\kappa_2}{\kappa_1} \left(\frac{2\sqrt{2}\beta}{1 - \beta}\frac{1}{T} \| E_0 \|_F
-            + \frac{2 \beta}{1 - \beta} L_F \eta
-            + \left(\sqrt{2(1 - \beta)} D \beta + (1 - \beta) \right) \frac{\sigma_F}{\sqrt{b}} \right) \nonumber \\
-        &\quad+ \frac{1}{2 D^2} \left(\frac{2\beta}{1 - \beta}\frac{1}{T} \| E_{0} \|_F^2
-            + \frac{4 \beta}{(1 - \beta)^2} L_F^2 \eta^2
-            + (2 D^2 \beta + 1) (1 - \beta) \frac{\sigma_F^2}{b} \right) \nonumber \\
-        &\leq \frac{X_F}{T} + \frac{Y_F}{b} + Z_F
+    &\frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F] \nonumber \\
+        &\qquad\leq \frac{f(W_0) - f(W_T)}{\eta \kappa_1 T}
+            + \frac{\kappa_2^2 D/\kappa_1 + L_F\eta}{2\kappa_1} \nonumber \\
+        &\qquad\quad+ \frac{1}{T}\frac{\kappa_2}{\kappa_1}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|_F]
+            + \frac{1}{2 D T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) - C_t \|_F^2] \nonumber \\
+        &\qquad\leq \frac{f(W_0) - f(W_T)}{\eta \kappa_1 T}
+            + \frac{\kappa_2^2 D/\kappa_1 + L_F\eta}{2\kappa_1} \nonumber \\
+        &\qquad\quad+ \frac{\kappa_2}{\kappa_1} \left(
+            \frac{2 \beta}{1 - \beta}\frac{1}{T} \| E_0 \|_F
+            + \frac{2 \beta^2}{1 - \beta} L_F \eta
+            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta) \right) \frac{\sqrt{D}\sigma_F}{\sqrt{b}} \right) \nonumber \\
+        &\qquad\quad+ \frac{1}{2 D} \left(
+            \frac{4 \beta}{1 - \beta^2}\frac{1}{T} \| E_{0} \|_F^2
+            + \frac{4 \beta^3}{(1 - \beta)^2} L_F^2 \eta^2
+            + \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} \frac{D \sigma_F^2}{b} \right) \nonumber \\
+        &\qquad\leq \frac{X_F}{T} + \frac{Y_F}{b} + Z_F
 \end{align}$$
 where,
 $$\begin{align}
     X_F
         &:= \frac{f(W_0) - f^*}{\eta\kappa_1}
-            + \frac{2\sqrt{2}\beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} \| \nabla f(W_0) \|_F
-            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) \|_F^2 \nonumber \\
+            + \frac{\kappa_2}{\kappa_1} \frac{2 \beta}{1 - \beta} \| \nabla f(W_0) \|_F
+            + \frac{2 \beta}{D (1 - \beta^2)} \| \nabla f(W_0) \|_F^2 \nonumber \\
     Y_F
-        &:= \frac{(2 \beta + 1 / D^2)(1 - \beta)}{2} \sigma_F^2 \nonumber \\
+        &:= \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} \sigma_F^2 \nonumber \\
     Z_F
-        &:= \frac{\kappa_2^2 D^2/\kappa_1 + L_F\eta}{2\kappa_1}
-            + \frac{2 \beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} L_F \eta
-            + \frac{2\beta}{D^2 (1 - \beta)^2} L_F^2 \eta^2 \nonumber \\
-            &\qquad+ \left(\sqrt{2 (1 - \beta)} D \beta + (1 - \beta)\right) \frac{\kappa_2}{\kappa_1} \frac{\sigma_F}{\sqrt{b}} \quad\blacksquare \nonumber
+        &:= \frac{\kappa_2^2 D/\kappa_1 + L_F\eta}{2\kappa_1}
+            + \frac{\kappa_2}{\kappa_1} \frac{2 \beta^2}{1 - \beta} L_F \eta
+            + \frac{2 \beta^3}{D (1 - \beta)^2} L_F^2 \eta^2 \nonumber \\
+            &\qquad+ \frac{\kappa_2}{\kappa_1} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D}\sigma_F}{\sqrt{b}} \quad\blacksquare \nonumber
 \end{align}$$
 
 ## 3. Convergence bound for steepest descent under arbitrary norms with weight decay
@@ -530,8 +531,8 @@ $$\begin{align}
 $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{b} + Z
 \end{equation}$$
-where $T$ is the total number of time steps, $b$ is the batch size, and
-$$Y = \frac{(2 \beta + 1 / D^2)(1 - \beta) + \lambda}{2} \sigma^2.$$
+where $T$ is the total number of time steps, $b$ is the batch size, and,
+$$Y = \frac{(3 \beta + 1)(1 - \beta) + \lambda}{2(1 + \beta)} \sigma^2.$$
 If we instead choose to measure the gradient norm in the Frobenius norm, i.e., $\| \cdot \|_F$, then there exist constants $X_F, Y_F, Z_F > 0$ such that,
 $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F] \leq \frac{X_F}{T} + \frac{Y_F}{b} + Z_F
@@ -539,7 +540,7 @@ $$\begin{equation}
 and,
 $$\begin{align*}
     X_F &\propto X \\
-    Y_F &= \frac{(2 \beta + 1 / D^2)(1 - \beta) + \lambda}{2} \sigma_F^2 \\
+    Y_F &= \frac{(3 \beta + 1)(1 - \beta) + \lambda}{2(1 + \beta)} \sigma_F^2 \\
     Z_F &\propto Z
 \end{align*}$$
 
@@ -599,7 +600,7 @@ $$\begin{align}
             + \frac{2/\epsilon + L\eta}{2} \nonumber
 \end{align}$$
 
-**Approach 1: We measure the gradient norm with $\| \cdot \|^{\dagger}$.** Then we set $\epsilon = \frac{1}{D^2}$ and $\epsilon' = \frac{1}{2 D}$. Following the same strategy as in Theorem (8) with Proposition (9) and Proposition (10) then yields,
+**Approach 1: We measure the gradient norm with $\| \cdot \|^{\dagger}$.** Then we set $\epsilon = \frac{1}{D}$ and $\epsilon' = \frac{1}{2 D}$. Following the same strategy as in Theorem (8) with Proposition (9) and Proposition (10) then yields,
 $$\begin{align}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
         &\leq \frac{X}{T} + \frac{Y}{b} + Z
@@ -608,30 +609,30 @@ where,
 $$\begin{align}
     X
         &:= \frac{f(W_0) - f^*}{\eta}
-            + \frac{2\sqrt{2}\beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger}
-            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) \|^{\dagger 2} \nonumber \\
+            + \frac{2 \beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger}
+            + \frac{2 \beta}{D (1 - \beta^2)} \| \nabla f(W_0) \|^{\dagger 2} \nonumber \\
     Y
-        &:= \frac{(2 \beta + 1 / D^2)(1 - \beta) + \lambda}{2} \sigma^2 \nonumber \\
+        &:= \frac{(3 \beta + 1)(1 - \beta) + \lambda}{2(1 + \beta)} \sigma^2 \nonumber \\
     Z
-        &:= \frac{2 \beta}{1 - \beta} L \eta
-            + \frac{2\beta}{D^2 (1 - \beta)^2} L^2 \eta^2
+        &:= \frac{2 \beta^2}{1 - \beta} L \eta
+            + \frac{2 \beta^3}{D (1 - \beta)^2} L^2 \eta^2
             + \frac{2 L^2}{\lambda D}
-            + \frac{\lambda D^2 + D}{\lambda} \nonumber \\
+            + \frac{D (\lambda + 1)}{\lambda} \nonumber \\
         &\qquad
-            + \frac{2 D^2 + L\eta}{2}
-            + \left(\sqrt{2 (1 - \beta)} D \beta + (1 - \beta)\right) \frac{\sigma}{\sqrt{b}} \nonumber
+            + \frac{2 D + L\eta}{2}
+            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D}\sigma}{\sqrt{b}} \nonumber
 \end{align}$$
 
-**Approach 2: We measure the gradient norm with $\| \cdot \|_F$.** We set $\epsilon = \frac{\kappa_1}{\kappa_2^2 D^2}$ and $\epsilon' = \frac{\kappa_1}{2 \kappa_2^2 D}$, and substitute the norm equivalence bounds to obtain,
+**Approach 2: We measure the gradient norm with $\| \cdot \|_F$.** We set $\epsilon = \frac{\kappa_1}{\kappa_2^2 D}$ and $\epsilon' = \frac{\kappa_1}{2 \kappa_2^2 D}$, and substitute the norm equivalence bounds to obtain,
 $$\begin{align}
     \mathbb{E}\left[ \| \nabla f(W_t) \|_F \right]
         &\leq \frac{f(W_t) - f(W_{t+1})}{\eta\kappa_1}
             + \frac{\kappa_2}{\kappa_1} \mathbb{E}\left[ \| \nabla f(W_t) - C_t \|_F \right]
-            + \frac{1}{2 D^2} \mathbb{E}\left[ \| \nabla f(W_t) - C_t \|_F^2 \right] \nonumber \\
+            + \frac{1}{2 D} \mathbb{E}\left[ \| \nabla f(W_t) - C_t \|_F^2 \right] \nonumber \\
         &\quad
             + \frac{\lambda}{4 D} \left( \frac{2 D \sigma_F^2}{b} + \frac{8 L_F^2}{\lambda^2 \kappa_1} \right)
-            + \frac{\kappa_2^2}{\kappa_1^2}\frac{\lambda D^2 + D}{\lambda}
-            + \frac{2 \kappa_2^2 D^2/\kappa_1 + L_F\eta}{2\kappa_1} \nonumber \\
+            + \frac{\kappa_2^2}{\kappa_1^2}\frac{\lambda D + D}{\lambda}
+            + \frac{2 \kappa_2^2 D/\kappa_1 + L_F\eta}{2\kappa_1} \nonumber \\
 \end{align}$$
 
 And after taking expectations and averaging, we have,
@@ -643,18 +644,18 @@ where,
 $$\begin{align}
     X_F
         &:= \frac{f(W_0) - f^*}{\eta\kappa_1}
-            + \frac{2\sqrt{2}\beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} \| \nabla f(W_0) \|_F
-            + \frac{\beta}{D^2 (1 - \beta)} \| \nabla f(W_0) \|_F^2 \nonumber \\
+            + \frac{2 \beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} \| \nabla f(W_0) \|_F
+            + \frac{2 \beta}{D (1 - \beta^2)} \| \nabla f(W_0) \|_F^2 \nonumber \\
     Y_F
-        &:= \frac{(2 \beta + 1 / D^2)(1 - \beta) + \lambda}{2} \sigma_F^2 \nonumber \\
+        &:= \frac{(3 \beta + 1)(1 - \beta) + \lambda}{2(1 + \beta)} \sigma_F^2 \nonumber \\
     Z_F
-        &:= \frac{2 \beta}{1 - \beta} \frac{\kappa_2}{\kappa_1} L_F \eta
-            + \frac{2\beta}{D^2 (1 - \beta)^2} L_F^2 \eta^2
+        &:= \frac{2 \beta^2}{1 - \beta} \frac{\kappa_2}{\kappa_1} L_F \eta
+            + \frac{2 \beta^3}{D (1 - \beta)^2} L_F^2 \eta^2
             + \frac{2 L_F^2}{\lambda \kappa_1 D}
-            + \frac{\kappa_2^2}{\kappa_1^2}\frac{\lambda D^2 + D}{\lambda} \nonumber \\
+            + \frac{\kappa_2^2}{\kappa_1^2} \frac{D(\lambda + 1)}{\lambda} \nonumber \\
         &\qquad
-            + \frac{2\kappa_2^2 D^2/\kappa_1 + L_F\eta}{2\kappa_1}
-            + \left(\sqrt{2 (1 - \beta)} D \beta + (1 - \beta)\right) \frac{\kappa_2}{\kappa_1} \frac{\sigma_F}{\sqrt{b}} \quad\blacksquare \nonumber
+            + \frac{2\kappa_2^2 D/\kappa_1 + L_F\eta}{2\kappa_1}
+            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\kappa_2}{\kappa_1} \frac{\sqrt{D} \sigma_F}{\sqrt{b}} \quad\blacksquare \nonumber
 \end{align}$$
 
 ---
@@ -663,7 +664,7 @@ $$\begin{align}
 
 > **Theorem 12 (Critical batch size for steepest descent under arbitrary norms with (Nesterov) momentum and weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach $\epsilon$-convergence according to the criterion in Equation $\eqref{eq:convergence-criterion}$ is given by,
 $$\begin{equation}
-    b_{crit} = \left( (2\beta + 1 / D^2)(1 - \beta) + \lambda \right) \frac{\sigma^2}{\epsilon'} \label{eq:critical-batch-size}
+    b_{crit} = \left( \frac{(3 \beta + 1)(1 - \beta) + \lambda}{1 + \beta} \right) \frac{\sigma^2}{\epsilon'} \label{eq:critical-batch-size}
 \end{equation}$$
 where $\epsilon' := \epsilon - Z > 0$, for some constant $Z$ defined in Theorem (11).
 
@@ -694,7 +695,7 @@ $$\begin{align}
     \frac{d^2(b \cdot T(b))}{db^2} &= \frac{2XY^2}{(\epsilon' b - Y)^3} \geq 0 \nonumber
 \end{align}$$
 Thus, $b \cdot T(b)$ is a convex function for $b > \frac{Y}{\epsilon'}$, with a minimizer $b^* = \frac{2Y}{\epsilon'}$. This gives us the critical batch size,
-$$b_{crit} = \frac{2Y}{\epsilon'} = \left( (2\beta + 1 / D^2)(1 - \beta) + \lambda \right) \frac{\sigma^2}{\epsilon'}\quad\blacksquare$$
+$$b_{crit} = \frac{2Y}{\epsilon'} = \left( \frac{(3 \beta + 1)(1 - \beta) + \lambda}{1 + \beta} \right) \frac{\sigma^2}{\epsilon'}\quad\blacksquare$$
 
 ---
 
@@ -712,7 +713,7 @@ Optimizers we use in practice can be viewed as performing steepest descent under
 
 We can then use the following JAX code to estimate the $D$-smoothness for steepest descent under various norms. This typically results in $D \approx 1$ for SignSGD/AdamW and Muon/SOAP. And thus, we can typically approximate the critical batch size formula as,
 $$\begin{align}
-    b_{crit} &\approx ((2\beta + 1)(1 - \beta) + \lambda) \frac{\sigma^2}{\epsilon'} \nonumber \\
+    b_{crit} &= \left( \frac{(3 \beta + 1)(1 - \beta) + \lambda}{1 + \beta} \right) \frac{\sigma^2}{\epsilon'} \nonumber \\
 \end{align}$$
 
 ```python
@@ -771,15 +772,20 @@ print(min(m, n), float(lipschitz_estimate(grad_g_nuclear, spectral_norm, nuclear
 
 ## 5. Discussion
 
+![](critical_batch_size_comparison.png#center)
+
 The main result of this work is that the *shape* of the convergence bound:
 $$\frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] = \frac{X}{T} + \frac{Y}{b} + Z$$
 is universal across all norms used for steepest descent, with only the constants $X$ and $Z$ being sensitive to the choice of norm. As a consequence, the critical batch size formula:
-$$b_{crit} \approx \left( (2\beta + 1)(1 - \beta) + \lambda \right) \frac{\sigma^2}{\epsilon'}$$
+$$b_{crit}
+    = \left( \frac{(3 \beta + 1)(1 - \beta) + \lambda}{1 + \beta} \right) \frac{\sigma^2}{\epsilon'}
+    \approx \left( (2 \beta + 1)(1 - \beta) + \lambda \right) \frac{\sigma^2}{\epsilon'}
+$$
 also holds universally across all norms. This matches prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598). Intuitively, this means that first-order optimization does not ‘favor’ any particular norm in terms speed of convergence nor performance with respect to batch size scaling.
 
 ## Acknowledgements
 
-Big thanks to Antonio Silveti-Falls and Volkan Cevher for providing helpful feedback on an earlier draft of this work.
+Big thanks to Antonio Silveti-Falls and Volkan Cevher for providing helpful feedback on an earlier draft of this work. All remaining errors are my own.
 
 ## How to cite
 
@@ -809,7 +815,7 @@ In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto
 
 To see this, we first make the following assumption.
 
-> **Assumption A1.13 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm $\| \cdot \|$. Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2$ denoting nesterov momentum terms, we have,
+> **Assumption A1.13 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm $\| \cdot \|$. Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2$ denoting Nesterov momentum terms, we have,
 $$\begin{equation}
     \| \texttt{LMO}_{\| \cdot \|}(C_1) - \texttt{LMO}_{\| \cdot \|}(C_2) \| \leq L_{\text{LMO}} \| C_1 - C_2 \|^{\dagger}
 \end{equation}$$
@@ -831,7 +837,7 @@ $$\begin{align}
         &= \eta^2 \mathbb{E} \left[ \| A_t^{\text{noise}} \|^2 \right] \nonumber \\
         &= \eta^2 \mathbb{E} \left[ \| A_t^* - A_t^{\text{det}} \|^2 \right] \nonumber \\
         &\lesssim \eta^2 L_{\text{LMO}}^2 \mathbb{E} \left[ \| C_t - \nabla f(W_t) \|^{\dagger 2} \right] \nonumber \\
-        &\lesssim 2 \eta^2 L_{\text{LMO}}^2 (1 - \beta) D^2 \frac{\sigma^2}{b} + O\left(\frac{1}{T} + 1 \right) \nonumber \\
+        &\lesssim \eta^2 L_{\text{LMO}}^2 \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} + O\left(\frac{1}{T} + 1 \right) \nonumber \\
         &\propto \frac{\eta^2}{b} \quad\blacksquare \nonumber
 \end{align}$$
 
