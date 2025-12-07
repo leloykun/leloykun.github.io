@@ -19,9 +19,11 @@ citation:
     publication_date: "2025/11/22"
 ---
 
-## 1. Introduction and preliminaries
+## 0. Abstract
 
-This work generalizes prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598) on the critical batch size for the Muon optimizer [(Jordan et al., 2025)](https://kellerjordan.github.io/posts/muon/) to steepest descent under arbitrary norms with Nesterov momentum and weight decay. We show that the same critical batch size formula holds universally across all norms.
+This work generalizes prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598) on the critical batch size for the Muon optimizer [(Jordan et al., 2025)](https://kellerjordan.github.io/posts/muon/) to steepest descent under arbitrary norms with Nesterov momentum and weight decay. We show that (1) the same critical batch size formula, and (2) the square root learning rate scaling rule with batch size, holds universally across all norms. These results are useful for large-scale LLM training because they reduce the need for expensive hyperparameter tuning when switching between different optimizers and when scaling up batch sizes.
+
+## 1. Introduction and preliminaries
 
 We consider the following optimization problem:
 $$\arg\min_{W \in \mathcal{W}} f(W)$$
@@ -248,7 +250,7 @@ $$\begin{align}
             + \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} \nonumber
 \end{align}$$
 
-For the first moment, Jensen's inequality and $\sqrt{a + b + c} \leq \sqrt{a} + \sqrt{b} + \sqrt{c}$ for $a, b, c > 0$ yields,
+For the first moment, using $\sqrt{a + b + c} \leq \sqrt{a} + \sqrt{b} + \sqrt{c}$ for $a, b, c > 0$ yields,
 $$\begin{align}
     \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
         &\leq \sqrt{\mathbb{E}\left[ \| E_t \|^{\dagger 2} \right]} \nonumber \\
@@ -699,87 +701,7 @@ $$b_{crit}
     = \frac{2Y}{\epsilon'}
     = \left( \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} + \lambda \right) \frac{\sigma^2}{\epsilon'}\quad\blacksquare$$
 
-## 5. Discussion
-
-![](critical_batch_size_comparison.png#center)
-
-The main result of this work is that the *shape* of the convergence bound:
-$$\frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] = \frac{X}{T} + \frac{Y}{b} + Z$$
-is universal across all norms used for steepest descent, with only the constants $X$ and $Z$ being sensitive to the choice of norm. As a consequence, the critical batch size formula:
-$$b_{crit}
-    = \left( \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} + \lambda \right) \frac{\sigma^2}{\epsilon'}
-    \approx \left( (2 \beta + 1)(1 - \beta) + \lambda \right) \frac{\sigma^2}{\epsilon'}
-$$
-also holds universally across all norms. This matches prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598). Intuitively, this means that first-order optimization does not ‘favor’ any particular norm in terms speed of convergence nor performance with respect to batch size scaling.
-
-## Acknowledgements
-
-Big thanks to Antonio Silveti-Falls and Volkan Cevher for providing helpful feedback on an earlier draft of this work. All remaining errors are my own.
-
-## How to cite
-
-```bibtex
-@misc{cesista2025sdcbs,
-  author = {Franz Louis Cesista},
-  title = {Critical Batch Size for Steepest Descent Under Arbitrary Norms},
-  year = {2025},
-  month = {November},
-  day = {22},
-  url = {https://leloykun.github.io/ponder/steepest-descent-crit-bz/},
-}
-```
-
-## References
-
-1. Naoki Sato, Hiroki Naganuma, Hideaki Iiduka (2025). Convergence Bound and Critical Batch Size of Muon Optimizer. URL https://arxiv.org/abs/2507.01598
-2. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
-3. Jeremy Bernstein, Laker Newhouse (2024). Old Optimizer, New Norm: An Anthology. URL https://arxiv.org/abs/2409.20325
-4. Simo Ryu (2025). Empirical observation that AdamW, Shampoo, and Muon follow the lr ~ sqrt(batch size) scaling rule on X/Twitter. URL https://x.com/cloneofsimo/status/1907731069878825400
-
-## Appendix
-
-### A1. How to scale learning rate with batch size
-
-In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto \sqrt{b}$ when increasing the batch size $b$. Here we provide a mathematical justification *why*. The crux is that increasing the batch size reduces the gradient noise variance, which in turn means that we can make larger weight updates without destabilizing training.
-
-To see this, we first make the following assumption.
-
-> **Assumption A1.13 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm $\| \cdot \|$. Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2$ denoting Nesterov momentum terms, we have,
-$$\begin{equation}
-    \| \texttt{LMO}_{\| \cdot \|}(C_1) - \texttt{LMO}_{\| \cdot \|}(C_2) \| \leq L_{\text{LMO}} \| C_1 - C_2 \|^{\dagger}
-\end{equation}$$
-
-> **Proposition A1.14 (Gradient noise variance is proportional to $\eta^2/b$).** Let $\eta > 0$ be the learning rate and $b \geq 1$ be the batch size. Under Assumptions 1-3 and Assumption (A1.13), we have,
-$$\begin{equation}
-    \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] \propto \frac{\eta^2}{b}
-\end{equation}$$
-
-**Proof.** We can decompose our weight update rule in Equation $\eqref{eq:updateweightdecay}$ into deterministic and stochastic components as follows,
-$$\begin{equation}
-    \nabla W_t = W_{t+1} - W_t =  \underbrace{-\lambda\eta W_t + \eta A_t^{\text{det}}}_{\Delta W_t^{\text{det}}} + \underbrace{\eta A_t^{\text{noise}}}_{\Delta W_t^{\text{noise}}}
-\end{equation}$$
-where $A_t^* = A_t^{\text{det}} + A_t^{\text{noise}}$ is the decomposition of the steepest descent direction into its deterministic and stochastic components.
-
-Taking norms and expectations, and using Proposition (6) then yields,
-$$\begin{align}
-    \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]
-        &= \eta^2 \mathbb{E} \left[ \| A_t^{\text{noise}} \|^2 \right] \nonumber \\
-        &= \eta^2 \mathbb{E} \left[ \| A_t^* - A_t^{\text{det}} \|^2 \right] \nonumber \\
-        &\lesssim \eta^2 L_{\text{LMO}}^2 \mathbb{E} \left[ \| C_t - \nabla f(W_t) \|^{\dagger 2} \right] \nonumber \\
-        &\lesssim \eta^2 L_{\text{LMO}}^2 \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} + O\left(\frac{1}{T} + 1 \right) \nonumber \\
-        &\propto \frac{\eta^2}{b} \quad\blacksquare \nonumber
-\end{align}$$
-
-Now, if we already know that training is stable for some gradient noise variance level $\mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]$, then it is natural to preserve it as we scale the batch size $b$. Thus, we have,
-$$\begin{align}
-    \frac{\eta_{\text{new}}^2}{b_{\text{new}}}
-        &= \frac{\eta_{\text{old}}^2}{b_{\text{old}}} = \text{constant} \nonumber \\
-    \eta_{\text{new}}
-        &= \eta_{\text{old}}\sqrt{\frac{b_{\text{new}}}{b_{\text{old}}}}. \nonumber
-\end{align}$$
-This means that, e.g., if we $4\times$ the batch size, then increasing the learning rate by a factor of $2$ preserves training stability. This matches empirical observations first reported by [Ryu (2025)](https://x.com/cloneofsimo/status/1907731069878825400).
-
-### A2. Estimating D-smoothness for various optimizers
+### 4.1. Estimating D-smoothness for various optimizers
 
 Optimizers we use in practice can be viewed as performing steepest descent under different norms [(Bernstein et al., 2024)](https://arxiv.org/abs/2409.20325). We summarize the relevant norm choices and their corresponding $D$-smoothness constants below.
 
@@ -791,7 +713,7 @@ Optimizers we use in practice can be viewed as performing steepest descent under
 | Muon      | $\| \cdot \|_{2 \to 2}$            | $\| \cdot \|_{\text{nuc}}$ |
 | SOAP      | $\| \cdot \|_{2 \to 2}$ (adaptive) | $\| \cdot \|_{\text{nuc}}$ |
 
-We can then use the following JAX code to estimate the $D$-smoothness for steepest descent under various norms. Empirically, $D$ is typically close to $1$ for SignSGD/AdamW and Muon/SOAP even for high-dimensional weight matrices.
+We can then use the following JAX code to estimate the $D$-smoothness for steepest descent under various norms. Empirically, $D$ scales with width as $O(1)$ for SignSGD/AdamW and Muon/SOAP even for high-dimensional weight matrices, indicating that the critical batch size do not depend on the width and chosen norm.
 
 ```python
 import jax
@@ -846,3 +768,105 @@ n_pairs = 1000
 print(m*n, float(lipschitz_estimate(grad_g_f1, f_inf_norm, f1_norm, jnp.sign, key, shape, n_pairs=n_pairs)[0]))
 print(min(m, n), float(lipschitz_estimate(grad_g_nuclear, spectral_norm, nuclear_norm, orthogonalize, key, shape, n_pairs=n_pairs)[0]))
 ```
+
+## 5. Learning rate scaling with batch size
+
+How to scale learning rate with batch size
+
+In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto \sqrt{b}$ when increasing the batch size $b$. Here we provide a mathematical justification *why*. The crux is that increasing the batch size reduces the gradient noise variance, which in turn means that we can make larger weight updates without destabilizing training.
+
+To see this, we first make the following assumption.
+
+> **Assumption 13 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm $\| \cdot \|$. Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2$ denoting Nesterov momentum terms, we have,
+$$\begin{equation}
+    \| \texttt{LMO}_{\| \cdot \|}(C_1) - \texttt{LMO}_{\| \cdot \|}(C_2) \| \leq L_{\text{LMO}} \| C_1 - C_2 \|^{\dagger}
+\end{equation}$$
+
+> **Proposition 14 (Gradient noise variance is proportional to $\eta^2/b$).** Let $\eta > 0$ be the learning rate and $b \geq 1$ be the batch size. Under Assumptions 1-3 and Assumption (13), we have,
+$$\begin{equation}
+    \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] \propto \frac{\eta^2}{b}
+\end{equation}$$
+
+**Proof.** We can decompose our weight update rule in Equation $\eqref{eq:updateweightdecay}$ into deterministic and stochastic components as follows,
+$$\begin{equation}
+    \nabla W_t = W_{t+1} - W_t =  \underbrace{-\lambda\eta W_t + \eta A_t^{\text{det}}}_{\Delta W_t^{\text{det}}} + \underbrace{\eta A_t^{\text{noise}}}_{\Delta W_t^{\text{noise}}}
+\end{equation}$$
+where $A_t^* = A_t^{\text{det}} + A_t^{\text{noise}}$ is the decomposition of the steepest descent direction into its deterministic and stochastic components.
+
+Taking norms and expectations, and using Proposition (6) then yields,
+$$\begin{align}
+    \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]
+        &= \eta^2 \mathbb{E} \left[ \| A_t^{\text{noise}} \|^2 \right] \nonumber \\
+        &= \eta^2 \mathbb{E} \left[ \| A_t^* - A_t^{\text{det}} \|^2 \right] \nonumber \\
+        &\lesssim \eta^2 L_{\text{LMO}}^2 \mathbb{E} \left[ \| C_t - \nabla f(W_t) \|^{\dagger 2} \right] \nonumber \\
+        &\lesssim \eta^2 L_{\text{LMO}}^2 \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} + O\left(\frac{1}{T} + 1 \right) \nonumber \\
+        &\propto \frac{\eta^2}{b} \quad\blacksquare \nonumber
+\end{align}$$
+
+Now, if we already know that training is stable for some gradient noise variance level $\mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]$, then it is natural to preserve it as we scale the batch size $b$. Thus, we have,
+$$\begin{align}
+    \frac{\eta_{\text{new}}^2}{b_{\text{new}}}
+        &= \frac{\eta_{\text{old}}^2}{b_{\text{old}}} = \text{constant} \nonumber \\
+    \eta_{\text{new}}
+        &= \eta_{\text{old}}\sqrt{\frac{b_{\text{new}}}{b_{\text{old}}}}. \label{eq:lr-bz-scaling}
+\end{align}$$
+This means that, e.g., if we $4\times$ the batch size, then increasing the learning rate by a factor of $2$ preserves training stability. This is consistent with prior work ([McCandlish et al., 2018](https://arxiv.org/abs/1812.06162); [Malladi et al., 2024](https://arxiv.org/abs/2205.10287); [Ryu (2025)](https://x.com/cloneofsimo/status/1907731069878825400)).
+
+## 6. Experiments
+
+### 6.1. AdamW and Muon have the same critical batch size
+
+![](crit-bz-muon-vs-adamw.jpg#center)
+
+Here we train a 130M parameter Llama-based Transformer model using both AdamW and Muon optimizers for 1 Chinchilla. We sweep over batch sizes from $2^{18}$ to $2^{22}$ tokens, and for each batch size, we scale the learning rate $\eta$ as $\eta = \eta_0 \sqrt{b / b_0}$ (Equation $\eqref{eq:lr-bz-scaling}$), where $b_0 \approx 2^{19}$ and $\eta_0$ is the optimal learning rate found for $b_0$ for each optimizer ([Wen et al., 2025](https://arxiv.org/abs/2509.02046v1)). We then plot the validation loss against the batch size in the figure above.
+
+We see that both AdamW and Muon reach the same loss for batch sizes up to $2^{19}$ tokens, after which both optimizers start to degrade in performance. This provides empirical evidence that AdamW and Muon have the same critical batch size, consistent with our theoretical results. Interestingly, we also see that Muon is more stable at larger batch sizes, which is consistent with prior work ([Essential AI Team, 2025](https://arxiv.org/abs/2505.02222); [Ahn et al., 2025](https://arxiv.org/abs/2504.05295); [Pethick et al., 2025](https://arxiv.org/abs/2502.07529)). This will be an interesting direction for future work.
+
+### 6.2. Square Root Learning Rate Scaling is Effective
+
+![](lr-bz-scaling.png#center)
+
+Here we show that the square root learning rate scaling rule as in Equation $\eqref{eq:lr-bz-scaling}$ is effective for both AdamW and Muon optimizers. We train a 130M parameter Llama-based Transformer model using both optimizers for 8 Chinchilla, sweeping over learning rates and batch sizes. We then plot the validation loss against the learning rate & batch size in the figure above. Notice that the optimal $(\eta, \sqrt{b})$ pair remains roughly constant for both optimizers, confirming the effectiveness of the square root learning rate scaling rule.
+
+## 7. Discussion
+
+![](critical_batch_size_comparison.png#center)
+
+The main result of this work is that the *shape* of the convergence bound:
+$$\frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] = \frac{X}{T} + \frac{Y}{b} + Z$$
+is universal across all norms used for steepest descent, with only the constants $X$ and $Z$ being sensitive to the choice of norm. As a consequence, the critical batch size formula:
+$$b_{crit}
+    = \left( \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} + \lambda \right) \frac{\sigma^2}{\epsilon'}
+    \approx \left( (2 \beta + 1)(1 - \beta) + \lambda \right) \frac{\sigma^2}{\epsilon'}
+$$
+also holds universally across all norms. This matches prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598). Intuitively, this means that first-order optimization does not ‘favor’ any particular norm in terms speed of convergence nor performance with respect to batch size scaling. Also notice that $b_{crit} \to 0$ as $\beta \to 1$, which is expected since high momentum increases the effective batch size (or the "lifetime" of gradient estimates). Stronger weight decay $\lambda$ regularization also increases the critical batch size, which is due to the "pull" towards the origin competing with the gradient updates and thus requiring larger batch sizes to stabilize training.
+
+## Acknowledgements
+
+Big thanks to the [Marin Community](https://marin.community/) and especially Kaiyue Wen for helping me run experiments for this work. Also big thanks to Antonio Silveti-Falls and Volkan Cevher for providing helpful feedback on an earlier draft of this work. All remaining errors are my own.
+
+## How to cite
+
+```bibtex
+@misc{cesista2025sdcbs,
+  author = {Franz Louis Cesista},
+  title = {Critical Batch Size for Steepest Descent Under Arbitrary Norms},
+  year = {2025},
+  month = {November},
+  day = {22},
+  url = {https://leloykun.github.io/ponder/steepest-descent-crit-bz/},
+}
+```
+
+## References
+
+1. Naoki Sato, Hiroki Naganuma, Hideaki Iiduka (2025). Convergence Bound and Critical Batch Size of Muon Optimizer. URL https://arxiv.org/abs/2507.01598
+2. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
+3. Jeremy Bernstein, Laker Newhouse (2024). Old Optimizer, New Norm: An Anthology. URL https://arxiv.org/abs/2409.20325
+4. Sam McCandlish, Jared Kaplan, Dario Amodei, OpenAI Dota Team. An Empirical Model of Large-Batch Training. URL https://arxiv.org/abs/1812.06162
+5. Sadhika Malladi, Kaifeng Lyu, Abhishek Panigrahi, Sanjeev Arora (2024). On the SDEs and Scaling Rules for Adaptive Gradient Algorithms. URL https://arxiv.org/abs/2205.10287
+6. Simo Ryu (2025). Empirical observation that AdamW, Shampoo, and Muon follow the lr ~ sqrt(batch size) scaling rule on X/Twitter. URL https://x.com/cloneofsimo/status/1907731069878825400
+7. Kaiyue Wen, David Hall, Tengyu Ma, Percy Liang (2025). Fantastic Pretraining Optimizers and Where to Find Them. URL https://arxiv.org/abs/2509.02046v1
+8. Essential AI: Ishaan Shah, Anthony M. Polloreno, Karl Stratos, Philip Monk, Adarsh Chaluvaraju, Andrew Hojel, Andrew Ma, Anil Thomas, Ashish Tanwer, Darsh J Shah, Khoi Nguyen, Kurt Smith, Michael Callahan, Michael Pust, Mohit Parmar, Peter Rushton, Platon Mazarakis, Ritvik Kapila, Saurabh Srivastava, Somanshu Singla, Tim Romanski, Yash Vanjani, Ashish Vaswani (2025). Practical Efficiency of Muon for Pretraining. URL https://arxiv.org/abs/2505.02222
+9. Kwangjun Ahn, Byron Xu, Natalie Abreu, Ying Fan, Gagik Magakyan, Pratyusha Sharma, Zheng Zhan, John Langford (2025). Dion: Distributed Orthonormalized Updates. URL https://arxiv.org/abs/2504.05295
+10. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
