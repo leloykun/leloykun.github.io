@@ -126,8 +126,8 @@ We first control the variance of the mini-batch noise.
 $$\begin{align}
     \mathbb{E}\left[ \xi_{S_t} \right]
         &= 0 \label{eq:minibatchmean}, \\
-    \mathbb{E}\left[ \left\| \sum_{t,i} \alpha_{t,i} \xi_{t,i} \right\|^{\dagger 2} \right]
-        &\leq D \sigma^2 \sum_{t,i} \alpha_{t,i}^2
+    \mathbb{E}\left[ \left\| \sum_{i} \alpha_{t,i} \xi_{t,i} \right\|^{\dagger 2} \right]
+        &\leq D \sigma^2 \sum_{i} \alpha_{t,i}^2
 \end{align}$$
 In particular,
 $$\begin{align}
@@ -166,10 +166,10 @@ $$\begin{align}
 Unrolling the recurrence then gives,
 $$\begin{align}
     \mathbb{E}[ \| S_{t,b} \| ]
-        &\leq D \sum_{t,i} \alpha_{t,i}^2 \mathbb{E}[ \| \xi_{t,i} \|^{\dagger 2} ]
-        \leq D \sigma^2 \sum_{t,i} \alpha_{t,i}^2 \nonumber
+        &\leq D \sum_{i} \alpha_{t,i}^2 \mathbb{E}[ \| \xi_{t,i} \|^{\dagger 2} ]
+        \leq D \sigma^2 \sum_{i} \alpha_{t,i}^2 \nonumber
 \end{align}$$
-Setting $\alpha_{t,i} = \frac{1}{b}$ for all $i$ then gives Equation $\eqref{eq:minibatchvariance} \quad\blacksquare$.
+Setting $\alpha_{t,i} = \frac{1}{b}$ for all $i$ then gives Equation. $\eqref{eq:minibatchvariance} \quad\blacksquare$
 
 ---
 
