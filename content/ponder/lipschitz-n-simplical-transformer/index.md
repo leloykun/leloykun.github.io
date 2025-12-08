@@ -5,18 +5,9 @@ tags: ["Machine Learning", "Optimizers", "Architecture-Optimizer Codesign"]
 author: "Franz Louis Cesista"
 description: "Towards a maximal update parameterization of n-simplicial attention"
 summary: "Towards a maximal update parameterization of n-simplicial attention"
-# cover:
-#     image: cover.jpg
-#     alt: "Cover"
-#     relative: true
 editPost:
     URL: "https://x.com/leloykun/status/1943779237942768015"
     Text: "Crossposted on X (formerly Twitter)"
-citation:
-    title: "Sensitivity and Sharpness of n-Simplicial Attention"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/07/06"
 ---
 
 > If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]

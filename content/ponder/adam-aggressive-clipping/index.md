@@ -5,18 +5,9 @@ tags: ["Machine Learning", "Optimizers"]
 author: "Franz Louis Cesista"
 description: "Why does Adam with aggressive gradient value/norm clipping have sparse updates and do well with higher learning rates? Here we show that it is essentially equivalent to a smoothed version of SignSGD/NormSGD."
 summary: "Why does Adam with aggressive gradient value/norm clipping have sparse updates and do well with higher learning rates? Here we show that it is essentially equivalent to a smoothed version of SignSGD/NormSGD."
-# cover:
-#     image: cover.jpg
-#     alt: "Cover"
-#     relative: true
 editPost:
     URL: "https://x.com/leloykun/status/1941067659157913625"
     Text: "Crossposted on X (formerly Twitter)"
-citation:
-    title: "Adam with Aggressive Gradient Clipping ≈ Smoothed SignSGD/NormSGD"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/07/03"
 ---
 
 > If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]

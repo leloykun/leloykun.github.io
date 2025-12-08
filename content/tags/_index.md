@@ -1,6 +1,6 @@
 ---
 title: "Tags"
-author: ["Pascal Michaillat"]
-description: "List of topics and methods appearing throughout Pascal Michaillat's research papers."
+author: ["Franz Louis Cesista"]
+description: "List of topics and methods appearing throughout Franz Louis Cesista's research papers and blog posts."
 layout: "terms"
 ---

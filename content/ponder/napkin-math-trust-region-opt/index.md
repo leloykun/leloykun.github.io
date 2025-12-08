@@ -5,17 +5,6 @@ tags: ["Machine Learning", "Muon"]
 author: "Franz Louis Cesista"
 description: "A possible reason why Muon converges faster & does better at higher learning rates than Adam."
 summary: "A possible reason why Muon converges faster & does better at higher learning rates than Adam."
-# cover:
-#     image: cover.jpg
-#     alt: "Cover"
-# editPost:
-#     URL: "https://x.com/leloykun/status/1901267939267162351"
-#     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "Napkin Math on Non-Euclidean Trust Region Optimization"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/03/24"
 ---
 
 In a [previous post](../steepest-descent-schatten-p/), we talked about how to derive some common optimizers from a choice of norm. In this post, we'll go over [Kovalev's recent paper on Non-Euclidean Trust Region Optimization](https://arxiv.org/abs/2503.12645) and how we can use its main result to explain why Muon converges faster and does better at higher learning rates than Adam.

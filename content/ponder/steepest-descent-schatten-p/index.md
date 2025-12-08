@@ -5,17 +5,6 @@ tags: ["Machine Learning", "Muon"]
 author: "Franz Louis Cesista"
 description: "Why Muon still work despite not perfectly semi-orthogonalizing the gradients."
 summary: "Why Muon still work despite not perfectly semi-orthogonalizing the gradients."
-# cover:
-    # image: muon-022125-speedrun-record.png
-    # alt: "Cover"
-# editPost:
-#     URL: "https://x.com/leloykun/status/1892793848163946799"
-#     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "Steepest Descent Under Schatten-p Norms"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/02/27"
 ---
 
 ## Prologue

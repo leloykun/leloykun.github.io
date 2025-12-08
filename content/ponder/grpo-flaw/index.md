@@ -12,11 +12,6 @@ cover:
 editPost:
     URL: "https://x.com/leloykun/status/1889333283693179351"
     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "GRPO's Main Flaw"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/02/11"
 ---
 
 ## GRPO might not be the best choice for multi-task RL training

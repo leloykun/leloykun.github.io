@@ -12,11 +12,6 @@ cover:
 editPost:
     URL: "https://x.com/leloykun/status/1958915061793075549"
     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "Steepest Descent on Finsler-Structured (Matrix) Manifolds"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/08/20"
 ---
 
 > If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]
@@ -459,7 +454,7 @@ Big thanks to Jeremy Bernstein, Cédric Simal, and Antonio Silveti-Falls for pro
 
 1. Jeremy Bernstein (2025). Stiefel manifold. URL https://docs.modula.systems/algorithms/manifold/stiefel/
 2. Jianlin Su (2025). Muon + Stiefel. URL https://kexue.fm/archives/11221
-3. Laker Newhouse, R. Preston Hess, Franz Cesista, Andrii Zahorodnii, Jeremy Bernstein, Phillip Isola (2025). Training Transformers with Enforced Lipschitz Bounds. URL https://arxiv.org/abs/2507.13338
+3. Laker Newhouse, Preston Hess, Franz Cesista, Andrii Zahorodnii, Jeremy Bernstein, Phillip Isola (2025). Training Transformers with Enforced Lipschitz Bounds. URL https://arxiv.org/abs/2507.13338
 4. Jeremy Bernstein & Laker Newhouse (2024). Old optimizer, new norm: an anthology. URL https://arxiv.org/abs/2409.20325
 5. Keller Jordan and Yuchen Jin and Vlado Boza and Jiacheng You and Franz Cesista and Laker Newhouse and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. URL https://kellerjordan.github.io/posts/muon/
 6. Greg Yang, James B. Simon, Jeremy Bernstein (2024). A Spectral Condition for Feature Learning. URL https://arxiv.org/abs/2310.17813

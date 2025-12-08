@@ -11,11 +11,6 @@ cover:
 editPost:
     URL: "https://github.com/leloykun/mmsg"
     Text: "Github Repository"
-citation:
-    title: "Multimodal Structured Generation"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2024/07/14"
 ---
 
 Repo: https://github.com/leloykun/mmsg

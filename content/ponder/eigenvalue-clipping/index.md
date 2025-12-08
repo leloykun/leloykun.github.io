@@ -9,14 +9,6 @@ cover:
     image: lr_transfer_pdhg_spectral_ball_spectral.png
     alt: "Cover"
     relative: true
-# editPost:
-#     URL: "https://x.com/leloykun/status/1936191549735624977"
-#     Text: "Crossposted on X (formerly Twitter)"
-citation:
-    title: "Efficient Eigenvalue Clipping and Steepest Descent on the Positive Semidefinite Cone"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/10/02"
 _build:
   list: false
   render: true

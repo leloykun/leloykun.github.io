@@ -12,11 +12,6 @@ cover:
 editPost:
     URL: "https://x.com/leloykun/status/1883634169902952655"
     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "(Linear) Attention as Test-Time Regression"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/01/27"
 ---
 
 > Note: This was originally posted as a Twitter thread. I've reformatted it here for better readability.

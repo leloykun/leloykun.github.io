@@ -5,17 +5,9 @@ tags: ["Machine Learning", "Linear Attention", "Test-Time Regression"]
 author: "Franz Louis Cesista"
 description: "The blocked matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism."
 summary: "The blocked matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism."
-# cover:
-#     image: cover.jpg
-#     alt: "Cover"
 editPost:
     URL: "https://x.com/leloykun/status/1901267939267162351"
     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "Blocked Matrix Formulation of Linear Attention Mechanisms"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/03/16"
 ---
 
 In the [previous post](../test-time-regression/), we derived several linear attention mechanisms from scratch by formulating them as test-time online regression problems. Here, we'll discuss a more intuitive way to represent the update rules of the internal states of these linear attention mechanisms using a blocked matrix formulation. Then, we'll discuss how to use it to (1) derive the update rules for linear attention mechanisms that take multiple gradient descent steps per token and (2) derive the update rules for chunk-wise parallelism of already-existing linear attention mechanisms.

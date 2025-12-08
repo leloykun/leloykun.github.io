@@ -12,11 +12,6 @@ cover:
 editPost:
     URL: "https://x.com/leloykun/status/1892793848163946799"
     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/02/21"
 ---
 
 ## What's Muon?

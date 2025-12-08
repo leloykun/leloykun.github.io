@@ -12,11 +12,6 @@ cover:
 editPost:
     URL: "https://x.com/leloykun/status/1847919153589735705"
     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "Deep Learning Optimizers as Steepest Descent in Normed Spaces"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2024/10/20"
 ---
 
 > Note: This was originally posted as a Twitter thread. I've reformatted it here for better readability.

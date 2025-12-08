@@ -9,11 +9,6 @@ cover:
     image: cover.png
     alt: "Multimodal Structured Generation: CVPR's 2nd MMFM Challenge Technical Report"
     relative: true
-citation:
-    title: "Multimodal Structured Generation: CVPR's 2nd MMFM Challenge Technical Report"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2024/06/17"
 ---
 
 Authors: [Franz Louis Cesista](mailto:franzlouiscesista@gmail.com)

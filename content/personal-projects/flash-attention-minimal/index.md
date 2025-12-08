@@ -8,11 +8,6 @@ summary: "A minimal implementation of Flash Attention 1 & 2 in just ~350 lines o
 editPost:
     URL: "https://github.com/leloykun/flash-attention-minimal"
     Text: "Github Repository"
-citation:
-    title: "Flash Attention Minimal"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2024/04/16"
 ---
 
 Repo: https://github.com/leloykun/flash-attention-minimal

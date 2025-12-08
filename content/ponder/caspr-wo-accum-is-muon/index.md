@@ -8,11 +8,6 @@ summary: "The CASPR optimizer, a variant of Shampoo, reduces to Muon when we rem
 editPost:
     URL: "https://x.com/leloykun/status/1889996276512796855"
     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "CASPR Without Accumulation is Muon"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/02/13"
 ---
 
 CASPR is a variant of the Shampoo optimizer that finds different preconditioners for each axis of the parameter.

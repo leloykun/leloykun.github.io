@@ -1,0 +1,32 @@
+<meta name="citation_title" content="{{ .Params.title }}">
+{{- with .Params.date }}
+<meta name="citation_publication_date" content="{{ . | time.Format " 2006/01/02" }}">
+{{- end }}
+
+{{- $author := (.Params.author | default site.Params.author) }}
+{{- $author_type := (printf "%T" $author) }}
+{{- if (or (eq $author_type "[]string") (eq $author_type "[]interface {}")) }}
+{{- range $i, $e := $author }}
+<meta name="citation_author" content="{{ $e }}">
+{{- end }}
+{{- else }}
+<meta name="citation_author" content="{{ $author }}">
+{{- end }}
+
+{{- if .Params.citation -}}
+    {{- if .Params.citation.journal }}
+        <meta name="citation_journal_title" content="{{ .Params.citation.journal }}">
+    {{- end }}
+    {{- if .Params.citation.volume }}
+        <meta name="citation_volume" content="{{ .Params.citation.volume }}">
+    {{- end }}
+    {{- if .Params.citation.issue }}
+        <meta name="citation_issue" content="{{ .Params.citation.issue }}">
+    {{- end }}
+    {{- if .Params.citation.doi }}
+        <meta name="citation_doi" content="{{ .Params.citation.doi }}">
+    {{- end }}
+    {{- if .Params.citation.pdf_url }}
+        <meta name="citation_pdf_url" content="{{ .Params.citation.pdf_url }}">
+    {{- end }}
+{{- end }}

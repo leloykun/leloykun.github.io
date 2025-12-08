@@ -9,14 +9,6 @@ cover:
     image: wd-vs-manifold-opt.png
     alt: "Cover"
     relative: true
-# editPost:
-#     URL: "https://x.com/leloykun/status/1958915061793075549"
-#     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "Rethinking Maximal Update Parametrization: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/10/29"
 ---
 
 ## 1. Introduction
@@ -469,7 +461,7 @@ Big thanks to Jeremy Bernstein, Cédric Simal, and Antonio Silveti-Falls for pro
 4. Franz Cesista (2025). Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration. URL https://leloykun.github.io/ponder/spectral-clipping/
 5. Franz Cesista (2025). Heuristic Solutions for Steepest Descent on the Stiefel Manifold. URL https://leloykun.github.io/ponder/steepest-descent-stiefel/
 6. Greg Yang, James B. Simon, Jeremy Bernstein (2024). A Spectral Condition for Feature Learning. URL https://arxiv.org/abs/2310.17813
-7. Laker Newhouse*, R. Preston Hess*, Franz Cesista*, Andrii Zahorodnii, Jeremy Bernstein, Phillip Isola (2025). Training Transformers with Enforced Lipschitz Constants. URL https://arxiv.org/abs/2507.13338
+7. Laker Newhouse*, Preston Hess*, Franz Cesista*, Andrii Zahorodnii, Jeremy Bernstein, Phillip Isola (2025). Training Transformers with Enforced Lipschitz Constants. URL https://arxiv.org/abs/2507.13338
 8. Aurko Roy, Timothy Chou, Sai Surya Duvvuri, Sijia Chen, Jiecao Yu, Xiaodong Wang, Manzil Zaheer, Rohan Anil (2025). Fast and Simplex: 2-Simplicial Attention in Triton. URL https://arxiv.org/abs/2507.02754v1
 9. Tim Large, Yang Liu, Minyoung Huh, Hyojin Bahng, Phillip Isola, Jeremy Bernstein (2024). Scalable Optimization in the Modular Norm. URL https://arxiv.org/abs/2405.14813
 10. Jeremy Bernstein (2025). Stiefel manifold. URL https://docs.modula.systems/algorithms/manifold/stiefel/

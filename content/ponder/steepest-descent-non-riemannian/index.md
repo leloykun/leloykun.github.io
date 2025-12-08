@@ -12,11 +12,6 @@ cover:
 editPost:
     URL: "https://x.com/leloykun/status/1907211629982556320"
     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/04/03"
 ---
 
 > This is still a Work in Progress (WIP). I've decided to publish this earlier than planned to get feedback and iterate quickly. If you spot any mistakes, please don't hesitate to let me know! Email me at franzlouiscesista@gmail.com or tag me on X ([@leloykun](https://x.com/leloykun)).

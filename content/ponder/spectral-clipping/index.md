@@ -12,11 +12,6 @@ cover:
 editPost:
     URL: "https://x.com/leloykun/status/1936191549735624977"
     Text: "Crossposted on X (formerly Twitter)"
-citation:
-    title: "Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/06/23"
 ---
 
 > If you find this post useful, please consider supporting my work by sponsoring me on GitHub: [![Sponsor on GitHub][sponsor-badge]][sponsor-link]

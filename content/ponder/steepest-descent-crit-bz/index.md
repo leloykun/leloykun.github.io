@@ -2,21 +2,9 @@
 title: "Critical Batch Size for Steepest Descent Under Arbitrary Norms"
 date: 2025-11-22
 tags: ["Machine Learning", "Optimizers"]
-author: "Franz Louis Cesista"
+author: ["Franz Louis Cesista", "Kaiyue Wen"]
 description: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal critical batch size formula."
 summary: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal critical batch size formula."
-# cover:
-#     image: lr_transfer_pdhg_stiefel_spectral.png
-#     alt: "Cover"
-#     relative: true
-# editPost:
-#     URL: "https://x.com/leloykun/status/1958915061793075549"
-#     Text: "Crossposted from X (formerly Twitter)"
-citation:
-    title: "Critical Batch Size for Steepest Descent Under Arbitrary Norms"
-    author:
-        - "Franz Louis Cesista"
-    publication_date: "2025/11/22"
 ---
 
 ## 0. Abstract
@@ -126,8 +114,8 @@ We first control the variance of the mini-batch noise.
 $$\begin{align}
     \mathbb{E}\left[ \xi_{S_t} \right]
         &= 0 \label{eq:minibatchmean}, \\
-    \mathbb{E}\left[ \left\| \sum_{i} \alpha_{t,i} \xi_{t,i} \right\|^{\dagger 2} \right]
-        &\leq D \sigma^2 \sum_{i} \alpha_{t,i}^2
+    \mathbb{E}\left[ \left\| \sum_{i=1}^b \alpha_{t,i} \xi_{t,i} \right\|^{\dagger 2} \right]
+        &\leq D \sigma^2 \sum_{i=1}^b \alpha_{t,i}^2
 \end{align}$$
 In particular,
 $$\begin{align}
@@ -166,8 +154,8 @@ $$\begin{align}
 Unrolling the recurrence then gives,
 $$\begin{align}
     \mathbb{E}[ \| S_{t,b} \| ]
-        &\leq D \sum_{i} \alpha_{t,i}^2 \mathbb{E}[ \| \xi_{t,i} \|^{\dagger 2} ]
-        \leq D \sigma^2 \sum_{i} \alpha_{t,i}^2 \nonumber
+        &\leq D \sum_{i=1}^b \alpha_{t,i}^2 \mathbb{E}[ \| \xi_{t,i} \|^{\dagger 2} ]
+        \leq D \sigma^2 \sum_{i=1}^b \alpha_{t,i}^2 \nonumber
 \end{align}$$
 Setting $\alpha_{t,i} = \frac{1}{b}$ for all $i$ then gives Equation. $\eqref{eq:minibatchvariance} \quad\blacksquare$
 
@@ -849,7 +837,7 @@ Big thanks to the [Marin Community](https://marin.community/) and especially Kai
 
 ```bibtex
 @misc{cesista2025sdcbs,
-  author = {Franz Louis Cesista},
+  author = {Franz Louis Cesista, Kaiyue Wen},
   title = {Critical Batch Size for Steepest Descent Under Arbitrary Norms},
   year = {2025},
   month = {November},
