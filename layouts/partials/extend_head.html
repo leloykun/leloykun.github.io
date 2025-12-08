@@ -1,6 +1,6 @@
 <meta name="citation_title" content="{{ .Params.title }}">
 {{- with .Params.date }}
-<meta name="citation_publication_date" content="{{ . | time.Format " 2006/01/02" }}">
+<meta name="citation_publication_date" content="{{ . | time.Format "2006/01/02" }}">
 {{- end }}
 
 {{- $author := (.Params.author | default site.Params.author) }}
