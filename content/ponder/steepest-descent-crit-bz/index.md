@@ -114,8 +114,8 @@ We first control the variance of the mini-batch noise.
 $$\begin{align}
     \mathbb{E}\left[ \xi_{S_t} \right]
         &= 0 \label{eq:minibatchmean}, \\
-    \mathbb{E}\left[ \left\| \sum_{i=1}^b \alpha_{t,i} \xi_{t,i} \right\|^{\dagger 2} \right]
-        &\leq D \sigma^2 \sum_{i=1}^b \alpha_{t,i}^2
+    \mathbb{E}\left[ \left\| \sum_{i} \alpha_{i} \xi_{i} \right\|^{\dagger 2} \right]
+        &\leq D \sigma^2 \sum_{i} \alpha_{i}^2
 \end{align}$$
 In particular,
 $$\begin{align}
@@ -134,30 +134,30 @@ $$\begin{align}
         &= 0 \nonumber
 \end{align}$$
 
-Now, let $S_{t,k} = \sum_{t,i=1}^{i=k} \alpha_{t,i} \xi_{t,i}$ be the partial (weighted) sum of the first $k$ noise terms. We can then apply the descent lemma on $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$, taking expectations, and using Assumption (1) to get,
+Now, let $S_{k} = \sum_{i=1}^{k} \alpha_{i} \xi_{i}$ be the partial (weighted) sum of the first $k$ noise terms. We can then apply the descent lemma on $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$, taking expectations, and using Assumption (1) to get,
 $$\begin{align}
-    g(S_{t,k})
-        &\leq g(S_{t,k-1})
-            + \langle \nabla g(S_{t,k-1}), \alpha_{t,k} \xi_{t,k} \rangle
-            + \frac{D}{2} \| \alpha_{t,k} \xi_{t,k} \|^{\dagger 2} \nonumber \\
-    \frac{1}{2} \| S_{t,k} \|^{\dagger 2}
-        &\leq \frac{1}{2} \| S_{t,k-1} \|^{\dagger 2}
-            + \alpha_{t,k} \langle \nabla g(S_{t,k-1}), \xi_{t,k} \rangle
-            + \frac{D}{2} \alpha_{t,k}^2 \| \xi_{t,k} \|^{\dagger 2} \nonumber \\
-    \mathbb{E}\left[ \| S_{t,k} \|^{\dagger 2} \right]
-        &\leq \mathbb{E}\left[ \| S_{t,k-1} \|^{\dagger 2} \right]
-            + \cancel{2 \alpha_{t,k} \left\langle \nabla g(S_{t,k-1}), \mathbb{E}\left[ \xi_{t,k} \right] \right\rangle}
-            + D \alpha_{t,k}^2 \mathbb{E}\left[ \| \xi_{t,k} \|^{\dagger 2} \right] \nonumber \\
-        &\leq \mathbb{E}\left[ \| S_{t,k-1} \|^{\dagger 2} \right]
-            + D \alpha_{t,k}^2 \sigma^2 \nonumber
+    g(S_{k})
+        &\leq g(S_{k-1})
+            + \langle \nabla g(S_{k-1}), \alpha_{k} \xi_{k} \rangle
+            + \frac{D}{2} \| \alpha_{k} \xi_{k} \|^{\dagger 2} \nonumber \\
+    \frac{1}{2} \| S_{k} \|^{\dagger 2}
+        &\leq \frac{1}{2} \| S_{k-1} \|^{\dagger 2}
+            + \alpha_{k} \langle \nabla g(S_{k-1}), \xi_{k} \rangle
+            + \frac{D}{2} \alpha_{k}^2 \| \xi_{k} \|^{\dagger 2} \nonumber \\
+    \mathbb{E}\left[ \| S_{k} \|^{\dagger 2} \right]
+        &\leq \mathbb{E}\left[ \| S_{k-1} \|^{\dagger 2} \right]
+            + \cancel{2 \alpha_{k} \left\langle \nabla g(S_{k-1}), \mathbb{E}\left[ \xi_{k} \right] \right\rangle}
+            + D \alpha_{k}^2 \mathbb{E}\left[ \| \xi_{k} \|^{\dagger 2} \right] \nonumber \\
+        &\leq \mathbb{E}\left[ \| S_{k-1} \|^{\dagger 2} \right]
+            + D \alpha_{k}^2 \mathbb{E}\left[ \| \xi_{k} \|^{\dagger 2} \right] \nonumber
 \end{align}$$
-Unrolling the recurrence then gives,
+Unrolling the recurrence, and using Assumption (2) then gives,
 $$\begin{align}
-    \mathbb{E}[ \| S_{t,b} \| ]
-        &\leq D \sum_{i=1}^b \alpha_{t,i}^2 \mathbb{E}[ \| \xi_{t,i} \|^{\dagger 2} ]
-        \leq D \sigma^2 \sum_{i=1}^b \alpha_{t,i}^2 \nonumber
+    \mathbb{E}[ \| S_{k} \|^{\dagger 2} ]
+        &\leq D \sum_{i=1}^k \alpha_{i}^2 \mathbb{E}[ \| \xi_{i} \|^{\dagger 2} ]
+        \leq D \sigma^2 \sum_{i=1}^k \alpha_{i}^2 \nonumber
 \end{align}$$
-Setting $\alpha_{t,i} = \frac{1}{b}$ for all $i$ then gives Equation. $\eqref{eq:minibatchvariance} \quad\blacksquare$
+Setting $\alpha_{i} = \frac{1}{b}$ for all $i$ then gives Equation. $\eqref{eq:minibatchvariance} \quad\blacksquare$
 
 ---
 
@@ -216,13 +216,16 @@ $$\begin{align}
             + \frac{\beta}{1 - \beta} L \eta \nonumber \\
     \mathbb{E} \left[ \| E_t^{\text{drift}} \|^{\dagger 2} \right]
         &\leq 2 \beta^{2t} \| \nabla f(W_0) \|^{\dagger 2}
-            + \frac{2 \beta^2}{(1 - \beta)^2} L \eta \nonumber
+            + \frac{2 \beta^2}{(1 - \beta)^2} L^2 \eta^2 \nonumber
 \end{align}$$
-And for the noise term, we have from Lemma (5),
+And for the noise term, we have from Lemma (5) (viewing the double sum over time and batch as a single sum over $t \times b$ independent noise terms),
 $$\begin{align}
+    \| E_t^{\text{noise}} \|^{\dagger 2}
+        &= \left\| \sum_{k=1}^t \sum_{i=1}^b \beta^{t-k}(1 - \beta)\frac{1}{b} \xi_{k,i} \right\|^{\dagger 2} \nonumber \\
     \mathbb{E} \left[ \| E_t^{\text{noise}} \|^{\dagger 2} \right]
         &\leq D \sigma^2 \sum_{k=1}^t \sum_{i=1}^b \left( \frac{(1 - \beta) \beta^{t-k}}{b} \right)^2 \nonumber \\
-        &\leq \frac{1 - \beta}{1 + \beta} \frac{D \sigma^2}{b} \nonumber
+        &\leq \frac{(1 - \beta)^2}{1 - \beta^2} \frac{D \sigma^2}{b} \nonumber \\
+        &= \frac{1 - \beta}{1 + \beta} \frac{D \sigma^2}{b} \nonumber
 \end{align}$$
 Thus, using $(a + b)^2 \leq 2a^2 + 2b^2$,
 $$\begin{align}
@@ -233,7 +236,7 @@ $$\begin{align}
             + \frac{4 \beta^2}{(1 - \beta)^2} L^2 \eta^2
             + \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} \nonumber \\
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E} \left[ \| E_t \|^{\dagger 2} \right]
-        &\leq \frac{1}{T} \frac{4}{1 - \beta^2} \| \nabla f(W_0) \|^{\dagger 2}
+        &\leq \frac{4}{1 - \beta^2} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
             + \frac{4 \beta^2}{(1 - \beta)^2} L^2 \eta^2
             + \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} \nonumber
 \end{align}$$
