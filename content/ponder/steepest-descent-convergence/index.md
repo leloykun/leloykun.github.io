@@ -7,7 +7,7 @@ description: "First-order optimization under arbitrary norms with Nesterov momen
 summary: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal convergence bound. Our results generalize to norms not induced by inner products, and also considers batch size."
 ---
 
-## Introduction
+## 1. Introduction
 
 From Theorem 11 in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), we have the following bound on the average expected gradient norm when using steepest descent under an arbitrary norm $\| \cdot \|$ with Nesterov momentum and weight decay.
 
@@ -34,7 +34,7 @@ $$\begin{equation}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \text{ - [noise floor]} \leq \epsilon
 \end{equation}$$
 
-## Convergence analysis
+## 2. Convergence analysis
 
 First, note that as $T \to \infty$, only the (first) term involving $\frac{1}{T}$ vanishes. This term depends on hyperparameters $\eta$ and $\beta$, so we will need to set bounds on these hyperparameters to ensure convergence to the noise floor. We then fold the terms depending only on $\lambda, \sigma, b, L, D$ into the noise floor.
 
@@ -54,7 +54,7 @@ $$\begin{align}
 
 It then suffices to force each term to be $\mathcal{O}(\epsilon)$.
 
-### Bounding θ
+### 2.1. Bounding θ
 
 For small constants $c_1$ and $c_2$, say $c_1, c_2 \leq 1/8$, we want to bound the terms involving $\theta$ by $\epsilon$ as follows,
 $$\begin{align}
@@ -68,7 +68,7 @@ $$\begin{equation}
     \theta = \mathcal{O}\left(\min{\left\{1, \frac{b\epsilon^2}{D\sigma^2}\right\}}\right) \label{eq:theta-bound}
 \end{equation}$$
 
-### Bounding η
+### 2.2. Bounding η
 
 For small constants $c_3, c_4, c_5$, we then bound the terms involving $\eta$ by $\epsilon$ as follows,
 $$\begin{align}
@@ -86,7 +86,7 @@ $$\begin{equation}
     \eta = \mathcal{O}\left(\min{\left\{\frac{\epsilon}{L}, \frac{b\epsilon^3}{D\sigma^2L}\right\}}\right) \label{eq:eta-bound}
 \end{equation}$$
 
-### Bounding T
+### 2.3. Bounding T
 
 For small constants $c_6, c_7, c_8$, we then bound the terms involving $T$ by $\epsilon$ as follows,
 $$\begin{align}
@@ -128,9 +128,11 @@ $$\begin{align}
     \right\}}\right) \label{eq:T-bound-final}
 \end{align}$$
 
-The iteration complexity in Equation \eqref{eq:T-bound-final} is proportional to $1/\epsilon^4$ in the worst case, which is consistent with prior state-of-the-art results ([Ghadimi and Lan, 2013](https://doi.org/10.1137/120880811); [Cutkosky and Mehta, 2020](https://proceedings.mlr.press/v119/cutkosky20b.html); [Sun et al., 2023](https://proceedings.mlr.press/v202/sun23l.html); [Kovalev, 2025](https://arxiv.org/abs/2503.12645)) and cannot be improved further without additional assumptions on the objective function $f$ and geometry of the norm $\| \cdot \|$ used for steepest descent ([Arjevani et al., 2022](https://doi.org/10.1007/s10107-022-01822-7)).
+## 3. Discussion
 
-Interestingly, from the bounds in Equations \eqref{eq:theta-bound} and \eqref{eq:eta-bound}, there seems to be a batch size $b^*$ such that, up to which, increasing the batch size allows us to increase the learning rate and let $\beta \to 1$, thereby reducing the number of iterations required to reach the desired stationary tolerance $\epsilon$. But beyond $b^*$, increasing the batch size no longer helps reduce the iteration complexity, as the bounds on $\eta$ and $\theta$ become independent of $b$, and $T$ starts to scale as $\Omega(1/\epsilon^2)$.
+The iteration complexity in Equation \eqref{eq:T-bound-final} is proportional to $1/\epsilon^4$ in the worst case, which is consistent with prior state-of-the-art results ([Ghadimi and Lan, 2013](https://doi.org/10.1137/120880811); [Cutkosky and Mehta, 2020](https://proceedings.mlr.press/v119/cutkosky20b.html); [Sun et al., 2023](https://proceedings.mlr.press/v202/sun23l.html); [Kovalev, 2025](https://arxiv.org/abs/2503.12645)) and cannot be improved further without additional assumptions ([Arjevani et al., 2022](https://doi.org/10.1007/s10107-022-01822-7)).
+
+Interestingly, from the bounds in Equations \eqref{eq:theta-bound} and \eqref{eq:eta-bound}, there seems to be a batch size threshold $b^*$ such that, up to which, increasing the batch size allows us to increase the learning rate and let $\beta \to 1$, thereby reducing the number of iterations required to reach the desired stationary tolerance $\epsilon$. But beyond $b^*$, increasing the batch size no longer helps reduce the iteration complexity, as the bounds on $\eta$ and $\theta$ become independent of $b$, and $T$ starts to scale as $\Omega(1/\epsilon^2)$.
 
 ## How to cite
 
