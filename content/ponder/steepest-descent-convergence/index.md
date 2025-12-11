@@ -3,8 +3,8 @@ title: "Convergence Bounds for Steepest Descent Under Arbitrary Norms"
 date: 2025-12-11
 tags: ["Machine Learning", "Optimizers"]
 author: ["Franz Louis Cesista"]
-description: "-"
-summary: "-"
+description: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal convergence bound. Our results generalize to norms not induced by inner products, and also considers batch size."
+summary: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal convergence bound. Our results generalize to norms not induced by inner products, and also considers batch size."
 ---
 
 ## Introduction

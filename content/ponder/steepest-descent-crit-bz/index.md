@@ -3,8 +3,8 @@ title: "Critical Batch Size for Steepest Descent Under Arbitrary Norms"
 date: 2025-11-22
 tags: ["Machine Learning", "Optimizers"]
 author: ["Franz Louis Cesista", "Kaiyue Wen"]
-description: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal critical batch size formula."
-summary: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal critical batch size formula."
+description: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal critical batch size formula. The square root learning rate scaling rule with batch size also holds universally across all norms."
+summary: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal critical batch size formula. The square root learning rate scaling rule with batch size also holds universally across all norms."
 ---
 
 ## 0. Abstract
