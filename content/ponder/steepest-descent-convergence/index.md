@@ -136,7 +136,7 @@ Interestingly, from the bounds in Equations \eqref{eq:theta-bound} and \eqref{eq
 
 ```bibtex
 @misc{cesista2025sdconvergence,
-  author = {Franz Louis Cesista, Kaiyue Wen},
+  author = {Franz Louis Cesista},
   title = {Convergence Bounds for Steepest Descent Under Arbitrary Norms},
   year = {2025},
   month = {December},
