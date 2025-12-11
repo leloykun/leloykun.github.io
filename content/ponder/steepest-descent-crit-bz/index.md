@@ -290,21 +290,22 @@ The result then follows from Lemma (5) and Proposition (6). $\quad\blacksquare$
 
 ### 2.2. Convergence bound without weight decay
 
-> **Theorem 8 (Convergence bound without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$ (i.e., weight decay is disabled) and step size $\eta > 0$. Then for any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, Z > 0$ such that,
+> **Theorem 8 (Convergence bound without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$ (i.e., weight decay is disabled) and step size $\eta > 0$. Then for any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, \widetilde{Y}, Z > 0$ such that,
 $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
-        \leq \frac{X}{T} + \frac{Y}{b} + Z
+        \leq \frac{X}{T} + \frac{Y}{b} + \frac{\widetilde{Y}}{\sqrt{b}} + Z
 \end{equation}$$
 where $T$ is the total number of time steps, $b$ is the batch size, and
 $$Y = \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} \sigma^2.$$
-If we instead choose to measure the gradient norm in the Frobenius norm, i.e., $\| \cdot \|_F$, then there exist constants $X_F, Y_F, Z_F > 0$ such that,
+If we instead choose to measure the gradient norm in the Frobenius norm, i.e., $\| \cdot \|_F$, then there exist constants $X_F, Y_F, \widetilde{Y}_F, Z_F > 0$ such that,
 $$\begin{equation}
-    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F] \leq \frac{X_F}{T} + \frac{Y_F}{b} + Z_F
+    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F] \leq \frac{X_F}{T} + \frac{Y_F}{b} + \frac{\widetilde{Y}_F}{\sqrt{b}} + Z_F
 \end{equation}$$
 and,
 $$\begin{align*}
     X_F &\propto X \\
     Y_F &= \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} \sigma_F^2 \\
+    \widetilde{Y}_F &\propto \widetilde{Y} \\
     Z_F &\propto Z
 \end{align*}$$
 
@@ -366,7 +367,7 @@ $$\begin{align}
             \frac{4 \beta}{1 - \beta^2}\frac{1}{T} \| E_{0} \|^{\dagger 2}
             + \frac{4 \beta^3}{(1 - \beta)^2} L^2 \eta^2
             + \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} \right) \nonumber \\
-        &\qquad\leq \frac{X}{T} + \frac{Y}{b} + Z
+        &\qquad\leq \frac{X}{T} + \frac{Y}{b} + \frac{\widetilde{Y}}{\sqrt{b}} + Z
 \end{align}$$
 where,
 $$\begin{align}
@@ -376,11 +377,13 @@ $$\begin{align}
             + \frac{2 \beta}{D (1 - \beta^2)} \| \nabla f(W_0) \|^{\dagger 2} \nonumber \\
     Y
         &:= \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} \sigma^2 \nonumber \\
+    \widetilde{Y}
+        &:= \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma \nonumber \\
     Z
-        &:= \frac{D + L\eta}{2}
+        &:= \frac{L\eta}{2}
             + \frac{2 \beta^2}{1 - \beta} L \eta
             + \frac{2 \beta^3}{D (1 - \beta)^2} L^2 \eta^2
-            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D}\sigma}{\sqrt{b}} \nonumber
+            + \frac{D}{2} \nonumber
 \end{align}$$
 and $f^*$ is the global minimum of $f$.
 
@@ -389,11 +392,13 @@ $$ \kappa_1 \| X \|_F \leq \| X \|^{\dagger} \leq \kappa_2 \| X \|_F $$
 For Muon, we have $\| X \|^{\dagger} = \| X \|_{\text{nuc}}$ (the nuclear norm), and so $\kappa_1 = 1, \kappa_2 \leq \sqrt{\min{(m, n)}}$.
 
 We then set $\epsilon = \frac{\kappa_1}{\kappa_2^2 D}$ and substitute the norm equivalence bounds to obtain,
-$$\| \nabla f(W_t) \|_F
-    \leq \frac{f(W_t) - f(W_{t+1})}{\eta\kappa_1}
-        + \frac{\kappa_2}{\kappa_1}\| \nabla f(W_t) - C_t \|_F
-        + \frac{1}{2 D} \| \nabla f(W_t) - C_t \|_F^2
-        + \frac{\kappa_2^2 D/\kappa_1 + L_F\eta}{2\kappa_1}$$
+$$\begin{align}
+    \| \nabla f(W_t) \|_F
+        &\leq \frac{f(W_t) - f(W_{t+1})}{\eta\kappa_1}
+            + \frac{\kappa_2}{\kappa_1}\| \nabla f(W_t) - C_t \|_F \nonumber \\
+        &\quad+ \frac{1}{2 D} \| \nabla f(W_t) - C_t \|_F^2
+            + \frac{\kappa_2^2 D/\kappa_1 + L_F\eta}{2\kappa_1}
+\end{align}$$
 
 After taking expectations, averaging, and using Corollary (7), we have,
 $$\begin{align}
@@ -412,7 +417,7 @@ $$\begin{align}
             \frac{4 \beta}{1 - \beta^2}\frac{1}{T} \| E_{0} \|_F^2
             + \frac{4 \beta^3}{(1 - \beta)^2} L_F^2 \eta^2
             + \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} \frac{D \sigma_F^2}{b} \right) \nonumber \\
-        &\qquad\leq \frac{X_F}{T} + \frac{Y_F}{b} + Z_F
+        &\qquad\leq \frac{X_F}{T} + \frac{Y_F}{b} + \frac{\widetilde{Y}_F}{\sqrt{b}} + Z_F
 \end{align}$$
 where,
 $$\begin{align}
@@ -422,11 +427,13 @@ $$\begin{align}
             + \frac{2 \beta}{D (1 - \beta^2)} \| \nabla f(W_0) \|_F^2 \nonumber \\
     Y_F
         &:= \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} \sigma_F^2 \nonumber \\
+    \widetilde{Y}_F
+        &:= \frac{\kappa_2}{\kappa_1} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma_F \nonumber \\
     Z_F
-        &:= \frac{\kappa_2^2 D/\kappa_1 + L_F\eta}{2\kappa_1}
+        &:= \frac{L_F\eta}{2\kappa_1}
             + \frac{\kappa_2}{\kappa_1} \frac{2 \beta^2}{1 - \beta} L_F \eta
-            + \frac{2 \beta^3}{D (1 - \beta)^2} L_F^2 \eta^2 \nonumber \\
-            &\qquad+ \frac{\kappa_2}{\kappa_1} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D}\sigma_F}{\sqrt{b}} \quad\blacksquare \nonumber
+            + \frac{2 \beta^3}{D (1 - \beta)^2} L_F^2 \eta^2
+            + \frac{\kappa_2^2}{\kappa_1^2}\frac{D}{2}\quad\blacksquare \nonumber
 \end{align}$$
 
 ## 3. Convergence bound for steepest descent under arbitrary norms with weight decay
@@ -519,20 +526,21 @@ $$\begin{align}
 
 ### 3.2. Convergence bound with weight decay
 
-> **Theorem 11 (Convergence bound with weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, Z > 0$ such that,
+> **Theorem 11 (Convergence bound with weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, \widetilde{Y}, Z > 0$ such that,
 $$\begin{equation}
-    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{b} + Z
+    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{b} + \frac{\widetilde{Y}}{\sqrt{b}} + Z
 \end{equation}$$
 where $T$ is the total number of time steps, $b$ is the batch size, and,
 $$Y = \left( \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} + \frac{\lambda}{2} \right)\sigma^2.$$
-If we instead choose to measure the gradient norm in the Frobenius norm, i.e., $\| \cdot \|_F$, then there exist constants $X_F, Y_F, Z_F > 0$ such that,
+If we instead choose to measure the gradient norm in the Frobenius norm, i.e., $\| \cdot \|_F$, then there exist constants $X_F, Y_F, \widetilde{Y}_F, Z_F > 0$ such that,
 $$\begin{equation}
-    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F] \leq \frac{X_F}{T} + \frac{Y_F}{b} + Z_F
+    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F] \leq \frac{X_F}{T} + \frac{Y_F}{b} + \frac{\widetilde{Y}_F}{\sqrt{b}} + Z_F
 \end{equation}$$
 and,
 $$\begin{align*}
     X_F &\propto X \\
     Y_F &= \left( \frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} + \frac{\lambda}{2} \right) \sigma_F^2 \\
+    \widetilde{Y}_F &\propto \widetilde{Y} \\
     Z_F &\propto Z
 \end{align*}$$
 
@@ -595,7 +603,7 @@ $$\begin{align}
 **Approach 1: We measure the gradient norm with $\| \cdot \|^{\dagger}$.** Then we set $\epsilon = \frac{1}{D}$ and $\epsilon' = \frac{1}{2 D}$. Following the same strategy as in Theorem (8) with Proposition (9) and Proposition (10) then yields,
 $$\begin{align}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
-        &\leq \frac{X}{T} + \frac{Y}{b} + Z
+        &\leq \frac{X}{T} + \frac{Y}{b} + \frac{\widetilde{Y}}{\sqrt{b}} + Z
 \end{align}$$
 where,
 $$\begin{align}
@@ -605,14 +613,15 @@ $$\begin{align}
             + \frac{2 \beta}{D (1 - \beta^2)} \| \nabla f(W_0) \|^{\dagger 2} \nonumber \\
     Y
         &:= \left(\frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} + \frac{\lambda}{2} \right) \sigma^2 \nonumber \\
+    \widetilde{Y}
+        &:= \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma \nonumber \\
     Z
         &:= \frac{2 \beta^2}{1 - \beta} L \eta
             + \frac{2 \beta^3}{D (1 - \beta)^2} L^2 \eta^2
+            + \frac{L\eta}{2}
             + \frac{2 L^2}{\lambda D}
-            + \frac{D (\lambda + 1)}{\lambda} \nonumber \\
-        &\qquad
-            + \frac{2 D + L\eta}{2}
-            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D}\sigma}{\sqrt{b}} \nonumber
+            + \frac{D}{\lambda}
+            + 2D \nonumber
 \end{align}$$
 
 **Approach 2: We measure the gradient norm with $\| \cdot \|_F$.** We set $\epsilon = \frac{\kappa_1}{\kappa_2^2 D}$ and $\epsilon' = \frac{\kappa_1}{2 \kappa_2^2 D}$, and substitute the norm equivalence bounds to obtain,
@@ -630,7 +639,7 @@ $$\begin{align}
 And after taking expectations and averaging, we have,
 $$\begin{align}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|_F]
-        &\leq \frac{X_F}{T} + \frac{Y_F}{b} + Z_F
+        &\leq \frac{X_F}{T} + \frac{Y_F}{b} + \frac{\widetilde{Y}_F}{\sqrt{b}} + Z_F
 \end{align}$$
 where,
 $$\begin{align}
@@ -640,14 +649,15 @@ $$\begin{align}
             + \frac{2 \beta}{D (1 - \beta^2)} \| \nabla f(W_0) \|_F^2 \nonumber \\
     Y_F
         &:= \left(\frac{(3 \beta + 1)(1 - \beta)}{2(1 + \beta)} + \frac{\lambda}{2} \right) \sigma_F^2 \nonumber \\
+    \widetilde{Y}_F
+        &:= \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\kappa_2}{\kappa_1} \sqrt{D} \sigma_F \nonumber \\
     Z_F
         &:= \frac{2 \beta^2}{1 - \beta} \frac{\kappa_2}{\kappa_1} L_F \eta
             + \frac{2 \beta^3}{D (1 - \beta)^2} L_F^2 \eta^2
+            + \frac{L_F\eta}{2\kappa_1}
             + \frac{2 L_F^2}{\lambda \kappa_1 D}
-            + \frac{\kappa_2^2}{\kappa_1^2} \frac{D(\lambda + 1)}{\lambda} \nonumber \\
-        &\qquad
-            + \frac{2\kappa_2^2 D/\kappa_1 + L_F\eta}{2\kappa_1}
-            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\kappa_2}{\kappa_1} \frac{\sqrt{D} \sigma_F}{\sqrt{b}} \quad\blacksquare \nonumber
+            + \frac{\kappa_2^2}{\kappa_1^2} \frac{D}{\lambda}
+            + \frac{\kappa_2^2}{\kappa_1^2} 2D \quad\blacksquare \nonumber
 \end{align}$$
 
 ---
@@ -658,16 +668,23 @@ $$\begin{align}
 $$\begin{equation}
     b_{crit} = \left( \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} + \lambda \right) \frac{\sigma^2}{\epsilon'} \label{eq:critical-batch-size}
 \end{equation}$$
-where $\epsilon' := \epsilon - Z > 0$, for some constant $Z$ defined in Theorem (11).
+where $\epsilon' := \epsilon - Z' > 0$, for some (constant) gradient noise floor $Z' > 0$.
 
-**Proof.** We consider the steepest descent iteration process to have converged at time step $T$ when, for some $\epsilon > 0$,
+**Proof.** We consider the steepest descent iteration process to have $\epsilon$-converged at time step $T$ when, for some $\epsilon > 0$,
 $$\begin{equation}
-    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{b} + Z \leq \epsilon \label{eq:convergence-criterion}
+    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{b} + \frac{\widetilde{Y}}{\sqrt{b}} + Z \leq \epsilon \label{eq:convergence-criterion}
 \end{equation}$$
-Since $Z$ is a constant independent of $T$ and $b$, we can simply fold it into $\epsilon$ by defining $\epsilon' := \epsilon - Z > 0$. Simple algebra then yields the number of iterations to satisfy the convergence criterion in Equation $\eqref{eq:convergence-criterion}$ as,
+To simplify the analysis, we can upper bound the $\frac{\widetilde{Y}}{\sqrt{b}}$ term by some constant $C > 0$ and fold it into $Z$ instead,
+$$\begin{equation}
+    \frac{X}{T} + \frac{Y}{b} + \frac{\widetilde{Y}}{\sqrt{b}} + Z
+        \leq \frac{X}{T} + \frac{Y}{b} + Z' \label{eq:modified-convergence-criterion}
+\end{equation}$$
+where $Z' = Z + C$.
+
+Since $Z'$ is a constant independent of $T$ and $b$, we can simply fold it into $\epsilon$ by defining $\epsilon' := \epsilon - Z' > 0$. Simple algebra then yields the number of iterations to satisfy the convergence criterion in Equation $\eqref{eq:convergence-criterion}$ as,
 $$\begin{align}
-    \frac{X}{T} + \frac{Y}{b} + Z &\leq \epsilon \nonumber \\
-    \frac{X}{T} + \frac{Y}{b} &\leq \epsilon - Z =: \epsilon' \nonumber \\
+    \frac{X}{T} + \frac{Y}{b} + Z' &\leq \epsilon \nonumber \\
+    \frac{X}{T} + \frac{Y}{b} &\leq \epsilon - Z' =: \epsilon' \nonumber \\
     \frac{Xb}{T} + Y &\leq \epsilon' b \nonumber \\
     \frac{Xb}{\epsilon' b - Y} &\leq T \nonumber \\
     \frac{Xb}{\epsilon' b - Y} &=: T(b)
