@@ -95,7 +95,7 @@ where $L_F := \kappa_L L$.
 
 > **Assumption 4 (Local D-smoothness of $\| \cdot \|^{\dagger}$ in the noise region).** There exists a large enough $R > 0$ such that $\mathbb{P}(\| \xi_{t,i} \|^{\dagger} \leq R) = 1$ for all $t, i$. For minibatch size $b$, let,
 $$\begin{align}
-    K &:= \{ X^{\dagger} \in W^{\dagger} : \| X^{\dagger} \|^{\dagger} \leq bR \} \nonumber \\
+    K &:= \{ X^{\dagger} \in \mathcal{W}^{\dagger} : \| X^{\dagger} \|^{\dagger} \leq bR \} \nonumber \\
     g(X^{\dagger}) &:= \frac{1}{2} \| X^{\dagger} \|^{\dagger 2} \quad \forall X^{\dagger} \in K \nonumber
 \end{align}$$
 Intuitively, $K$ is the region where the (accumulated) gradient noise lie almost surely. Then there exists $D > 0$ such that for all $X^{\dagger}, Y^{\dagger} \in K$,
@@ -157,7 +157,7 @@ $$\begin{align}
         &\leq D \sum_{i=1}^k \alpha_{i}^2 \mathbb{E}[ \| \xi_{i} \|^{\dagger 2} ]
         \leq D \sigma^2 \sum_{i=1}^k \alpha_{i}^2 \nonumber
 \end{align}$$
-Setting $\alpha_{i} = \frac{1}{b}$ for all $i$ then gives Equation. $\eqref{eq:minibatchvariance} \quad\blacksquare$
+Setting $\alpha_{i} = \frac{1}{b}$ for all $i$ then gives Equation $\eqref{eq:minibatchvariance}. \quad\blacksquare$
 
 ---
 
