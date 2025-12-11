@@ -220,9 +220,8 @@ $$\begin{align}
 \end{align}$$
 And for the noise term, we have from Lemma (5) (viewing the double sum over time and batch as a single sum over $t \times b$ independent noise terms),
 $$\begin{align}
-    \| E_t^{\text{noise}} \|^{\dagger 2}
-        &= \left\| \sum_{k=1}^t \sum_{i=1}^b \beta^{t-k}(1 - \beta)\frac{1}{b} \xi_{k,i} \right\|^{\dagger 2} \nonumber \\
     \mathbb{E} \left[ \| E_t^{\text{noise}} \|^{\dagger 2} \right]
+        &= \mathbb{E} \left[ \left\| \sum_{k=1}^t \sum_{i=1}^b \beta^{t-k}(1 - \beta)\frac{1}{b} \xi_{k,i} \right\|^{\dagger 2} \right] \nonumber \\
         &\leq D \sigma^2 \sum_{k=1}^t \sum_{i=1}^b \left( \frac{(1 - \beta) \beta^{t-k}}{b} \right)^2 \nonumber \\
         &\leq \frac{(1 - \beta)^2}{1 - \beta^2} \frac{D \sigma^2}{b} \nonumber \\
         &= \frac{1 - \beta}{1 + \beta} \frac{D \sigma^2}{b} \nonumber
@@ -762,18 +761,18 @@ print(min(m, n), float(lipschitz_estimate(grad_g_nuclear, spectral_norm, nuclear
 
 ## 5. Learning rate scaling with batch size
 
-How to scale learning rate with batch size
-
-In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto \sqrt{b}$ when increasing the batch size $b$. Here we provide a mathematical justification *why*. The crux is that increasing the batch size reduces the gradient noise variance, which in turn means that we can make larger weight updates without destabilizing training.
+In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto \sqrt{b}$ when increasing the batch size $b$, regardless of the optimizer used. Here we provide a mathematical justification *why*. The crux is that increasing the batch size reduces the gradient noise variance, which in turn means that we can make larger weight updates without destabilizing training.
 
 To see this, we first make the following assumption.
 
-> **Assumption 13 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm $\| \cdot \|$. Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2$ denoting Nesterov momentum terms, we have,
+> **Assumption 13 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm pair $\| \cdot \|$ (with dual norm $\| \cdot \|^{\dagger}$). Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2 \in \mathcal{W}^\dagger$ denoting Nesterov momentum terms, we have,
 $$\begin{equation}
     \| \texttt{LMO}_{\| \cdot \|}(C_1) - \texttt{LMO}_{\| \cdot \|}(C_2) \| \leq L_{\text{LMO}} \| C_1 - C_2 \|^{\dagger}
 \end{equation}$$
 
-> **Proposition 14 (Gradient noise variance is proportional to $\eta^2/b$).** Let $\eta > 0$ be the learning rate and $b \geq 1$ be the batch size. Under Assumptions 1-3 and Assumption (13), we have,
+Then, we have the following result.
+
+> **Proposition 14 (Weight update noise variance is proportional to $\eta^2/b$).** Let $\eta > 0$ be the learning rate and $b \geq 1$ be the batch size. Under Assumptions 1-4 and Assumption (13) and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
 $$\begin{equation}
     \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] \propto \frac{\eta^2}{b}
 \end{equation}$$
@@ -784,17 +783,17 @@ $$\begin{equation}
 \end{equation}$$
 where $A_t^* = A_t^{\text{det}} + A_t^{\text{noise}}$ is the decomposition of the steepest descent direction into its deterministic and stochastic components.
 
-Taking norms and expectations, and using Proposition (6) then yields,
+Taking norms and expectations, and using Corollary (7) then yields,
 $$\begin{align}
     \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]
         &= \eta^2 \mathbb{E} \left[ \| A_t^{\text{noise}} \|^2 \right] \nonumber \\
         &= \eta^2 \mathbb{E} \left[ \| A_t^* - A_t^{\text{det}} \|^2 \right] \nonumber \\
         &\lesssim \eta^2 L_{\text{LMO}}^2 \mathbb{E} \left[ \| C_t - \nabla f(W_t) \|^{\dagger 2} \right] \nonumber \\
-        &\lesssim \eta^2 L_{\text{LMO}}^2 \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} + O\left(\frac{1}{T} + 1 \right) \nonumber \\
+        &\lesssim \eta^2 L_{\text{LMO}}^2 \frac{(3 \beta + 1) (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} + O\left(\frac{1}{T} + 1 \right) \nonumber \\
         &\propto \frac{\eta^2}{b} \quad\blacksquare \nonumber
 \end{align}$$
 
-Now, if we already know that training is stable for some gradient noise variance level $\mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]$, then it is natural to preserve it as we scale the batch size $b$. Thus, we have,
+Now, if we already know that training is fast and stable for some gradient noise variance level $\mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]$, then it is natural to preserve it as we scale the batch size $b$. Thus, we have,
 $$\begin{align}
     \frac{\eta_{\text{new}}^2}{b_{\text{new}}}
         &= \frac{\eta_{\text{old}}^2}{b_{\text{old}}} = \text{constant} \nonumber \\
