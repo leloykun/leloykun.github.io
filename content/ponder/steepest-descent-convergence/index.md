@@ -9,9 +9,9 @@ summary: "First-order optimization under arbitrary norms with Nesterov momentum 
 
 ## 1. Introduction
 
-From Theorem 11 in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), we have the following bound on the average expected gradient norm when using steepest descent under an arbitrary norm $\| \cdot \|$ with Nesterov momentum and weight decay.
+From Theorem 14 in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), we have the following bound on the average expected gradient norm when using steepest descent under an arbitrary norm $\| \cdot \|$ with Nesterov momentum and weight decay.
 
-> Let $W_t$ be the weight at time step $t$, $\lambda$ be the weight decay parameter, and $\eta > 0$ be the step size such that $\lambda \eta \leq 1$. Assume that the initial weight norm satisfies $\| W_0 \| \leq \frac{1}{\lambda}$, and the initial momentum $M_0 = 0$. Finally, let $D$ be the Lipschitz constant of $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$ (with $D = 1$ if $\| \cdot \|^{\dagger}$ is induced by an inner product). Then for any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
+> **Theorem 14 (Convergence bound for steepest descent under arbitrary norms with Nesterov momentum and weight decay).** Let $W_t$ be the weight at time step $t$, $\lambda$ be the weight decay parameter, and $\eta > 0$ be the step size such that $\lambda \eta \leq 1$. Assume that the initial weight norm satisfies $\| W_0 \| \leq \frac{1}{\lambda}$, and the initial momentum $M_0 = 0$. Finally, let $D$ be the Lipschitz constant of $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$ (with $D = 1$ if $\| \cdot \|^{\dagger}$ is induced by an inner product). Then for any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
 $$\begin{align}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
         &\leq \frac{1}{T} \left( \frac{\Delta_0}{\eta (1 - \rho)}
@@ -20,7 +20,7 @@ $$\begin{align}
         &\quad+ \frac{3 - \rho}{1 - \rho} \frac{4 \beta^2}{1 - \beta} L \eta
             + \frac{2}{1 - \rho} L \eta \nonumber
 \end{align}$$
-where $\Delta_0 = f(W_0) - f^*$, and $G_0 = \| \nabla f(W_0) \|^{\dagger}$.
+where $\Delta_0 = f(W_0) - f^*$, $G_0 = \| \nabla f(W_0) \|^{\dagger}$, and $\rho$ is some upper bound on the anti-alignment of nesterov momentum terms $C_t$ and the weights $W_t$.
 
 For a given stationary tolerance $\epsilon > 0$, we want to determine bounds on the step size $\eta$, momentum parameter $\beta$, and total number of time steps $T$ such that,
 $$\begin{equation}
