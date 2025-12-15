@@ -14,11 +14,15 @@ This work generalizes prior results by [Sato et al. (2025)](https://arxiv.org/ab
 ## 1. Introduction and preliminaries
 
 We consider the following optimization problem:
-$$\arg\min_{W \in \mathcal{W}} f(W)$$
+$$\begin{equation}
+    \arg\min_{W \in \mathcal{W}} f(W)
+\end{equation}$$
 where $f(\cdot): \mathcal{W} \to \mathbb{R}$ is a bounded from below and differentiable objective function, and $\mathcal{W}$ is a finite-dimensional vector space over $\mathbb{R}$, e.g., $\mathcal{W} = \mathbb{R}^{m \times n}$, equipped with an arbitrary norm $\| \cdot \|$ and its dual norm $\| \cdot \|^{\dagger}$.
 
 More generally, we often take $\mathcal{W}$ to be a product of layers' weight spaces, e.g.,
-$$\mathcal{W} = \prod_{l=1}^{L} \mathbb{R}^{m_l \times n_l},$$
+$$\begin{equation}
+    \mathcal{W} = \prod_{l=1}^{L} \mathbb{R}^{m_l \times n_l},
+\end{equation}$$
 for an $L$-layer neural network with weight matrices $(W^{(l)})_{l=1}^L$ where $W^{(l)} \in \mathbb{R}^{m_l \times n_l}$ for each layer $l$. Given layer-wise norms $\| \cdot \|_{(l)}$ and their duals $\| \cdot \|_{(l)}^{\dagger}$, we can then define the product norm and its dual as,
 $$\begin{align}
     \| W \| &:= h\left( \| W^{(1)} \|_{(1)}, \| W^{(2)} \|_{(2)}, \ldots, \| W^{(L)} \|_{(L)} \right) \nonumber \\
@@ -93,12 +97,12 @@ $$\begin{equation}
 \end{equation}$$
 where $L_F := \kappa_L L$.
 
-> **Assumption 4 (Local D-smoothness of $\| \cdot \|^{\dagger}$ in the noise region).** There exists a large enough $R > 0$ such that $\mathbb{P}(\| \xi_{t,i} \|^{\dagger} \leq R) = 1$ for all $t, i$. For minibatch size $b$, let,
+> **Assumption 4 (Local D-smoothness of $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$ in the noise region).** There exists a large enough $R > 0$ such that $\mathbb{P}(\| \xi_{t,i} \|^{\dagger} \leq R) = 1$ for all $t, i$. Let,
 $$\begin{align}
-    K &:= \{ X^{\dagger} \in \mathcal{W}^{\dagger} : \| X^{\dagger} \|^{\dagger} \leq bR \} \nonumber \\
+    K &:= \{ X^{\dagger} \in \mathcal{W}^{\dagger} : \| X^{\dagger} \|^{\dagger} \leq R \} \nonumber \\
     g(X^{\dagger}) &:= \frac{1}{2} \| X^{\dagger} \|^{\dagger 2} \quad \forall X^{\dagger} \in K \nonumber
 \end{align}$$
-Intuitively, $K$ is the region where the (accumulated) gradient noise lie almost surely. Then there exists $D > 0$ such that for all $X^{\dagger}, Y^{\dagger} \in K$,
+Intuitively, $K$ is the region where the gradient noise (and interpolations thereof) lie almost surely. Then there exists $D > 0$ such that for all $X^{\dagger}, Y^{\dagger} \in K$,
 $$\begin{equation}
     \| \nabla g(Y^{\dagger}) - \nabla g(X^{\dagger}) \| \leq D \| Y^{\dagger} - X^{\dagger} \|^{\dagger}
 \end{equation}$$
@@ -110,31 +114,18 @@ $$\begin{equation}
 
 We first control the variance of the mini-batch noise.
 
-> **Lemma 5 (Minibatch gradient noise bounds).** Under Assumptions 1-2 and 4, for any minibatch size $b \geq 1$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
+> **Lemma 5 (Minibatch gradient noise bounds).** Under Assumptions 1-2 and 4, for arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, and sequence of coefficients $(\alpha_i)_{i=1}^k$ with $\alpha_i \geq 0$ and $\sum_{i=0}^k \alpha_i \leq 1$, we have,
 $$\begin{align}
-    \mathbb{E}\left[ \xi_{S_t} \right]
-        &= 0 \label{eq:minibatchmean}, \\
-    \mathbb{E}\left[ \left\| \sum_{i} \alpha_{i} \xi_{i} \right\|^{\dagger 2} \right]
-        &\leq D \sigma^2 \sum_{i} \alpha_{i}^2
+    \mathbb{E}\left[ \left\| \sum_{i=0}^k \alpha_{i} \xi_{i} \right\|^{\dagger 2} \right]
+        &\leq D \sigma^2 \sum_{i=0}^k \alpha_{i}^2
 \end{align}$$
-In particular,
+In particular, for minibatch size $b \geq 1$,
 $$\begin{align}
     \mathbb{E}\left[ \| \xi_{S_t} \|^{\dagger 2} \right]
         &\leq \frac{D\sigma^2}{b} \label{eq:minibatchvariance}
 \end{align}$$
 
-**Proof.** For the minibatch gradient noise mean, we have,
-$$\begin{align}
-    \mathbb{E}\left[ \xi_{S_t} \right]
-        &= \mathbb{E}\left[ \nabla f(W_t) - \nabla f_{S_t}(W_t) \right] \nonumber \\
-        &= \mathbb{E}\left[ \nabla f(W_t) - \frac{1}{b} \sum_{i=1}^{b} G_{\xi_{t,i}}(W_t) \right] \nonumber \\
-        &= \mathbb{E}\left[ \frac{1}{b} \sum_{i=1}^{b} (\nabla f(W_t) - G_{\xi_{t,i}}(W_t)) \right] \nonumber \\
-        &= \mathbb{E}\left[ \frac{1}{b} \sum_{i=1}^{b} \xi_{t,i} \right] \nonumber \\
-        &= \frac{1}{b} \sum_{i=1}^{b} \mathbb{E}\left[ \xi_{t,i} \right] \nonumber \\
-        &= 0 \nonumber
-\end{align}$$
-
-Now, let $S_{k} = \sum_{i=1}^{k} \alpha_{i} \xi_{i}$ be the partial (weighted) sum of the first $k$ noise terms. We can then apply the descent lemma on $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$, taking expectations, and using Assumption (1) to get,
+**Proof.** Let $S_{k} = \sum_{i=1}^{k} \alpha_{i} \xi_{i}$ be the partial (weighted) sum of the first $k$ noise terms. We then apply the descent lemma on $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$, take expectations, and use Assumption (1) to get,
 $$\begin{align}
     g(S_{k})
         &\leq g(S_{k-1})
@@ -298,7 +289,9 @@ $$\begin{equation}
         \leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
 \end{equation}$$
 where $T$ is the total number of time steps, $b$ is the batch size, and
-$$Y = 2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma.$$
+$$\begin{equation}
+    Y = 2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma.
+\end{equation}$$
 
 **Proof.** Let us first disable weight decay, i.e., set $\lambda = 0$. Since $f$ is $L$-smooth, the descent lemma, Equation $\eqref{eq:lmo-inner-product}$, and Equation $\eqref{eq:lmo-norm}$ yields,
 $$\begin{align}
@@ -430,7 +423,7 @@ $$\begin{align}
         &\leq \frac{2D\sigma^2}{b} + \frac{8 L^2}{\lambda^2}
 \end{align}$$
 
-**Proof.** By the triangle inequality and Lemma (5), we have,
+**Proof.** By the triangle inequality, we have,
 $$\begin{align}
     \| \nabla f_{S_t}(W_t) \|^{\dagger}
         &\leq \| \nabla f_{S_t}(W_t) - \nabla f(W_t) \|^{\dagger} + \| \nabla f(W_t) \|^{\dagger} \nonumber \\
@@ -507,7 +500,9 @@ $$\begin{align}
 Before we derive the convergence bound for steepest descent with Nesterov momentum and weight decay, we make the following assumption to avoid the pathological case where the weight decay term (almost) perfectly cancels out the descent direction, stalling convergence. Without this assumption, we can only guarantee convergence to a neighborhood around a stationary point and we will need other techniques to guarantee convergence to the stationary point itself.
 
 > **Assumption 13 (Imperfect anti-alignment between $C_t$ and $W_t$).** There exists $0 \leq \rho < 1$ such that for all $t \geq 0$,
-$$\frac{\langle C_t, -W_t \rangle}{\| C_t \|^{\dagger} \| W_t \|} \leq \rho$$
+$$\begin{equation}
+    \frac{\langle C_t, -W_t \rangle}{\| C_t \|^{\dagger} \| W_t \|} \leq \rho
+\end{equation}$$
 
 With this, we can now state the convergence bound.
 
@@ -516,7 +511,9 @@ $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
 \end{equation}$$
 where $T$ is the total number of time steps, $b$ is the batch size, and,
-$$Y = \frac{3 - \rho}{1 - \rho} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma.$$
+$$\begin{equation}
+    Y = \frac{3 - \rho}{1 - \rho} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma.
+\end{equation}$$
 
 **Proof.** We closely follow that of Theorem (8), with additional terms to account for weight decay. From the descent lemma, we have,
 
@@ -568,7 +565,10 @@ $$\begin{align}
 Then we set $\epsilon = c_1$. Following the same strategy as in Theorem (8) with Propositions (9) and (10) and Corollaries (11) and (12) then yields,
 $$\begin{align}
     &\frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \nonumber \\
-        &\qquad\leq \frac{f(W_0) - f(W_t)}{\eta (1 - \rho) T} \nonumber \\
+        &\qquad\leq \frac{f(W_0) - f(W_T)}{\eta (1 - \rho) T}
+            + \frac{3 - \rho}{1 - \rho} \frac{1}{T} \sum_{t=0}^{T-1} \| \nabla f(W_t) - C_t \|^{\dagger}
+            + \frac{2}{1 - \rho} L \eta \nonumber \\
+        &\qquad\leq \frac{f(W_0) - f(W_T)}{\eta (1 - \rho) T} \nonumber \\
         &\qquad\quad+ \frac{3 - \rho}{1 - \rho} \left(\frac{2\beta}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
             + \frac{4 \beta^2}{1 - \beta} L \eta
             + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}}\beta + (1 - \beta) \right) \frac{\sqrt{D}\sigma}{\sqrt{b}} \right) \nonumber \\
@@ -594,8 +594,8 @@ $$\begin{align}
 > **Theorem 15 (Critical batch size for steepest descent under arbitrary norms with (Nesterov) momentum and weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach $\epsilon$-convergence according to the criterion in Equation $\eqref{eq:convergence-criterion}$ is given by,
 $$\begin{align}
     b_{crit}
-        &= \left(\frac{3 - \rho}{1 - \rho}\right)^2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 D \frac{\sigma^2}{\epsilon'} \nonumber \\
-        &\propto (1 - \beta) \frac{\sigma^2}{\epsilon'} \nonumber
+        &= \left(\frac{3 - \rho}{1 - \rho}\right)^2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 D \frac{\sigma^2}{\epsilon'} \\
+        &\propto (1 - \beta) D \frac{\sigma^2}{\epsilon'}
 \end{align}$$
 where $\epsilon' := (\epsilon - Z)^2 > 0$.
 
@@ -630,76 +630,23 @@ Thus, $b \cdot T(b)$ is a convex function for $b > \frac{Y^2}{\epsilon'}$, with 
 $$\begin{align}
     b_{crit}
         &= \left(\frac{3 - \rho}{1 - \rho}\right)^2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 D \frac{\sigma^2}{\epsilon'} \nonumber \\
-        &\propto (1 - \beta) \frac{\sigma^2}{\epsilon'} \qquad\blacksquare \nonumber
+        &\propto (1 - \beta) D \frac{\sigma^2}{\epsilon'} \qquad\blacksquare \nonumber
 \end{align}$$
 
 ### 4.1. Estimating D-smoothness for various optimizers
 
-Optimizers we use in practice can be viewed as performing steepest descent under different norms [(Bernstein et al., 2024)](https://arxiv.org/abs/2409.20325). We summarize the relevant norm choices and their corresponding $D$-smoothness constants below.
+Optimizers we use in practice can be viewed as performing steepest descent under different norms [(Bernstein et al., 2024)](https://arxiv.org/abs/2409.20325). We summarize the relevant norm choices and their corresponding (empirical) local $D$-smoothness constants below.
 
-| Optimizer | Steepest descent norm              | Dual norm                  |
-| --------- | ---------------------------------- | -------------------------- |
-| SGD       | $\| \cdot \|_F$                    | $\| \cdot \|_F$            |
-| SignSGD   | $\| \cdot \|_{\infty}$             | $\| \cdot \|_{1}$          |
-| AdamW     | $\| \cdot \|_{\infty}$ (adaptive)  | $\| \cdot \|_{1}$          |
-| Muon      | $\| \cdot \|_{2 \to 2}$            | $\| \cdot \|_{\text{nuc}}$ |
-| SOAP      | $\| \cdot \|_{2 \to 2}$ (adaptive) | $\| \cdot \|_{\text{nuc}}$ |
+| Optimizer     | Steepest descent norm   | Dual norm                  | $D$         |
+| ------------- | ----------------------- | -------------------------- | ----------- |
+| SGD           | $\| \cdot \|_F$         | $\| \cdot \|_F$            | $1$         |
+| SignSGD/AdamW | $\| \cdot \|_{\infty}$  | $\| \cdot \|_{1}$          | $\approx 1$ |
+| Muon/SOAP     | $\| \cdot \|_{2 \to 2}$ | $\| \cdot \|_{\text{nuc}}$ | $\approx 1$ |
 
-We can then use the following JAX code to estimate the $D$-smoothness for steepest descent under various norms. Empirically, $D$ scales with width as $O(1)$ for SignSGD/AdamW and Muon/SOAP even for high-dimensional weight matrices, indicating that the critical batch size do not depend on the width and chosen norm.
-
-```python
-import jax
-import jax.numpy as jnp
-
-def lipschitz_estimate(grad_g, norm_fn, dual_norm_fn, lmo, key, shape, n_pairs=10000, radius=1.0):
-    def one_ratio(key):
-        k1, k2 = jax.random.split(key)
-        # The LMO guarantees that W1, W2 are on the unit ball of the norm
-        W1 = radius * lmo(jax.random.normal(k1, shape))
-        W2 = radius * lmo(jax.random.normal(k2, shape))
-
-        g1 = grad_g(W1)
-        g2 = grad_g(W2)
-
-        num = norm_fn((g1 - g2))
-        denom = dual_norm_fn((W1 - W2))
-        return num / denom
-
-    keys = jax.random.split(key, n_pairs)
-    ratios = jax.vmap(one_ratio)(keys)
-    return jnp.max(ratios), jnp.mean(ratios)
-
-def f_inf_norm(W):
-    return jnp.max(jnp.abs(W))
-
-def f1_norm(W):
-    return jnp.sum(jnp.abs(W))
-
-def spectral_norm(W):
-    s = jnp.linalg.svd(W, compute_uv=False)
-    return s.max()
-
-def nuclear_norm(W):
-    s = jnp.linalg.svd(W, compute_uv=False)
-    return jnp.sum(s)
-
-def orthogonalize(W):
-    u, s, vh = jnp.linalg.svd(W, full_matrices=False)
-    return u @ vh
-
-def g(W, norm_fn):
-    return 0.5 * norm_fn(W)**2
-
-grad_g_f1 = jax.grad(lambda W: g(W, f1_norm))
-grad_g_nuclear = jax.grad(lambda W: g(W, nuclear_norm))
-
-key = jax.random.PRNGKey(0)
-m, n = 128, 32
-shape = (m, n)
-n_pairs = 1000
-print(m*n, float(lipschitz_estimate(grad_g_f1, f_inf_norm, f1_norm, jnp.sign, key, shape, n_pairs=n_pairs)[0]))
-print(min(m, n), float(lipschitz_estimate(grad_g_nuclear, spectral_norm, nuclear_norm, orthogonalize, key, shape, n_pairs=n_pairs)[0]))
-```
+See [Appendix A1](#a1-jax-code-to-estimate-d-smoothness) for the JAX code to estimate $D$-smoothness for steepest descent under various norms. We also take into account the fact that gradients in large-scale LLM training naturally have low stable rank structure. Empirically, $D \approx 1$ for SignSGD/AdamW and Muon/SOAP even for high-dimensional weight matrices, indicating that the critical batch size do not depend on the width and chosen norm. Thus, we can further reduce the critical batch size formula to,
+$$\begin{equation}
+    b_{crit} \propto (1 - \beta) \frac{\sigma^2}{\epsilon'}.
+\end{equation}$$
 
 ## 5. Learning rate scaling with batch size
 
@@ -797,3 +744,77 @@ Big thanks to the [Marin Community](https://marin.community/) and especially Kai
 8. Essential AI: Ishaan Shah, Anthony M. Polloreno, Karl Stratos, Philip Monk, Adarsh Chaluvaraju, Andrew Hojel, Andrew Ma, Anil Thomas, Ashish Tanwer, Darsh J Shah, Khoi Nguyen, Kurt Smith, Michael Callahan, Michael Pust, Mohit Parmar, Peter Rushton, Platon Mazarakis, Ritvik Kapila, Saurabh Srivastava, Somanshu Singla, Tim Romanski, Yash Vanjani, Ashish Vaswani (2025). Practical Efficiency of Muon for Pretraining. URL https://arxiv.org/abs/2505.02222
 9. Kwangjun Ahn, Byron Xu, Natalie Abreu, Ying Fan, Gagik Magakyan, Pratyusha Sharma, Zheng Zhan, John Langford (2025). Dion: Distributed Orthonormalized Updates. URL https://arxiv.org/abs/2504.05295
 10. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
+
+## Appendix
+
+### A.1. JAX code to estimate D-smoothness
+
+```python
+import jax
+import jax.numpy as jnp
+
+def lipschitz_estimate(grad_g, norm_fn, dual_norm_fn, dual_lmo, key, shape, n_pairs=10000, radius=1.0):
+    def one_ratio(key):
+        k1, k2 = jax.random.split(key)
+        W1 = dual_lmo(jax.random.normal(k1, shape), radius=radius)
+        W2 = dual_lmo(jax.random.normal(k2, shape), radius=radius)
+        return norm_fn(grad_g(W1) - grad_g(W2)) / dual_norm_fn(W1 - W2)
+
+    keys = jax.random.split(key, n_pairs)
+    ratios = jax.vmap(one_ratio)(keys)
+    return jnp.max(ratios), jnp.mean(ratios)
+
+
+def f_inf_norm(W):
+    return jnp.max(jnp.abs(W))
+
+def f1_norm(W):
+    return jnp.sum(jnp.abs(W))
+
+def f1_lmo(G, radius=1.0, k=0.1):
+    signG = jnp.sign(G)
+    absG = jnp.abs(G)
+    topk_values, topk_indices = jax.lax.top_k(absG.flatten(), k=int(absG.size * k))
+    absG = jnp.zeros_like(absG).at[jnp.unravel_index(topk_indices, absG.shape)].set(topk_values)
+    absG = radius * absG / jnp.sum(absG)
+    return signG * absG
+
+
+def spectral_norm(W):
+    return jnp.linalg.matrix_norm(W, ord=2)
+
+def nuclear_norm(W):
+    return jnp.linalg.norm(W, ord='nuc')
+
+def nuclear_lmo(G, radius=1., k=0.1):
+    U, S, Vh = jnp.linalg.svd(G, full_matrices=False)
+    topk_value, topk_index = jax.lax.top_k(S, k=int(S.size * k))
+    S = jnp.zeros_like(S).at[topk_index].set(topk_value)
+    S = radius * S / jnp.sum(S)
+    return U @ jnp.diag(S) @ Vh
+
+
+def frobenius_norm(W):
+    return jnp.linalg.norm(W, ord='fro')
+
+def frobenius_lmo(W, radius=1.):
+    return radius * W / frobenius_norm(W)
+
+
+def g(W, norm_fn):
+    return 0.5 * norm_fn(W)**2
+
+grad_g_f1 = jax.grad(lambda W: g(W, f1_norm))
+grad_g_nuclear = jax.grad(lambda W: g(W, nuclear_norm))
+grad_g_fro = jax.grad(lambda W: g(W, frobenius_norm))
+
+
+key = jax.random.PRNGKey(0)
+m, n = 128, 32
+shape = (m, n)
+n_pairs = 1000
+radius = 1.
+print(m*n, float(lipschitz_estimate(grad_g_fro, frobenius_norm, frobenius_norm, frobenius_lmo, key, shape, n_pairs=n_pairs, radius=radius)[0]))
+print(m*n, float(lipschitz_estimate(grad_g_f1, f_inf_norm, f1_norm, f1_lmo, key, shape, n_pairs=n_pairs, radius=radius)[0]))
+print(min(m, n), float(lipschitz_estimate(grad_g_nuclear, spectral_norm, nuclear_norm, nuclear_lmo, key, shape, n_pairs=n_pairs, radius=radius)[0]))
+```
