@@ -169,14 +169,13 @@ $$\begin{align}
 \end{align}$$
 Moreover, averaging over $T$ iterations yields,
 $$\begin{align}
-    \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
-        &\leq \frac{2}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
+    &\frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[ \| \nabla f(W_t) - M_t \|^{\dagger} \right] \nonumber \\
+        &\qquad\leq \frac{2}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
             + \frac{2 \beta}{1 - \beta} L \eta
             + \sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \frac{\sqrt{D}\sigma}{\sqrt{b}} \\
-    \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| E_t \|^{\dagger 2} \right]
-        &\leq \frac{4}{1 - \beta^2} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
-            + \frac{4 \beta^2}{(1 - \beta)^2} L^2 \eta^2
-            + \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
+    &\frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - M_t \|^{\dagger 2} \right] \nonumber \\
+        &\qquad\leq \frac{4}{1 - \beta^2} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
+            + \frac{4 \beta^2}{(1 - \beta)^2} L^2 \eta^2+ \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
 \end{align}$$
 
 **Proof.** First, let us unroll the recurrence for $E_t$,
@@ -253,14 +252,25 @@ We now bound the Nesterov momentum error term.
 
 > **Corollary 7 (Average first and second moments of the Nesterov momentum error term w/o weight decay).** Under the same assumptions as Proposition (6), for any $T \geq 1$ and any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
 $$\begin{align}
-    \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger} \right]
-        &\leq \frac{2 \beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
-            + \frac{2 \beta^2}{1 - \beta} L \eta \nonumber \\
-        &\quad+ \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \\
-    \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger 2}\right]
-        &\leq \frac{4 \beta}{1 - \beta^2} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
-            + \frac{4 \beta^3}{(1 - \beta)^2} L^2 \eta^2 \nonumber \\
-        &\quad+ \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
+    &\mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger} \right] \nonumber \\
+        &\qquad\leq 2\beta^{t+1} \| \nabla f(W_0) \|^{\dagger}
+            + \frac{2 \beta^2}{1 - \beta} L \eta
+            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \\
+    &\mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger 2}\right] \nonumber \\
+        &\qquad\leq 4\beta^{2t+1} \| \nabla f(W_0) \|^{\dagger 2}
+            + \frac{4 \beta^3}{(1 - \beta)^2} L^2 \eta^2
+            + \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
+\end{align}$$
+Moreover, averaging over $T$ iterations yields,
+$$\begin{align}
+    &\frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger} \right] \nonumber \\
+        &\qquad\leq \frac{2 \beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
+            + \frac{2 \beta^2}{1 - \beta} L \eta
+            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \\
+    &\frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger 2}\right] \nonumber \\
+        &\qquad\leq \frac{4 \beta}{1 - \beta^2} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
+            + \frac{4 \beta^3}{(1 - \beta)^2} L^2 \eta^2
+            + \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
 \end{align}$$
 
 **Proof.** We have,
@@ -497,7 +507,7 @@ $$\begin{align}
 
 ### 3.2. Convergence bound with weight decay
 
-Before we derive the convergence bound for steepest descent with Nesterov momentum and weight decay, we make the following assumption to avoid the pathological case where the weight decay term (almost) perfectly cancels out the descent direction, stalling convergence. Without this assumption, we can only guarantee convergence to a neighborhood around a stationary point and we will need other techniques to guarantee convergence to the stationary point itself.
+Before we derive the convergence bound for steepest descent with Nesterov momentum and weight decay, we make the following assumption to avoid the pathological case where the weight decay term perfectly cancels out the descent direction, stalling convergence. Without this assumption, we can only guarantee convergence to a neighborhood around a stationary point and we will need other techniques to guarantee convergence to the stationary point itself.
 
 > **Assumption 13 (Imperfect anti-alignment between $C_t$ and $W_t$).** There exists $0 \leq \rho < 1$ such that for all $t \geq 0$,
 $$\begin{equation}
@@ -623,7 +633,7 @@ Now, the number of tokens we need to process to reach convergence is roughly pro
 $$\text{SFO}(b) := b \cdot T(b) = \frac{Xb^{3/2}}{\sqrt{\epsilon' b} - Y}$$
 Taking the first and second derivatives again yields,
 $$\begin{align}
-    \frac{d(b \cdot T(b))}{db} &= \frac{X\sqrt{b}(2\sqrt{\epsilon' b} - 3Y)}{2(\sqrt{\epsilon' b} - Y)^2} \geq 0 \nonumber \\
+    \frac{d(b \cdot T(b))}{db} &= \frac{X\sqrt{b}(2\sqrt{\epsilon' b} - 3Y)}{2(\sqrt{\epsilon' b} - Y)^2} \nonumber \\
     \frac{d^2(b \cdot T(b))}{db^2} &= \frac{XY (3Y - \sqrt{\epsilon' b})}{4\sqrt{b}(\sqrt{\epsilon' b} - Y)^3} \geq 0 \nonumber
 \end{align}$$
 Thus, $b \cdot T(b)$ is a convex function for $b > \frac{Y^2}{\epsilon'}$, with a minimizer $b^* = \frac{9Y^2}{4\epsilon'}$. This gives us the critical batch size,
@@ -753,12 +763,12 @@ Big thanks to the [Marin Community](https://marin.community/) and especially Kai
 import jax
 import jax.numpy as jnp
 
-def lipschitz_estimate(grad_g, norm_fn, dual_norm_fn, dual_lmo, key, shape, n_pairs=10000, radius=1.0):
+def lipschitz_estimate(grad_g, norm_fn, dual_norm_fn, generate_low_rank_matrix, key, shape, n_pairs=10000, radius=1.0):
     def one_ratio(key):
         k1, k2 = jax.random.split(key)
-        W1 = dual_lmo(jax.random.normal(k1, shape), radius=radius)
-        W2 = dual_lmo(jax.random.normal(k2, shape), radius=radius)
-        return norm_fn(grad_g(W1) - grad_g(W2)) / dual_norm_fn(W1 - W2)
+        G1 = generate_low_rank_matrix(k1, shape, radius)
+        G2 = generate_low_rank_matrix(k2, shape, radius)
+        return norm_fn(grad_g(G1) - grad_g(G2)) / dual_norm_fn(G1 - G2)
 
     keys = jax.random.split(key, n_pairs)
     ratios = jax.vmap(one_ratio)(keys)
@@ -766,18 +776,10 @@ def lipschitz_estimate(grad_g, norm_fn, dual_norm_fn, dual_lmo, key, shape, n_pa
 
 
 def f_inf_norm(W):
-    return jnp.max(jnp.abs(W))
+    return jnp.linalg.norm(W, ord=jnp.inf)
 
 def f1_norm(W):
-    return jnp.sum(jnp.abs(W))
-
-def f1_lmo(G, radius=1.0, k=0.1):
-    signG = jnp.sign(G)
-    absG = jnp.abs(G)
-    topk_values, topk_indices = jax.lax.top_k(absG.flatten(), k=int(absG.size * k))
-    absG = jnp.zeros_like(absG).at[jnp.unravel_index(topk_indices, absG.shape)].set(topk_values)
-    absG = radius * absG / jnp.sum(absG)
-    return signG * absG
+    return jnp.linalg.norm(W, ord=1)
 
 
 def spectral_norm(W):
@@ -785,13 +787,6 @@ def spectral_norm(W):
 
 def nuclear_norm(W):
     return jnp.linalg.norm(W, ord='nuc')
-
-def nuclear_lmo(G, radius=1., k=0.1):
-    U, S, Vh = jnp.linalg.svd(G, full_matrices=False)
-    topk_value, topk_index = jax.lax.top_k(S, k=int(S.size * k))
-    S = jnp.zeros_like(S).at[topk_index].set(topk_value)
-    S = radius * S / jnp.sum(S)
-    return U @ jnp.diag(S) @ Vh
 
 
 def frobenius_norm(W):
@@ -809,12 +804,31 @@ grad_g_nuclear = jax.grad(lambda W: g(W, nuclear_norm))
 grad_g_fro = jax.grad(lambda W: g(W, frobenius_norm))
 
 
+def generate_low_rank_matrix(key, shape, r=12):
+    k1, k2 = jax.random.split(key)
+    A = jax.random.normal(k1, (shape[0], r))
+    B = jax.random.normal(k2, (r, shape[1]))
+    return A @ B
+
+def f1_generate_low_rank_matrix(key, shape, radius=1.0, r=12):
+    G = generate_low_rank_matrix(key, shape, r=r)
+    return G / f1_norm(G) * radius
+
+def nuclear_generate_low_rank_matrix(key, shape, radius=1.0, r=12):
+    G = generate_low_rank_matrix(key, shape, r=r)
+    return G / nuclear_norm(G) * radius
+
+def frobenius_generate_low_rank_matrix(key, shape, radius=1.0, r=12):
+    G = generate_low_rank_matrix(key, shape, r=r)
+    return G / frobenius_norm(G) * radius
+
+
 key = jax.random.PRNGKey(0)
-m, n = 128, 32
+m, n = 768, 768
 shape = (m, n)
-n_pairs = 1000
+n_pairs = 100
 radius = 1.
-print(m*n, float(lipschitz_estimate(grad_g_fro, frobenius_norm, frobenius_norm, frobenius_lmo, key, shape, n_pairs=n_pairs, radius=radius)[0]))
-print(m*n, float(lipschitz_estimate(grad_g_f1, f_inf_norm, f1_norm, f1_lmo, key, shape, n_pairs=n_pairs, radius=radius)[0]))
-print(min(m, n), float(lipschitz_estimate(grad_g_nuclear, spectral_norm, nuclear_norm, nuclear_lmo, key, shape, n_pairs=n_pairs, radius=radius)[0]))
+print("(L_2, L2)", float(lipschitz_estimate(grad_g_fro, frobenius_norm, frobenius_norm, frobenius_generate_low_rank_matrix, key, shape, n_pairs=n_pairs, radius=radius)[0]))
+print("(L_inf, L_1)", float(lipschitz_estimate(grad_g_f1, f_inf_norm, f1_norm, f1_generate_low_rank_matrix, key, shape, n_pairs=n_pairs, radius=radius)[0]))
+print("(spec, nuc)", float(lipschitz_estimate(grad_g_nuclear, spectral_norm, nuclear_norm, nuclear_generate_low_rank_matrix, key, shape, n_pairs=n_pairs, radius=radius)[0]))
 ```
