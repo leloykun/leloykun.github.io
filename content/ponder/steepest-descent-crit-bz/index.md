@@ -3,8 +3,8 @@ title: "Critical Batch Size for Steepest Descent Under Arbitrary Norms"
 date: 2025-11-22
 tags: ["Machine Learning", "Optimizers"]
 author: ["Franz Louis Cesista", "Kaiyue Wen"]
-description: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal critical batch size formula. The square root learning rate scaling rule with batch size also holds universally across all norms."
-summary: "First-order optimization under arbitrary norms with Nesterov momentum (and weight decay) yields a universal critical batch size formula. The square root learning rate scaling rule with batch size also holds universally across all norms."
+description: "First-order optimization under arbitrary norms with Nesterov momentum (and decoupled weight decay) yields a universal critical batch size formula. The square root learning rate scaling rule with batch size also holds universally across all norms."
+summary: "First-order optimization under arbitrary norms with Nesterov momentum (and decoupled weight decay) yields a universal critical batch size formula. The square root learning rate scaling rule with batch size also holds universally across all norms."
 ---
 
 ## 0. Abstract
@@ -31,7 +31,9 @@ $$\begin{align}
 for some vector norm $h$ and its dual $h^{\dagger}$ on $\mathbb{R}^L$. Our results still hold under this more general setting.
 
 Now, at iteration $t$, we sample an i.i.d. minibatch $S_t = \{ i_1, i_2, \ldots, i_b \}$ of size $b$ from the training dataset. For each data point $i$, we write the per-example stochastic gradient as,
-$$ G_{\xi_{t, i}}(W_t) := \nabla f(W_t) - \xi_{t, i},$$
+$$\begin{equation}
+    G_{\xi_{t, i}}(W_t) := \nabla f(W_t) - \xi_{t, i},
+\end{equation}$$
 where $\xi_{t,i}$ is the (additive) gradient noise at $(t, i)$. We then write the minibatch stochastic gradient and noise as,
 $$\begin{align}
     \nabla f_{S_t}(W_t)
@@ -44,8 +46,8 @@ $$\begin{align}
 
 For a given momentum hyperparameter $\beta \in (0, 1)$, Nesterov momentum is defined in terms of the minibatch stochastic gradients as,
 $$\begin{align}
-    M_t &= \beta M_{t-1} + (1 - \beta) \nabla f_{S_t}(W_t) \nonumber \\
-    C_t &= \beta M_t + (1 - \beta) \nabla f_{S_t}(W_t) \nonumber \\
+    M_t &= \beta M_{t-1} + (1 - \beta) \nabla f_{S_t}(W_t) \\
+    C_t &= \beta M_t + (1 - \beta) \nabla f_{S_t}(W_t) \\
 \end{align}$$
 where $M_t$ is the usual momentum accumulator and $C_t$ is the Nesterov "look-ahead" gradient. We then use $C_t$ to compute the steepest descent update direction under the norm $\| \cdot \|$.
 
@@ -54,8 +56,8 @@ where $M_t$ is the usual momentum accumulator and $C_t$ is the Nesterov "look-ah
 Given a norm $\| \cdot \|$ on $\mathbb{R}^{m \times n}$ and its dual $\| \cdot \|^{\dagger}$, the linear minimization oracle (LMO) is defined as,
 $$\begin{align}
     A_t^*
-        &:= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle C_t, A \rangle_F \quad \text{ s.t. } \quad \| A \| \leq 1 \nonumber \\
-        &= \texttt{LMO}_{\| \cdot \|}(C_t) \nonumber
+        &:= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle C_t, A \rangle_F \quad \text{ s.t. } \quad \| A \| \leq 1 \\
+        &= \texttt{LMO}_{\| \cdot \|}(C_t)
 \end{align}$$
 such that,
 $$\begin{align}
@@ -99,8 +101,8 @@ where $L_F := \kappa_L L$.
 
 > **Assumption 4 (Local D-smoothness of $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$ in the noise region).** There exists a large enough $R > 0$ such that $\mathbb{P}(\| \xi_{t,i} \|^{\dagger} \leq R) = 1$ for all $t, i$. Let,
 $$\begin{align}
-    K &:= \{ X^{\dagger} \in \mathcal{W}^{\dagger} : \| X^{\dagger} \|^{\dagger} \leq R \} \nonumber \\
-    g(X^{\dagger}) &:= \frac{1}{2} \| X^{\dagger} \|^{\dagger 2} \quad \forall X^{\dagger} \in K \nonumber
+    K &:= \{ X^{\dagger} \in \mathcal{W}^{\dagger} : \| X^{\dagger} \|^{\dagger} \leq R \} \\
+    g(X^{\dagger}) &:= \frac{1}{2} \| X^{\dagger} \|^{\dagger 2} \quad \forall X^{\dagger} \in K
 \end{align}$$
 Intuitively, $K$ is the region where the gradient noise (and interpolations thereof) lie almost surely. Then there exists $D > 0$ such that for all $X^{\dagger}, Y^{\dagger} \in K$,
 $$\begin{equation}
@@ -114,7 +116,7 @@ $$\begin{equation}
 
 We first control the variance of the mini-batch noise.
 
-> **Lemma 5 (Minibatch gradient noise bounds).** Under Assumptions 1-2 and 4, for arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, and sequence of coefficients $(\alpha_i)_{i=1}^k$ with $\alpha_i \geq 0$ and $\sum_{i=0}^k \alpha_i \leq 1$, we have,
+> **Lemma 5 (Minibatch gradient noise bounds).** Under Assumptions (1), (2), and (4), for arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, and sequence of coefficients $(\alpha_i)_{i=1}^k$ with $\alpha_i \geq 0$ and $\sum_{i=0}^k \alpha_i \leq 1$, we have,
 $$\begin{align}
     \mathbb{E}\left[ \left\| \sum_{i=0}^k \alpha_{i} \xi_{i} \right\|^{\dagger 2} \right]
         &\leq D \sigma^2 \sum_{i=0}^k \alpha_{i}^2
@@ -156,7 +158,7 @@ We then bound the average first and second moments of the momentum error term,
 $$E_t := \nabla f(W_t) - M_t,$$
 and later the Nesterov momentum error term $\nabla f(W_t) - C_t$.
 
-> **Proposition 6 (Average first and second moments of the momentum error term w/o weight decay).** Let $\beta \in (0, 1)$, and $M_0 = 0$. Under Assumptions 1-4, for any $T \geq 1$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
+> **Proposition 6 (Average first and second moments of the momentum error term w/o weight decay).** Let the momentum parameter be $\beta \in [0, 1)$, learning rate $\eta > 0$, and initial momentum $M_0 = 0$. Then under Assumptions (1)-(4), arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, and $t \geq 0$,
 $$\begin{align}
     \mathbb{E}\left[ \| \nabla f(W_t) - M_t \|^{\dagger} \right]
         &\leq 2\beta^t \| \nabla f(W_0) \|^{\dagger}
@@ -250,7 +252,7 @@ Substituting $E_0 = \nabla f(W_0) - M_0 = \nabla f(W_0)$ completes the proof. $\
 
 We now bound the Nesterov momentum error term.
 
-> **Corollary 7 (Average first and second moments of the Nesterov momentum error term w/o weight decay).** Under the same assumptions as Proposition (6), for any $T \geq 1$ and any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
+> **Corollary 7 (Average first and second moments of the Nesterov momentum error term w/o weight decay).** Under the same assumptions as Proposition (6), arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, and any $t \geq 0$,
 $$\begin{align}
     &\mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger} \right] \nonumber \\
         &\qquad\leq 2\beta^{t+1} \| \nabla f(W_0) \|^{\dagger}
@@ -293,7 +295,7 @@ The result then follows from Lemma (5) and Proposition (6). $\quad\blacksquare$
 
 ### 2.2. Convergence bound without weight decay
 
-> **Theorem 8 (Convergence bound without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$ (i.e., weight decay is disabled) and step size $\eta > 0$. Then for any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, Z > 0$ such that,
+> **Theorem 8 (Convergence bound without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$ (i.e., weight decay is disabled), learning rate $\eta > 0$, momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then under Assumptions (1)-(4), and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, Z > 0$ such that,
 $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
         \leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
@@ -373,12 +375,10 @@ We now analyze the case $\lambda > 0$.
 
 ### 3.1. Weight, gradient, and momentum norm bounds
 
-> **Proposition 9 (Weight, gradient, and update bounds w/ weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda > 0$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$ and $\| W_0 \| \leq \frac{1}{\lambda}$. Additionally, suppose that there exists a minimizer $W^*$ with $\nabla f(W^*) = 0$ and $\| W^* \| \leq \frac{1}{\lambda}$. Then, for all $t \geq 0$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
+> **Proposition 9 (Weight, gradient, and update bounds w/ weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda > 0$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$ and $\| W_0 \| \leq \frac{1}{\lambda}$. Then, for all $t \geq 0$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
 $$\begin{align}
     \| W_t \|
         &\leq \frac{1}{\lambda} \\
-    \| \nabla f(W_t) \|^{\dagger}
-        &\leq \frac{2L}{\lambda} \\
     \| W_{t+1} - W_t \|
         &\leq 2\eta \label{eq:weight-update-bound}
 \end{align}$$
@@ -400,17 +400,7 @@ $$\begin{align}
         &\leq \frac{1}{\lambda} \nonumber
 \end{align}$$
 
-For the gradient norm bound, we use the fact that $\nabla f(W^*) = 0$ at a minimizer $W^*$, together with the $L$-smoothness of $f$,
-$$\begin{align}
-    \| \nabla f(W_t) \|^{\dagger}
-        &= \| \nabla f(W_t) - 0 \|^{\dagger} \nonumber \\
-        &= \| \nabla f(W_t) - \nabla f(W^*) \|^{\dagger} \nonumber \\
-        &\leq L \| W_t - W^* \| \nonumber \\
-        &\leq L (\| W_t \| + \| W^* \|) \nonumber \\
-        &\leq \frac{2L}{\lambda} \nonumber
-\end{align}$$
-
-Lastly, we have,
+As a consequence, we also have,
 $$\begin{align}
     \| W_{t+1} - W_t \|
         &= \| -\lambda \eta W_t + \eta A_t^* \| \nonumber \\
@@ -421,54 +411,9 @@ $$\begin{align}
 
 ---
 
-Next we bound the *variance* of gradients and momentum terms under weight decay.
-
-> **Proposition 10 (Gradient and (Nesterov) momentum variance bound).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda > 0$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then, for all $t \geq 0$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
-$$\begin{align}
-    \mathbb{E}\left[ \| \nabla f_{S_t}(W_t) \|^{\dagger 2} \right]
-        &\leq \frac{2D\sigma^2}{b} + \frac{8 L^2}{\lambda^2} \\
-    \mathbb{E}\left[ \| M_t \|^{\dagger 2} \right]
-        &\leq \frac{2D\sigma^2}{b} + \frac{8 L^2}{\lambda^2} \\
-    \mathbb{E}\left[ \| C_t \|^{\dagger 2} \right]
-        &\leq \frac{2D\sigma^2}{b} + \frac{8 L^2}{\lambda^2}
-\end{align}$$
-
-**Proof.** By the triangle inequality, we have,
-$$\begin{align}
-    \| \nabla f_{S_t}(W_t) \|^{\dagger}
-        &\leq \| \nabla f_{S_t}(W_t) - \nabla f(W_t) \|^{\dagger} + \| \nabla f(W_t) \|^{\dagger} \nonumber \\
-    \| \nabla f_{S_t}(W_t) \|^{\dagger 2}
-        &\leq 2 \| \nabla f_{S_t}(W_t) - \nabla f(W_t) \|^{\dagger 2} + 2 \| \nabla f(W_t) \|^{\dagger 2} \nonumber \\
-    \mathbb{E}\left[ \| \nabla f_{S_t}(W_t) \|^{\dagger 2} \right]
-        &\leq 2 \mathbb{E}\left[ \| \nabla f_{S_t}(W_t) - \nabla f(W_t) \|^{\dagger 2} \right]
-            + 2 \| \nabla f(W_t) \|^{\dagger 2} \nonumber \\
-        &\leq \frac{2D\sigma^2}{b} + \frac{8 L^2}{\lambda^2} \nonumber
-\end{align}$$
-
-Then, let us unroll the momentum recurrence,
-$$\begin{align}
-    \mathbb{E}\left[ \| M_t \|^{\dagger 2} \right]
-        &= \mathbb{E}\left[ \| \beta M_{t-1} + (1 - \beta) \nabla f_{S_t}(W_t) \|^{\dagger 2} \right] \nonumber \\
-        &\leq \beta \mathbb{E}\left[ \| M_{t-1} \|^{\dagger 2} \right]
-            + (1 - \beta) \mathbb{E}\left[ \| \nabla f_{S_t}(W_t) \|^{\dagger 2} \right] \nonumber \\
-        &\leq \cancel{\beta^t \| M_0 \|^{\dagger 2}}
-            + (1 - \beta) \sum_{i=0}^{t-1} \left( \frac{2 D\sigma^2}{b} + \frac{8 L^2}{\lambda^2} \right) \beta^i \nonumber \\
-        &\leq \frac{2 D\sigma^2}{b} + \frac{8 L^2}{\lambda^2} \nonumber
-\end{align}$$
-
-As for the Nesterov momentum term, we have,
-$$\begin{align}
-    \mathbb{E}\left[ \| C_t \|^{\dagger 2} \right]
-        &= \mathbb{E}\left[ \| \beta M_t + (1 - \beta) \nabla f_{S_t}(W_t) \|^{\dagger 2} \right] \nonumber \\
-        &\leq \beta \mathbb{E}\left[ \| M_t \|^{\dagger 2} \right] + (1 - \beta) \mathbb{E}\left[ \| \nabla f_{S_t}(W_t) \|^{\dagger 2} \right] \nonumber \\
-        &\leq \frac{2 D\sigma^2}{b} + \frac{8 L^2}{\lambda^2} \quad\blacksquare \nonumber
-\end{align}$$
-
----
-
 We then derive the corresponding bounds as in Proposition (6) and Corollary (7), but now with weight decay.
 
-> **Corollary 11 (Average first and second moments of the momentum error term w/ weight decay).** Let $\beta \in (0, 1)$, and $M_0 = 0$. Under Assumptions 1-4, for any $T \geq 1$ and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
+> **Corollary 10 (Average first and second moments of the momentum error term w/ weight decay).** Let the momentum parameter be $\beta \in [0, 1)$, learning rate $\eta > 0$ (such that $\lambda\eta < 1$), and initial momentum $M_0 = 0$. Under Assumptions (1)-(4), arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, and any $t \geq 0$,
 $$\begin{align}
     \mathbb{E}\left[ \| \nabla f(W_t) - M_t \|^{\dagger} \right]
         &\leq 2\beta^t \| \nabla f(W_0) \|^{\dagger}
@@ -481,26 +426,37 @@ $$\begin{align}
 \end{align}$$
 Moreover, averaging over $T$ iterations yields,
 $$\begin{align}
-    \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
-        &\leq \frac{2}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
+    &\frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[ \| \nabla f(W_t) - M_t \|^{\dagger} \right] \nonumber \\
+        &\qquad\leq \frac{2}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
             + \frac{4 \beta}{1 - \beta} L \eta
             + \sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \frac{\sqrt{D}\sigma}{\sqrt{b}} \\
-    \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| E_t \|^{\dagger 2} \right]
-        &\leq \frac{4}{1 - \beta^2} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
+    &\frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - M_t \|^{\dagger 2} \right] \nonumber \\
+        &\qquad\leq \frac{4}{1 - \beta^2} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
             + \frac{16 \beta^2}{(1 - \beta)^2} L^2 \eta^2
             + \frac{2 (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
 \end{align}$$
 
-> **Corollary 12 (Average first and second moments of the Nesterov momentum error term w/ weight decay).** Under the same assumptions as Corollary (7), for any $T \geq 1$ and any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$,
+> **Corollary 11 (Average first and second moments of the Nesterov momentum error term w/ weight decay).** Under the same assumptions as Corollary (7), for arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, and any $t \geq 0$,
 $$\begin{align}
-    \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger} \right]
-        &\leq \frac{2 \beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
-            + \frac{4 \beta^2}{1 - \beta} L \eta \nonumber \\
-        &\quad+ \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \\
-    \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger 2}\right]
-        &\leq \frac{16 \beta}{1 - \beta^2} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
-            + \frac{4 \beta^3}{(1 - \beta)^2} L^2 \eta^2 \nonumber \\
-        &\quad+ \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
+    &\mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger} \right] \nonumber \\
+        &\qquad\leq 2\beta^{t+1} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
+            + \frac{4 \beta^2}{1 - \beta} L \eta
+            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \\
+    &\mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger 2}\right] \nonumber \\
+        &\qquad\leq 4\beta^{2t+1} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
+            + \frac{16 \beta^3}{(1 - \beta)^2} L^2 \eta^2
+            + \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
+\end{align}$$
+Moreover, averaging over $T$ iterations yields,
+$$\begin{align}
+    &\frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger} \right] \nonumber \\
+        &\qquad\leq \frac{2 \beta}{1 - \beta} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
+            + \frac{4 \beta^2}{1 - \beta} L \eta
+            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \\
+    &\frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger 2}\right] \nonumber \\
+        &\qquad\leq \frac{4 \beta}{1 - \beta^2} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger 2}
+            + \frac{16 \beta^3}{(1 - \beta)^2} L^2 \eta^2
+            + \frac{(3 \beta + 1)(1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b}
 \end{align}$$
 
 **Proof.** We branch off from the proof of Proposition (6) at Equation $\eqref{eq:prop6-branch}$, but now using Equation $\eqref{eq:weight-update-bound}$ from Proposition (9) to bound $\| W_{t+1} - W_t \| \leq 2\eta$. The rest of the proof then follows identically. $\quad\blacksquare$
@@ -509,14 +465,14 @@ $$\begin{align}
 
 Before we derive the convergence bound for steepest descent with Nesterov momentum and weight decay, we make the following assumption to avoid the pathological case where the weight decay term perfectly cancels out the descent direction, stalling convergence. Without this assumption, we can only guarantee convergence to a neighborhood around a stationary point and we will need other techniques to guarantee convergence to the stationary point itself.
 
-> **Assumption 13 (Imperfect anti-alignment between $C_t$ and $W_t$).** There exists $0 \leq \rho < 1$ such that for all $t \geq 0$,
+> **Assumption 12 (Imperfect anti-alignment between $C_t$ and $W_t$).** There exists $0 \leq \rho < 1$ such that for all $t \geq 0$,
 $$\begin{equation}
     \frac{\langle C_t, -W_t \rangle}{\| C_t \|^{\dagger} \| W_t \|} \leq \rho
 \end{equation}$$
 
 With this, we can now state the convergence bound.
 
-> **Theorem 14 (Convergence bound with weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, Z > 0$ such that,
+> **Theorem 13 (Convergence bound with weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, Z > 0$ such that,
 $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
 \end{equation}$$
@@ -572,7 +528,7 @@ $$\begin{align}
             + \frac{2}{1 - \rho} L \eta \nonumber
 \end{align}$$
 
-Then we set $\epsilon = c_1$. Following the same strategy as in Theorem (8) with Propositions (9) and (10) and Corollaries (11) and (12) then yields,
+Then we set $\epsilon = c_1$. Following the same strategy as in Theorem (8) with Proposition (9) and Corollary (11) then yields,
 $$\begin{align}
     &\frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \nonumber \\
         &\qquad\leq \frac{f(W_0) - f(W_T)}{\eta (1 - \rho) T}
@@ -601,11 +557,11 @@ $$\begin{align}
 
 ## 4. Deriving the critical batch size
 
-> **Theorem 15 (Critical batch size for steepest descent under arbitrary norms with (Nesterov) momentum and weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach $\epsilon$-convergence according to the criterion in Equation $\eqref{eq:convergence-criterion}$ is given by,
+> **Theorem 14 (Critical batch size for steepest descent under arbitrary norms with (Nesterov) momentum and weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach $\epsilon$-convergence according to the criterion in Equation $\eqref{eq:convergence-criterion}$ is given by,
 $$\begin{align}
     b_{crit}
-        &= \left(\frac{3 - \rho}{1 - \rho}\right)^2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 D \frac{\sigma^2}{\epsilon'} \\
-        &\propto (1 - \beta) D \frac{\sigma^2}{\epsilon'}
+        &= \frac{9}{4}\left(\frac{3 - \rho}{1 - \rho}\right)^2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 D \frac{\sigma^2}{\epsilon'} \\
+        &= \mathcal{O}\left( (1 - \beta) D \frac{\sigma^2}{\epsilon'} \right)
 \end{align}$$
 where $\epsilon' := (\epsilon - Z)^2 > 0$.
 
@@ -639,8 +595,8 @@ $$\begin{align}
 Thus, $b \cdot T(b)$ is a convex function for $b > \frac{Y^2}{\epsilon'}$, with a minimizer $b^* = \frac{9Y^2}{4\epsilon'}$. This gives us the critical batch size,
 $$\begin{align}
     b_{crit}
-        &= \left(\frac{3 - \rho}{1 - \rho}\right)^2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 D \frac{\sigma^2}{\epsilon'} \nonumber \\
-        &\propto (1 - \beta) D \frac{\sigma^2}{\epsilon'} \qquad\blacksquare \nonumber
+        &= \frac{9}{4}\left(\frac{3 - \rho}{1 - \rho}\right)^2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 D \frac{\sigma^2}{\epsilon'} \nonumber \\
+        &= \mathcal{O} \left( (1 - \beta) D \frac{\sigma^2}{\epsilon'} \right) \qquad\blacksquare \nonumber
 \end{align}$$
 
 ### 4.1. Estimating D-smoothness for various optimizers
@@ -655,7 +611,7 @@ Optimizers we use in practice can be viewed as performing steepest descent under
 
 See [Appendix A1](#a1-jax-code-to-estimate-d-smoothness) for the JAX code to estimate $D$-smoothness for steepest descent under various norms. We also take into account the fact that gradients in large-scale LLM training naturally have low stable rank structure. Empirically, $D \approx 1$ for SignSGD/AdamW and Muon/SOAP even for high-dimensional weight matrices, indicating that the critical batch size do not depend on the width and chosen norm. Thus, we can further reduce the critical batch size formula to,
 $$\begin{equation}
-    b_{crit} \propto (1 - \beta) \frac{\sigma^2}{\epsilon'}.
+    b_{crit} = \mathcal{O} \left( (1 - \beta) \frac{\sigma^2}{\epsilon'} \right).
 \end{equation}$$
 
 ## 5. Learning rate scaling with batch size
@@ -664,14 +620,14 @@ In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto
 
 To see this, we first make the following assumption.
 
-> **Assumption 16 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm pair $\| \cdot \|$ (with dual norm $\| \cdot \|^{\dagger}$). Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2 \in \mathcal{W}^\dagger$ denoting Nesterov momentum terms, we have,
+> **Assumption 15 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm pair $\| \cdot \|$ (with dual norm $\| \cdot \|^{\dagger}$). Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2 \in \mathcal{W}^\dagger$ denoting Nesterov momentum terms, we have,
 $$\begin{equation}
     \| \texttt{LMO}_{\| \cdot \|}(C_1) - \texttt{LMO}_{\| \cdot \|}(C_2) \| \leq L_{\text{LMO}} \| C_1 - C_2 \|^{\dagger}
 \end{equation}$$
 
 Then, we have the following result.
 
-> **Proposition 17 (Weight update noise variance is proportional to $\eta^2/b$).** Let $\eta > 0$ be the learning rate and $b \geq 1$ be the batch size. Under Assumptions 1-4 and Assumption (16) and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
+> **Proposition 16 (Weight update noise variance is proportional to $\eta^2/b$).** Let $\eta > 0$ be the learning rate and $b \geq 1$ be the batch size. Under Assumptions 1-4 and Assumption (15) and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
 $$\begin{equation}
     \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] \propto \frac{\eta^2}{b}
 \end{equation}$$
@@ -720,9 +676,13 @@ Here we show that the square root learning rate scaling rule as in Equation $\eq
 ## 7. Discussion
 
 The main result of this work is that the *shape* of the convergence bound:
-$$\frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] = \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z$$
+$$\begin{equation}
+    \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] = \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
+\end{equation}$$
 is universal across all norms used for steepest descent. As a consequence, the critical batch size formula:
-$$b_{crit} \propto (1 - \beta) \frac{\sigma^2}{\epsilon'}$$
+$$\begin{equation}
+    b_{crit} = \mathcal{O} \left( (1 - \beta) \frac{\sigma^2}{\epsilon'} \right)
+\end{equation}$$
 also holds universally across all norms. This matches prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598) that the critical batch size formula transfers between AdamW and Muon, but now we have shown that it potentially transfers to *all* first-order optimizers that can be interpreted as performing steepest descent under some norm. Also notice that $b_{crit} \to 0$ as $\beta \to 1$, which is expected since high momentum increases the effective batch size (or the "lifetime" of gradient estimates).
 
 ## Acknowledgements
