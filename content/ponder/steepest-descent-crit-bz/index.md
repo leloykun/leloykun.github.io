@@ -295,15 +295,21 @@ The result then follows from Lemma (5) and Proposition (6). $\quad\blacksquare$
 
 ### 2.2. Convergence bound without weight decay
 
-> **Theorem 8 (Convergence bound without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$ (i.e., weight decay is disabled), learning rate $\eta > 0$, momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then under Assumptions (1)-(4), and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, Z > 0$ such that,
+> **Theorem 8 (Convergence bound without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$ (i.e., weight decay is disabled), learning rate $\eta > 0$, momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then under Assumptions (1)-(4), and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have constants $X, Y, Z > 0$ such that,
 $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
         \leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
 \end{equation}$$
-where $T$ is the total number of time steps, $b$ is the batch size, and
-$$\begin{equation}
-    Y = 2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma.
-\end{equation}$$
+where $T$ is the total number of time steps, $b$ is the batch size, and,
+$$\begin{align}
+    X
+        &= \frac{f(W_0) - f^*}{\eta}
+            + \frac{4 \beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger} \\
+    Y
+        &= 2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma \\
+    Z
+        &= \frac{4 \beta^2}{1 - \beta} L \eta + \frac{L\eta}{2} \nonumber
+\end{align}$$
 
 **Proof.** Let us first disable weight decay, i.e., set $\lambda = 0$. Since $f$ is $L$-smooth, the descent lemma, Equation $\eqref{eq:lmo-inner-product}$, and Equation $\eqref{eq:lmo-norm}$ yields,
 $$\begin{align}
@@ -477,9 +483,16 @@ $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
 \end{equation}$$
 where $T$ is the total number of time steps, $b$ is the batch size, and,
-$$\begin{equation}
-    Y = \frac{3 - \rho}{1 - \rho} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma.
-\end{equation}$$
+$$\begin{align}
+    X
+        &= \frac{f(W_0) - f^*}{\eta (1 - \rho)}
+            + \frac{3 - \rho}{1 - \rho} \frac{2 \beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger} \\
+    Y
+        &= \frac{3 - \rho}{1 - \rho} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma \\
+    Z
+        &= \frac{3 - \rho}{1 - \rho} \frac{4 \beta^2}{1 - \beta} L \eta
+            + \frac{2}{1 - \rho} L \eta
+\end{align}$$
 
 **Proof.** We closely follow that of Theorem (8), with additional terms to account for weight decay. From the descent lemma, we have,
 
