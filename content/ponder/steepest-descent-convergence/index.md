@@ -320,6 +320,8 @@ $$\begin{equation}
     \right\}}\right) \label{eq:eta-bound-wd}
 \end{equation}$$
 
+We can then choose $\lambda$ small enough such that $\lambda\eta \leq 1$.
+
 ### 3.3. Bounding T
 
 For some small constant $c_4 < 1/4$, we then bound the term involving $T$ by $\epsilon$ as follows,
@@ -334,8 +336,8 @@ $$\begin{align}
     T &= \Omega\left(\max{\left\{
         \frac{L}{\lambda^2 \epsilon},
         \frac{\| G_0 \|^{\dagger}}{\lambda \epsilon},
-        \frac{D \sigma^2 L}{\lambda^3 b \epsilon^3},
-        \frac{D \sigma^2 \| G_0 \|^{\dagger}}{\lambda^2 b \epsilon^3}
+        \frac{D \sigma^2 L}{\lambda^4 b \epsilon^3},
+        \frac{D \sigma^2 \| G_0 \|^{\dagger}}{\lambda^3 b \epsilon^3}
     \right\}}\right) \label{eq:T-bound-final-wd}
 \end{align}$$
 
