@@ -26,7 +26,7 @@ $$\begin{align}
         &\leq \frac{1}{T} \left( \frac{\Delta_0}{\eta}
             + \frac{4 \beta}{1 - \beta} G_0 \right) \nonumber \\
         &\quad+ 2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D}\sigma}{\sqrt{b}} \nonumber \\
-        &\quad+ \left( \frac{4 \beta^2}{1 - \beta} + \frac{1}{2} \right) L \eta
+        &\quad+ \left( \frac{4 \beta^2}{1 - \beta} + \frac{1}{2} \right) L \eta \label{eq:theorem1-bound}
 \end{align}$$
 where $\Delta_0 = f(W_0) - f^*$, $G_0 = \| \nabla f(W_0) \|^{\dagger}$, and $\rho$ is some upper bound on the anti-alignment of nesterov momentum terms $C_t$ and the weights $W_t$.
 
@@ -35,9 +35,21 @@ $$\begin{equation}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \epsilon
 \end{equation}$$
 
-Now, note that as $T \to \infty$, only the (first) term involving $\frac{1}{T}$ vanishes. This term depends on hyperparameters $\eta$ and $\beta$, so we will need to set bounds on these hyperparameters to ensure $\epsilon$-convergence.
+Now, note that as $T \to \infty$, only the (first) term involving $\frac{1}{T}$ vanishes. The other two terms involve $\beta$ and $\eta$, which we can tune accordingly.
 
-Reparametrizing $\theta = 1 - \beta$ and using $\beta < 1$, we have,
+> **Corollary 2.** For some generalized stationary tolerance $\epsilon > 0$, to ensure that, $\frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \epsilon$, via steepest descent under arbitrary norms with Nesterov momentum without weight decay, it suffices to set,
+$$\begin{align}
+    \theta &= 1 - \beta = \mathcal{O}\left(\min{\left\{1, \frac{b\epsilon^2}{D\sigma^2}\right\}}\right) \\
+    \eta &= \mathcal{O}\left(\min{\left\{\frac{\epsilon}{L}, \frac{b\epsilon^3}{D\sigma^2L}\right\}}\right) \\
+    T &= \Omega\left(\max{\left\{
+        \frac{G_0}{\epsilon},
+        \frac{L \Delta_0}{\epsilon^2},
+        \frac{D \sigma^2 G_0}{b \epsilon^3},
+        \frac{D \sigma^2 L \Delta_0}{b \epsilon^4}
+    \right\}}\right)
+\end{align}$$
+
+**Proof.** Reparametrizing $\theta = 1 - \beta$ and using $\beta < 1$, we can simplify the bound in Theorem 1 as follows,
 $$\begin{align}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
         &\lesssim \frac{1}{T} \left( \frac{\Delta_0}{\eta}
@@ -110,7 +122,7 @@ $$\begin{align}
         \frac{L \Delta_0}{\epsilon^2},
         \frac{D \sigma^2 G_0}{b \epsilon^3},
         \frac{D \sigma^2 L \Delta_0}{b \epsilon^4}
-    \right\}}\right) \label{eq:T-bound-final}
+    \right\}}\right) \qquad\blacksquare \label{eq:T-bound-final}
 \end{align}$$
 
 ## 3. Convergence bound for steepest descent under arbitrary norms with Nesterov momentum with decoupled weight decay for star-convex functions
@@ -120,25 +132,25 @@ $$\begin{equation}
     W^* := \arg\min_{W \in \mathcal{W}} f(W) \quad \text{ such that } \quad \| W \| \leq \frac{1}{\lambda}
 \end{equation}$$
 
-> **Assumption 2 ($f$ is star-convexity at $W^*$).** For all $W \in \mathcal{W}$ and all $\alpha \in [0, 1]$,
+> **Assumption 3 ($f$ is star-convexity at $W^*$).** For all $W \in \mathcal{W}$ and all $\alpha \in [0, 1]$,
 $$\begin{equation}
     f((1 - \alpha) W + \alpha W^*) \leq (1 - \alpha) f(W) + \alpha f(W^*)
 \end{equation}$$
 
 Now let,
 $$\begin{equation}
-    X_t = (1 - \lambda\eta) W_t + \lambda\eta W^*
+    X_t = (1 - \lambda\eta) W_t + \lambda\eta W^* \label{eq:wd-proof-xt}
 \end{equation}$$
 Then we have the following useful lemmas.
 
-> **Lemma 3.**
+> **Lemma 4.** For Nesterov momentum terms $C_t$, weights $W_t$ and $W_{t+1}$, and $X_t$ defined in Equation \eqref{eq:wd-proof-xt}, we have the following inequalities,
 $$\begin{align}
-    \langle C_t, W_{t+1} - X_t \rangle \leq 0 \label{eq:lemma3-ineq-1} \\
+    \langle C_t, W_{t+1} - X_t \rangle \leq 0 \label{eq:lemma4-ineq-1} \\
     \| W_{t} - X_t \| \leq 2\eta \\
     \| W_{t+1} - X_t \| \leq 2\eta
 \end{align}$$
 
-**Proof.** For Inequality \eqref{eq:lemma3-ineq-1}, we have,
+**Proof.** For Inequality \eqref{eq:lemma4-ineq-1}, we have,
 $$\begin{align}
     \langle C_t, W_{t+1} \rangle
         &= \langle C_t, (1 - \lambda\eta) W_{t} + \eta A_t^* \rangle \nonumber \\
@@ -164,13 +176,13 @@ $$\begin{align}
 
 ---
 
-> **Theorem 4.** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), the reparametrized momentum parameter $\theta = 1 - \beta \in (0, 1]$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), star-convexity of $f$ at $W^*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
+> **Theorem 5.** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), star-convexity of $f$ at $W^*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
 $$\begin{align}
     \mathbb{E}\left[ f(W_T) - f(W^*) \right]
         &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*))
-            + \frac{12}{\lambda\theta} L \eta
-            + \frac{4\eta}{\theta} \| G_0 \|^{\dagger}
-            + \frac{2\sqrt{2}}{\lambda} \sqrt{\theta} \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber
+            + \frac{4}{\lambda} \left(1 + \frac{2 \beta^2}{1 - \beta} \right) L \eta \nonumber \\
+        &\quad+ \frac{4\eta\beta}{1 - \beta} \| G_0 \|^{\dagger}
+            + \frac{2}{\lambda} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}}
 \end{align}$$
 
 **Proof.** From the descent lemma, we have,
@@ -246,12 +258,34 @@ $$\begin{align}
         &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*))
             + \frac{4}{\lambda} \left(1 + \frac{2 \beta^2}{1 - \beta} \right) L \eta
             + \frac{4\eta\beta}{1 - \beta} \| G_0 \|^{\dagger} \nonumber \\
-        &\quad+ \frac{2}{\lambda} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber
+        &\quad+ \frac{2}{\lambda} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \qquad\blacksquare \nonumber
 \end{align}$$
 
-Reparametrizing $\theta = 1 - \beta$ then yields the desired result. $\qquad\blacksquare$
-
 We can then use this theorem to derive convergence bounds as follows.
+
+> **Corollary 6.** For some expected suboptimality tolerance $\epsilon > 0$, to ensure that, $\mathbb{E}\left[ f(W_T) - f(W^*) \right] \leq \epsilon$, via steepest descent under arbitrary norms with Nesterov momentum *with* decoupled weight decay, it suffices to set,
+$$\begin{align}
+    \theta &= 1 - \beta = \mathcal{O}\left(\min{\left\{1, \frac{\lambda^2 b \epsilon^2}{D \sigma^2}\right\}}\right) \\
+    \eta &= \mathcal{O}\left(\min{\left\{\frac{\lambda\epsilon}{L}, \frac{\epsilon}{\| G_0 \|^{\dagger}},
+        \frac{\lambda^3 b \epsilon^3}{D \sigma^2 L},
+        \frac{\lambda^2 b \epsilon^3}{D \sigma^2 \| G_0 \|^{\dagger}}
+    \right\}}\right) \\
+    T &= \Omega\left(\max{\left\{
+        \frac{L}{\lambda^2 \epsilon},
+        \frac{\| G_0 \|^{\dagger}}{\lambda \epsilon},
+        \frac{D \sigma^2 L}{\lambda^3 b \epsilon^3},
+        \frac{D \sigma^2 \| G_0 \|^{\dagger}}{\lambda^2 b \epsilon^3}
+    \right\}}\right)
+\end{align}$$
+
+**Proof.** As in the previous section, reparametrizing $\theta = 1 - \beta$ and using $\beta < 1$, we can simplify the bound in Theorem 5 as follows,
+$$\begin{align}
+    \mathbb{E}\left[ f(W_T) - f(W^*) \right]
+        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*))
+            + \frac{12}{\lambda\theta} L \eta
+            + \frac{4\eta}{\theta} \| G_0 \|^{\dagger}
+            + \frac{2\sqrt{2}}{\lambda} \sqrt{\theta} \frac{\sqrt{D} \sigma}{\sqrt{b}}
+\end{align}$$
 
 ### 3.1. Bounding θ
 
