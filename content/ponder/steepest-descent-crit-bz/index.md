@@ -15,7 +15,7 @@ This work generalizes prior results by [Sato et al. (2025)](https://arxiv.org/ab
 
 We consider the following optimization problem:
 $$\begin{equation}
-    \arg\min_{W \in \mathcal{W}} f(W)
+    W^* = \arg\min_{W \in \mathcal{W}} f(W) \label{eq:opt-problem}
 \end{equation}$$
 where $f(\cdot): \mathcal{W} \to \mathbb{R}$ is a bounded from below and differentiable objective function, and $\mathcal{W}$ is a finite-dimensional vector space over $\mathbb{R}$, e.g., $\mathcal{W} = \mathbb{R}^{m \times n}$, equipped with an arbitrary norm $\| \cdot \|$ and its dual norm $\| \cdot \|^{\dagger}$.
 
@@ -42,24 +42,61 @@ $$\begin{align}
         &:= \nabla f(W_t) - \nabla f_{S_t}(W_t)
 \end{align}$$
 
-### 1.1. Nesterov momentum
+### 1.1. First-order steepest descent with Nesterov momentum and (decoupled) weight decay
 
-For a given momentum hyperparameter $\beta \in (0, 1)$, Nesterov momentum is defined in terms of the minibatch stochastic gradients as,
+We solve Equation $\eqref{eq:opt-problem}$ by iteratively minimizing a first-order Taylor approximation of $f$ around the current weight $W_t$. From here, we can either impose a hard constraint on the step size under the norm $\| \cdot \|$, or add a quadratic regularization term.
+$$\begin{align}
+    \text{[Constrained]}^{(1)} \quad
+    W_{t+1}
+        &= \arg\min_{W \in \mathcal{W}} \left\{ f(W_t) + \left\langle \nabla f_{S_t}(W_t), W - W_t \right\rangle_F \right\}
+        \quad \text{s.t.} \quad \| W - W_t \| \leq \eta\\
+    \text{[Regularized]}^{(1)} \quad
+    W_{t+1}
+        &= \arg\min_{W \in \mathcal{W}} \left\{ f(W_t) + \left\langle \nabla f_{S_t}(W_t), W - W_t \right\rangle_F + \frac{1}{2\eta} \| W - W_t \|^2 \right\}
+\end{align}$$
+
+We can also reduce gradient variance by using Nesterov momentum defined as,
 $$\begin{align}
     M_t &= \beta M_{t-1} + (1 - \beta) \nabla f_{S_t}(W_t) \\
     C_t &= \beta M_t + (1 - \beta) \nabla f_{S_t}(W_t) \\
 \end{align}$$
-where $M_t$ is the usual momentum accumulator and $C_t$ is the Nesterov "look-ahead" gradient. We then use $C_t$ to compute the steepest descent update direction under the norm $\| \cdot \|$.
-
-### 1.2. Linear Minimization Oracles (LMOs) and dual norms
-
-Given a norm $\| \cdot \|$ on $\mathbb{R}^{m \times n}$ and its dual $\| \cdot \|^{\dagger}$, the linear minimization oracle (LMO) is defined as,
+where $\beta$ is the momentum hyperparameter, $M_t$ is the usual momentum accumulator, and $C_t$ is the Nesterov "look-ahead" gradient. We then have,
 $$\begin{align}
-    A_t^*
-        &:= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle C_t, A \rangle_F \quad \text{ s.t. } \quad \| A \| \leq 1 \\
-        &= \texttt{LMO}_{\| \cdot \|}(C_t)
+    \text{[CSD]}^{(2)} \quad
+    W_{t+1}
+        &= \arg\min_{W \in \mathcal{W}} \left\{ f(W_t) + \left\langle C_t, W - W_t \right\rangle_F \right\}
+        \quad \text{s.t.} \quad \| W - W_t \| \leq \eta\\
+    \text{[RSD]}^{(2)} \quad
+    W_{t+1}
+        &= \arg\min_{W \in \mathcal{W}} \left\{ f(W_t) + \left\langle C_t, W - W_t \right\rangle_F + \frac{1}{2\eta} \| W - W_t \|^2 \right\}
 \end{align}$$
-such that,
+To prevent the weights from blowing up, we can also add a decoupled weight decay term with coefficient $\lambda \geq 0$ by "shifting" the center of the constraint/regularization from $W_t$ to $(1 - \lambda\eta) W_t$ as follows,
+$$\begin{align}
+    \text{[CSD]}^{(3)} \quad
+    W_{t+1}
+        &= \arg\min_{W \in \mathcal{W}} \left\{ f(W_t) + \left\langle C_t, W - (1 - \lambda\eta) W_t \right\rangle_F \right\}
+        \quad \text{s.t.} \quad \| W - (1 - \lambda\eta) W_t \| \leq \eta\\
+    \text{[RSD]}^{(3)} \quad
+    W_{t+1}
+        &= \arg\min_{W \in \mathcal{W}} \left\{ f(W_t) + \left\langle C_t, W - (1 - \lambda\eta) W_t \right\rangle_F + \frac{1}{2\eta} \| W - (1 - \lambda\eta) W_t \|^2 \right\}
+\end{align}$$
+
+Solving the above problems then yields the following update rules,
+$$\begin{align}
+    \text{[CSD]}^{(3)} \quad
+    W_{t+1}
+        &= (1 - \lambda\eta) W_t - \eta \texttt{LMO}(C_t) \label{eq:updateweightdecay} \\
+    \text{[RSD]}^{(3)} \quad
+    W_{t+1}
+        &= (1 - \lambda\eta) W_t - \eta \| C_t \|^{\dagger} \texttt{LMO}(C_t)
+\end{align}$$
+where $\texttt{LMO}(\cdot)$ is the linear minimization oracle under the norm $\| \cdot \|$ defined as,
+$$\begin{equation}
+    A_t^*
+        := \texttt{LMO}_{\| \cdot \|}(C_t)
+        := \arg\min_{A \in \mathbb{R}^{m \times n}} \langle C_t, A \rangle_F \quad \text{ s.t. } \quad \| A \| \leq 1
+\end{equation}$$
+which has the following useful properties,
 $$\begin{align}
     \| A_t^* \|
         &= 1 \label{eq:lmo-norm} \\
@@ -67,15 +104,12 @@ $$\begin{align}
         &= \langle C_t, \texttt{LMO}_{\| \cdot \|}(C_t) \rangle_F \nonumber \\
         &= \arg\min_{A \leq 1} \langle C_t, A \rangle_F \nonumber \\
         &= -\arg\max_{A \leq 1} \langle C_t, A \rangle_F \nonumber \\
-        &= - \| C_t \|^{\dagger} \label{eq:lmo-inner-product}
+        &= - \| C_t \|^{\dagger}. \label{eq:lmo-inner-product}
 \end{align}$$
 
-The update rule for steepest descent with step size $\eta > 0$ at time $t$ and weight decay term $\lambda \geq 0$ is then given by,
-$$\begin{equation}
-    W_{t+1} = (1 - \lambda\eta) W_t + \eta A_t^* \label{eq:updateweightdecay}
-\end{equation}$$
+For this work, we will focus on the constrained steepest descent with Nesterov momentum and decoupled weight decay ([CSD]$^{(3)}$) with update rule given by Equation $\eqref{eq:updateweightdecay}$.
 
-### 1.3. Assumptions
+### 1.2. Assumptions
 
 > **Assumption 1 (Unbiased gradient noise, per sample).** At each time step $t$ and for each data point $i \in S_t$, the gradient noise satisfies,
 $$\begin{equation} \mathbb{E}\left[ \xi_{t, i} | W_t \right] = 0, \end{equation}$$
@@ -85,19 +119,11 @@ and the samples $(\xi_{t,i})_{i=1}^b$ are conditionally independent given $W_t$.
 $$\begin{equation}
     \mathbb{E}\left[\| \xi_{t,i} \|^{\dagger 2} \right] \leq \sigma^2
 \end{equation}$$
-By norm equivalence in finite dimensions, there exists $\kappa_{\sigma} > 0$ such that,
-$$\begin{equation} \mathbb{E}\left[ \| \xi_{t,i} \|_F^2 \right] \leq \kappa_{\sigma}^2 \sigma^2 =: \sigma_F^2 \end{equation}$$
-where $\sigma_F := \kappa_{\sigma} \sigma$ and treat $\sigma_F$ as the gradient noise variance scale in the Frobenius norm.
 
 > **Assumption 3 (L-smoothness of $f$ under $(\| \cdot \|, \| \cdot \|^{\dagger})$).** There exists $L > 0$ such that for all $X, Y \in \mathcal{W}$,
 $$\begin{equation}
     \| \nabla f(Y) - \nabla f(X) \|^{\dagger} \leq L \| Y - X \|
 \end{equation}$$
-By norm equivalence, there exists $\kappa_L > 0$ such that,
-$$\begin{equation}
-    \| \nabla f(Y) - \nabla f(X) \|_F \leq \kappa_L L \| Y - X \|_F = L_F \| Y - X \|_F
-\end{equation}$$
-where $L_F := \kappa_L L$.
 
 > **Assumption 4 (Local D-smoothness of $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$ in the noise region).** There exists a large enough $R > 0$ such that $\mathbb{P}(\| \xi_{t,i} \|^{\dagger} \leq R) = 1$ for all $t, i$. Let,
 $$\begin{align}
