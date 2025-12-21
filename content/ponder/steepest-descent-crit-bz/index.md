@@ -665,12 +665,12 @@ $$\begin{align}
 \end{align}$$
 where $\epsilon' := (\epsilon - Z)^2 > 0$.
 
-**Proof.** We consider the steepest descent iteration process to have $\epsilon$-converged in terms of generalized expected stationarity at time step $T$ when, for some $\epsilon > 0$,
+**Proof.** We consider the steepest descent iteration process to have $\epsilon$-converged at time step $T$ in terms of generalized expected stationarity when, for some $\epsilon > 0$,
 $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z \leq \epsilon \label{eq:convergence-criterion}
 \end{equation}$$
 
-Since $Z$ is a constant independent of $T$ and $b$, we can simply fold it into $\epsilon$ by defining $\epsilon' := \epsilon - Z > 0$. Simple algebra then yields the number of iterations to satisfy the convergence criterion in Equation $\eqref{eq:convergence-criterion}$ as,
+Since $Z$ is a constant independent of $T$ and $b$, we can simply fold it into $\epsilon$ by defining $\epsilon' := (\epsilon - Z)^2 > 0$. Simple algebra then yields the number of iterations to satisfy the convergence criterion in Equation $\eqref{eq:convergence-criterion}$ as,
 $$\begin{align}
     \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z &\leq \epsilon \nonumber \\
     \frac{X}{T} + \frac{Y}{\sqrt{b}} &\leq \epsilon - Z =: \sqrt{\epsilon'} \nonumber \\
@@ -708,10 +708,17 @@ $$\begin{align}
 \end{align}$$
 where $\epsilon' := (\epsilon - Z)^2 > 0$.
 
-**Proof.**
+**Proof.** We consider the steepest descent iteration process to have $\epsilon$-converged at time step $T$ in terms of expected suboptimality when, for some $\epsilon > 0$,
+$$\begin{equation}
+    \mathbb{E}\left[ f(W_T) - f(W^*) \right]
+        \leq (1 - \lambda\eta)^T X + \frac{Y}{\sqrt{b}} + Z
+        \leq e^{-\lambda\eta T} X + \frac{Y}{\sqrt{b}} + Z
+        \leq \epsilon \label{eq:convergence-criterion-wd}
+\end{equation}$$
 
+As before, we can fold $Z$ into $\epsilon$ by defining $\epsilon' := (\epsilon - Z)^2 > 0$. Simple algebra then yields the number of iterations to satisfy the convergence criterion in Equation $\eqref{eq:convergence-criterion-wd}$ as,
 $$\begin{align}
-    (1 - \lambda\eta)^T X + \frac{Y}{\sqrt{b}} + Z \leq e^{-\lambda\eta T} X + \frac{Y}{\sqrt{b}} + Z
+    e^{-\lambda\eta T} X + \frac{Y}{\sqrt{b}} + Z
         &\leq \epsilon \nonumber \\
     e^{-\lambda\eta T} X + \frac{Y}{\sqrt{b}}
         &\leq \epsilon - Z =: \sqrt{\epsilon'} \nonumber \\
@@ -751,9 +758,9 @@ $$\begin{align}
     \phi''(s)
         &= 2 \ln \left( \frac{Xs}{\sqrt{\epsilon'}s - Y} \right) + \frac{Y (3Y - 2\sqrt{\epsilon'}s)}{(\sqrt{\epsilon'} s - Y)^2} > 0 \nonumber
 \end{align}$$
-Thus, $\phi(s)$ is a convex function for $s > \frac{Y}{\sqrt{\epsilon'}}$. To get the minimizer, we set $\phi'(s) = 0$ and rearrange to get,
+Thus, $\phi(s)$ is a convex function for $s > \frac{Y}{\sqrt{\epsilon'}}$ (and thus so is $\text{SFO}(b)$ for $b > \frac{Y^2}{\epsilon'}$). To get the minimizer, we set $\phi'(s) = 0$ and rearrange to get,
 $$\begin{equation}
-    2 \ln \left( \frac{Xs}{\sqrt{\epsilon'}s - Y} \right) = \frac{Y s}{\sqrt{\epsilon'} s - Y} \label{eq:wd-crit-bz-deriv-eq}
+    2 \ln \left( \frac{Xs}{\sqrt{\epsilon'}s - Y} \right) = \frac{Y}{\sqrt{\epsilon'} s - Y} \label{eq:wd-crit-bz-deriv-eq}
 \end{equation}$$
 Now, let $u = \frac{Y}{\sqrt{\epsilon'}s - Y}$. Then, rearranging Equation $\eqref{eq:wd-crit-bz-deriv-eq}$ gives,
 $$\begin{equation}
