@@ -99,7 +99,7 @@ $$\begin{equation}
 which has the following useful properties,
 $$\begin{align}
     \| A_t^* \|
-        &= 1 \label{eq:lmo-norm} \\
+        &\leq 1 \label{eq:lmo-norm} \\
     \langle C_t, A_t^* \rangle_F
         &= \langle C_t, \texttt{LMO}_{\| \cdot \|}(C_t) \rangle_F \nonumber \\
         &= \arg\min_{A \leq 1} \langle C_t, A \rangle_F \nonumber \\
@@ -321,7 +321,7 @@ The result then follows from Lemma (5) and Proposition (6). $\quad\blacksquare$
 
 ### 2.2. Convergence bound without weight decay
 
-> **Theorem 8 (Convergence bound without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$ (i.e., weight decay is disabled), learning rate $\eta > 0$, momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then under Assumptions (1)-(4), and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have constants $X, Y, Z > 0$ such that,
+> **Theorem 8 (Generalized expected stationarity for steepest descent with Nesterov momentum without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$ (i.e., weight decay is disabled), learning rate $\eta > 0$, momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then under Assumptions (1)-(4), and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have constants $X, Y, Z > 0$ such that,
 $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
         \leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
@@ -334,7 +334,7 @@ $$\begin{align}
     Y
         &= 2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma \\
     Z
-        &= \frac{4 \beta^2}{1 - \beta} L \eta + \frac{L\eta}{2} \nonumber
+        &= L \eta \left( \frac{4 \beta^2}{1 - \beta}  + \frac{1}{2} \right) \nonumber
 \end{align}$$
 
 **Proof.** Let us first disable weight decay, i.e., set $\lambda = 0$. Since $f$ is $L$-smooth, the descent lemma, Equation $\eqref{eq:lmo-inner-product}$, and Equation $\eqref{eq:lmo-norm}$ yields,
@@ -387,7 +387,7 @@ $$\begin{align}
             + \frac{2 \beta^2}{1 - \beta} L \eta
             + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}}\beta + (1 - \beta) \right) \frac{\sqrt{D}\sigma}{\sqrt{b}} \right) \nonumber \\
         &\qquad\quad+ \frac{L\eta}{2} \nonumber \\
-        &\qquad\leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
+        &\qquad\leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z \nonumber
 \end{align}$$
 where,
 $$\begin{align}
@@ -397,11 +397,11 @@ $$\begin{align}
     Y
         &:= 2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma \nonumber \\
     Z
-        &:= \frac{4 \beta^2}{1 - \beta} L \eta + \frac{L\eta}{2} \nonumber
+        &:= L \eta \left( \frac{4 \beta^2}{1 - \beta}  + \frac{1}{2} \right) \nonumber
 \end{align}$$
 and $f^*$ is the global minimum of $f$.
 
-## 3. Convergence bound for steepest descent under arbitrary norms with weight decay
+## 3. Convergence bound for steepest descent under arbitrary norms with weight decay for star-convex functions
 
 We now analyze the case $\lambda > 0$.
 
@@ -495,116 +495,177 @@ $$\begin{align}
 
 ### 3.2. Convergence bound with weight decay
 
-Before we derive the convergence bound for steepest descent with Nesterov momentum and weight decay, we make the following assumption to avoid the pathological case where the weight decay term perfectly cancels out the descent direction, stalling convergence. Without this assumption, we can only guarantee convergence to a neighborhood around a stationary point and we will need other techniques to guarantee convergence to the stationary point itself.
-
-> **Assumption 12 (Imperfect anti-alignment between $C_t$ and $W_t$).** There exists $0 \leq \rho < 1$ such that for all $t \geq 0$,
+For our results below to hold, we need to assume that the objective function $f$ is star-convex at a minimzer $W^*$.
+> **Assumption 12 ($f$ is star-convexity at $W^*$).** For all $W \in \mathcal{W}$ and all $\alpha \in [0, 1]$,
 $$\begin{equation}
-    \frac{\langle C_t, -W_t \rangle}{\| C_t \|^{\dagger} \| W_t \|} \leq \rho
+    f((1 - \alpha) W + \alpha W^*) \leq (1 - \alpha) f(W) + \alpha f(W^*)
 \end{equation}$$
 
-With this, we can now state the convergence bound.
-
-> **Theorem 13 (Convergence bound with weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, there exist constants $X, Y, Z > 0$ such that,
+And to ensure that $W^*$ can indeed be reached by our steepest descent algorithm, from Proposition 9, we also set $\lambda$ to be sufficiently small such that,
 $$\begin{equation}
-    \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
+    \| W^* \| \leq \frac{1}{\lambda}
 \end{equation}$$
-where $T$ is the total number of time steps, $b$ is the batch size, and,
+Now let,
+$$\begin{equation}
+    X_t = (1 - \lambda\eta) W_t + \lambda\eta W^* \label{eq:wd-proof-xt}
+\end{equation}$$
+Then we have the following useful lemmas.
+
+> **Lemma 13.** For Nesterov momentum terms $C_t$, weights $W_t$ and $W_{t+1}$, and $X_t$ defined in Equation \eqref{eq:wd-proof-xt}, we have the following inequalities,
 $$\begin{align}
-    X
-        &= \frac{f(W_0) - f^*}{\eta (1 - \rho)}
-            + \frac{3 - \rho}{1 - \rho} \frac{2 \beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger} \\
-    Y
-        &= \frac{3 - \rho}{1 - \rho} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma \\
-    Z
-        &= \frac{3 - \rho}{1 - \rho} \frac{4 \beta^2}{1 - \beta} L \eta
-            + \frac{2}{1 - \rho} L \eta
+    \langle C_t, W_{t+1} - X_t \rangle \leq 0 \label{eq:lemma4-ineq-1} \\
+    \| W_{t} - X_t \| \leq 2\eta \\
+    \| W_{t+1} - X_t \| \leq 2\eta
 \end{align}$$
 
-**Proof.** We closely follow that of Theorem (8), with additional terms to account for weight decay. From the descent lemma, we have,
+**Proof.** For Inequality \eqref{eq:lemma4-ineq-1}, we have,
+$$\begin{align}
+    \langle C_t, W_{t+1} \rangle
+        &= \langle C_t, (1 - \lambda\eta) W_{t} + \eta A_t^* \rangle \nonumber \\
+        &\leq \langle C_t, (1 - \lambda\eta) W_{t} + \eta A \rangle \quad \forall A : \| A \| \leq 1 \nonumber \\
+        &= \langle C_t, X_t \rangle \nonumber \\
+    \langle C_t, W_{t+1} - X_t \rangle
+        &\leq 0 \nonumber
+\end{align}$$
+
+The other two inequalities follow from the triangle inequality and the update rule,
+$$\begin{align}
+    \| W_t - X_t \|
+        &= \| W_t - ((1 - \lambda\eta) W_t + \lambda\eta W^*) \| \nonumber \\
+        &= \lambda\eta \| W_t - W^* \| \nonumber \\
+        &\leq \lambda\eta \left( \| W_t \| + \| W^* \| \right) \nonumber \\
+        &\leq 2\eta \nonumber \\
+    \| W_{t+1} - X_t \|
+        &= \| ((1 - \lambda\eta) W_t + \eta A_t^*) - ((1 - \lambda\eta) W_t + \lambda\eta W^*) \| \nonumber \\
+        &= \| \eta A_t^* - \lambda\eta W^* \| \nonumber \\
+        &\leq \eta \| A_t^* \| + \lambda\eta \| W^* \| \nonumber \\
+        &\leq 2\eta \qquad\blacksquare \nonumber
+\end{align}$$
+
+---
+
+> **Theorem 14 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4), star-convexity of $f$ at $W^*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have constants $X, Y, Z > 0$ such that,
+$$\begin{align}
+    \mathbb{E}\left[ f(W_T) - f(W^*) \right]
+        &\leq (1 - \lambda\eta)^T X + \frac{Y}{\sqrt{b}} + Z
+\end{align}$$
+where $T$ is the total number of steps, $b$ is the batch size, and,
+$$\begin{align}
+    X
+        &= f(W_0) - f(W^*) \\
+    Y
+        &= \frac{2}{\lambda} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D} \sigma \\
+    Z
+        &= 4\eta \left[
+            \frac{L}{\lambda} \left(1 + \frac{2 \beta^2}{1 - \beta} \right)
+            + \frac{\beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger}
+        \right]
+\end{align}$$
+
+**Proof.** From the descent lemma, we have,
 
 $$\begin{align}
     f(W_{t+1})
-        &\leq f(W_t)
-            + \langle \nabla f(W_t), W_{t+1} - W_t \rangle
+        &\leq f(W_t) + \langle \nabla f(W_t), W_{t+1} - W_t \rangle
             + \frac{L}{2} \| W_{t+1} - W_t \|^2 \nonumber \\
-        &\leq f(W_t)
-            + \langle \nabla f(W_t), \eta A_t^* - \lambda\eta W_{t} \rangle
-            + \frac{L}{2} \| \eta A_t^* - \lambda\eta W_{t} \| \nonumber \\
-        &\leq f(W_t)
-            + \eta \langle \nabla f(W_t) - C_t + C_t, A_t^* - \lambda W_{t} \rangle
-            + \frac{L (2 \eta)^2}{2} \nonumber \\
-        &\leq f(W_t)
-            + \eta \langle C_t, A_t^* \rangle
-            + \lambda\eta \langle C_t, -W_{t} \rangle
-            + \eta \langle \nabla f(W_t) - C_t, A_t^* - \lambda W_{t} \rangle
-            + 2 L \eta^2 \nonumber \\
-        &\leq f(W_t)
-            - \eta \| C_t \|^{\dagger}
-            + \lambda\eta \rho \| C_t \|^{\dagger} \| W_t \|
-            + \eta \| \nabla f(W_t) - C_t \|^{\dagger} \| A_t^* - \lambda W_{t} \|
-            + 2 L \eta^2 \nonumber \\
-        &\leq f(W_t)
-            - \eta (1 - \rho) \| C_t \|^{\dagger}
-            + 2 \eta \| \nabla f(W_t) - C_t \|^{\dagger}
-            + 2 L \eta^2 \nonumber \\
-        &\leq f(W_t)
-            - \eta (1 - \rho) \left(
-                \| \nabla f(W_t) \|^{\dagger}
-                - \| \nabla f(W_t) - C_t \|^{\dagger}\right)
-            + 2 \eta \| \nabla f(W_t) - C_t \|^{\dagger}
-            + 2 L \eta^2 \nonumber \\
-        &\leq f(W_t)
-            - \eta (1 - \rho) \| \nabla f(W_t) \|^{\dagger}
-            + \eta (3 - \rho) \| \nabla f(W_t) - C_t \|^{\dagger}
-            + 2 L \eta^2 \nonumber
+        &\leq f(W_t) + \left( \langle C_t, W_{t+1} - W_t \rangle + \langle \nabla f(W_t) - C_t, W_{t+1} - W_t \rangle \right)
+            + \frac{L(2\eta)^2}{2} \nonumber \\
+        &= f(W_t) + \left(\underbrace{\langle C_t, W_{t+1} - X \rangle}_{\leq 0} + \langle C_t, X - W_t \rangle\right) + 2L\eta^2 \nonumber \\
+        &\quad+ \left(
+            \langle \nabla f(W_t) - C_t, W_{t+1} - X \rangle
+            + \langle \nabla f(W_t) - C_t, X - W_{t} \rangle \right) \nonumber \\
+        &= f(W_t) + \langle \nabla f(W_t), X - W_t \rangle + 2L\eta^2 + \langle \nabla f(W_t) - C_t, W_{t+1} - X \rangle \nonumber \\
+        &\leq \left(f(X) + \frac{L}{2} {\underbrace{\| X - W_t \|}_{\leq 2\eta}}^2 \right) + 2L\eta^2 + \| \nabla f(W_t) - C_t \|^{\dagger} \underbrace{\| W_{t+1} - X \|}_{\leq 2\eta} \label{eq:wd-proof-ineq-3} \\
+        &\leq f(X) + 4L\eta^2 + 2\eta \| \nabla f(W_t) - C_t \|^{\dagger} \label{eq:wd-proof-ineq-4}
+\end{align}$$
+where Inequality \eqref{eq:wd-proof-ineq-3} follows from the $L$-smoothness of $f$,
+$$\begin{align}
+    f(W_t)
+        &\leq f(X)
+            + \langle \nabla f(W_t), W_t - X \rangle
+            + \frac{L}{2} \| W_t - X \|^2 \nonumber \\
+        &\leq f(X)
+            - \langle \nabla f(W_t), X - W_t \rangle
+            + \frac{L}{2} \| X - W_t \|^2 \nonumber \\
+    f(W_t) + \langle \nabla f(W_t), X - W_t \rangle
+        &\leq f(X) + \frac{L}{2} \| X - W_t \|^2. \nonumber
 \end{align}$$
 
-Rearranging then gives,
+Applying star-convexity of $f$ at $W^*$ on Inequality \eqref{eq:wd-proof-ineq-4} yields,
 $$\begin{align}
-    \| \nabla f(W_t) \|^{\dagger}
-        &\leq \frac{f(W_t) - f(W_{t+1})}{\eta (1 - \rho)}
-            + \frac{3 - \rho}{1 - \rho} \| \nabla f(W_t) - C_t \|^{\dagger}
-            + \frac{2}{1 - \rho} L \eta \nonumber
+    f(W_{t+1})
+        &\leq f( (1 - \lambda\eta)W_t + \lambda\eta W^*)
+            + 4L\eta^2
+            + 2\eta \| \nabla f(W_t) - C_t \|^{\dagger} \nonumber \\
+        &\leq \left( (1 - \lambda\eta)f(W_t) + \lambda\eta f(W^*) \right)
+            + 4L\eta^2
+            + 2\eta \| \nabla f(W_t) - C_t \|^{\dagger} \nonumber \\
+    f(W_{t+1}) - f(W^*)
+        &\leq (1 - \lambda\eta)(f(W_t) - f(W^*))
+            + 4L\eta^2
+            + 2\eta \| \nabla f(W_t) - C_t \|^{\dagger} \nonumber
 \end{align}$$
 
-Then we set $\epsilon = c_1$. Following the same strategy as in Theorem (8) with Proposition (9) and Corollary (11) then yields,
+Taking expectations and applying Corollary 11 from [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), we have,
 $$\begin{align}
-    &\frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \nonumber \\
-        &\qquad\leq \frac{f(W_0) - f(W_T)}{\eta (1 - \rho) T}
-            + \frac{3 - \rho}{1 - \rho} \frac{1}{T} \sum_{t=0}^{T-1} \| \nabla f(W_t) - C_t \|^{\dagger}
-            + \frac{2}{1 - \rho} L \eta \nonumber \\
-        &\qquad\leq \frac{f(W_0) - f(W_T)}{\eta (1 - \rho) T} \nonumber \\
-        &\qquad\quad+ \frac{3 - \rho}{1 - \rho} \left(\frac{2\beta}{1 - \beta}\frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
-            + \frac{4 \beta^2}{1 - \beta} L \eta
-            + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}}\beta + (1 - \beta) \right) \frac{\sqrt{D}\sigma}{\sqrt{b}} \right) \nonumber \\
-        &\qquad\quad+ \frac{2}{1 - \rho} L \eta \nonumber \\
-        &\qquad\leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
+    \mathbb{E}\left[ f(W_{t+1}) - f(W^*) \right]
+        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W^*) \right]
+            + 4L\eta^2
+            + 2\eta \mathbb{E}\left[ \| \nabla f(W_t) - C_t \|^{\dagger} \right] \nonumber \\
+        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W^*) \right]
+            + 4L\eta^2 \nonumber \\
+        &\quad+ 2\eta\left(
+                2\beta^{t+1} \| \nabla f(W_0) \|^{\dagger}
+                + \frac{4 \beta^2}{1 - \beta} L \eta
+                + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}}
+            \right) \nonumber \\
+        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W^*) \right]
+            + 4 \left(1 + \frac{2 \beta^2}{1 - \beta} \right) L \eta^2
+            + 4\eta\beta^{t+1} \| \nabla f(W_0) \|^{\dagger} \nonumber \\
+        &\quad+ 2\eta \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber
+\end{align}$$
+
+Unrolling the recurrence then yields,
+$$\begin{align}
+    \mathbb{E}\left[ f(W_T) - f(W^*) \right]
+        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*)) \nonumber \\
+            &\quad+ 4 \left(1 + \frac{2 \beta^2}{1 - \beta} \right) L \eta^2 \sum_{t=0}^{T-1} (1 - \lambda\eta)^{t} \nonumber \\
+            &\quad+ 4\eta \| \nabla f(W_0) \|^{\dagger} \sum_{t=0}^{T-1} \beta^{t+1} (\underbrace{1 - \lambda\eta}_{\leq 1})^{T-1-t} \nonumber \\
+            &\quad+ 2\eta \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \sum_{t=0}^{T-1} (1 - \lambda\eta)^{t} \nonumber \\
+        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*))
+            + \frac{4}{\lambda} \left(1 + \frac{2 \beta^2}{1 - \beta} \right) L \eta
+            + \frac{4\eta\beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger} \nonumber \\
+        &\quad+ \frac{2}{\lambda} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber \\
+        &\leq (1 - \lambda\eta)^T X + \frac{Y}{\sqrt{b}} + Z \nonumber
 \end{align}$$
 where,
 $$\begin{align}
     X
-        &:= \frac{f(W_0) - f^*}{\eta (1 - \rho)}
-            + \frac{3 - \rho}{1 - \rho} \frac{2 \beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger} \nonumber \\
+        &:= f(W_0) - f(W^*) \nonumber \\
     Y
-        &:= \frac{3 - \rho}{1 - \rho} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D}\sigma \nonumber \\
+        &:= \frac{2}{\lambda} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D} \sigma \nonumber \\
     Z
-        &:= \frac{3 - \rho}{1 - \rho} \frac{4 \beta^2}{1 - \beta} L \eta
-            + \frac{2}{1 - \rho} L \eta \nonumber
+        &:= 4\eta \left[
+            \frac{L}{\lambda} \left(1 + \frac{2 \beta^2}{1 - \beta} \right)
+            + \frac{\beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger}
+        \right] \nonumber
 \end{align}$$
 
 ---
 
 ## 4. Deriving the critical batch size
 
-> **Theorem 14 (Critical batch size for steepest descent under arbitrary norms with (Nesterov) momentum and weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach $\epsilon$-convergence according to the criterion in Equation $\eqref{eq:convergence-criterion}$ is given by,
+### 4.1. Critical batch size for steepest descent without weight decay
+
+> **Theorem 15 (Critical batch size for steepest descent under arbitrary norms with Nesterov momentum without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach $\epsilon$-convergence in terms of generalized expected stationarity is given by,
 $$\begin{align}
     b_{crit}
-        &= \frac{9}{4}\left(\frac{3 - \rho}{1 - \rho}\right)^2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 D \frac{\sigma^2}{\epsilon'} \\
-        &= \mathcal{O}\left( (1 - \beta) D \frac{\sigma^2}{\epsilon'} \right)
+        &= 9 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 \frac{D \sigma^2}{\epsilon'} \\
+        &= \mathcal{O}\left( (1 - \beta) \frac{D\sigma^2}{\epsilon'} \right)
 \end{align}$$
 where $\epsilon' := (\epsilon - Z)^2 > 0$.
 
-**Proof.** We consider the steepest descent iteration process to have $\epsilon$-converged at time step $T$ when, for some $\epsilon > 0$,
+**Proof.** We consider the steepest descent iteration process to have $\epsilon$-converged in terms of generalized expected stationarity at time step $T$ when, for some $\epsilon > 0$,
 $$\begin{equation}
     \frac{1}{T} \sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] \leq \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z \leq \epsilon \label{eq:convergence-criterion}
 \end{equation}$$
@@ -617,28 +678,106 @@ $$\begin{align}
     \frac{X\sqrt{b}}{\sqrt{\epsilon' b} - Y} &\leq T \nonumber \\
     \frac{X\sqrt{b}}{\sqrt{\epsilon' b} - Y} &=: T(b)
 \end{align}$$
-Note that we also have to constrain $b > \frac{Y^2}{\sqrt{\epsilon'}}$ to ensure that $T(b) > 0$. Taking the first and second derivatives then yields,
+Note that we also have to constrain $b > \frac{Y^2}{\epsilon'}$ to ensure that $T(b) > 0$. Taking the first and second derivatives then yields,
 $$\begin{align}
-    \frac{dT(b)}{db} &= -\frac{XY}{2 \sqrt{b} (\sqrt{\epsilon' b} - Y)^2} \leq 0 \nonumber \\
-    \frac{d^2T(b)}{db^2} &= \frac{XY(3\sqrt{\epsilon' b} - Y)}{4b^{3/2}(\sqrt{\epsilon' b} - Y)^3} \geq 0 \nonumber
+    T'(b) &= -\frac{XY}{2 \sqrt{b} (\sqrt{\epsilon' b} - Y)^2} \leq 0 \nonumber \\
+    T''(b) &= \frac{XY(3\sqrt{\epsilon' b} - Y)}{4b^{3/2}(\sqrt{\epsilon' b} - Y)^3} \geq 0 \nonumber
 \end{align}$$
 Thus, $T(b)$ is a monotonically decreasing and convex function for $b > \frac{Y^2}{\epsilon'}$.
 
-Now, the number of tokens we need to process to reach convergence is roughly proportional to,
+Now, the number of tokens we need to process to reach $\epsilon$-convergence is roughly proportional to,
 $$\text{SFO}(b) := b \cdot T(b) = \frac{Xb^{3/2}}{\sqrt{\epsilon' b} - Y}$$
 Taking the first and second derivatives again yields,
 $$\begin{align}
-    \frac{d(b \cdot T(b))}{db} &= \frac{X\sqrt{b}(2\sqrt{\epsilon' b} - 3Y)}{2(\sqrt{\epsilon' b} - Y)^2} \nonumber \\
-    \frac{d^2(b \cdot T(b))}{db^2} &= \frac{XY (3Y - \sqrt{\epsilon' b})}{4\sqrt{b}(\sqrt{\epsilon' b} - Y)^3} \geq 0 \nonumber
+    \text{SFO}'(b) &= \frac{X\sqrt{b}(2\sqrt{\epsilon' b} - 3Y)}{2(\sqrt{\epsilon' b} - Y)^2} \nonumber \\
+    \text{SFO}''(b) &= \frac{XY (3Y - \sqrt{\epsilon' b})}{4\sqrt{b}(\sqrt{\epsilon' b} - Y)^3} \geq 0 \nonumber
 \end{align}$$
 Thus, $b \cdot T(b)$ is a convex function for $b > \frac{Y^2}{\epsilon'}$, with a minimizer $b^* = \frac{9Y^2}{4\epsilon'}$. This gives us the critical batch size,
 $$\begin{align}
     b_{crit}
-        &= \frac{9}{4}\left(\frac{3 - \rho}{1 - \rho}\right)^2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 D \frac{\sigma^2}{\epsilon'} \nonumber \\
-        &= \mathcal{O} \left( (1 - \beta) D \frac{\sigma^2}{\epsilon'} \right) \qquad\blacksquare \nonumber
+        &= 9 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 \frac{D \sigma^2}{\epsilon'} \nonumber \\
+        &= \mathcal{O} \left( (1 - \beta) \frac{D \sigma^2}{\epsilon'} \right) \qquad\blacksquare \nonumber
 \end{align}$$
 
-### 4.1. Estimating D-smoothness for various optimizers
+### 4.2. Critical batch size for steepest descent with decoupled weight decay
+
+> **Theorem 16 (Critical batch size for steepest descent under arbitrary norms with Nesterov momentum and decoupled weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach $\epsilon$-convergence in terms expected suboptimality is given by,
+$$\begin{align}
+    b_{crit}
+        &= \mathcal{O}\left( \frac{1 - \beta}{\lambda^2} \frac{D\sigma^2}{\epsilon'} \right)
+\end{align}$$
+where $\epsilon' := (\epsilon - Z)^2 > 0$.
+
+**Proof.**
+
+$$\begin{align}
+    (1 - \lambda\eta)^T X + \frac{Y}{\sqrt{b}} + Z \leq e^{-\lambda\eta T} X + \frac{Y}{\sqrt{b}} + Z
+        &\leq \epsilon \nonumber \\
+    e^{-\lambda\eta T} X + \frac{Y}{\sqrt{b}}
+        &\leq \epsilon - Z =: \sqrt{\epsilon'} \nonumber \\
+    \frac{1}{\lambda\eta} \ln \left( \frac{X}{\sqrt{\epsilon'} - \frac{Y}{\sqrt{b}}} \right)
+        &\leq T := T(b) \nonumber
+\end{align}$$
+Note that we have to constrain $b > \frac{Y^2}{\epsilon'}$ to ensure that $T(b) > 0$. Now define,
+$$h(x) := \frac{1}{\lambda\eta} \ln\frac{X}{x} \qquad g(b) := \sqrt{\epsilon'} - \frac{Y}{\sqrt{b}}$$
+such that,
+$$T(b) = h(g(b))$$
+
+Taking first and second derivatives yields,
+$$\begin{align}
+    g'(b)
+        &= \frac{Y b^{-3/2}}{2} > 0 \nonumber \\
+    g''(b)
+        &= -\frac{3 Y b^{-5/2}}{4} < 0 \nonumber \\
+    h'(x)
+        &= -\frac{1}{\lambda\eta x} < 0 \nonumber \\
+    h''(x)
+        &= \frac{1}{\lambda\eta x^2} > 0 \nonumber \\
+    T'(b)
+        &= \underbrace{h'(g(b))}_{< 0} \underbrace{g'(b)}_{> 0} < 0 \nonumber \\
+    T''(b)
+        &= \underbrace{h''(g(b))}_{> 0} \underbrace{(g'(b))^2}_{> 0} + \underbrace{h'(g(b))}_{< 0} \underbrace{g''(b)}_{< 0} > 0 \nonumber
+\end{align}$$
+Thus, $T(b)$ is a monotonically decreasing and convex function for $b > \frac{Y^2}{\epsilon'}$.
+
+Now, the number of tokens we need to process to reach $\epsilon$-convergence is roughly proportional to,
+$$\text{SFO}(b) := b \cdot T(b) = \frac{b}{\lambda\eta} \ln \left( \frac{X}{\sqrt{\epsilon'} - \frac{Y}{\sqrt{b}}} \right)$$
+Minimizing this is equivalent to minimizing,
+$$\phi(s) = s^2 \ln \left( \frac{X}{\sqrt{\epsilon'} - \frac{Y}{s}} \right)$$
+Taking the first and second derivatives yields,
+$$\begin{align}
+    \phi'(s)
+        &= 2s \ln \left( \frac{Xs}{\sqrt{\epsilon'}s - Y} \right) - \frac{Y s}{\sqrt{\epsilon'} s - Y} \nonumber \\
+    \phi''(s)
+        &= 2 \ln \left( \frac{Xs}{\sqrt{\epsilon'}s - Y} \right) + \frac{Y (3Y - 2\sqrt{\epsilon'}s)}{(\sqrt{\epsilon'} s - Y)^2} > 0 \nonumber
+\end{align}$$
+Thus, $\phi(s)$ is a convex function for $s > \frac{Y}{\sqrt{\epsilon'}}$. To get the minimizer, we set $\phi'(s) = 0$ and rearrange to get,
+$$\begin{equation}
+    2 \ln \left( \frac{Xs}{\sqrt{\epsilon'}s - Y} \right) = \frac{Y s}{\sqrt{\epsilon'} s - Y} \label{eq:wd-crit-bz-deriv-eq}
+\end{equation}$$
+Now, let $u = \frac{Y}{\sqrt{\epsilon'}s - Y}$. Then, rearranging Equation $\eqref{eq:wd-crit-bz-deriv-eq}$ gives,
+$$\begin{equation}
+    u = 2 \ln\left( \frac{X}{\sqrt{\epsilon'}} (u+1) \right)
+\end{equation}$$
+which has a solution via the Lambert $W$ function,
+$$\begin{equation}
+    u^* = -2 W_{-1} \left( -\frac{\sqrt{\epsilon'}}{2X}e^{-1/2} \right) - 1 > 1
+\end{equation}$$
+
+From the definition of $u$, solving for $s$ then yields,
+$$\begin{align}
+    u^*
+        &= \frac{Y}{\sqrt{\epsilon'}s - Y} \nonumber \\
+    s_{crit}
+        &= \frac{Y}{\sqrt{\epsilon'}}\left( 1 + \frac{1}{u^*} \right) \nonumber \\
+    b_{crit}
+        &= s_{crit}^2 = \frac{Y^2}{\epsilon'} \underbrace{\left( 1 + \frac{1}{u^*} \right)^2}_{> 1} \nonumber \\
+        &= \frac{4}{\lambda^2} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right)^2 \frac{D \sigma^2}{\epsilon'} \left( 1 + \frac{1}{u^*} \right)^2 \nonumber \\
+        &= \mathcal{O}\left( \frac{1 - \beta}{\lambda^2} \frac{D\sigma^2}{\epsilon'} \right) \qquad\blacksquare \nonumber
+\end{align}$$
+
+
+### 4.3. Estimating D-smoothness for various optimizers
 
 Optimizers we use in practice can be viewed as performing steepest descent under different norms [(Bernstein et al., 2024)](https://arxiv.org/abs/2409.20325). We summarize the relevant norm choices and their corresponding (empirical) local $D$-smoothness constants below.
 
@@ -648,10 +787,13 @@ Optimizers we use in practice can be viewed as performing steepest descent under
 | SignSGD/AdamW | $\| \cdot \|_{\infty}$  | $\| \cdot \|_{1}$          | $\approx 1$ |
 | Muon/SOAP     | $\| \cdot \|_{2 \to 2}$ | $\| \cdot \|_{\text{nuc}}$ | $\approx 1$ |
 
-See [Appendix A1](#a1-jax-code-to-estimate-d-smoothness) for the JAX code to estimate $D$-smoothness for steepest descent under various norms. We also take into account the fact that gradients in large-scale LLM training naturally have low stable rank structure. Empirically, $D \approx 1$ for SignSGD/AdamW and Muon/SOAP even for high-dimensional weight matrices, indicating that the critical batch size do not depend on the width and chosen norm. Thus, we can further reduce the critical batch size formula to,
-$$\begin{equation}
-    b_{crit} = \mathcal{O} \left( (1 - \beta) \frac{\sigma^2}{\epsilon'} \right).
-\end{equation}$$
+See [Appendix A1](#a1-jax-code-to-estimate-d-smoothness) for the JAX code to estimate $D$-smoothness for steepest descent under various norms. We also take into account the fact that gradients in large-scale LLM training naturally have low stable rank structure. Empirically, $D \approx 1$ for SignSGD/AdamW and Muon/SOAP even for high-dimensional weight matrices, indicating that the critical batch size do not depend on the width and chosen norm. Thus, we can further reduce the critical batch size formulas to,
+$$\begin{align}
+    b_{crit}
+        &= \mathcal{O} \left( (1 - \beta) \frac{\sigma^2}{\epsilon'} \right) \quad\text{(without weight decay)} \\
+    b_{crit}
+        &= \mathcal{O} \left( \frac{1 - \beta}{\lambda^2} \frac{\sigma^2}{\epsilon'} \right) \quad\text{(with decoupled weight decay)}
+\end{align}$$
 
 ## 5. Learning rate scaling with batch size
 
@@ -659,14 +801,14 @@ In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto
 
 To see this, we first make the following assumption.
 
-> **Assumption 15 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm pair $\| \cdot \|$ (with dual norm $\| \cdot \|^{\dagger}$). Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2 \in \mathcal{W}^\dagger$ denoting Nesterov momentum terms, we have,
+> **Assumption 17 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm pair $\| \cdot \|$ (with dual norm $\| \cdot \|^{\dagger}$). Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2 \in \mathcal{W}^\dagger$ denoting Nesterov momentum terms, we have,
 $$\begin{equation}
     \| \texttt{LMO}_{\| \cdot \|}(C_1) - \texttt{LMO}_{\| \cdot \|}(C_2) \| \leq L_{\text{LMO}} \| C_1 - C_2 \|^{\dagger}
 \end{equation}$$
 
 Then, we have the following result.
 
-> **Proposition 16 (Weight update noise variance is proportional to $\eta^2/b$).** Let $\eta > 0$ be the learning rate and $b \geq 1$ be the batch size. Under Assumptions 1-4 and Assumption (15) and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
+> **Proposition 18 (Weight update noise variance is proportional to $\eta^2/b$).** Let $\eta > 0$ be the learning rate and $b \geq 1$ be the batch size. Under Assumptions 1-4 and Assumption (17) and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
 $$\begin{equation}
     \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] \propto \frac{\eta^2}{b}
 \end{equation}$$
@@ -714,15 +856,23 @@ Here we show that the square root learning rate scaling rule as in Equation $\eq
 
 ## 7. Discussion
 
-The main result of this work is that the *shape* of the convergence bound:
-$$\begin{equation}
-    \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}] = \frac{X}{T} + \frac{Y}{\sqrt{b}} + Z
-\end{equation}$$
-is universal across all norms used for steepest descent. As a consequence, the critical batch size formula:
-$$\begin{equation}
-    b_{crit} = \mathcal{O} \left( (1 - \beta) \frac{\sigma^2}{\epsilon'} \right)
-\end{equation}$$
-also holds universally across all norms. This matches prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598) that the critical batch size formula transfers between AdamW and Muon, but now we have shown that it potentially transfers to *all* first-order optimizers that can be interpreted as performing steepest descent under some norm. Also notice that $b_{crit} \to 0$ as $\beta \to 1$, which is expected since high momentum increases the effective batch size (or the "lifetime" of gradient estimates).
+The main result of this work is that the *shape* of the convergence bounds in terms of generalized expected stationarity and expected suboptimality:
+$$\begin{align}
+    \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
+        &= \frac{X(\eta, \beta)}{T} + \frac{Y(\beta, D)}{\sqrt{b}} + Z(\eta, \beta) \\
+    \mathbb{E}[f(W_t) - f(W^*)]
+        &= (1 - \lambda\eta)^T X + \frac{Y(\beta, \lambda, D)}{\sqrt{b}} + Z(\eta, \beta, \lambda)
+\end{align}$$
+are universal across all norms used for steepest descent. In fact, for preconditioned steepest descent or steepest descent under norms induced by inner products, $D = 1$ and thus the bounds are exactly the same. And for non-inner-product norms like $\| \cdot \|_{\infty}$ and $\| \cdot \|_{2 \to 2}$, $D \approx 1$ empirically makes the bounds approximately the same as well.
+
+As a consequence, the critical batch size formulas for with and without weight decay:
+$$\begin{align}
+    b_{crit} &= \mathcal{O}\left( (1 - \beta) \frac{\sigma^2}{\epsilon'} \right) \quad \text{w/o weight decay} \\
+    b_{crit} &= \mathcal{O}\left( \frac{1 - \beta}{\lambda^2} \frac{\sigma^2}{\epsilon'} \right) \quad \text{w/ decoupled weight decay}
+\end{align}$$
+also hold universally across all norms. We have also provided empirical evidence that AdamW and Muon have the same critical batch size in practice, consistent with our theoretical results. This matches prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598) that the critical batch size formula transfers between AdamW and Muon, but now we have shown that it potentially transfers to *all* first-order optimizers that can be interpreted as performing steepest descent under some norm.
+
+Also notice that $b_{crit} \to 0$ as $\beta \to 1$, which is expected since high momentum increases the effective batch size (or the "lifetime" of gradient estimates). Lastly, there is also a "phase transition" when adding weight decay. And with weight decay, the critical batch size scales with the square of the 'effective constraint radius' ($\frac{1}{\lambda}$) of the weights.
 
 ## Acknowledgements
 

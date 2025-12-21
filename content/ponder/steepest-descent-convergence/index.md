@@ -125,141 +125,21 @@ $$\begin{align}
     \right\}}\right) \qquad\blacksquare \label{eq:T-bound-final}
 \end{align}$$
 
-## 3. Convergence bound for steepest descent under arbitrary norms with Nesterov momentum with decoupled weight decay for star-convex functions
+## 3. Convergence bound for steepest descent under arbitrary norms with Nesterov momentum and decoupled weight decay for star-convex functions
 
-For our results below to hold, we need to assume that the objective function $f$ is star-convex. For that, we need to pick a minimizer $W^*$ of $f$ within the subspace of "reachable" weights in $\mathcal{W}$ when using decoupled weight decay. From Proposition 9 in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), we can pick,
-$$\begin{equation}
-    W^* := \arg\min_{W \in \mathcal{W}} f(W) \quad \text{ such that } \quad \| W \| \leq \frac{1}{\lambda}
-\end{equation}$$
+From Theorem 14 in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), we have the following bound on the expected suboptimality when using steepest descent under an arbitrary norm $\| \cdot \|$ with Nesterov momentum and decoupled weight decay.
 
-> **Assumption 3 ($f$ is star-convexity at $W^*$).** For all $W \in \mathcal{W}$ and all $\alpha \in [0, 1]$,
-$$\begin{equation}
-    f((1 - \alpha) W + \alpha W^*) \leq (1 - \alpha) f(W) + \alpha f(W^*)
-\end{equation}$$
-
-Now let,
-$$\begin{equation}
-    X_t = (1 - \lambda\eta) W_t + \lambda\eta W^* \label{eq:wd-proof-xt}
-\end{equation}$$
-Then we have the following useful lemmas.
-
-> **Lemma 4.** For Nesterov momentum terms $C_t$, weights $W_t$ and $W_{t+1}$, and $X_t$ defined in Equation \eqref{eq:wd-proof-xt}, we have the following inequalities,
-$$\begin{align}
-    \langle C_t, W_{t+1} - X_t \rangle \leq 0 \label{eq:lemma4-ineq-1} \\
-    \| W_{t} - X_t \| \leq 2\eta \\
-    \| W_{t+1} - X_t \| \leq 2\eta
-\end{align}$$
-
-**Proof.** For Inequality \eqref{eq:lemma4-ineq-1}, we have,
-$$\begin{align}
-    \langle C_t, W_{t+1} \rangle
-        &= \langle C_t, (1 - \lambda\eta) W_{t} + \eta A_t^* \rangle \nonumber \\
-        &\leq \langle C_t, (1 - \lambda\eta) W_{t} + \eta A \rangle \quad \forall A : \| A \| \leq 1 \nonumber \\
-        &= \langle C_t, X_t \rangle \nonumber \\
-    \langle C_t, W_{t+1} - X_t \rangle
-        &\leq 0 \nonumber
-\end{align}$$
-
-The other two inequalities follow from the triangle inequality and the update rule,
-$$\begin{align}
-    \| W_t - X_t \|
-        &= \| W_t - ((1 - \lambda\eta) W_t + \lambda\eta W^*) \| \nonumber \\
-        &= \lambda\eta \| W_t - W^* \| \nonumber \\
-        &\leq \lambda\eta \left( \| W_t \| + \| W^* \| \right) \nonumber \\
-        &\leq 2\eta \nonumber \\
-    \| W_{t+1} - X_t \|
-        &= \| ((1 - \lambda\eta) W_t + \eta A_t^*) - ((1 - \lambda\eta) W_t + \lambda\eta W^*) \| \nonumber \\
-        &= \| \eta A_t^* - \lambda\eta W^* \| \nonumber \\
-        &\leq \eta \| A_t^* \| + \lambda\eta \| W^* \| \nonumber \\
-        &\leq 2\eta \qquad\blacksquare \nonumber
-\end{align}$$
-
----
-
-> **Theorem 5.** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), star-convexity of $f$ at $W^*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
+> **Theorem 2 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), star-convexity of $f$ at $W^*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
 $$\begin{align}
     \mathbb{E}\left[ f(W_T) - f(W^*) \right]
-        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*))
-            + \frac{4}{\lambda} \left(1 + \frac{2 \beta^2}{1 - \beta} \right) L \eta \nonumber \\
-        &\quad+ \frac{4\eta\beta}{1 - \beta} \| G_0 \|^{\dagger}
-            + \frac{2}{\lambda} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}}
+        &\leq (1 - \lambda\eta)^T \Delta_0 \nonumber \\
+        &\quad+ \frac{2}{\lambda} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber \\
+        &\quad+ 4\eta \left[
+            \frac{L}{\lambda} \left(1 + \frac{2 \beta^2}{1 - \beta} \right)
+            + \frac{\beta}{1 - \beta} \| G_0 \|^{\dagger}
+        \right] \label{eq:theorem2-bound}
 \end{align}$$
-
-**Proof.** From the descent lemma, we have,
-
-$$\begin{align}
-    f(W_{t+1})
-        &\leq f(W_t) + \langle \nabla f(W_t), W_{t+1} - W_t \rangle
-            + \frac{L}{2} \| W_{t+1} - W_t \|^2 \nonumber \\
-        &\leq f(W_t) + \left( \langle C_t, W_{t+1} - W_t \rangle + \langle \nabla f(W_t) - C_t, W_{t+1} - W_t \rangle \right)
-            + \frac{L(2\eta)^2}{2} \nonumber \\
-        &= f(W_t) + \left(\underbrace{\langle C_t, W_{t+1} - X \rangle}_{\leq 0} + \langle C_t, X - W_t \rangle\right) + 2L\eta^2 \nonumber \\
-        &\quad+ \left(
-            \langle \nabla f(W_t) - C_t, W_{t+1} - X \rangle
-            + \langle \nabla f(W_t) - C_t, X - W_{t} \rangle \right) \nonumber \\
-        &= f(W_t) + \langle \nabla f(W_t), X - W_t \rangle + 2L\eta^2 + \langle \nabla f(W_t) - C_t, W_{t+1} - X \rangle \nonumber \\
-        &\leq \left(f(X) + \frac{L}{2} {\underbrace{\| X - W_t \|}_{\leq 2\eta}}^2 \right) + 2L\eta^2 + \| \nabla f(W_t) - C_t \|^{\dagger} \underbrace{\| W_{t+1} - X \|}_{\leq 2\eta} \label{eq:wd-proof-ineq-3} \\
-        &\leq f(X) + 4L\eta^2 + 2\eta \| \nabla f(W_t) - C_t \|^{\dagger} \label{eq:wd-proof-ineq-4}
-\end{align}$$
-where Inequality \eqref{eq:wd-proof-ineq-3} follows from the $L$-smoothness of $f$,
-$$\begin{align}
-    f(W_t)
-        &\leq f(X)
-            + \langle \nabla f(W_t), W_t - X \rangle
-            + \frac{L}{2} \| W_t - X \|^2 \nonumber \\
-        &\leq f(X)
-            - \langle \nabla f(W_t), X - W_t \rangle
-            + \frac{L}{2} \| X - W_t \|^2 \nonumber \\
-    f(W_t) + \langle \nabla f(W_t), X - W_t \rangle
-        &\leq f(X) + \frac{L}{2} \| X - W_t \|^2. \nonumber
-\end{align}$$
-
-Applying star-convexity of $f$ at $W^*$ on Inequality \eqref{eq:wd-proof-ineq-4} yields,
-$$\begin{align}
-    f(W_{t+1})
-        &\leq f( (1 - \lambda\eta)W_t + \lambda\eta W^*)
-            + 4L\eta^2
-            + 2\eta \| \nabla f(W_t) - C_t \|^{\dagger} \nonumber \\
-        &\leq \left( (1 - \lambda\eta)f(W_t) + \lambda\eta f(W^*) \right)
-            + 4L\eta^2
-            + 2\eta \| \nabla f(W_t) - C_t \|^{\dagger} \nonumber \\
-    f(W_{t+1}) - f(W^*)
-        &\leq (1 - \lambda\eta)(f(W_t) - f(W^*))
-            + 4L\eta^2
-            + 2\eta \| \nabla f(W_t) - C_t \|^{\dagger} \nonumber
-\end{align}$$
-
-Taking expectations and applying Corollary 11 from [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), we have,
-$$\begin{align}
-    \mathbb{E}\left[ f(W_{t+1}) - f(W^*) \right]
-        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W^*) \right]
-            + 4L\eta^2
-            + 2\eta \mathbb{E}\left[ \| \nabla f(W_t) - C_t \|^{\dagger} \right] \nonumber \\
-        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W^*) \right]
-            + 4L\eta^2 \nonumber \\
-        &\quad+ 2\eta\left(
-                2\beta^{t+1} \| G_0 \|^{\dagger}
-                + \frac{4 \beta^2}{1 - \beta} L \eta
-                + \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}}
-            \right) \nonumber \\
-        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W^*) \right]
-            + 4 \left(1 + \frac{2 \beta^2}{1 - \beta} \right) L \eta^2
-            + 4\eta\beta^{t+1} \| G_0 \|^{\dagger} \nonumber \\
-        &\quad+ 2\eta \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber
-\end{align}$$
-
-Unrolling the recurrence then yields,
-$$\begin{align}
-    \mathbb{E}\left[ f(W_T) - f(W^*) \right]
-        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*)) \nonumber \\
-            &\quad+ 4 \left(1 + \frac{2 \beta^2}{1 - \beta} \right) L \eta^2 \sum_{t=0}^{T-1} (1 - \lambda\eta)^{t} \nonumber \\
-            &\quad+ 4\eta \| G_0 \|^{\dagger} \sum_{t=0}^{T-1} \beta^{t+1} (\underbrace{1 - \lambda\eta}_{\leq 1})^{T-1-t} \nonumber \\
-            &\quad+ 2\eta \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \sum_{t=0}^{T-1} (1 - \lambda\eta)^{t} \nonumber \\
-        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*))
-            + \frac{4}{\lambda} \left(1 + \frac{2 \beta^2}{1 - \beta} \right) L \eta
-            + \frac{4\eta\beta}{1 - \beta} \| G_0 \|^{\dagger} \nonumber \\
-        &\quad+ \frac{2}{\lambda} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \qquad\blacksquare \nonumber
-\end{align}$$
+where $\Delta_0 = f(W_0) - f(W^*)$ and $G_0 = \| \nabla f(W_0) \|^{\dagger}$.
 
 We can then use this theorem to derive convergence bounds as follows.
 
@@ -308,19 +188,21 @@ $$\begin{align}
     \frac{4\eta}{\theta} \| G_0 \|^{\dagger} \leq c_3 \epsilon
         &\implies \eta \leq \frac{c_3}{4} \frac{\theta\epsilon}{\| G_0 \|^{\dagger}} \nonumber
 \end{align}$$
-so we set,
+
+Combining these with the constraints $\lambda \eta \leq 1$ and $\| W^* \| \leq \frac{1}{\lambda}$, we set,
 $$\begin{equation}
-    \eta = \mathcal{O}\left( \min{\left\{ \frac{\lambda\theta\epsilon}{L}, \frac{\theta\epsilon}{\| G_0 \|^{\dagger}} \right\}} \right) \nonumber
+    \eta = \mathcal{O}\left( \min{\left\{ \| W^* \|, \frac{\lambda\theta\epsilon}{L}, \frac{\theta\epsilon}{\| G_0 \|^{\dagger}} \right\}} \right) \nonumber
 \end{equation}$$
 Substituting the bound on $\theta$ from above, we have,
 $$\begin{equation}
-    \eta = \mathcal{O}\left(\min{\left\{\frac{\lambda\epsilon}{L}, \frac{\epsilon}{\| G_0 \|^{\dagger}},
+    \eta = \mathcal{O}\left(\min{\left\{
+        \| W^* \|,
+        \frac{\lambda\epsilon}{L},
+        \frac{\epsilon}{\| G_0 \|^{\dagger}},
         \frac{\lambda^3 b \epsilon^3}{D \sigma^2 L},
         \frac{\lambda^2 b \epsilon^3}{D \sigma^2 \| G_0 \|^{\dagger}}
     \right\}}\right) \label{eq:eta-bound-wd}
 \end{equation}$$
-
-We can then choose $\lambda$ small enough such that $\lambda\eta \leq 1$.
 
 ### 3.3. Bounding T
 
