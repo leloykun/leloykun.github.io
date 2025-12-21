@@ -20,7 +20,7 @@ This work improves on [Kovalev's (2025)](https://arxiv.org/abs/2503.12645) prior
 
 From Theorem 8 in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), we have the following bound on the average expected gradient norm when using steepest descent under an arbitrary norm $\| \cdot \|$ with Nesterov momentum without weight decay.
 
-> **Theorem 1.** Let $W_t$ be the weight at time step $t$, learning rate $\eta > 0$, momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
+> **Theorem 1 (Generalized expected stationarity for steepest descent with Nesterov momentum without weight decay).** Let $W_t$ be the weight at time step $t$, learning rate $\eta > 0$, momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
 $$\begin{align}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
         &\leq \frac{1}{T} \left( \frac{\Delta_0}{\eta}
@@ -129,7 +129,7 @@ $$\begin{align}
 
 From Theorem 14 in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), we have the following bound on the expected suboptimality when using steepest descent under an arbitrary norm $\| \cdot \|$ with Nesterov momentum and decoupled weight decay.
 
-> **Theorem 2 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), star-convexity of $f$ at $W^*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
+> **Theorem 3 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), star-convexity of $f$ at $W^*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
 $$\begin{align}
     \mathbb{E}\left[ f(W_T) - f(W^*) \right]
         &\leq (1 - \lambda\eta)^T \Delta_0 \nonumber \\
@@ -143,7 +143,7 @@ where $\Delta_0 = f(W_0) - f(W^*)$ and $G_0 = \| \nabla f(W_0) \|^{\dagger}$.
 
 We can then use this theorem to derive convergence bounds as follows.
 
-> **Corollary 6.** For some expected suboptimality tolerance $\epsilon > 0$, to ensure that, $\mathbb{E}\left[ f(W_T) - f(W^*) \right] \leq \epsilon$, via steepest descent under arbitrary norms with Nesterov momentum *with* decoupled weight decay, it suffices to set,
+> **Corollary 4.** For some expected suboptimality tolerance $\epsilon > 0$, to ensure that, $\mathbb{E}\left[ f(W_T) - f(W^*) \right] \leq \epsilon$, via steepest descent under arbitrary norms with Nesterov momentum *with* decoupled weight decay, it suffices to set,
 $$\begin{align}
     \theta &= 1 - \beta = \mathcal{O}\left(\min{\left\{1, \frac{\lambda^2 b \epsilon^2}{D \sigma^2}\right\}}\right) \\
     \eta &= \mathcal{O}\left(\min{\left\{\frac{\lambda\epsilon}{L}, \frac{\epsilon}{\| G_0 \|^{\dagger}},
