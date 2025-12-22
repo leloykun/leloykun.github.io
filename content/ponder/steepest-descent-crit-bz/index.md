@@ -219,15 +219,15 @@ with $E_0^{\text{drift}} = \nabla f(W_0)$ and $E_0^{\text{noise}} = 0$.
 Thus, from Assumption (3), the drift term can be bounded as,
 $$\begin{align}
     \| E_t^{\text{drift}} \|^{\dagger}
-        &\leq \beta^t \| \nabla f(W_0) \|^{\dagger}
+        &\leq \beta^t \| E_0 \|^{\dagger}
             + \sum_{k=1}^t \beta^{t-k+1} \| \nabla f(W_k) - \nabla f(W_{k-1}) \|^{\dagger} \nonumber \\
-        &\leq \beta^t \| \nabla f(W_0) \|^{\dagger}
+        &\leq \beta^t \| E_0 \|^{\dagger}
             + L \sum_{k=1}^t \beta^{t-k+1} \| W_k - W_{k-1} \| \label{eq:prop6-branch} \\
-        &\leq \beta^t \| \nabla f(W_0) \|^{\dagger}
+        &\leq \beta^t \| E_0 \|^{\dagger}
             + L \sum_{k=1}^t \beta^{t-k+1} \| \eta A_k^* \| \nonumber \\
-        &\leq \beta^t \| \nabla f(W_0) \|^{\dagger}
+        &\leq \beta^t \| E_0 \|^{\dagger}
             + L \eta \sum_{k=1}^t \beta^{t-k+1} \nonumber \\
-        &\leq \beta^t \| \nabla f(W_0) \|^{\dagger}
+        &\leq \beta^t \| E_0 \|^{\dagger}
             + \frac{\beta}{1 - \beta} L \eta \nonumber
 \end{align}$$
 And for the noise term, we have from Lemma 5 (viewing the double sum over time and batch as a single sum over $t \times b$ independent noise terms),
@@ -245,13 +245,13 @@ $$\begin{align}
 Thus,
 $$\begin{align}
     \mathbb{E}\left[ \| E_t \|^{\dagger} \right]
-        &\leq \mathbb{E} \left[ \| E_t^{\text{drift}} \|^{\dagger 2} \right]
-            + \mathbb{E} \left[ \| E_t^{\text{noise}} \|^{\dagger 2} \right] \nonumber \\
-        &\leq \beta^t \| E_{0} \|^{\dagger}
+        &\leq \mathbb{E} \left[ \| E_t^{\text{drift}} \|^{\dagger} \right]
+            + \mathbb{E} \left[ \| E_t^{\text{noise}} \|^{\dagger} \right] \nonumber \\
+        &\leq \beta^t \| E_0 \|^{\dagger}
             + \frac{\beta}{1 - \beta} L \eta
             + \sqrt{\frac{1 - \beta}{1 + \beta}}  \frac{\sqrt{D}\sigma}{\sqrt{b}} \nonumber \\
     \frac{1}{T} \sum_{t = 0}^{T-1} \mathbb{E}\left[\| E_t \|^{\dagger}\right]
-        &\leq \frac{1}{1 - \beta} \frac{1}{T} \| E_{0} \|^{\dagger}
+        &\leq \frac{1}{1 - \beta} \frac{1}{T} \| E_0 \|^{\dagger}
             + \frac{\beta}{1 - \beta} L \eta
             + \sqrt{\frac{1 - \beta}{1 + \beta}}  \frac{\sqrt{D}\sigma}{\sqrt{b}} \nonumber \\
 \end{align}$$
