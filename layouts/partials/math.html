@@ -1,4 +1,4 @@
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+<script id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
 
 <script>
       MathJax = {
@@ -11,10 +11,11 @@
           packages: { '[+]': ['ams'] },
         },
         loader: {
-          load: ['ui/safe']
+          load: ['ui/safe', 'ui/lazy']
         },
         options: {
           skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+          lazyMargin: '500px',
         },
       };
 </script>
