@@ -24,9 +24,9 @@ From Theorem 8 in [Ponder: Critical Batch Size for Steepest Descent Under Arbitr
 $$\begin{align}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
         &\leq \frac{1}{T} \left( \frac{\Delta_0}{\eta}
-            + \frac{4 \beta}{1 - \beta} G_0 \right) \nonumber \\
-        &\quad+ 2 \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D}\sigma}{\sqrt{b}} \nonumber \\
-        &\quad+ \left( \frac{4 \beta^2}{1 - \beta} + \frac{1}{2} \right) L \eta \label{eq:theorem1-bound}
+            + \frac{2 \beta}{1 - \beta} G_0 \right) \nonumber \\
+        &\quad+ 2 \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D}\sigma}{\sqrt{b}} \nonumber \\
+        &\quad+ \left( \frac{2 \beta^2}{1 - \beta} + \frac{1}{2} \right) L \eta \label{eq:theorem1-bound}
 \end{align}$$
 where $\Delta_0 = f(W_0) - f^*$, $G_0 = \| \nabla f(W_0) \|^{\dagger}$, and $\rho$ is some upper bound on the anti-alignment of nesterov momentum terms $C_t$ and the weights $W_t$.
 
@@ -55,7 +55,7 @@ $$\begin{align}
         &\lesssim \frac{1}{T} \left( \frac{\Delta_0}{\eta}
             + \frac{2}{\theta} G_0 \right)
             + 2\sqrt{2} \sqrt{\theta} \frac{\sqrt{D}\sigma}{\sqrt{b}}
-            + \left( \frac{4}{\theta} + \frac{1}{2} \right) L \eta
+            + \left( \frac{2}{\theta} + \frac{1}{2} \right) L \eta
         \leq \epsilon
 \end{align}$$
 
@@ -77,12 +77,12 @@ $$\begin{equation}
 
 For small constants $c_2, c_3 \leq 1/5$, we then bound the terms involving $\eta$ by $\epsilon$ as follows,
 $$\begin{align}
-    \frac{4}{\theta} L \eta \leq c_2 \epsilon
-        &\implies \eta \leq \frac{c_2}{4} \frac{\theta \epsilon}{L} \nonumber \\
+    \frac{2}{\theta} L \eta \leq c_2 \epsilon
+        &\implies \eta \leq \frac{c_2}{2} \frac{\theta \epsilon}{L} \nonumber \\
     \frac{1}{2} L \eta \leq c_3 \epsilon
         &\implies \eta \leq 2 c_3 \frac{\epsilon}{L} \nonumber
 \end{align}$$
-For $0 < \theta < 1$, the first condition is the most restrictive, so we set,
+For $0 < \theta \leq 1$, the first condition is the most restrictive, so we set,
 $$\eta = \mathcal{O}\left( \frac{\theta \epsilon}{L} \right)$$
 Substituting the bound on $\theta$ from Equation \eqref{eq:theta-bound}, we have,
 $$\begin{equation}
@@ -133,11 +133,11 @@ From Theorem 14 in [Ponder: Critical Batch Size for Steepest Descent Under Arbit
 $$\begin{align}
     \mathbb{E}\left[ f(W_T) - f(W^*) \right]
         &\leq (1 - \lambda\eta)^T \Delta_0 \nonumber \\
-        &\quad+ \frac{2}{\lambda} \left(\sqrt{\frac{2 (1 - \beta)}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber \\
-        &\quad+ 4\eta \left[
-            \frac{L}{\lambda} \left(1 + \frac{2 \beta^2}{1 - \beta} \right)
-            + \frac{\beta}{1 - \beta} \| G_0 \|^{\dagger}
-        \right] \label{eq:theorem2-bound}
+        &\quad+ \frac{2}{\lambda} \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber \\
+        &\quad+ \left[
+            \frac{4 L}{\lambda} \left(1 + \frac{\beta^2}{1 - \beta} \right)
+            + \frac{2 \beta}{1 - \beta} \| G_0 \|^{\dagger}
+        \right] \eta \label{eq:theorem2-bound}
 \end{align}$$
 where $\Delta_0 = f(W_0) - f(W^*)$ and $G_0 = \| \nabla f(W_0) \|^{\dagger}$.
 
@@ -162,8 +162,8 @@ $$\begin{align}
 $$\begin{align}
     \mathbb{E}\left[ f(W_T) - f(W^*) \right]
         &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*))
-            + \frac{12}{\lambda\theta} L \eta
-            + \frac{4\eta}{\theta} \| G_0 \|^{\dagger}
+            + \frac{8}{\lambda\theta} L \eta
+            + \frac{2\eta}{\theta} \| G_0 \|^{\dagger}
             + \frac{2\sqrt{2}}{\lambda} \sqrt{\theta} \frac{\sqrt{D} \sigma}{\sqrt{b}}
 \end{align}$$
 
@@ -183,10 +183,10 @@ $$\begin{equation}
 
 For small constants $c_2, c_3 \leq 1/4$, we then bound the terms involving $\eta$ by $\epsilon$ as follows,
 $$\begin{align}
-    \frac{12}{\lambda\theta} L \eta \leq c_2 \epsilon
-        &\implies \eta \leq \frac{c_2}{12} \frac{\lambda\theta\epsilon}{L} \nonumber \\
-    \frac{4\eta}{\theta} \| G_0 \|^{\dagger} \leq c_3 \epsilon
-        &\implies \eta \leq \frac{c_3}{4} \frac{\theta\epsilon}{\| G_0 \|^{\dagger}} \nonumber
+    \frac{8}{\lambda\theta} L \eta \leq c_2 \epsilon
+        &\implies \eta \leq \frac{c_2}{8} \frac{\lambda\theta\epsilon}{L} \nonumber \\
+    \frac{2\eta}{\theta} \| G_0 \|^{\dagger} \leq c_3 \epsilon
+        &\implies \eta \leq \frac{c_3}{2} \frac{\theta\epsilon}{\| G_0 \|^{\dagger}} \nonumber
 \end{align}$$
 
 Combining these with the constraints $\lambda \eta \leq 1$ and $\| W^* \| \leq \frac{1}{\lambda}$, we set,
