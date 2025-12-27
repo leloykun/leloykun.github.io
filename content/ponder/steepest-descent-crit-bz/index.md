@@ -85,10 +85,10 @@ Solving the above problems then yields the following update rules,
 $$\begin{align}
     \text{[CSD]}^{(3)} \quad
     W_{t+1}
-        &= (1 - \lambda\eta) W_t - \eta \texttt{LMO}(C_t) \label{eq:updateweightdecay} \\
+        &= (1 - \lambda\eta) W_t + \eta \texttt{LMO}(C_t) \label{eq:updateweightdecay} \\
     \text{[RSD]}^{(3)} \quad
     W_{t+1}
-        &= (1 - \lambda\eta) W_t - \eta \| C_t \|^{\dagger} \texttt{LMO}(C_t)
+        &= (1 - \lambda\eta) W_t + \eta \| C_t \|^{\dagger} \texttt{LMO}(C_t)
 \end{align}$$
 where $\texttt{LMO}(\cdot)$ is the linear minimization oracle under the norm $\| \cdot \|$ defined as,
 $$\begin{equation}
@@ -588,9 +588,9 @@ Unrolling the recurrence then yields,
 $$\begin{align}
     \mathbb{E}\left[ f(W_T) - f(W^*) \right]
         &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*)) \nonumber \\
-            &\quad+ 4 \left(1 + \frac{\beta^2}{1 - \beta} \right) L \eta^2 \sum_{t=0}^{T-1} (1 - \lambda\eta)^{t} \nonumber \\
+            &\quad+ 4 \left(1 + \frac{\beta^2}{1 - \beta} \right) L \eta^2 \sum_{t=0}^{T-1} (1 - \lambda\eta)^{T-1-t} \nonumber \\
             &\quad+ 2\eta \| \nabla f(W_0) \|^{\dagger} \sum_{t=0}^{T-1} \beta^{t+1} (\underbrace{1 - \lambda\eta}_{\leq 1})^{T-1-t} \nonumber \\
-            &\quad+ 2\eta \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \sum_{t=0}^{T-1} (1 - \lambda\eta)^{t} \nonumber \\
+            &\quad+ 2\eta \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \sum_{t=0}^{T-1} (1 - \lambda\eta)^{T-1-t} \nonumber \\
         &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*))
             + \frac{4}{\lambda} \left(1 + \frac{\beta^2}{1 - \beta} \right) L \eta
             + \frac{2\eta\beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger} \nonumber \\
