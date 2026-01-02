@@ -42,19 +42,19 @@ $$\begin{align}
 \end{align}$$
 such that for any perturbations $(\Delta q, \Delta k, \Delta v)$ and $(\tilde{\Delta} q, \tilde{\Delta} k, \tilde{\Delta} v)$,
 $$\begin{align}
-    \| \nabla \texttt{F} \diamond (\Delta q, \Delta k, \Delta v) \|_{\infty-RMS}
-        &\leq \sigma \left( \| \Delta q \|_{\infty-RMS} + \| \Delta k \|_{\infty-RMS} + \| \Delta v \|_{\infty-RMS} \right) \\
+    \| \nabla \texttt{F} \diamond (\Delta q, \Delta k, \Delta v) \|_{\infty RMS}
+        &\leq \sigma \left( \| \Delta q \|_{\infty RMS} + \| \Delta k \|_{\infty RMS} + \| \Delta v \|_{\infty RMS} \right) \\
 \end{align}$$
 and,
 $$\begin{align}
-    &\| (\tilde{\Delta} q, \tilde{\Delta} k, \tilde{\Delta} v) \diamond \nabla^2 \texttt{F} \diamond ( \Delta q, \Delta k, \Delta v ) \|_{\infty-RMS} \nonumber \\
-        &\qquad\leq \gamma \left( \| \Delta q \|_{\infty-RMS} + \| \Delta k \|_{\infty-RMS} + \| \Delta v \|_{\infty-RMS} \right) \nonumber \\
-            &\qquad\qquad\times \left( \| \tilde{\Delta} q \|_{\infty-RMS} + \| \tilde{\Delta} k \|_{\infty-RMS} + \| \tilde{\Delta} v \|_{\infty-RMS} \right)
+    &\| (\tilde{\Delta} q, \tilde{\Delta} k, \tilde{\Delta} v) \diamond \nabla^2 \texttt{F} \diamond ( \Delta q, \Delta k, \Delta v ) \|_{\infty RMS} \nonumber \\
+        &\qquad\leq \gamma \left( \| \Delta q \|_{\infty RMS} + \| \Delta k \|_{\infty RMS} + \| \Delta v \|_{\infty RMS} \right) \nonumber \\
+            &\qquad\qquad\times \left( \| \tilde{\Delta} q \|_{\infty RMS} + \| \tilde{\Delta} k \|_{\infty RMS} + \| \tilde{\Delta} v \|_{\infty RMS} \right)
 \end{align}$$
 
 Note that the sensitivity and sharpness bounds above are independent of the sequence length $T$ and model width $d$.
 
-**Proof.** It suffices to first prove the sensitivity and sharpness bounds for arbitrary time step $t$, and then extend the results to the entire sequence by taking the maximum over all time steps. To simplify notation, let $\Delta Q = \| q \|_{\infty-RMS}, \Delta K = \| k \|_{\infty-RMS}, \Delta V = \| v \|_{\infty-RMS}$.
+**Proof.** It suffices to first prove the sensitivity and sharpness bounds for arbitrary time step $t$, and then extend the results to the entire sequence by taking the maximum over all time steps. To simplify notation, let $\Delta Q = \| q \|_{\infty RMS}, \Delta K = \| k \|_{\infty RMS}, \Delta V = \| v \|_{\infty RMS}$.
 
 ---
 
@@ -69,6 +69,8 @@ $$\begin{align}
         &\leq \| \Delta S_t \|_{op} \| q_t \|_{RMS} + \| S_t \|_{op} \| \Delta q_t \|_{RMS} \nonumber \\
         &\leq \| \Delta S_t \|_{op} + \| S_t \|_{op} \| \Delta q_t \|_{RMS} \label{eq:F_t-sensitivity}
 \end{align}$$
+where $\| \cdot \|_{op}$ denotes the Spectral norm.
+
 Since $\| q_t \|_{RMS} \leq 1$ by assumption, we only need to bound $\| S_t \|_{op}$ and $\| \Delta S_t \|_{op}$. And to do so, we need to bound $\| A_t \|_{op}$, $\| B_t \|_{op}$, $\| \Delta A_t \|_{op}$, and $\| \Delta B_t \|_{op}$ first.
 
 $$\begin{align}
@@ -146,7 +148,7 @@ $$\begin{align}
         &= \| \Delta S_t \|_{op} + \| S_t \|_{op} \| \Delta q_t \|_{RMS} \nonumber \\
         &\leq \frac{\beta}{1 - \alpha} \Delta V + \left( \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right) \Delta K + \frac{\beta}{1 - \alpha} \Delta Q \nonumber \\
         &\leq \left(\frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right)\left( \Delta Q + \Delta K + \Delta V \right) \label{eq:F_t-sensitivity-final} \\
-    \| \Delta F \|_{\infty-RMS}
+    \| \Delta F \|_{\infty RMS}
         &\leq \left(\frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right)\left( \Delta Q + \Delta K + \Delta V \right) \qquad \blacksquare \label{eq:F-sensitivity-final}
 \end{align}$$
 
@@ -252,7 +254,7 @@ $$\begin{align}
                 \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2}
             \Bigg\} \nonumber \\
             &\qquad \times \left( \Delta Q + \Delta K + \Delta V \right) \left( \tilde{\Delta} Q + \tilde{\Delta} K + \tilde{\Delta} V \right) \label{eq:Delta2_F_t-final} \\
-    \| \Delta^2 F \|_{\infty-RMS}
+    \| \Delta^2 F \|_{\infty RMS}
         &\leq \max\Bigg\{
                 \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3},
                 \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2}
@@ -324,7 +326,7 @@ $$\begin{align}
         &= \| \Delta S_t \|_{op} + \| S_t \|_{op} \| \Delta q_t \|_{RMS} \nonumber \\
         &\leq \frac{\beta}{1 - \alpha} ( \Delta V + \Delta K ) + \frac{\beta}{1 - \alpha} \Delta Q \nonumber \\
         &\leq \frac{\beta}{1 - \alpha} ( \Delta Q + \Delta K + \Delta V ) \label{eq:mamba2-F_t-sensitivity-final} \\
-    \| \Delta F \|_{\infty-RMS}
+    \| \Delta F \|_{\infty RMS}
         &\leq \frac{\beta}{1 - \alpha} ( \Delta Q + \Delta K + \Delta V ) \qquad \blacksquare \label{eq:mamba2-F-sensitivity-final}
 \end{align}$$
 
@@ -355,7 +357,7 @@ $$\begin{align}
             + \tilde{\Delta} K \Delta Q
             ) \nonumber \\
         &\leq \frac{\beta}{1 - \alpha} ( \Delta Q + \Delta K + \Delta V ) ( \tilde{\Delta} Q + \tilde{\Delta} K + \tilde{\Delta} V ) \label{eq:mamba2-Delta2_F_t-final} \\
-    \| \Delta^2 F \|_{\infty-RMS}
+    \| \Delta^2 F \|_{\infty RMS}
         &\leq \frac{\beta}{1 - \alpha} ( \Delta Q + \Delta K + \Delta V ) ( \tilde{\Delta} Q + \tilde{\Delta} K + \tilde{\Delta} V ) \qquad \blacksquare \label{eq:mamba2-Delta2_F-final}
 \end{align}$$
 
