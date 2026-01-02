@@ -27,9 +27,9 @@ We call this Steepest Descent on the Spectral Ball, and we shall discuss how to 
 
 ## 2. Eigenvalue Clipping
 
-In a previous blog post [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/), we discussed a novel method for clipping singular values of a matrix without the use of expensive singular value decompositions (SVDs). This is useful in deep learning for controlling weight norms, stabilizing training, and potentially enabling more aggressive low-precision training. Following the same technique, we can also clip the *eigenvalues* of a (symmetric) matrix efficiently. This can be used to efficiently project matrices onto the positive semidefinite cone, which is useful in e.g. finance and quantum mechanics where some equations require matrices to be positive semidefinite.
+In a previous blog post [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/), we discussed a novel method for clipping singular values of a matrix without the use of expensive singular value decompositions (SVDs). This is useful in deep learning for controlling weight norms, stabilizing training, and potentially enabling more aggressive low-precision training. Following the same technique, we can also clip the *eigenvalues* of a (symmetric) matrix efficiently. This can be used to efficiently project matrices onto the positive semidefinite cone, which is useful in e.g. finance and quantum mechanics where some equations require matrices to be positive semidefinite.
 
-> I have previously communicated this technique to the authors of [Factorization-free Orthogonal Projection onto the Positive Semidefinite Cone with Composite Polynomial Filtering](https://arxiv.org/abs/2507.09165) as I mistakenly thought their method for projecting onto the positive semidefinite cone was a special case of [my prior work](../spectral-clipping/). This work, however, *does* generalize their technique. I recommend reading their paper!
+> I have previously communicated this technique to the authors of [Ponder: Factorization-free Orthogonal Projection onto the Positive Semidefinite Cone with Composite Polynomial Filtering](https://arxiv.org/abs/2507.09165) as I mistakenly thought their method for projecting onto the positive semidefinite cone was a special case of [my prior work](../spectral-clipping/). This work, however, *does* generalize their technique. I recommend reading their paper!
 
 For now, we limit ourselves to symmetric matrices $W \in \mathbb{S}^{n}$ where $\mathbb{S}^{n} = \{W \in \mathbb{R}^{n \times n} | W = W^T\}$ is the set of all $n \times n$ real symmetric matrices. Symmetric matrices have real eigenvalues and can be diagonalized by an orthogonal matrix. We define Eigenvalue Clipping as follows:
 
@@ -217,7 +217,7 @@ def eig_stepfun(X: jax.Array, alpha=0.) -> jax.Array:
 
 ### 3.1. Problem setup
 
-Suppose we want to do steepest descent on the PSD cone under a norm $\|\cdot\|$ chosen a priori. That is, we want to do first-order optimization where we constrain our weights to be positive semidefinite and our weight updates to have bounded norm. As we previously discussed in [Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/), we can do this as follows:
+Suppose we want to do steepest descent on the PSD cone under a norm $\|\cdot\|$ chosen a priori. That is, we want to do first-order optimization where we constrain our weights to be positive semidefinite and our weight updates to have bounded norm. As we previously discussed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/), we can do this as follows:
 
 1. Let $W_t \in \mathcal{M}$ be the 'weight' parameter at time step $t$. Compute the "raw gradient" $G_t = \nabla f(W_t)$ via e.g. backpropagation.
 2. Compute a 'optimal' descent direction $A^* \in T_{W_t} \mathcal{M}$ under the norm in the tangent space at $W_t$, $$\begin{equation} A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta,\quad A \in T_{W_t}\mathcal{M}, \end{equation}$$ where $\eta > 0$ is the learning rate.
@@ -227,7 +227,7 @@ Suppose we want to do steepest descent on the PSD cone under a norm $\|\cdot\|$ 
 In our case, the manifold is the PSD cone, $\mathcal{M} := \mathbb{S}^n_{+} = \{W \in \mathbb{S}^n : W \succeq 0\}$. And so, we use the $\texttt{proj\_psd}$ function defined in [Section 2.2](#22-eigenvalue-relu-and-orthogonal-projection-onto-the-positive-semidefinite-cone) as our retraction map.
 $$\texttt{retract}_{\mathbb{S}^n_{+}} := \texttt{proj\_psd} = \texttt{eig\_relu}_0.$$
 
-To find an 'optimal' descent direction $A^*$, we can, in some cases, use known Linear Minimization Oracles (LMOs) [(Pethick et al., 2025)](https://arxiv.org/abs/2502.07529). Or, as we discussed in [Steepest Descent on Finsler-Structured (Matrix) Manifolds](../steepest-descent-finsler/), we can compute an 'optimal' descent direction $A^*$ via two orthogonal projection functions: (i) the projection onto the norm ball, $\texttt{proj}_{\| \cdot \|_{W_t} \leq \eta}$, and (ii) the projection onto the tangent space at $W_t$, $\texttt{proj}_{T_{W_t}\mathcal{M}}$.
+To find an 'optimal' descent direction $A^*$, we can, in some cases, use known Linear Minimization Oracles (LMOs) [(Pethick et al., 2025)](https://arxiv.org/abs/2502.07529). Or, as we discussed in [Ponder: Steepest Descent on Finsler-Structured (Matrix) Manifolds](../steepest-descent-finsler/), we can compute an 'optimal' descent direction $A^*$ via two orthogonal projection functions: (i) the projection onto the norm ball, $\texttt{proj}_{\| \cdot \|_{W_t} \leq \eta}$, and (ii) the projection onto the tangent space at $W_t$, $\texttt{proj}_{T_{W_t}\mathcal{M}}$.
 
 If we choose the Frobenius norm, then the projection onto the norm ball is simply,
 $$\texttt{proj}_{\| \cdot \|_F \leq \eta}(X) := \begin{cases}
@@ -363,13 +363,13 @@ $$\begin{align}
 
 In general, LMOs derived for the case without the tangency constraint often 'send' its output off-tangent. An example [we discussed in previous blog post](../steepest-descent-stiefel/) is $\texttt{msign}$ and the Stiefel manifold. In such cases, we can use either of the following two methods to compute an 'optimal' descent direction $A^*$:
 
-1. A *heuristic* solution such as the one discussed in [Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) where we iteratively apply the projection onto the tangent space and the LMO until convergence. That is,
+1. A *heuristic* solution such as the one discussed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) where we iteratively apply the projection onto the tangent space and the LMO until convergence. That is,
 $$\begin{align}
     W_{t+1}
         &= \texttt{proj\_psd}\left(W_{t} + \left(\texttt{LMO}_{\|\cdot\|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}} \right)^K (-G_t) \right)
 \end{align}$$
 for some integer $K \geq 1$ denoting the number of iterations (typically, $K = 4$ to $8$ suffices; but the iteration can be terminated upon convergence).
-2. An *exact* solution such as the primal-dual hybrid gradient method, $\texttt{pdhg}$, we discussed in [Steepest Descent on Finsler-Structured (Matrix) Manifolds](../steepest-descent-finsler/),
+2. An *exact* solution such as the primal-dual hybrid gradient method, $\texttt{pdhg}$, we discussed in [Ponder: Steepest Descent on Finsler-Structured (Matrix) Manifolds](../steepest-descent-finsler/),
 $$\begin{align}
     W_{t+1}
         &= \texttt{proj\_psd}(W_{t} + \texttt{pdhg}(-G_t, \texttt{proj}_{\| \cdot \|_{W_t} \leq \eta}, \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}}))
@@ -469,7 +469,7 @@ The previous examples are arguably contrived. This example is more practical.
 
 Suppose we no longer constrain our weights to be symmetric, but we still want to bound their Spectral norm. That is, we want to do steepest descent on the Spectral Ball,
 $$\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R} := \{W \in \mathbb{R}^{m \times n} : \| W \|_{2 \to 2} \leq R\},$$
-for some radius $R > 0$. For the retraction map, we can use the GPU/TPU-friendly Spectral Hardcap function discussed in [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
+for some radius $R > 0$. For the retraction map, we can use the GPU/TPU-friendly Spectral Hardcap function discussed in [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
 $$\texttt{retract}_{\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R}} := \texttt{spectral\_hardcap}_{R}.$$
 
 ### 5.1. Projection onto the tangent space/cone at a point on the Spectral Ball
@@ -598,7 +598,7 @@ We also warm-start the initial iterate of PDHG with the 1 step of the Alternatin
 
 ![](lr_transfer_pdhg_psd_spectral.png#center)
 
-We only constrain the weight for the $D \to D$ linear layer to be positive semidefinite, and the other layers are constrained to the (scaled) Stiefel manifold as discussed in [Steepest Descent on Finsler-Structured (Matrix) Manifolds](../steepest-descent-finsler/). As can be seen in the Figure above, the optimal learning rates do transfer under our parametrization. However, we *cannot* impose a Lipschitz bound on the network because the positive semidefinite cone is unbounded.
+We only constrain the weight for the $D \to D$ linear layer to be positive semidefinite, and the other layers are constrained to the (scaled) Stiefel manifold as discussed in [Ponder: Steepest Descent on Finsler-Structured (Matrix) Manifolds](../steepest-descent-finsler/). As can be seen in the Figure above, the optimal learning rates do transfer under our parametrization. However, we *cannot* impose a Lipschitz bound on the network because the positive semidefinite cone is unbounded.
 
 #### 6.1.2. Steepest descent on the Convex Spectrahedron
 

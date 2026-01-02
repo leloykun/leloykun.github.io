@@ -15,9 +15,9 @@ cover:
 
 In this blog post, we shall consider the problem of steepest descent on [Finsler-structured (matrix) geometries](https://en.wikipedia.org/wiki/Finsler_manifold). This problem naturally arises in deep learning optimization because we want model training to be *fast* and *robust*. That is, we want our updates to maximally change weights and activations (or "features") so that we can train larger models more quickly *while* also keeping activation, weight, and gradient norms within some reasonable bounds to guarantee that our expensive training runs would not randomly blow up halfway through.
 
-$\blacksquare$ Let us start on robustness: as we discussed in [Training Transformers with Enforced Lipschitz Constants](https://arxiv.org/abs/2507.13338) and [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), we can achieve our robustness goals by enforcing both *layer-wise* and global [Lipschitz](https://encyclopediaofmath.org/wiki/Lipschitz_constant) constraints on our models. Intuitively, Lipschitzness is the knob that controls how fast our features "grow" in the forward pass and how fast our gradients "grow" in the backward pass. Lower Lipschitzness then guarantees stabler training dynamics and flatter loss landscapes. But why do we want layer-wise Lipschitz constraints? That is because we can convert any possibly-highly-unstable $L$-Lipschitz model into a globally 1-Lipschitz model by scaling its final logits by $1/L$, and this does nothing to prevent intermediate activations and gradients from blowing up.
+$\blacksquare$ Let us start on robustness: as we discussed in [Ponder: Training Transformers with Enforced Lipschitz Constants](https://arxiv.org/abs/2507.13338) and [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), we can achieve our robustness goals by enforcing both *layer-wise* and global [Lipschitz](https://encyclopediaofmath.org/wiki/Lipschitz_constant) constraints on our models. Intuitively, Lipschitzness is the knob that controls how fast our features "grow" in the forward pass and how fast our gradients "grow" in the backward pass. Lower Lipschitzness then guarantees stabler training dynamics and flatter loss landscapes. But why do we want layer-wise Lipschitz constraints? That is because we can convert any possibly-highly-unstable $L$-Lipschitz model into a globally 1-Lipschitz model by scaling its final logits by $1/L$, and this does nothing to prevent intermediate activations and gradients from blowing up.
 
-To enforce layer-wise Lipschitz constraints, we have to consider parameter-free and parametrized layers separately. In [Sensitivity and Sharpness of n-Simplicial Attention](../lipschitz-n-simplical-transformer/), we previously derived a parametrization of $n$-Simplicial Attention [(Roy et al., 2025)](https://arxiv.org/abs/2507.02754v1) that is 1-Lipschitz by construction, generalizing prior work by [Large et al. (2024)](https://arxiv.org/abs/2405.14813). And for parametrized layers, we can enforce Lipschitz constraints by bounding the induced operator norm (from the chosen feature norms) of the weight matrices [(Newhouse et al., 2025)](https://arxiv.org/abs/2507.13338). In this blog post, we shall focus on the latter.
+To enforce layer-wise Lipschitz constraints, we have to consider parameter-free and parametrized layers separately. In [Ponder: Sensitivity and Sharpness of n-Simplicial Attention](../lipschitz-n-simplical-transformer/), we previously derived a parametrization of $n$-Simplicial Attention [(Roy et al., 2025)](https://arxiv.org/abs/2507.02754v1) that is 1-Lipschitz by construction, generalizing prior work by [Large et al. (2024)](https://arxiv.org/abs/2405.14813). And for parametrized layers, we can enforce Lipschitz constraints by bounding the induced operator norm (from the chosen feature norms) of the weight matrices [(Newhouse et al., 2025)](https://arxiv.org/abs/2507.13338). In this blog post, we shall focus on the latter.
 
 A neat consequence of controlling the weight and update norms is that, by the norm equivalence theorem for finite dimensions, we also bound the size of our weight and update matrix *entries*. A low-enough bound allows us to shave off bits from our floating-point representations without overflowing or underflowing, enabling more aggressive quantization-aware training, basically "for free", as we have demonstrated in [Training Transformers with Enforced Lipschitz Constants](https://arxiv.org/abs/2507.13338).
 
@@ -35,7 +35,7 @@ This work expands on and generalizes prior work by [Bernstein (2025)](https://do
 
 ![](wd-vs-manifold-opt.png#center)
 
-Weight decay already (implicitly) constraints weights to some bounded set. We discussed this in more detail in Appendix A2 of [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/).
+Weight decay already (implicitly) constraints weights to some bounded set. We discussed this in more detail in Appendix A2 of [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/).
 
 The crux is that, the "backtracking" weight decay does grows linearly with the weight norm, but the update sizes from our optimizers remain roughly constant. For example, with Muon, the update sizes are guaranteed to have spectral norm at most $\eta$, the learning rate; with Adam and variants such as SignSGD, it is the elementwise max-norm that is bounded by $\eta$. And so, if the weight is "too large", backtracking dominates the update, and the weight norm shrinks; if the weight is "too small", the update dominates backtracking, and the weight norm grows. At equilibrium, the backtracking and update sizes balance out, and the weight norm stabilizes. Thus, weight decay already helps enforce Lipschitz constraints to some extent.
 
@@ -70,7 +70,7 @@ $$\begin{align}
         &= -\eta \cdot \text{LMO}_{\|\cdot\|_{W_t}}(G_t). \nonumber
 \end{align}$$
 
-Unfortunately, as we have discussed in [Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel), LMOs typically do not preserve tangency for general $T_{W_t}\mathcal{M}$, requiring more complicated solutions to solve Equation $\eqref{eq:optimaldescent}$. We will discuss one such solution via dual ascent in the next section.
+Unfortunately, as we have discussed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel), LMOs typically do not preserve tangency for general $T_{W_t}\mathcal{M}$, requiring more complicated solutions to solve Equation $\eqref{eq:optimaldescent}$. We will discuss one such solution via dual ascent in the next section.
 
 ## 3. Steepest descent on Finsler geometries via dual ascent
 
@@ -140,7 +140,7 @@ In all, we only need three components to implement the above algorithm:
 First, notice that scaling $L$ in Equation $\eqref{eq:tangentset}$ by some positive constant $c > 0$ yields the same tangent set and therefore the same update rules for the primal and dual variables, except for $L^*$ being scaled as well. And so, we have an infinite degree of freedom in choosing $L$. Here we argue that it is most natural to choose scales such that,
 $$L L^* = I.$$
 
-This is because, under a certain initialization strategy, one step of dual ascent is equivalent to one step of the projection-projection heuristic that we have previously shown in [Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) to be optimal in some cases (and arguably already close-to-optimal in most cases).
+This is because, under a certain initialization strategy, one step of dual ascent is equivalent to one step of the projection-projection heuristic that we have previously shown in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) to be optimal in some cases (and arguably already close-to-optimal in most cases).
 
 To see this, note that the orthogonal projection onto the tangent set $T_{W_t}\mathcal{M}$ given by Equation $\eqref{eq:tangentset}$ is as follows,
 $$\begin{equation} \texttt{proj}_{T_{W_t}\mathcal{M}}(X) = X - L^*\texttt{proj}^{L L^*}_{K^*}(LX) \end{equation}$$
@@ -192,10 +192,10 @@ def dual_ascent(
 
 Suppose that, during training, we want to bound the singular values of our weights to be within some comfortable range $[\sigma_{\min}, \sigma_{\max}]$. This is to prevent features from either exploding or vanishing completely. Additionally, we pick the "natural" weight norm, the $\texttt{RMS}\to\texttt{RMS}$ norm, to maximally update the RMS norm of our features and enable learning rate transfer across model widths as discussed in [Section 2.2](#22-natural-feature-and-weight-norms). And hence, we want to do steepest descent on the spectral band $\mathcal{S}_{[\alpha, \beta]}$ under the $\texttt{RMS}\to\texttt{RMS}$ norm.
 
-For the retraction map, we can use the GPU/TPU-friendly Spectral Clip function discussed in [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
+For the retraction map, we can use the GPU/TPU-friendly Spectral Clip function discussed in [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
 $$\texttt{retract}_{\mathcal{S}_{[\alpha, \beta]}} := \texttt{spectral\_clip}_{[\alpha, \beta]}.$$
 
-We also discussed several ways to compute the optimal update direction $A^*_t$ for the Spectral Band in Appendix A1 of [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/). Here, we show that the dual ascent approach we discussed in that blog post is a special case of the general dual ascent framework we discussed in the previous section. To see this, consider the tangent cone at a point $W$ in the spectral band,
+We also discussed several ways to compute the optimal update direction $A^*_t$ for the Spectral Band in Appendix A1 of [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/). Here, we show that the dual ascent approach we discussed in that blog post is a special case of the general dual ascent framework we discussed in the previous section. To see this, consider the tangent cone at a point $W$ in the spectral band,
 $$\begin{equation}
     T_{W_t} \mathcal{S}_{[\alpha, \beta]} = \{ A \in \mathbb{R}^{m \times n} : \underbrace{\texttt{sym}(U_{\alpha}^T A V_{\alpha}) \succeq 0}_{\text{don't go below } \alpha}, \underbrace{\texttt{sym}(U_{\beta}^T A V_{\beta}) \preceq 0}_{\text{don't go above } \beta} \}
 \end{equation}$$
@@ -218,7 +218,7 @@ $$\begin{align}
     \texttt{proj}_{K^*}(Y_{\alpha}, Y_{\beta})
         &= (\texttt{proj\_nsd}(Y_{\alpha}), \texttt{proj\_psd}(Y_{\beta})), \nonumber
 \end{align}$$
-where $\texttt{proj\_nsd}$ and $\texttt{proj\_psd}$ are the accelerator-friendly implementations of the (orthogonal) projectors to the negative and positive semidefinite cones discussed in [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), respectively.
+where $\texttt{proj\_nsd}$ and $\texttt{proj\_psd}$ are the accelerator-friendly implementations of the (orthogonal) projectors to the negative and positive semidefinite cones discussed in [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), respectively.
 
 And finally, the LMO for the $\texttt{RMS}\to\texttt{RMS}$ norm is given by,
 $$\texttt{LMO}_{\texttt{RMS}\to\texttt{RMS}}(G_t) = \sqrt{\frac{m}{n}} \texttt{msign}(G_t),$$
@@ -233,7 +233,7 @@ $$\begin{align}
     Y^{j+1}_{t, \beta}
         &= \texttt{proj\_psd}\left(Y^j_{t, \beta} + \sigma_j \cdot \texttt{sym}\left(U_{\beta}^T A^j_t V_{\beta}\right)\right)
 \end{align}$$
-which matches exactly with the update rule we derived in Appendix A1 of [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/).
+which matches exactly with the update rule we derived in Appendix A1 of [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/).
 
 #### 3.2.1. JAX implementation
 
@@ -300,7 +300,7 @@ $$\begin{align}
         &= \texttt{proj\_psd}\left(Y^j_{t, \beta} + \sigma_j \cdot \texttt{sym}\left(U_{\beta}^T A^j_t V_{\beta}\right)\right)
 \end{align}$$
 
-For the retraction map, we can use the accelerator-friendly Spectral Hardcap matrix function, $\texttt{spectral\_hardcap}_{\beta} := \texttt{spectral\_clip}_{[0, \beta]}$, discussed in [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
+For the retraction map, we can use the accelerator-friendly Spectral Hardcap matrix function, $\texttt{spectral\_hardcap}_{\beta} := \texttt{spectral\_clip}_{[0, \beta]}$, discussed in [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
 $$\texttt{retract}_{\mathbb{B}_{\beta}} := \texttt{spectral\_hardcap}_{\beta}.$$
 
 #### 3.3.1. JAX implementation
@@ -411,7 +411,7 @@ Here we examine how our novel optimizers affect training dynamics and generaliza
 
 ![](singular_values_evolution_4_Lipschitz.gif#center)
 
-In [Section 2.1](#21-decoupled-weight-decay-as-weight-constraint-and-why-it-is-suboptimal) and [Appendix A2 of Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), we claimed that decoupled weight decay (with weight decay term $\lambda$) implicitly constrains the weights to be in some constraint set of radius $R = 1/\lambda$ for some norm $\| \cdot \|$, given that the updates are guaranteed to have size $\leq \eta$ under that norm. When using the Muon optimizer [(Jordan et al., 2024)](https://kellerjordan.github.io/posts/muon/), our updates are guaranteed to have size $\leq \eta$ under the $\texttt{RMS}\to\texttt{RMS}$ norm, and so we expect that, with decoupled weight decay, the singular values of the weights will remain bounded above by $\frac{1}{\lambda}$ during training (scaled by $\sqrt{m/n}$). Here we verify this experimentally.
+In [Section 2.1](#21-decoupled-weight-decay-as-weight-constraint-and-why-it-is-suboptimal) and Appendix A2 of [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), we claimed that decoupled weight decay (with weight decay term $\lambda$) implicitly constrains the weights to be in some constraint set of radius $R = 1/\lambda$ for some norm $\| \cdot \|$, given that the updates are guaranteed to have size $\leq \eta$ under that norm. When using the Muon optimizer [(Jordan et al., 2024)](https://kellerjordan.github.io/posts/muon/), our updates are guaranteed to have size $\leq \eta$ under the $\texttt{RMS}\to\texttt{RMS}$ norm, and so we expect that, with decoupled weight decay, the singular values of the weights will remain bounded above by $\frac{1}{\lambda}$ during training (scaled by $\sqrt{m/n}$). Here we verify this experimentally.
 
 In the Figures above, we plot the evolution of the singular values of the weights during training with our Muon + decoupled weight decay baseline and our new optimizers. We also highlight the line corresponding to the optimizer whenever the model groks the problem (that is, once it reaches $\geq 95\%$ test accuracy). As we can see, Muon with decoupled weight decay indeed keeps the singular values bounded above by $\frac{1}{\lambda}$ throughout training, and our Steepest Descent optimizers keeps the singular values within the bounds imposed by their respective geometries.
 

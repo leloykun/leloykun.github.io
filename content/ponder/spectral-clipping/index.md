@@ -21,7 +21,7 @@ editPost:
 
 ## 1. Introduction
 
-Here I'll discuss a fast, numerically stable, and (auto-)differentiable way to perform spectral clipping, i.e., clipping the singular values of a matrix to a certain range. This is useful in deep learning because it allows us to control the 'growth' of our weights and weight updates, enabling faster and stabler feature learning ([Yang et al., 2024](https://arxiv.org/abs/2310.17813); [Large et al., 2024](https://arxiv.org/abs/2405.14813)). As discussed in [Section 2.2 of Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds](../steepest-descent-non-riemannian/#22-feature-learning-perspective),
+Here I'll discuss a fast, numerically stable, and (auto-)differentiable way to perform spectral clipping, i.e., clipping the singular values of a matrix to a certain range. This is useful in deep learning because it allows us to control the 'growth' of our weights and weight updates, enabling faster and stabler feature learning ([Yang et al., 2024](https://arxiv.org/abs/2310.17813); [Large et al., 2024](https://arxiv.org/abs/2405.14813)). As discussed in Section 2.2 of [Ponder: Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds](../steepest-descent-non-riemannian/#22-feature-learning-perspective),
 > If we want the Euclidean norm of our features and feature updates to 'grow' with the model size,
 > then the *Spectral norm* of our weights and weight updates must also 'grow' with the model size.
 

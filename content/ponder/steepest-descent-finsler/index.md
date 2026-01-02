@@ -247,7 +247,7 @@ We discussed multiple ways to do this in our paper [Training Transformers with E
 
 ### 4.1. Required projections
 
-As we discussed above and in [Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/), we need the following projections:
+As we discussed above and in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/), we need the following projections:
 
 1. Projection onto the (scaled) Stiefel manifold, $\texttt{proj}_{\widetilde{\texttt{St}}(m, n, \sqrt{m/n})}: \mathbb{R}^{m \times n} \to \widetilde{\texttt{St}}(m, n, \sqrt{m/n})$, as the retraction map.
 2. Projection onto the tangent space at $W \in \widetilde{\texttt{St}}(m, n, \sqrt{m/n})$, $\texttt{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, \sqrt{m/n})}: \mathbb{R}^{m \times n} \to T_W\widetilde{\texttt{St}}(m, n, \sqrt{m/n})$. And;
@@ -256,7 +256,7 @@ As we discussed above and in [Heuristic Solutions for Steepest Descent on the St
 For (1), we can use the GPU-friendly method to compute the $\texttt{msign}(X)$ function via Newton-Schulz iteration as in the Muon optimizer,
 $$\texttt{proj}_{\widetilde{\texttt{St}}(m, n, \sqrt{m/n})}(X) = \sqrt{\frac{m}{n}} \texttt{msign}(X).$$
 
-For (2), we can use the projection map discussed in [Theorem 2 in Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/),
+For (2), we can use the projection map discussed in Theorem 2 in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/),
 $$\texttt{proj}_{T_{W}\texttt{St}(m, n)}(X) = X - {W} \text{sym}({W}^T X).$$
 More generally, for the scaled Stiefel manifold, we have,
 $$\texttt{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, s)}(V) = V - {W} \text{sym}({W}^T V) / s^2.$$
@@ -269,7 +269,7 @@ $$
         &= \texttt{spectral\_hardcap}_{\sqrt{\frac{m}{n}}\eta}
 \end{aligned}
 $$
-where $\texttt{spectral\_hardcap}$ is the GPU/TPU-friendly Spectral Hardcap function discussed in [Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/) and in [our latest paper](https://arxiv.org/abs/2507.13338),
+where $\texttt{spectral\_hardcap}$ is the GPU/TPU-friendly Spectral Hardcap function discussed in [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/) and in [our latest paper](https://arxiv.org/abs/2507.13338),
 ```python
 def spectral_hardcap(X: jax.Array, eta: float=1.):
     def _spectral_hardcap_util(X: jax.Array):
@@ -361,7 +361,7 @@ To speed up convergence, we can warm-start the iteration by initializing $A_0$ a
 
 1. $A_0 = B_0 = -G$.
 2. $A_0 = B_0 = \left(\texttt{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta} \circ \texttt{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, \sqrt{m/n})} \right)(-G)$, which is already optimal for the square case. And;
-3. $A_0 = B_0 = \left(\texttt{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta} \circ \texttt{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, \sqrt{m/n})} \right)^K (-G)$, the alternating projections method discussed in [Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/).
+3. $A_0 = B_0 = \left(\texttt{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta} \circ \texttt{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, \sqrt{m/n})} \right)^K (-G)$, the alternating projections method discussed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/).
 
 In the succeeding training steps, we can then initialize $A_0$ and $B_0$ with the optimal $A^*$ from the previous step.
 
@@ -373,7 +373,7 @@ Here I've plotted the alignment <-> off-tangency frontier for the different meth
 
 ![](pareto-frontier-stiefel-full-G.png#center)
 
-For the case where $G$ is full-rank, we see that the Alternating Projections method I proposed in [Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) does quite well despite being provably suboptimal in some cases. The PDHG method closes the gap as we increase the number of iterations, but it and the other methods perform roughly similarly.
+For the case where $G$ is full-rank, we see that the Alternating Projections method I proposed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) does quite well despite being provably suboptimal in some cases. The PDHG method closes the gap as we increase the number of iterations, but it and the other methods perform roughly similarly.
 
 #### 4.3.2. Case 2: $G$ is rank-deficient
 
