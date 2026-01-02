@@ -33,9 +33,9 @@ $$\begin{align}
 has the following sensitivity $\sigma$ and sharpness $\gamma$ bounds:
 $$\begin{align}
     \sigma
-        &= \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \label{eq:gdn-sensitivity} \\
+        &\leq \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \label{eq:gdn-sensitivity} \\
     \gamma
-        &= \max\Bigg\{
+        &\leq \max\Bigg\{
                 \left( \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3} \right),
                 \left( \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right)
             \Bigg\} \label{eq:gdn-sharpness}
@@ -271,11 +271,11 @@ for all $t$, guarantees that Gated DeltaNet is unit sensitive and $\frac{5}{2}$-
 **Proof.** Substituting Inequality $\eqref{eq:1-lipschitz-condition}$ into Equations $\eqref{eq:gdn-sensitivity}$ and $\eqref{eq:gdn-sharpness}$ yields,
 $$\begin{align}
     \sigma
-        &= \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \nonumber \\
+        &\leq \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \nonumber \\
         &\leq \frac{1}{2} + \frac{\alpha}{2} \nonumber \\
         &\leq 1 \nonumber \\
     \gamma
-        &= \max\Bigg\{
+        &\leq \max\Bigg\{
                 \left( \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3} \right),
                 \left( \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right)
             \Bigg\} \nonumber \\
@@ -302,9 +302,9 @@ $$\begin{align}
 has the following sensitivity $\sigma$ and sharpness $\gamma$ bounds:
 $$\begin{align}
     \sigma
-        &= \frac{\beta}{1 - \alpha} \label{eq:mamba2-sensitivity} \\
+        &\leq \frac{\beta}{1 - \alpha} \label{eq:mamba2-sensitivity} \\
     \gamma
-        &= \frac{\beta}{1 - \alpha} \label{eq:mamba2-sharpness}
+        &\leq \frac{\beta}{1 - \alpha} \label{eq:mamba2-sharpness}
 \end{align}$$
 
 **Proof.** We follow the same proof structure as in Theorem 1. The main difference lies in the structure of $A_t$: for Mamba 2, $A_t$ does not depend on $k_t$, making $\Delta A_t$ and $\Delta^2 A_t$ equal to zero. Repeating the steps in the sensitivity proof of Theorem 1, we have,
