@@ -36,8 +36,8 @@ $$\begin{align}
         &\leq \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \label{eq:gdn-sensitivity} \\
     \gamma
         &\leq \max\Bigg\{
-                \left( \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3} \right),
-                \left( \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right)
+                \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3},
+                \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2}
             \Bigg\} \label{eq:gdn-sharpness}
 \end{align}$$
 such that for any perturbations $(\Delta q, \Delta k, \Delta v)$ and $(\tilde{\Delta} q, \tilde{\Delta} k, \tilde{\Delta} v)$,
@@ -248,14 +248,14 @@ $$\begin{align}
             &\qquad+ \left( \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right) \left( \Delta V \tilde{\Delta} K + \tilde{\Delta} V \Delta K + \Delta K \tilde{\Delta} Q + \tilde{\Delta} K \Delta Q \right) \nonumber \\
             &\qquad+ \frac{\beta}{1 - \alpha} \left( \Delta V \tilde{\Delta} Q + \tilde{\Delta} V \Delta Q \right) \nonumber \\
         &\leq \max\Bigg\{
-                \left( \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3} \right),
-                \left( \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right)
+                \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3},
+                \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2}
             \Bigg\} \nonumber \\
             &\qquad \times \left( \Delta Q + \Delta K + \Delta V \right) \left( \tilde{\Delta} Q + \tilde{\Delta} K + \tilde{\Delta} V \right) \label{eq:Delta2_F_t-final} \\
     \| \Delta^2 F \|_{\infty-RMS}
         &\leq \max\Bigg\{
-                \left( \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3} \right),
-                \left( \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right)
+                \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3},
+                \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2}
             \Bigg\} \nonumber \\
             &\qquad \times \left( \Delta Q + \Delta K + \Delta V \right) \left( \tilde{\Delta} Q + \tilde{\Delta} K + \tilde{\Delta} V \right) \qquad \blacksquare \label{eq:Delta2_F-final}
 \end{align}$$
@@ -276,12 +276,12 @@ $$\begin{align}
         &\leq 1 \nonumber \\
     \gamma
         &\leq \max\Bigg\{
-                \left( \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3} \right),
-                \left( \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right)
+                \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3},
+                \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2}
             \Bigg\} \nonumber \\
         &\leq \max\Bigg\{
-                \left( \frac{3 \alpha}{2} + \alpha^2 \right),
-                \left( \frac{1}{2} + \frac{\alpha}{2} \right)
+                \frac{3 \alpha}{2} + \alpha^2,
+                \frac{1}{2} + \frac{\alpha}{2}
             \Bigg\} \nonumber \\
         &\leq \frac{5}{2} \qquad \blacksquare \nonumber \\
 \end{align}$$
