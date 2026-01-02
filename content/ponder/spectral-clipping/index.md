@@ -681,7 +681,7 @@ $$\begin{aligned}
         Q_i^T P_j + R_i Q_j^T & Q_i^T Q_j + R_i R_j
     \end{bmatrix}
 \end{aligned}$$
-Thus we can implement the (blocked) matrix multiplications as,
+Thus we can implement the (block) matrix multiplications as,
 ```pyton
 @jax.jit
 def block_matmul(

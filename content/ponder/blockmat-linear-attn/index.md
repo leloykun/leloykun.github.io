@@ -1,16 +1,16 @@
 ---
-title: "Blocked Matrix Formulation of Linear Attention Mechanisms"
+title: "Block Matrix Formulation of Linear Attention Mechanisms"
 date: 2025-03-16
 tags: ["Machine Learning", "Linear Attention", "Test-Time Regression"]
 author: "Franz Louis Cesista"
-description: "The blocked matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism."
-summary: "The blocked matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism."
+description: "The block matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism."
+summary: "The block matrix formulation of linear attention mechanisms, multi-step online gradient descent at inference time, and chunk-wise parallelism."
 editPost:
     URL: "https://x.com/leloykun/status/1901267939267162351"
     Text: "Crossposted from X (formerly Twitter)"
 ---
 
-In the [previous post](../test-time-regression/), we derived several linear attention mechanisms from scratch by formulating them as test-time online regression problems. Here, we'll discuss a more intuitive way to represent the update rules of the internal states of these linear attention mechanisms using a blocked matrix formulation. Then, we'll discuss how to use it to (1) derive the update rules for linear attention mechanisms that take multiple gradient descent steps per token and (2) derive the update rules for chunk-wise parallelism of already-existing linear attention mechanisms.
+In the [previous post](../test-time-regression/), we derived several linear attention mechanisms from scratch by formulating them as test-time online regression problems. Here, we'll discuss a more intuitive way to represent the update rules of the internal states of these linear attention mechanisms using a block matrix formulation. Then, we'll discuss how to use it to (1) derive the update rules for linear attention mechanisms that take multiple gradient descent steps per token and (2) derive the update rules for chunk-wise parallelism of already-existing linear attention mechanisms.
 
 ## Recap: Linear Attention Mechanisms
 
@@ -32,7 +32,7 @@ where $k_i  \in \mathbb{R}^{d_k}$ and $v_i \in \mathbb{R}^{d_v}$ are the corresp
 
 If we let $\alpha_i \in [-1, 1]$ for Mamba 2 and $\beta_i \in [0, 2]$ for (Gated) DeltaNet, then $A_i$ can have negative eigenvalues while still having norm $\|A_i\| \leq 1$. This allows the models to learn more complex patterns while maintaining training stability (Grazzi et al., 2025).
 
-## Blocked Matrix Formulation of Linear Attention Mechanisms
+## Block Matrix Formulation of Linear Attention Mechanisms
 
 Notice that we can rewrite the update rule above as,
 
@@ -177,7 +177,7 @@ $$
 $$
 where $(1) \rightarrow (2)$ can be proven by induction.
 
-Equation $(1)$ makes it obvious *why* and *how* we can parallelize computation of $S_N$, for all $N$, at training time: the updates are merely (blocked) matrix multiplications; matrix multiplications are associative; thus, we can use the (fully-parallel) associative scan algorithm to compute all the intermediary states in $O(N)$ time!
+Equation $(1)$ makes it obvious *why* and *how* we can parallelize computation of $S_N$, for all $N$, at training time: the updates are merely (block) matrix multiplications; matrix multiplications are associative; thus, we can use the (fully-parallel) associative scan algorithm to compute all the intermediary states in $O(N)$ time!
 
 ## One-Step Online Gradient Descent per Token
 
@@ -771,7 +771,7 @@ As an exercise, try deriving the cross-chunk recurrence for MambaSum, DeltaProdu
 
 And that's it!
 
-Not only is the blocked matrix formulation of linear attention mechanisms intuitive, it also makes the connections between different algorithms and computational forms much more obvious. I'd even go as far as to say that we now have the proper abstraction to do an evolutionary search for new linear attention mechanisms ;)
+Not only is the block matrix formulation of linear attention mechanisms intuitive, it also makes the connections between different algorithms and computational forms much more obvious. I'd even go as far as to say that we now have the proper abstraction to do an evolutionary search for new linear attention mechanisms ;)
 
 ---
 
@@ -786,7 +786,7 @@ Big thanks to Songlin Yang, Julien Siems, and @Smerky, @BeeGass, @safelix, and @
 ```bibtex
 @misc{cesista2025blockmatlinearattn,
   author = {Franz Louis Cesista},
-  title = {Blocked Matrix Formulation of Linear Attention Mechanisms},
+  title = {Block Matrix Formulation of Linear Attention Mechanisms},
   year = {2025},
   month = {March},
   day = {16},
