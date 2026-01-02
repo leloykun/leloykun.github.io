@@ -12,11 +12,14 @@ draft: false
 
 In [Ponder: Sensitivity and Sharpness of n-Simplicial Attention](../lipschitz-n-simplical-transformer/), we derived the sensitivity and sharpness bounds for n-Simplicial attention, a generalization of the classic softmax attention that makes attention 'denser', in a sense, by attending to *tuples* of keys instead of individual keys ([Roy et al., 2025](https://arxiv.org/abs/2507.02754v1); [Clift et al., 2019](https://arxiv.org/abs/1909.00668), [Vaswani et al., 2017](https://arxiv.org/abs/1706.03762)). Here, we derive similar sensitivity and sharpness bounds for the other end of the attention mechanism spectrum: the 'sparser', *linear* attention mechanisms, specifically Gated DeltaNet ([Yang et. al., 2025](https://arxiv.org/abs/2412.06464)) and Mamba 2 ([Dao et. al., 2024](https://proceedings.mlr.press/v235/dao24a.html)). These linear attention mechanisms are particularly interesting because they can be computed in linear time with respect to the sequence length, making them suitable for long-sequence modeling tasks. We also show that both Gated DeltaNet and Mamba 2 can be made 1-Lipschitz by appropriately constraining their learnable parameters.
 
-> Recommended reading: [Ponder: Block Matrix Formulation of Linear Attention Mechanisms](../blockmat-linear-attn/).
+> Recommended reading:
+> - [Ponder: Sensitivity and Sharpness of n-Simplicial Attention](../lipschitz-n-simplical-transformer/)
+> - [Ponder: Block Matrix Formulation of Linear Attention Mechanisms](../blockmat-linear-attn/)
+> - [Scalable Optimization in the Modular Norm](https://arxiv.org/abs/2405.14813)
 
 ## Sensitivity and Sharpness of Gated DeltaNet
 
-> **Theorem 1 (Sensitivity and Sharpness of Gated DeltaNet).** Let $T$ be the sequence length, $d$ be the model width, and $q, k, v \in \mathbb{R}^{T \times d}$ be the query, key, and value sequences, respectively, $\text{RMS}$-normalized such that $\| q_t \|_{RMS}, \| k_t \|_{RMS}, \| v_t \|_{RMS} \leq 1$ for all $t$. Then Gated DeltaNet ([Yang et. al., 2025](https://arxiv.org/abs/2412.06464)) with the following update rule:
+> **Theorem 1 (Sensitivity and Sharpness of Gated DeltaNet).** Let $T$ be the sequence length, $d$ be the model width, and $q, k, v \in \mathbb{R}^{T \times d}$ be the query, key, and value sequences, respectively, $\text{RMS}$-normalized such that $\| q_t \|_{RMS}, \| k_t \|_{RMS}, \| v_t \|_{RMS} \leq 1$ for all $t$. Also let the initial state $S_0 = 0$, and $\alpha_t, \beta_t \in \mathbb{R}$ be learnable 'decay' and 'step size' parameters, respectively, such that $0 \leq \alpha_t \leq \alpha < 1$, and $0 \leq \beta_t \leq \beta < 2$ for some constants $\alpha, \beta > 0$. Then Gated DeltaNet ([Yang et. al., 2025](https://arxiv.org/abs/2412.06464)) with the following update rule:
 $$\begin{align}
     A_t
         &= \alpha_t \left( I - \frac{\beta_t}{d} k_t k_t^T \right) \\
@@ -27,7 +30,7 @@ $$\begin{align}
     \texttt{F}_t
         &= S_t q_t
 \end{align}$$
-where $S_0 = 0$, $\alpha_t$ and $\beta_t$ are learnable parameters such that $0 \leq \alpha_t \leq \alpha < 1$, and $0 \leq \beta_t \leq \beta < 2$ for some constants $\alpha, \beta > 0$, has the following sensitivity $\sigma$ and sharpness $\gamma$ bounds:
+has the following sensitivity $\sigma$ and sharpness $\gamma$ bounds:
 $$\begin{align}
     \sigma
         &= \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \label{eq:gdn-sensitivity} \\
@@ -285,7 +288,7 @@ $$\begin{align}
 
 ## Sensitivity and Sharpness of Mamba 2
 
-> **Theorem 3 (Sensitivity and Sharpness of Mamba 2).** Let $T$ be the sequence length, $d$ be the model width, and $q, k, v \in \mathbb{R}^{T \times d}$ be the query, key, and value sequences, respectively, $\text{RMS}$-normalized such that $\| q_t \|_{RMS}, \| k_t \|_{RMS}, \| v_t \|_{RMS} \leq 1$ for all $t$. Then Mamba 2 ([Dao et. al., 2024](https://proceedings.mlr.press/v235/dao24a.html)) with the following update rule:
+> **Theorem 3 (Sensitivity and Sharpness of Mamba 2).** Let $T$ be the sequence length, $d$ be the model width, and $q, k, v \in \mathbb{R}^{T \times d}$ be the query, key, and value sequences, respectively, $\text{RMS}$-normalized such that $\| q_t \|_{RMS}, \| k_t \|_{RMS}, \| v_t \|_{RMS} \leq 1$ for all $t$. Also let the initial state $S_0 = 0$, and $\alpha_t, \beta_t \in \mathbb{R}$ be learnable parameters such that $0 \leq \alpha_t \leq \alpha < 1$, and $0 \leq \beta_t \leq \beta < 1$ for some constants $\alpha, \beta > 0$. Then Mamba 2 ([Dao et. al., 2024](https://proceedings.mlr.press/v235/dao24a.html)) with the following update rule:
 $$\begin{align}
     A_t
         &= \text{diag}(\alpha_t I) \\
@@ -296,7 +299,7 @@ $$\begin{align}
     \texttt{F}_t
         &= S_t q_t
 \end{align}$$
-where $S_0 = 0$, $\alpha_t$ and $\beta_t$ are learnable parameters such that $0 \leq \alpha_t \leq \alpha < 1$, and $0 \leq \beta_t \leq \beta < 2$ for some constants $\alpha, \beta > 0$, has the following sensitivity $\sigma$ and sharpness $\gamma$ bounds:
+has the following sensitivity $\sigma$ and sharpness $\gamma$ bounds:
 $$\begin{align}
     \sigma
         &= \frac{\beta}{1 - \alpha} \label{eq:mamba2-sensitivity} \\
