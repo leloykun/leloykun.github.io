@@ -1,6 +1,6 @@
 ---
 title: "Sensitivity and Sharpness of Gated Linear Attention Mechanisms"
-date: 2026-01-01
+date: 2026-01-02
 tags: ["Machine Learning", "Linear Attention", "Test-Time Regression"]
 author: "Franz Louis Cesista"
 description: "We derive sensitivity and sharpness bounds for Gated DeltaNet and Mamba 2, showing that they can be made 1-Lipschitz with appropriate parameter constraints."
@@ -10,7 +10,7 @@ draft: false
 
 ## Introduction
 
-In [Ponder: Sensitivity and Sharpness of n-Simplicial Attention](../lipschitz-n-simplical-transformer/), we derived the sensitivity and sharpness bounds for n-Simplicial attention, a generalization of the classic softmax attention that makes attention 'denser', in a sense, by attending to *tuples* of keys instead of individual keys ([Roy et al., 2025](https://arxiv.org/abs/2507.02754v1); [Clift et al., 2019](https://arxiv.org/abs/1909.00668), [Vaswani et al., 2017](https://arxiv.org/abs/1706.03762)). Here, we derive similar sensitivity and sharpness bounds for the other end of the attention mechanism spectrum: the 'sparser', *linear* attention mechanisms, specifically Gated DeltaNet ([Yang et. al., 2025](https://arxiv.org/abs/2412.06464)) and Mamba 2 ([Dao et. al., 2024](https://proceedings.mlr.press/v235/dao24a.html)). These linear attention mechanisms are particularly interesting because they can be computed in linear time with respect to the sequence length, making them suitable for long-sequence modeling tasks. We also show that both Gated DeltaNet and Mamba 2 can be made 1-Lipschitz by appropriately constraining their learnable parameters.
+In [Ponder: Sensitivity and Sharpness of n-Simplicial Attention](../lipschitz-n-simplical-transformer/), we derived the sensitivity and sharpness bounds for n-Simplicial attention, a generalization of the classic softmax attention that makes attention 'denser', in a sense, by attending to *tuples* of keys instead of individual keys ([Roy et al., 2025](https://arxiv.org/abs/2507.02754v1); [Clift et al., 2019](https://arxiv.org/abs/1909.00668), [Vaswani et al., 2017](https://arxiv.org/abs/1706.03762)). Here, we derive similar sensitivity and sharpness bounds for the other end of the attention mechanism spectrum: the 'sparser', *linear* attention mechanisms, specifically Gated DeltaNet ([Yang et al., 2025](https://arxiv.org/abs/2412.06464)) and Mamba 2 ([Dao et al., 2024](https://proceedings.mlr.press/v235/dao24a.html)). These linear attention mechanisms are particularly interesting because they can be computed in linear time with respect to the sequence length, making them suitable for long-sequence modeling tasks. We also show that both Gated DeltaNet and Mamba 2 can be made 1-Lipschitz by appropriately constraining their learnable parameters.
 
 > Recommended reading:
 > - [Ponder: Sensitivity and Sharpness of n-Simplicial Attention](../lipschitz-n-simplical-transformer/)
@@ -19,7 +19,7 @@ In [Ponder: Sensitivity and Sharpness of n-Simplicial Attention](../lipschitz-n-
 
 ## Sensitivity and Sharpness of Gated DeltaNet
 
-> **Theorem 1 (Sensitivity and Sharpness of Gated DeltaNet).** Let $T$ be the sequence length, $d$ be the model width, and $q, k, v \in \mathbb{R}^{T \times d}$ be the query, key, and value sequences, respectively, $\text{RMS}$-normalized such that $\| q_t \|_{RMS}, \| k_t \|_{RMS}, \| v_t \|_{RMS} \leq 1$ for all $t$. Also let the initial state $S_0 = 0$, and $\alpha_t, \beta_t \in \mathbb{R}$ be learnable 'decay' and 'step size' parameters, respectively, such that $0 \leq \alpha_t \leq \alpha < 1$, and $0 \leq \beta_t \leq \beta < 2$ for some constants $\alpha, \beta > 0$. Then Gated DeltaNet ([Yang et. al., 2025](https://arxiv.org/abs/2412.06464)) with the following update rule:
+> **Theorem 1 (Sensitivity and Sharpness of Gated DeltaNet).** Let $T$ be the sequence length, $d$ be the model width, and $q, k, v \in \mathbb{R}^{T \times d}$ be the query, key, and value sequences, respectively, $\text{RMS}$-normalized such that $\| q_t \|_{RMS}, \| k_t \|_{RMS}, \| v_t \|_{RMS} \leq 1$ for all $t$. Also let the initial state $S_0 = 0$, and $\alpha_t, \beta_t \in \mathbb{R}$ be learnable 'decay' and 'step size' parameters, respectively, such that $0 \leq \alpha_t \leq \alpha < 1$, and $0 \leq \beta_t \leq \beta < 2$ for some constants $\alpha, \beta > 0$. Then Gated DeltaNet ([Yang et al., 2025](https://arxiv.org/abs/2412.06464)) with the following update rule:
 $$\begin{align}
     A_t
         &= \alpha_t \left( I - \frac{\beta_t}{d} k_t k_t^T \right) \\
@@ -54,7 +54,7 @@ $$\begin{align}
 
 Note that the sensitivity and sharpness bounds above are independent of the sequence length $T$ and model width $d$.
 
-**Proof.** It suffices to first prove the sensitivity and sharpness bounds for arbitrary time step $t$, and then extend the results to the entire sequence by taking the maximum over all time steps. To simplify notation, let $\Delta Q = \| q \|_{\infty RMS}, \Delta K = \| k \|_{\infty RMS}, \Delta V = \| v \|_{\infty RMS}$.
+**Proof.** It suffices to first prove the sensitivity and sharpness bounds for arbitrary time step $t$, and then extend the results to the entire sequence by taking the maximum over all time steps. To simplify notation, let $\Delta Q = \| \Delta q \|_{\infty RMS}, \Delta K = \| \Delta k \|_{\infty RMS}, \Delta V = \| \Delta v \|_{\infty RMS}$.
 
 ---
 
@@ -145,7 +145,7 @@ $$\begin{align}
 Combining Inequalities $\eqref{eq:F_t-sensitivity}$, $\eqref{eq:S_t-bound}$, and $\eqref{eq:Delta_S_t-bound}$, we have,
 $$\begin{align}
     \| \Delta F_t \|_{RMS}
-        &= \| \Delta S_t \|_{op} + \| S_t \|_{op} \| \Delta q_t \|_{RMS} \nonumber \\
+        &\leq \| \Delta S_t \|_{op} + \| S_t \|_{op} \| \Delta q_t \|_{RMS} \nonumber \\
         &\leq \frac{\beta}{1 - \alpha} \Delta V + \left( \frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right) \Delta K + \frac{\beta}{1 - \alpha} \Delta Q \nonumber \\
         &\leq \left(\frac{\beta}{1 - \alpha} + \frac{2 \alpha \beta^2}{(1 - \alpha)^2} \right)\left( \Delta Q + \Delta K + \Delta V \right) \label{eq:F_t-sensitivity-final} \\
     \| \Delta F \|_{\infty RMS}
@@ -243,7 +243,7 @@ $$\begin{align}
 Combining Inequalities $\eqref{eq:Delta2_F_t-bound}$, $\eqref{eq:S_t-bound}$, $\eqref{eq:Delta_S_t-bound}$, and $\eqref{eq:Delta2_S_t-bound}$, we have,
 $$\begin{align}
     \| \Delta^2 F_t \|_{RMS}
-        &= \| \Delta^2 S_t \|_{op}
+        &\leq \| \Delta^2 S_t \|_{op}
             + \| \Delta S_t \|_{op} \| \tilde{\Delta} q_t \|_{RMS}
             + \| \tilde{\Delta} S_t \|_{op} \| \Delta q_t \|_{RMS} \nonumber \\
         &\leq \left( \frac{6 \alpha \beta^2}{(1 - \alpha)^2} + \frac{8 \alpha^2 \beta^3}{(1 - \alpha)^3} \right) \Delta K \tilde{\Delta} K \nonumber \\
@@ -266,7 +266,7 @@ $$\begin{align}
 
 > **Corollary 2 (1-Lipschitz Gated DeltaNet).** Under the same assumptions as Theorem 1, setting,
 $$\begin{equation}
-    \beta_t \leq \frac{1 - \alpha_t}{2} \label{eq:1-lipschitz-condition}
+    \beta_t \leq \frac{1 - \alpha}{2} \label{eq:1-lipschitz-condition}
 \end{equation}$$
 for all $t$, guarantees that Gated DeltaNet is unit sensitive and $\frac{5}{2}$-sharp.
 
@@ -290,7 +290,7 @@ $$\begin{align}
 
 ## Sensitivity and Sharpness of Mamba 2
 
-> **Theorem 3 (Sensitivity and Sharpness of Mamba 2).** Let $T$ be the sequence length, $d$ be the model width, and $q, k, v \in \mathbb{R}^{T \times d}$ be the query, key, and value sequences, respectively, $\text{RMS}$-normalized such that $\| q_t \|_{RMS}, \| k_t \|_{RMS}, \| v_t \|_{RMS} \leq 1$ for all $t$. Also let the initial state $S_0 = 0$, and $\alpha_t, \beta_t \in \mathbb{R}$ be learnable parameters such that $0 \leq \alpha_t \leq \alpha < 1$, and $0 \leq \beta_t \leq \beta < 1$ for some constants $\alpha, \beta > 0$. Then Mamba 2 ([Dao et. al., 2024](https://proceedings.mlr.press/v235/dao24a.html)) with the following update rule:
+> **Theorem 3 (Sensitivity and Sharpness of Mamba 2).** Let $T$ be the sequence length, $d$ be the model width, and $q, k, v \in \mathbb{R}^{T \times d}$ be the query, key, and value sequences, respectively, $\text{RMS}$-normalized such that $\| q_t \|_{RMS}, \| k_t \|_{RMS}, \| v_t \|_{RMS} \leq 1$ for all $t$. Also let the initial state $S_0 = 0$, and $\alpha_t, \beta_t \in \mathbb{R}$ be learnable parameters such that $0 \leq \alpha_t \leq \alpha < 1$, and $0 \leq \beta_t \leq \beta < 1$ for some constants $\alpha, \beta > 0$. Then Mamba 2 ([Dao et al., 2024](https://proceedings.mlr.press/v235/dao24a.html)) with the following update rule:
 $$\begin{align}
     A_t
         &= \text{diag}(\alpha_t I) \\
@@ -323,7 +323,7 @@ $$\begin{align}
 Combining Inequalities $\eqref{eq:F_t-sensitivity}$, $\eqref{eq:S_t-bound}$, and $\eqref{eq:mamba2-Delta_S_t-bound}$, we have,
 $$\begin{align}
     \| \Delta F_t \|_{RMS}
-        &= \| \Delta S_t \|_{op} + \| S_t \|_{op} \| \Delta q_t \|_{RMS} \nonumber \\
+        &\leq \| \Delta S_t \|_{op} + \| S_t \|_{op} \| \Delta q_t \|_{RMS} \nonumber \\
         &\leq \frac{\beta}{1 - \alpha} ( \Delta V + \Delta K ) + \frac{\beta}{1 - \alpha} \Delta Q \nonumber \\
         &\leq \frac{\beta}{1 - \alpha} ( \Delta Q + \Delta K + \Delta V ) \label{eq:mamba2-F_t-sensitivity-final} \\
     \| \Delta F \|_{\infty RMS}
@@ -345,7 +345,7 @@ $$\begin{align}
 Combining Inequalities $\eqref{eq:Delta2_F_t-bound}$, $\eqref{eq:S_t-bound}$, $\eqref{eq:mamba2-Delta_S_t-bound}$, and $\eqref{eq:mamba2-Delta2_S_t-bound}$ yields,
 $$\begin{align}
     \| \Delta^2 F_t \|_{RMS}
-        &= \| \Delta^2 S_t \|_{op}
+        &\leq \| \Delta^2 S_t \|_{op}
             + \| \Delta S_t \|_{op} \| \tilde{\Delta} q_t \|_{RMS}
             + \| \tilde{\Delta} S_t \|_{op} \| \Delta q_t \|_{RMS} \nonumber \\
         &\leq \frac{\beta}{1 - \alpha} (
@@ -365,7 +365,7 @@ $$\begin{align}
 
 > **Corollary 4 (1-Lipschitz Mamba 2).** Under the same assumptions as Theorem 3, setting,
 $$\begin{equation}
-    \beta_t \leq 1 - \alpha_t \label{eq:mamba2-1-lipschitz-condition}
+    \beta_t \leq 1 - \alpha \label{eq:mamba2-1-lipschitz-condition}
 \end{equation}$$
 for all $t$, guarantees that Mamba 2 is unit sensitive and unit sharp.
 
@@ -391,13 +391,13 @@ for all $t$, guarantees that Mamba 2 is unit sensitive and unit sharp.
 3. Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, Illia Polosukhin (2017). Attention is all you need. URL https://arxiv.org/abs/1706.03762
 4. Songlin Yang, Bailin Wang, Yu Zhang, Yikang Shen, and Yoon Kim (2025). Parallelizing Linear Transformers with the Delta Rule over Sequence Length. URL https://arxiv.org/abs/2406.06484
 5. Songlin Yang, Jan Kautz, Ali Hatamizadeh (2025). Gated Delta Networks: Improving Mamba2 with Delta Rule. URL https://arxiv.org/abs/2412.06464
-6. Tri Dao and Albert Gu. Transformers are SSMs: Generalized models and efficient algorithms through structured state space duality. In Proceedings of the 41st International Conference on MachineLearning, volume 235 of Proceedingsof Machine Learning Research, pp. 10041–10071. PMLR, 2024b. URL https://proceedings.mlr.press/v235/dao24a.html.
+6. Tri Dao and Albert Gu. Transformers are SSMs: Generalized models and efficient algorithms through structured state space duality. In Proceedings of the 41st International Conference on MachineLearning, volume 235 of Proceedings of Machine Learning Research, pp. 10041–10071. PMLR, 2024b. URL https://proceedings.mlr.press/v235/dao24a.html.
 
 ## Appendix
 
 For vectors $x, y \in \mathbb{R}^d$, we have,
 $$\begin{align}
     \| x y^T \|_{op}
-        &\leq d \| x \|_{RMS} \| y \|_{RMS} \nonumber \\
+        &= d \| x \|_{RMS} \| y \|_{RMS} \nonumber \\
 \end{align}$$
-Thus, if $\| x \|_{RMS}, \| y \|_{RMS} \leq 1$, then the largest eigenvalue of $x y^T$ is at most $d$, and the remaining eigenvalues are all zero.
+Thus, if $\| x \|_{RMS}, \| y \|_{RMS} \leq 1$, then $x y^T$ has only one non-zero singular value $d$.
