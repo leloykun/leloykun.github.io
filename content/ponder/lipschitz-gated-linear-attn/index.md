@@ -78,7 +78,7 @@ $$\begin{align}
         &= \alpha_t \left( I - \frac{\beta_t}{d} k_t k_t^T \right) \nonumber \\
     \| A_t \|_{op}
         &\leq \alpha_t \left\| I - \frac{\beta_t}{d} k_t k_t^T \right\|_{op} \nonumber \\
-        &\leq \alpha_t \left\| U \left( 1 - \beta_t, 1, \ldots, 1 \right) U^T \right\|_{op} \nonumber \\
+        &\leq \alpha_t \left\| U \text{diag}\left( 1 - \beta_t, 1, \ldots, 1 \right) U^T \right\|_{op} \nonumber \\
         &\leq \alpha_t \max( | 1 - \beta_t |, 1 ) \nonumber \\
         &\leq \alpha_t &&\forall \beta_t \in [0, 2) \nonumber \\
         &\leq \alpha
@@ -293,7 +293,7 @@ $$\begin{align}
 > **Theorem 3 (Sensitivity and Sharpness of Mamba 2).** Let $T$ be the sequence length, $d$ be the model width, and $q, k, v \in \mathbb{R}^{T \times d}$ be the query, key, and value sequences, respectively, $\text{RMS}$-normalized such that $\| q_t \|_{RMS}, \| k_t \|_{RMS}, \| v_t \|_{RMS} \leq 1$ for all $t$. Also let the initial state $S_0 = 0$, and $\alpha_t, \beta_t \in \mathbb{R}$ be learnable parameters such that $0 \leq \alpha_t \leq \alpha < 1$, and $0 \leq \beta_t \leq \beta < 1$ for some constants $\alpha, \beta > 0$. Then Mamba 2 ([Dao et al., 2024](https://proceedings.mlr.press/v235/dao24a.html)) with the following update rule:
 $$\begin{align}
     A_t
-        &= \text{diag}(\alpha_t I) \\
+        &= \alpha_t I \\
     B_t
         &= \frac{\beta_t}{d} v_t k_t^T \\
     S_t
@@ -313,7 +313,7 @@ $$\begin{align}
 
 $$\begin{align}
     \Delta S_t
-        &= \sum_{i=1}^{t} \left( \cancel{S_{t-1} \Delta A_t} + \Delta B_i \right) \prod_{j=i+1}^{t} A_j \nonumber \\
+        &= \sum_{i=1}^{t} \left( \cancel{S_{i-1} \Delta A_i} + \Delta B_i \right) \prod_{j=i+1}^{t} A_j \nonumber \\
     \| \Delta S_t \|_{op}
         &\leq \sum_{i=1}^{t} \| \Delta B_i \|_{op} \prod_{j=i+1}^{t} \| A_j \|_{op} \nonumber \\
         &\leq \sum_{i=1}^{t} \beta \left( \| \Delta v_i \|_{RMS} + \| \Delta k_i \|_{RMS} \right) \alpha^{t-i} \nonumber \\
