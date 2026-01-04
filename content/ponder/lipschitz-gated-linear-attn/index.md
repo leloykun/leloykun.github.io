@@ -205,9 +205,6 @@ $$\begin{align}
         &\leq \beta_t \left(
             \| \Delta v_t \|_{RMS} \| \tilde{\Delta} k_t \|_{RMS}
             + \| \tilde{\Delta} v_t \|_{RMS} \| \Delta k_t \|_{RMS} \right) \nonumber \\
-        &\leq \beta_t \left(
-            \| \Delta v_t \|_{RMS} \| \tilde{\Delta} k_t \|_{RMS}
-            + \| \tilde{\Delta} v_t \|_{RMS} \| \Delta k_t \|_{RMS} \right) \nonumber \\
         &\leq \beta ( \Delta V \tilde{\Delta} K + \tilde{\Delta} V \Delta K ) \\
 \end{align}$$
 
