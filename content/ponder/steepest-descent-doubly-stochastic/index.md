@@ -111,7 +111,7 @@ where $\sigma_j > 0$ is the dual ascent learning rate at dual ascent step $j$.
 
 See [Appendix A1](#appendix-a1-jax-implementation-of-the-dual-ascent-optimizer) for implementation in JAX.
 
-### Metric projection onto the Birkhoff polytope
+### Metric projection onto the Birkhoff polytope [flagged for review]
 
 Next, we need a retraction map $\texttt{retract}_{\mathcal{B}_n}: \mathbb{R}^{n \times n} \to \mathcal{B}_n$. The Sinkhorn-Knopp operator DeepSeek used is not actually a metric projection, but rather an entropic projection (that minimizes the KL divergence). We instead use Dykstra's algorithm. See [Appendix A2](#appendix-a2-jax-implementation-of-the-metric-projection-onto-the-birkhoff-polytope-via-dykstras-algorithm) for implementation in JAX.
 
@@ -214,7 +214,7 @@ def dual_ascent_doubly_stochastic(
     )
 ```
 
-### Appendix A2: JAX implementation of the metric projection onto the Birkhoff polytope via Dykstra's algorithm
+### Appendix A2: JAX implementation of the metric projection onto the Birkhoff polytope via Dykstra's algorithm [flagged for review]
 
 ```python
 def proj_nonneg(Y: jnp.ndarray) -> jnp.ndarray:
