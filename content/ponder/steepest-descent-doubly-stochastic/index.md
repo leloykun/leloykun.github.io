@@ -194,7 +194,7 @@ def dual_ascent_doubly_stochastic(
     L_primal    = lambda A: (jnp.sum(A, axis=1), jnp.sum(A, axis=0), A * M)
     L_dual      = lambda S: S[0][:,None] + S[1][None,:] + S[2] * M
     proj_K_dual = lambda S: (S[0], S[1], jnp.where(M, jnp.minimum(S[2], 0), jnp.zeros_like(S[2])))
-    norm_K_dual = lambda S: jnp.sqrt((jnp.sum(S[0]**2) + jnp.sum(S[1]**2) + jnp.sum((S[2] * M)**2)) / (n + n + jnp.sum(M)))
+    norm_K_dual = lambda S: jnp.sqrt((jnp.sum(S[0]**2) + jnp.sum(S[1]**2) + jnp.sum((S[2] * M)**2)) / (n**2 + n**2 + jnp.sum(M)))
 
     return dual_ascent(
         G=G,
