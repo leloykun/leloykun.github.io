@@ -117,14 +117,14 @@ Next, we need a retraction map $\texttt{retract}_{\mathcal{B}_n}: \mathbb{R}^{n 
 
 ## Results [under construction]
 
-### Our optimizer yields larger effective weight updates vs Muon
+### Our optimizer yields larger effective weight updates vs LMO-based optimizers
 
 ![](effective_weight_update_size.png#center)
 
 For a random $W \in \mathbb{B}_n$ and $G \in \mathbb{R}^{n \times n}$ with $n = 768$, we compare the effective weight update size, $$\begin{equation}
     \text{eff\_update\_size} = \| \texttt{retract}_{\mathcal{B}_n}(W + A^*) - W \|_F / \eta,
 \end{equation}$$
-of our dual ascent optimizer vs the Muon. We see that our optimizer yields significantly larger effective weight updates across dual ascent steps, outperforming Muon by at least $43\%$ even after only 1 step.
+of our dual ascent optimizer vs LMO baseline. We see that our optimizer yields significantly larger effective weight updates across dual ascent steps, outperforming LMO baseline by at least $43\%$ even after only 1 step.
 
 ## Acknowledgements
 
