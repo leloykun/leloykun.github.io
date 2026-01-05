@@ -9,7 +9,7 @@ summary: "We derive an optimizer that performs steepest descent on the Birkhoff 
 
 ## Introduction
 
-Deepseek recently published a paper titled [mHC: Manifold-Constrained Hyper-Connections](https://arxiv.org/abs/2512.24880) where they fix training instabilities introduced by the [Hyper-Connections](https://arxiv.org/abs/2409.19606) paper by constraining the weight matrices to be doubly stochastic matrices, i.e., elements of the Birkhoff polytope. The crux is that, to prevent the activations and gradients from blowing up, the residual transform $A_l$ matrix in the following residual block for Hyper-Connections has to be non-expansive.
+Deepseek recently published a paper titled [mHC: Manifold-Constrained Hyper-Connections](https://arxiv.org/abs/2512.24880) where they fix training instabilities introduced by the [Hyper-Connections](https://arxiv.org/abs/2409.19606) paper by constraining the weight matrices to be doubly stochastic, i.e., elements of the Birkhoff polytope. The crux is that, to prevent the activations and gradients from blowing up, the residual transform $A_l$ in the following residual block for Hyper-Connections has to be non-expansive.
 $$\begin{equation}
     x_{l+1} = A_l x_l + B_l^T f(C_l x_l, W_l)
 \end{equation}$$
@@ -21,7 +21,7 @@ $$\begin{equation}
 \end{equation}$$
 where $L$ and $l$ are indices for a deeper and a shallower layer, respectively. If $\| A_l \|_{2 \to 2} > 1$, then the product $\| \prod_{i=1}^{L-l} A_{L-i} \|_{2 \to 2}$ explodes.
 
-The obvious fix is to simply constrain $A_l$ such that $\| A_l \|_{2 \to 2} \leq 1$. Any subset of the spectral ball of radius 1 works so long as we can form at least a semigroup under matrix multiplication. We could, e.g., constrain $A_l$ to be orthogonal, or cap the eigenvalues by 1 as in Section 2 of [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](rethinking-mup-spectral-ball/#2-eigenvalue-clipping). Deepseek chose to constrain $A_l$ to be a doubly stochastic matrix, which guarantees $\| A_l \|_{2 \to 2} = 1$ by the [Perron-Frobenius theorem](https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem) (but some direction(s) may be contractive).
+The obvious fix is to simply constrain $A_l$ such that $\| A_l \|_{2 \to 2} \leq 1$. Any subset of the spectral ball of radius 1 works so long as we can form at least a semigroup under matrix multiplication. We could, for example, constrain $A_l$ to be orthogonal, or cap the eigenvalues by 1 as in Section 2 of [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](rethinking-mup-spectral-ball/#2-eigenvalue-clipping). Deepseek chose to constrain $A_l$ to be a doubly stochastic matrix, which guarantees $\| A_l \|_{2 \to 2} \leq 1$ by the [Perron-Frobenius theorem](https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem) (but some direction(s) may be contractive).
 
 Oddly enough, despite having "manifold" in the title, they do not actually perform optimization on the Birkhoff polytope nor is it even a manifold. This polytope has "boundaries" and "corners" where we no longer have tangent spaces, but rather tangent *cones*. They do prevent $A_l$ from landing on the boundaries by exponentiating the entries before projecting onto the Birkhoff polytope using the [Sinkhorn-Knopp operator](https://en.wikipedia.org/wiki/Sinkhorn%27s_theorem#Sinkhorn%E2%80%93Knopp_algorithm)--and the interior of the Birkhoff polytope is indeed a manifold. But even then, they do not use any properties of this manifold!
 
@@ -125,6 +125,10 @@ For a random $W \in \mathbb{B}_n$ and $G \in \mathbb{R}^{n \times n}$ with $n = 
     \text{eff\_update\_size} = \| \texttt{retract}_{\mathcal{B}_n}(W + A^*) - W \|_F / \eta,
 \end{equation}$$
 of our dual ascent optimizer vs the Muon. We see that our optimizer yields significantly larger effective weight updates across dual ascent steps, outperforming Muon by at least $43\%$ even after only 1 step.
+
+## Acknowledgements
+
+Big thanks to Simo Ryu for productive discussions on the topic. Also see [X thread](https://x.com/cloneofsimo/status/2008120606311788671) for more (public) discussions.
 
 ## How to cite
 
