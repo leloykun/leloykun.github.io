@@ -126,7 +126,20 @@ For a random $W \in \mathbb{B}_n$ and $G \in \mathbb{R}^{n \times n}$ with $n = 
 \end{equation}$$
 of our dual ascent optimizer vs the Muon. We see that our optimizer yields significantly larger effective weight updates across dual ascent steps, outperforming Muon by at least $43\%$ even after only 1 step.
 
-## References 
+## How to cite
+
+```bibtex
+@misc{cesista2025steepestdescentbirkhoff,
+  author = {Franz Louis Cesista},
+  title = {{S}teepest Descent on the Birkhoff Polytope Equipped with the Spectral Norm},
+  year = {2026},
+  month = {January},
+  day = {4},
+  url = {https://leloykun.github.io/ponder/steepest-descent-doubly-stochastic/},
+}
+```
+
+## References
 
 1. Zhenda Xie, Yixuan Wei, Huanqi Cao, Chenggang Zhao, Chengqi Deng, Jiashi Li, Damai Dai, Huazuo Gao, Jiang Chang, Liang Zhao, Shangyan Zhou, Zhean Xu, Zhengyan Zhang, Wangding Zeng, Shengding Hu, Yuqing Wang, Jingyang Yuan, Lean Wang, Wenfeng Liang (2025). mHC: Manifold-Constrained Hyper-Connections. URL https://arxiv.org/abs/2512.24880
 2. Defa Zhu, Hongzhi Huang, Zihao Huang, Yutao Zeng, Yunyao Mao, Banggu Wu, Qiyang Min, Xun Zhou (2025). Hyper-Connections. URL https://arxiv.org/abs/2409.19606
