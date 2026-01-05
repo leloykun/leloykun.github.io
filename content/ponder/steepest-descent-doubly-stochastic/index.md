@@ -3,8 +3,8 @@ title: "Steepest Descent on the Birkhoff Polytope Equipped with the Spectral Nor
 date: 2026-01-04
 tags: ["Machine Learning", "Optimizers"]
 author: "Franz Louis Cesista"
-description: "-"
-summary: "-"
+description: "We derive an optimizer that performs steepest descent on the Birkhoff polytope equipped with the spectral norm via dual ascent. We show that it yields larger effective weight updates than naive LMO-based optimizers."
+summary: "We derive an optimizer that performs steepest descent on the Birkhoff polytope equipped with the spectral norm via dual ascent. We show that it yields larger effective weight updates than naive LMO-based optimizers."
 ---
 
 ## Introduction
