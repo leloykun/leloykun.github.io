@@ -3,8 +3,8 @@ title: "Steepest Descent on Affine-Conic Representable Manifolds with Boundary v
 date: 2026-01-09
 tags: ["Machine Learning", "Optimizers"]
 author: "Franz Louis Cesista"
-description: "Novel optimizers for maximally descending on the loss landscape while constraining weights to lie within manifolds with boundary that can be represented in the affine-conic form, using dual ascent."
-summary: "Novel optimizers for maximally descending on the loss landscape while constraining weights to lie within manifolds with boundary that can be represented in the affine-conic form, using dual ascent."
+description: "Novel optimizers for maximally descending on the loss landscape while satisfying strict weight constraints."
+summary: "Novel optimizers for maximally descending on the loss landscape while satisfying strict weight constraints."
 ---
 
 ## 1. Introduction
@@ -143,6 +143,8 @@ $$\begin{align}
 \end{align}$$
 where $\sigma_j > 0$ is the dual ascent learning rate, and $\texttt{proj}_{K^*}$ is the orthogonal projection onto the dual cone $K^*$. Literature on dual ascent typically recommend using a learning rate schedule of $\sigma_j = \sigma_{0}/\sqrt{j+1}$. And if $K = \{ 0 \}$, the projection is simply the identity map. At convergence, we have $W^j_{t+1} \to W_{t+1}$.
 
+See [Appendix A1](#a1-jax-implementation-of-the-dual-ascent-optimizer) for implementation in JAX.
+
 ## How to cite
 
 ```bibtex
@@ -154,4 +156,43 @@ where $\sigma_j > 0$ is the dual ascent learning rate, and $\texttt{proj}_{K^*}$
   day = {9},
   url = {https://leloykun.github.io/ponder/steepest-descent-affine-conic/},
 }
+```
+
+## Appendix
+
+### A1. JAX implementation of the dual ascent optimizer
+
+```python
+def dual_ascent_faithful(
+    W: jax.Array,  # R^(m x n)
+    G: jax.Array,  # R^(m x n)
+    eta: float,  # learning rate
+    B: Tuple[jax.Array],  # K_dual
+    L_primal: Callable[[jax.Array], Tuple[jax.Array]],  # R^(m x n) -> K_dual
+    L_dual:  Callable[[Tuple[jax.Array]], jax.Array],  # K_dual -> R^(m x n)
+    proj_K_dual: Callable[[Tuple[jax.Array]], Tuple[jax.Array]],  # K_dual -> K_dual
+    norm_K_dual: Callable[[Tuple[jax.Array]], float],  # K_dual -> R
+    lmo: Callable[[jax.Array], jax.Array],  # R^(m x n) -> R^(m x n)
+    *,
+    max_steps: int=128, sigma: float=1.0,
+    rtol: float=1e-3, atol: float=1e-6,
+):
+    S_init = proj_K_dual(jax.tree_util.tree_map(lambda s, b: s + b, L_primal(W), B))
+    # S_init = jax.tree_util.tree_map(lambda s: jnp.zeros_like(s), S_init)
+
+    def cond_fn(state):
+        S, k, res = state
+        return jnp.logical_and(k < max_steps, jnp.logical_and(res > atol, res > rtol * norm_K_dual(S)))
+
+    def body_fn(state):
+        S, k, _ = state
+        A = W - eta * lmo(G + L_dual(S))
+        grad_S = jax.tree_util.tree_map(lambda pre_grad_s, b: pre_grad_s + b, L_primal(A), B)
+        S_new = proj_K_dual(jax.tree_util.tree_map(lambda s, g: s + sigma / jnp.sqrt(k+1) * g, S, grad_S))
+        res = norm_K_dual(grad_S)
+        return S_new, k+1, res
+
+    S_final, n_iters, final_res = jax.lax.while_loop(cond_fn, body_fn, (S_init, 0, jnp.inf))
+    A_final = -eta * lmo(G + L_dual(S_final))
+    return A_final
 ```
