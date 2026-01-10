@@ -7,7 +7,7 @@ description: "We derive an optimizer that performs steepest descent on the Birkh
 summary: "We derive an optimizer that performs steepest descent on the Birkhoff polytope equipped with the spectral norm via dual ascent. We show that it yields larger effective weight updates than naive LMO-based optimizers."
 ---
 
-## Introduction
+## 1. Introduction
 
 Deepseek recently published a paper titled [mHC: Manifold-Constrained Hyper-Connections](https://arxiv.org/abs/2512.24880) where they fix training instabilities introduced by the [Hyper-Connections](https://arxiv.org/abs/2409.19606) paper by constraining the weight matrices to be doubly stochastic, i.e., elements of the Birkhoff polytope. The crux is that, to prevent the activations and gradients from blowing up, the residual transform $A_l$ in the following residual block for Hyper-Connections has to be non-expansive.
 $$\begin{equation}
@@ -23,13 +23,13 @@ where $L$ and $l$ are indices for a deeper and a shallower layer, respectively. 
 
 The obvious fix is to simply constrain $A_l$ such that $\| A_l \|_{2 \to 2} \leq 1$. Any subset of the spectral ball of radius 1 works so long as we can form at least a semigroup under matrix multiplication. We could, for example, constrain $A_l$ to be orthogonal, or cap the eigenvalues by 1 as in Section 2 of [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](rethinking-mup-spectral-ball/#2-eigenvalue-clipping). Deepseek chose to constrain $A_l$ to be a doubly stochastic matrix, which guarantees $\| A_l \|_{2 \to 2} \leq 1$ by the [Perron-Frobenius theorem](https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem) (but some direction(s) may be contractive).
 
-Oddly enough, despite having "manifold" in the title, they do not actually perform optimization on the Birkhoff polytope nor is it even a manifold. This polytope has "boundaries" and "corners" where we no longer have tangent spaces, but rather tangent *cones*. They do prevent $A_l$ from landing on the boundaries by exponentiating the entries before projecting onto the Birkhoff polytope using the [Sinkhorn-Knopp operator](https://en.wikipedia.org/wiki/Sinkhorn%27s_theorem#Sinkhorn%E2%80%93Knopp_algorithm)--and the interior of the Birkhoff polytope is indeed a manifold. But even then, they do not use any properties of this manifold!
+Oddly enough, despite having "manifold" in the title, they do not actually perform optimization on the Birkhoff polytope nor is it even a manifold (in the classical sense). This polytope has "boundaries" and "corners" where we no longer have tangent spaces, but rather tangent *cones*. They do prevent $A_l$ from landing on the boundaries by exponentiating the entries before projecting onto the Birkhoff polytope using the [Sinkhorn-Knopp operator](https://en.wikipedia.org/wiki/Sinkhorn%27s_theorem#Sinkhorn%E2%80%93Knopp_algorithm)--and the interior of the Birkhoff polytope is indeed a manifold. But even then, they do not use any properties of this manifold!
 
 Here, we derive an optimizer that actually performs steepest descent on the Birkhoff polytope equipped with the spectral norm, using the dual ascent framework from [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent](../steepest-descent-finsler-dual-ascent).
 
-## Method
+## 2. Method
 
-### Constrained first-order optimization on cone geometries
+### 2.1. Constrained first-order optimization on cone geometries
 
 Let $f : \mathcal{M} \to \mathbb{R}$ be a differentiable and bounded-below objective function defined on a normed cone geometry $\mathcal{M}$, or a constraint set $\mathcal{M} \subseteq \mathbb{R}^{m \times n}$ equipped with a norm $\|\cdot\|$ on each tangent set, $T_{W_t}\mathcal{M}$, at each point $W_t \in \mathcal{M}$. First-order optimization on such geometries goes as follows:
 
@@ -45,7 +45,7 @@ where $\eta > 0$ is the learning rate hyperparameter.
 
 Note that both constraints on $A$ in Equation $\eqref{eq:optimaldescent}$ are membership constraints to closed convex sets, and so it is simply a convex optimization problem.
 
-### Finding the optimal descent direction via dual ascent
+### 2.2. Finding the optimal descent direction via dual ascent
 
 Here, we set $\mathcal{M} = \mathcal{B}_n$, the Birkhoff polytope of $n \times n$ doubly stochastic matrices,
 $$\begin{align}
@@ -119,13 +119,13 @@ where $\sigma_j > 0$ is the dual ascent learning rate at dual ascent step $j$.
 
 See [Appendix A1](#appendix-a1-jax-implementation-of-the-dual-ascent-optimizer) for implementation in JAX.
 
-### Metric projection onto the Birkhoff polytope
+### 2.3. Metric projection onto the Birkhoff polytope
 
 Next, we need a retraction map $\texttt{retract}_{\mathcal{B}_n}: \mathbb{R}^{n \times n} \to \mathcal{B}_n$. The Sinkhorn-Knopp operator DeepSeek used is not actually a metric projection, but rather an entropic projection (that minimizes the KL divergence). We instead use Dykstra's algorithm. See [Appendix A2](#appendix-a2-jax-implementation-of-the-metric-projection-onto-the-birkhoff-polytope-via-dykstras-algorithm) for implementation in JAX.
 
-## Results [under construction]
+## 3. Results [under construction]
 
-### Our optimizer yields larger effective weight updates vs LMO-based optimizers
+### 3.1. Our optimizer yields larger effective weight updates vs LMO-based optimizers
 
 ![](effective_weight_update_size.png#center)
 
@@ -141,7 +141,7 @@ Big thanks to Simo Ryu for productive discussions on the topic. Also see [X thre
 ## How to cite
 
 ```bibtex
-@misc{cesista2025steepestdescentbirkhoff,
+@misc{cesista2026steepestdescentbirkhoff,
   author = {Franz Louis Cesista},
   title = {{S}teepest Descent on the Birkhoff Polytope Equipped with the Spectral Norm},
   year = {2026},

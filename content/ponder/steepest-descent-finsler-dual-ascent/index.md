@@ -83,17 +83,17 @@ Unfortunately, as we have discussed in [Ponder: Heuristic Solutions for Steepest
 
 Our goal is to solve Equation $\eqref{eq:optimaldescent}$ for any choice of norm $\|\cdot\|_{W_t}$ and tangent set $T_{W_t}\mathcal{M}$. Let the latter be represented as,
 $$\begin{equation}
-    T_{W_t}\mathcal{M} = \{ A \in \mathbb{R}^{m \times n} \mid L(A) + b \in -K \} \label{eq:tangentset}
+    T_{W_t}\mathcal{M} = \{ A \in \mathbb{R}^{m \times n} \mid L_{W_t}(A) + b_{W_t} \in -K \} \label{eq:tangentset}
 \end{equation}$$
-for some linear map $L: \mathbb{R}^{m \times n} \to \mathcal{Y}$, constant offset $b$ (often $b = 0$), and a closed convex cone $K \subseteq \mathcal{Y}$. Equality constraints can be represented by setting $K = \{0\}$. For example, for the Stiefel manifold, we have $L(A) = W^\top A + A^\top W$ and $K = \{0\}$.
+for some (possibly point-dependent) linear map $L_{W_t}: \mathbb{R}^{m \times n} \to \mathcal{Y}$, constant offset $b_{W_t} \in \mathcal{Y}$ (often $b_{W_t} = 0$), and a closed convex cone $K \subseteq \mathcal{Y}$. Equality constraints can be represented by setting $K = \{0\}$. For example, for the Stiefel manifold, we have $L_{W}(A) = W^\top A + A^\top W$ and $K = \{0\}$. To simplify notation, we shall drop the subscript $W_t$ from $L_{W_t}$, $b_{W_t}$, and $\|\cdot\|_{W_t}$ in the rest of this section, but keep in mind that they could be point-dependent.
 
 $\blacksquare$ Let $\mathcal{Y}^*$ be the dual space of $\mathcal{Y}$, then the adjoint of $L$, $L^*: \mathcal{Y}^* \to \mathbb{R}^{m \times n}$, is defined as the unique linear map satisfying,
 $$\langle L(A), Y \rangle = \langle A, L^*(Y) \rangle, \quad \forall A \in \mathbb{R}^{m \times n}, Y \in \mathcal{Y}^*.$$
 
 Restricting $Y$ to the dual space $K^* \subseteq \mathcal{Y}^*$ then yields the Lagrangian of Equation $\eqref{eq:optimaldescent}$,
 $$\begin{align}
-    \mathcal{L}(A, Y) &= \langle G_t, A \rangle + \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle Y, L(A) + b \rangle \nonumber \\
-        &= \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \langle Y, b \rangle
+    \mathcal{L}(A, Y) &= \langle G_t, A \rangle + \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle Y, L(A) + b \rangle \nonumber \\
+        &= \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \langle Y, b \rangle
 \end{align}$$
 where $\mathcal{i}_S$ is the indicator function of set $S$ defined as,
 $$\mathcal{i}_S(X) = \begin{cases}
@@ -104,27 +104,27 @@ $$\mathcal{i}_S(X) = \begin{cases}
 One can then check that,
 $$A^*_t = \arg\min_{A \in T_{W_t}\mathcal{M}} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right]$$
 which, by Sion's minimax theorem, we can solve by iteratively switching the order of minimization and maximization,
-$$ \min_{\| A \|_{W_t} \leq \eta} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right] = \max_{Y \in K^*} \left[ \underbrace{\min_{\| A \|_{W_t} \leq \eta} \mathcal{L}(A, Y)}_{\text{minimizer: } A^*(Y)} \right]$$
+$$ \min_{\| A \| \leq \eta} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right] = \max_{Y \in K^*} \left[ \underbrace{\min_{\| A \| \leq \eta} \mathcal{L}(A, Y)}_{\text{minimizer: } A^*(Y)} \right]$$
 
 First, let us consider the primal minimizer,
 $$\begin{align}
     A^*(Y)
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y) \nonumber \\
-        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \cancel{\langle Y, b \rangle} \nonumber \\
-        &= \arg\min_{\| A \|_{W_t} \leq \eta} \langle G_t + L^*(Y), A \rangle \nonumber \\
-        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(Y))
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \cancel{\langle Y, b \rangle} \nonumber \\
+        &= \arg\min_{\| A \| \leq \eta} \langle G_t + L^*(Y), A \rangle \nonumber \\
+        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))
 \end{align}$$
 
 Substituting $A^*(Y)$ back into the Lagrangian then yields the dual problem,
 $$\begin{align}
     \max_{Y \in K^*} \mathcal{L}(A^*(Y), Y)
-        &= \max_{Y \in K^*} \langle G_t + L^*(Y), -\eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(Y)) \rangle + \langle Y, b \rangle \nonumber \\
-        &= -\eta \| G_t + L^*(Y) \|_{W_t}^\dagger + \langle Y, b \rangle
+        &= \max_{Y \in K^*} \langle G_t + L^*(Y), -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)) \rangle + \langle Y, b \rangle \nonumber \\
+        &= -\eta \| G_t + L^*(Y) \|^\dagger + \langle Y, b \rangle
 \end{align}$$
-where $\| \cdot \|_{W_t}^\dagger$ is the dual norm of $\| \cdot \|_{W_t}$. And by chain rule, the dual problem above has *a* supergradient,
+where $\| \cdot \|^\dagger$ is the dual norm of $\| \cdot \|$. And by chain rule, the dual problem above has *a* supergradient,
 $$\begin{align}
-    \nabla_{Y} \left( -\eta \| G_t + L^*(Y) \|_{W_t}^\dagger + \langle Y, b \rangle \right)
-        &\ni -\eta\cdot L\left(\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(Y))\right) + b \nonumber \\
+    \nabla_{Y} \left( -\eta \| G_t + L^*(Y) \|^\dagger + \langle Y, b \rangle \right)
+        &\ni -\eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))\right) + b \nonumber \\
         &= L(A^*(Y)) + b
 \end{align}$$
 which we can use to do gradient ascent on the dual variable $Y$. And finally, to maintain $Y \in K^*$, we project the updated dual variable back to $K^*$ after each ascent step.
@@ -132,7 +132,7 @@ which we can use to do gradient ascent on the dual variable $Y$. And finally, to
 $\blacksquare$ Putting everything together, we have the following update rule for the primal and dual variables $A^j_t$ and $Y^{j+1}_t$,
 $$\begin{align}
     A^j_t
-        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(Y^{j}_t)) \\
+        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y^{j}_t)) \\
     Y^{j+1}_t
         &= \texttt{proj}_{K^*} \left(Y^{j}_t + \sigma_j \left( L( A^j_t ) + b \right)\right)
 \end{align}$$
