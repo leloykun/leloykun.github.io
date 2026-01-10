@@ -21,7 +21,7 @@ $$\begin{equation}
 \end{equation}$$
 where $L$ and $l$ are indices for a deeper and a shallower layer, respectively. If $\| A_l \|_{2 \to 2} > 1$, then the product $\| \prod_{i=1}^{L-l} A_{L-i} \|_{2 \to 2}$ explodes.
 
-The obvious fix is to simply constrain $A_l$ such that $\| A_l \|_{2 \to 2} \leq 1$. Any subset of the spectral ball of radius 1 works so long as we can form at least a semigroup under matrix multiplication. We could, for example, constrain $A_l$ to be orthogonal, or cap the eigenvalues by 1 as in Section 2 of [Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](rethinking-mup-spectral-ball/#2-eigenvalue-clipping). Deepseek chose to constrain $A_l$ to be a doubly stochastic matrix, which guarantees $\| A_l \|_{2 \to 2} \leq 1$ by the [Perron-Frobenius theorem](https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem) (but some direction(s) may be contractive).
+The obvious fix is to simply constrain $A_l$ such that $\| A_l \|_{2 \to 2} \leq 1$. Any subset of the spectral ball of radius 1 works so long as we can form at least a semigroup under matrix multiplication. We could, for example, constrain $A_l$ to be orthogonal, or cap the eigenvalues by 1 as in Section 2 of [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](rethinking-mup-spectral-ball/#2-eigenvalue-clipping). Deepseek chose to constrain $A_l$ to be a doubly stochastic matrix, which guarantees $\| A_l \|_{2 \to 2} \leq 1$ by the [Perron-Frobenius theorem](https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem) (but some direction(s) may be contractive).
 
 Oddly enough, despite having "manifold" in the title, they do not actually perform optimization on the Birkhoff polytope nor is it even a manifold. This polytope has "boundaries" and "corners" where we no longer have tangent spaces, but rather tangent *cones*. They do prevent $A_l$ from landing on the boundaries by exponentiating the entries before projecting onto the Birkhoff polytope using the [Sinkhorn-Knopp operator](https://en.wikipedia.org/wiki/Sinkhorn%27s_theorem#Sinkhorn%E2%80%93Knopp_algorithm)--and the interior of the Birkhoff polytope is indeed a manifold. But even then, they do not use any properties of this manifold!
 
@@ -29,13 +29,19 @@ Here, we derive an optimizer that actually performs steepest descent on the Birk
 
 ## Method
 
-### First-order optimization on cone geometries
+### Constrained first-order optimization on cone geometries
 
-Let $\mathcal{M}$ be cone geometry, or a constraint set $\mathcal{M} \subseteq \mathbb{R}^{m \times n}$ equipped with a norm $\|\cdot\|$ on each tangent set, $T_{W_t}\mathcal{M}$, at each point $W_t \in \mathcal{M}$. First-order optimization on such geometries goes as follows:
+Let $f : \mathcal{M} \to \mathbb{R}$ be a differentiable and bounded-below objective function defined on a normed cone geometry $\mathcal{M}$, or a constraint set $\mathcal{M} \subseteq \mathbb{R}^{m \times n}$ equipped with a norm $\|\cdot\|$ on each tangent set, $T_{W_t}\mathcal{M}$, at each point $W_t \in \mathcal{M}$. First-order optimization on such geometries goes as follows:
 
 1. Let $W_t \in \mathcal{M}$ be the 'weight' parameter at time step $t$. Compute the "raw gradient" $G_t = \nabla f(W_t)$ via e.g. backpropagation.
-2. Compute an 'optimal' descent direction $A^*_t \in T_{W_t} \mathcal{M}$ under the norm, $$\begin{equation} A^*_t = \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \| \leq \eta,\quad A \in T_{W_t}\mathcal{M}, \label{eq:optimaldescent}\end{equation}$$ where $\eta > 0$ is the learning rate hyperparameter.
-3. Update the weight in the direction of $A^*_t$ and retract the result back to the manifold via metric projection, $\texttt{retract}_{\mathcal{M}}: \mathbb{R}^{m \times n} \to \mathcal{M}$, $$W_{t+1} \leftarrow \texttt{retract}_{\mathcal{M}}(W_t + A^*_t).$$ 
+2. Compute an 'optimal' descent direction $A^*_t \in T_{W_t} \mathcal{M}$ constrained as,
+$$\begin{align}
+    A^*_t
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} f(W_t) + \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \| \leq \eta,\quad A \in T_{W_t}\mathcal{M} \nonumber \\
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \| \leq \eta,\quad A \in T_{W_t}\mathcal{M}, \label{eq:optimaldescent}
+\end{align}$$
+where $\eta > 0$ is the learning rate hyperparameter.
+1. Update the weight in the direction of $A^*_t$ and retract the result back to the manifold via metric projection, $\texttt{retract}_{\mathcal{M}}: \mathbb{R}^{m \times n} \to \mathcal{M}$, $$W_{t+1} \leftarrow \texttt{retract}_{\mathcal{M}}(W_t + A^*_t).$$ 
 
 Note that both constraints on $A$ in Equation $\eqref{eq:optimaldescent}$ are membership constraints to closed convex sets, and so it is simply a convex optimization problem.
 
@@ -63,12 +69,14 @@ Intuitively, if $W_{ij}$ is already $0$, then we can only move "inward" into the
 Now, we can represent $T_{W} \mathcal{B}_n$ in the standard form discussed in [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent](../steepest-descent-finsler-dual-ascent) as follows:
 $$\begin{align}
     T_{W} \mathcal{B}_n
-        &= \{ A \in \mathbb{R}^{n \times n} \mid L(A) \in -K \}
+        &= \{ A \in \mathbb{R}^{n \times n} \mid L(A) + b \in -K \}
 \end{align}$$
 where,
 $$\begin{align}
     L(A)
         &:= (A \mathbf{1}, A^\top \mathbf{1}, A \odot M) \nonumber \\
+    b
+        &:= (\mathbf{0}, \mathbf{0}, \mathbf{0}) \nonumber \\
     K
         &:= \mathbf{0} \times \mathbf{0} \times \mathbb{R}_{-}^{|\{(i,j) \mid W_{ij} = 0\}|}
             \qquad \text{s.t.} \qquad -K = \mathbf{0} \times \mathbf{0} \times \mathbb{R}_{+}^{|\{(i,j) \mid W_{ij} = 0\}|}
@@ -152,9 +160,12 @@ Big thanks to Simo Ryu for productive discussions on the topic. Also see [X thre
 
 ### Appendix A1: JAX implementation of the dual ascent optimizer
 
+See [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent](../steepest-descent-finsler-dual-ascent) for implementation of the `dual_ascent` function.
+
 ```python
 def dual_ascent(
     G: jax.Array,  # R^(m x n)
+    B: Tuple[jax.Array],  # K_dual offset
     L_primal: Callable[[jax.Array], Tuple[jax.Array]],  # R^(m x n) -> K_dual
     L_dual:  Callable[[Tuple[jax.Array]], jax.Array],  # K_dual -> R^(m x n)
     proj_K_dual: Callable[[Tuple[jax.Array]], Tuple[jax.Array]],  # K_dual -> K_dual
@@ -164,25 +175,7 @@ def dual_ascent(
     max_steps: int=128, sigma: float=1.0,
     rtol: float=1e-3, atol: float=1e-6,
 ):
-    S_init = proj_K_dual(L_primal(-G))
-    S_init_norm = norm_K_dual(S_init)
-    sigma *= S_init_norm
-
-    def cond_fn(state):
-        S, k, res = state
-        return jnp.logical_and(k < max_steps, jnp.logical_and(res > atol, res > rtol * norm_K_dual(S)))
-
-    def body_fn(state):
-        S, k, _ = state
-        A = -lmo(G + L_dual(S))
-        grad_S = L_primal(A)
-        S_new = proj_K_dual(jax.tree_util.tree_map(lambda s, g: s + sigma / jnp.sqrt(k+1) * g, S, grad_S))
-        res = norm_K_dual(grad_S)
-        return S_new, k+1, res
-
-    S_final, n_iters, final_res = jax.lax.while_loop(cond_fn, body_fn, (S_init, 0, jnp.inf))
-    A_final = -lmo(G + L_dual(S_final))
-    return A_final
+    ...
 
 def dual_ascent_doubly_stochastic(
     W: jax.Array, G: jax.Array,
@@ -195,22 +188,24 @@ def dual_ascent_doubly_stochastic(
     n = W.shape[0]
     M = W <= tol
 
+    B           = (0, 0, 0)
     L_primal    = lambda A: (jnp.sum(A, axis=1), jnp.sum(A, axis=0), A * M)
     L_dual      = lambda S: S[0][:,None] + S[1][None,:] + S[2] * M
     proj_K_dual = lambda S: (S[0], S[1], jnp.where(M, jnp.minimum(S[2], 0), jnp.zeros_like(S[2])))
     norm_K_dual = lambda S: jnp.sqrt((jnp.sum(S[0]**2) + jnp.sum(S[1]**2) + jnp.sum((S[2] * M)**2)) / (n**2 + n**2 + jnp.sum(M)))
 
     return dual_ascent(
-        G=G,
-        L_primal=L_primal,
-        L_dual=L_dual,
-        proj_K_dual=proj_K_dual,
-        norm_K_dual=norm_K_dual,
-        lmo=lmo,
-        max_steps=max_steps,
-        sigma=sigma,
-        rtol=rtol,
-        atol=atol,
+        G,
+        B,
+        L_primal,
+        L_dual,
+        proj_K_dual,
+        norm_K_dual,
+        lmo,
+        max_steps,
+        sigma,
+        rtol,
+        atol,
     )
 ```
 

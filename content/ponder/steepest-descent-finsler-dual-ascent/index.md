@@ -52,13 +52,18 @@ The $\texttt{RMS}$ norm, $\| \cdot \|_{\texttt{RMS}} = \frac{1}{\sqrt{n}} \| \cd
 $$\| A \|_{\texttt{RMS}\to\texttt{RMS}} = \sup_{X \neq 0} \frac{\| AX \|_{\texttt{RMS}}}{\| X \|_{\texttt{RMS}}} = \sup_{X \neq 0} \frac{\| AX \|_{2} / \sqrt{m}}{\| X \|_{2} / \sqrt{n}} = \sqrt{\frac{n}{m}} \| A \|_{2 \to 2},$$
 as a good candidate for the "natural" weight norm. [Yang et al. (2024)](https://arxiv.org/abs/2310.17813) also makes a similar argument.
 
-### 2.3. First-order optimization on Finsler geometries
+### 2.3. Constrained first-order optimization on Finsler geometries
 
-Let $\mathcal{M}$ be our Finsler geometry of interest. That is, a constraint set $\mathcal{M} \subseteq \mathbb{R}^{m \times n}$ equipped with a (possibly point-dependent) norm $\|\cdot\|_{W_t}$ on each tangent set, $T_{W_t}\mathcal{M}$, at each point $W_t \in \mathcal{M}$. First-order optimization on such geometries goes as follows:
+Let $f: \mathcal{M} \to \mathbb{R}$ be a differentiable and bounded-below objective function defined on our Finsler geometry of interest $\mathcal{M}$. That is, a constraint set $\mathcal{M} \subseteq \mathbb{R}^{m \times n}$ equipped with a (possibly point-dependent) norm $\|\cdot\|_{W_t}$ on each tangent set, $T_{W_t}\mathcal{M}$, at each point $W_t \in \mathcal{M}$. First-order optimization on such geometries goes as follows:
 
 1. Let $W_t \in \mathcal{M}$ be the 'weight' parameter at time step $t$. Compute the "raw gradient" $G_t = \nabla f(W_t)$ via e.g. backpropagation.
-2. Compute an 'optimal' descent direction $A^*_t \in T_{W_t} \mathcal{M}$ under the norm in the tangent set at $W_t$, $$\begin{equation} A^*_t = \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta,\quad A \in T_{W_t}\mathcal{M}, \label{eq:optimaldescent}\end{equation}$$ where $\eta > 0$ is the learning rate hyperparameter.
-3. Update the weight in the direction of $A^*_t$ and retract the result back to the manifold via a retraction map, $\texttt{retract}_{\mathcal{M}}: \mathbb{R}^{m \times n} \to \mathcal{M}$, $$W_{t+1} \leftarrow \texttt{retract}_{\mathcal{M}}(W_t + A^*_t).$$ 
+2. Compute an 'optimal' descent direction $A^*_t \in T_{W_t} \mathcal{M}$ under the norm in the tangent set at $W_t$ constrained as, $$\begin{align}
+    A^*_t
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} f(W_t) + \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta,\quad A \in T_{W_t}\mathcal{M} \nonumber \\
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta,\quad A \in T_{W_t}\mathcal{M}, \label{eq:optimaldescent}
+\end{align}$$
+where $\eta > 0$ is the learning rate hyperparameter.
+1. Update the weight in the direction of $A^*_t$ and retract the result back to the manifold via a retraction map, $\texttt{retract}_{\mathcal{M}}: \mathbb{R}^{m \times n} \to \mathcal{M}$, $$W_{t+1} \leftarrow \texttt{retract}_{\mathcal{M}}(W_t + A^*_t).$$ 
 
 Note that both constraints on $A$ in Equation $\eqref{eq:optimaldescent}$ are membership constraints to closed convex sets, and so it is simply a convex optimization problem.
 
@@ -78,16 +83,17 @@ Unfortunately, as we have discussed in [Ponder: Heuristic Solutions for Steepest
 
 Our goal is to solve Equation $\eqref{eq:optimaldescent}$ for any choice of norm $\|\cdot\|_{W_t}$ and tangent set $T_{W_t}\mathcal{M}$. Let the latter be represented as,
 $$\begin{equation}
-    T_{W_t}\mathcal{M} = \{ A \in \mathbb{R}^{m \times n} \mid L(A) \in -K \} \label{eq:tangentset}
+    T_{W_t}\mathcal{M} = \{ A \in \mathbb{R}^{m \times n} \mid L(A) + b \in -K \} \label{eq:tangentset}
 \end{equation}$$
-for some linear map $L: \mathbb{R}^{m \times n} \to \mathcal{Y}$ and a closed convex cone $K \subseteq \mathcal{Y}$. Equality constraints can be represented by setting $K = \{0\}$. For example, for the Stiefel manifold, we have $L(A) = W^\top A + A^\top W$ and $K = \{0\}$.
+for some linear map $L: \mathbb{R}^{m \times n} \to \mathcal{Y}$, constant offset $b$ (often $b = 0$), and a closed convex cone $K \subseteq \mathcal{Y}$. Equality constraints can be represented by setting $K = \{0\}$. For example, for the Stiefel manifold, we have $L(A) = W^\top A + A^\top W$ and $K = \{0\}$.
 
 $\blacksquare$ Let $\mathcal{Y}^*$ be the dual space of $\mathcal{Y}$, then the adjoint of $L$, $L^*: \mathcal{Y}^* \to \mathbb{R}^{m \times n}$, is defined as the unique linear map satisfying,
 $$\langle L(A), Y \rangle = \langle A, L^*(Y) \rangle, \quad \forall A \in \mathbb{R}^{m \times n}, Y \in \mathcal{Y}^*.$$
+
 Restricting $Y$ to the dual space $K^* \subseteq \mathcal{Y}^*$ then yields the Lagrangian of Equation $\eqref{eq:optimaldescent}$,
 $$\begin{align}
-    \mathcal{L}(A, Y) &= \langle G_t, A \rangle + \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle Y, L(A) \rangle \nonumber \\
-        &= \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle,
+    \mathcal{L}(A, Y) &= \langle G_t, A \rangle + \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle Y, L(A) + b \rangle \nonumber \\
+        &= \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \langle Y, b \rangle
 \end{align}$$
 where $\mathcal{i}_S$ is the indicator function of set $S$ defined as,
 $$\mathcal{i}_S(X) = \begin{cases}
@@ -98,26 +104,28 @@ $$\mathcal{i}_S(X) = \begin{cases}
 One can then check that,
 $$A^*_t = \arg\min_{A \in T_{W_t}\mathcal{M}} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right]$$
 which, by Sion's minimax theorem, we can solve by iteratively switching the order of minimization and maximization,
-$$ \min_{\| A \|_{W_t} \leq \eta} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right] = \max_{Y \in K^*} \left[ \underbrace{\min_{\| A \|_{W_t} \leq \eta} \mathcal{L}(A, Y)}_{A(Y)} \right]$$
+$$ \min_{\| A \|_{W_t} \leq \eta} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right] = \max_{Y \in K^*} \left[ \underbrace{\min_{\| A \|_{W_t} \leq \eta} \mathcal{L}(A, Y)}_{\text{minimizer: } A^*(Y)} \right]$$
 
 First, let us consider the primal minimizer,
 $$\begin{align}
-    A(Y)
+    A^*(Y)
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y) \nonumber \\
-        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle \nonumber \\
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \cancel{\langle Y, b \rangle} \nonumber \\
         &= \arg\min_{\| A \|_{W_t} \leq \eta} \langle G_t + L^*(Y), A \rangle \nonumber \\
-        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(Y)) \nonumber
+        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(Y))
 \end{align}$$
 
-This then yields the dual problem,
-$$\begin{equation}
-    \max_{Y \in K^*} -\eta \| G_t + L^*(Y) \|_{W_t}^\dagger
-\end{equation}$$
+Substituting $A^*(Y)$ back into the Lagrangian then yields the dual problem,
+$$\begin{align}
+    \max_{Y \in K^*} \mathcal{L}(A^*(Y), Y)
+        &= \max_{Y \in K^*} \langle G_t + L^*(Y), -\eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(Y)) \rangle + \langle Y, b \rangle \nonumber \\
+        &= -\eta \| G_t + L^*(Y) \|_{W_t}^\dagger + \langle Y, b \rangle
+\end{align}$$
 where $\| \cdot \|_{W_t}^\dagger$ is the dual norm of $\| \cdot \|_{W_t}$. And by chain rule, the dual problem above has *a* supergradient,
 $$\begin{align}
-    \nabla_{Y} (-\eta\| G_t + L^*(Y) \|_{W_t}^\dagger)
-        &= -\eta\cdot L(\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(Y))) \nonumber \\
-        &= L(A(Y)) \nonumber
+    \nabla_{Y} \left( -\eta \| G_t + L^*(Y) \|_{W_t}^\dagger + \langle Y, b \rangle \right)
+        &\ni -\eta\cdot L\left(\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(Y))\right) + b \nonumber \\
+        &= L(A^*(Y)) + b
 \end{align}$$
 which we can use to do gradient ascent on the dual variable $Y$. And finally, to maintain $Y \in K^*$, we project the updated dual variable back to $K^*$ after each ascent step.
 
@@ -126,7 +134,7 @@ $$\begin{align}
     A^j_t
         &= -\eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(Y^{j}_t)) \\
     Y^{j+1}_t
-        &= \texttt{proj}_{K^*} \left(Y^{j}_t + \sigma_j L( A^j_t )\right)
+        &= \texttt{proj}_{K^*} \left(Y^{j}_t + \sigma_j \left( L( A^j_t ) + b \right)\right)
 \end{align}$$
 where $\sigma_j > 0$ is the dual ascent learning rate, and $\texttt{proj}_{K^*}$ is the orthogonal projection onto the dual cone $K^*$. Literature on dual ascent typically recommend using a learning rate schedule of $\sigma_j = \sigma_{0}/\sqrt{j+1}$. And if $K = \{ 0 \}$, the projection is simply the identity map. At convergence, we have $A^j_t \to A^*_t$.
 
@@ -142,7 +150,7 @@ $$L L^* = I.$$
 
 This is because, under a certain initialization strategy, one step of dual ascent is equivalent to one step of the projection-projection heuristic that we have previously shown in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) to be optimal in some cases (and arguably already close-to-optimal in most cases).
 
-To see this, note that the orthogonal projection onto the tangent set $T_{W_t}\mathcal{M}$ given by Equation $\eqref{eq:tangentset}$ is as follows,
+To see this, note that if $b = 0$, the orthogonal projection onto the tangent set $T_{W_t}\mathcal{M}$ given by Equation $\eqref{eq:tangentset}$ is as follows,
 $$\begin{equation} \texttt{proj}_{T_{W_t}\mathcal{M}}(X) = X - L^*\texttt{proj}^{L L^*}_{K^*}(LX) \end{equation}$$
 where $\texttt{proj}^{L L^*}_{K^*}$ is the projection onto $K^*$ under the inner product induced by $L L^*$. And if $L L^* = I$, then $\texttt{proj}^{L L^*}_{K^*} = \texttt{proj}_{K^*}$ which is often what we already have. We will discuss the proof in more detail in a future blog post, but in short, it follows from solving the orthogonal projection problem via Lagrangian optimization and the Moreau decomposition.
 
@@ -161,6 +169,7 @@ As to why it is reasonable to initialize $A^0_t$ as $-G_t$, note that $-G_t$ is 
 ```python
 def dual_ascent(
     G: jax.Array,  # R^(m x n)
+    B: Tuple[jax.Array],  # K_dual offset
     L_primal: Callable[[jax.Array], Tuple[jax.Array]],  # R^(m x n) -> K_dual
     L_dual:  Callable[[Tuple[jax.Array]], jax.Array],  # K_dual -> R^(m x n)
     proj_K_dual: Callable[[Tuple[jax.Array]], Tuple[jax.Array]],  # K_dual -> K_dual
@@ -177,12 +186,12 @@ def dual_ascent(
     def body_fn(state):
         S, k, _ = state
         A = -lmo(G + L_dual(S))
-        grad_S = L_primal(A)
+        grad_S = jax.tree_util.tree_map(lambda pre_grad_s, b: pre_grad_s + b, L_primal(A), B)
         S_new = proj_K_dual(jax.tree_util.tree_map(lambda s, g: s + sigma / jnp.sqrt(k+1) * g, S, grad_S))
         res = norm_K_dual(grad_S)
         return S_new, k+1, res
 
-    S_init = proj_K_dual(L_primal(-G))
+    S_init = proj_K_dual(jax.tree_util.tree_map(lambda s, b: s + b, L_primal(-G), B))
     S_final, n_iters, final_res = jax.lax.while_loop(cond_fn, body_fn, (S_init, 0, jnp.inf))
     A_final = -lmo(G + L_dual(S_final))
     return A_final
@@ -265,6 +274,7 @@ def dual_ascent_spectral_band(
     L_alpha_dual   = lambda S: U_alpha @ S @ V_alpha.T
     L_beta_dual    = lambda S: U_beta @ S @ V_beta.T
 
+    B           = (0, 0)
     L_primal    = lambda A: (L_alpha_primal(A), L_beta_primal(A))
     L_dual      = lambda S: L_alpha_dual(S[0]) + L_beta_dual(S[1])
     proj_K_dual = lambda S: (proj_nsd(S[0]), proj_psd(S[1]))
@@ -276,6 +286,7 @@ def dual_ascent_spectral_band(
         lambda: -lmo(G),
         lambda: dual_ascent(
             G,
+            B,
             L_primal=L_primal,
             L_dual=L_dual,
             proj_K_dual=proj_K_dual,
@@ -324,6 +335,7 @@ def dual_ascent_spectral_ball(
     # U_R = U * (mask).astype(U.dtype)[None, :]
     # V_R = Vh.T * (mask).astype(Vh.dtype)[None, :]
 
+    B           = 0
     L_primal    = lambda A: sym(U_R.T @ A @ V_R)
     L_dual      = lambda S: U_R @ S @ V_R.T
     proj_K_dual = lambda S: proj_psd(S)
@@ -335,6 +347,7 @@ def dual_ascent_spectral_ball(
         lambda: -lmo(G),
         lambda: dual_ascent(
             G,
+            B,
             L_primal=L_primal,
             L_dual=L_dual,
             proj_K_dual=proj_K_dual,
@@ -384,6 +397,7 @@ def dual_ascent_stiefel(
     max_steps: int=128, sigma: float=1.,
     rtol: float=1e-3, atol: float=1e-6,
 ):
+    B           = 0
     L_primal    = lambda A: sym(W.T @ A) / R
     L_dual      = lambda S: W @ S / R
     proj_K_dual = lambda S: sym(S)
@@ -391,6 +405,7 @@ def dual_ascent_stiefel(
 
     return dual_ascent(
         G,
+        B,
         L_primal=L_primal,
         L_dual=L_dual,
         proj_K_dual=proj_K_dual,

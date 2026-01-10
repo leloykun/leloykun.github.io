@@ -213,10 +213,15 @@ def eig_stepfun(X: jax.Array, alpha=0.) -> jax.Array:
 
 ### 3.1. Problem setup
 
-Suppose we want to do steepest descent on the PSD cone under a norm $\|\cdot\|$ chosen a priori. That is, we want to do first-order optimization where we constrain our weights to be positive semidefinite and our weight updates to have bounded norm. As we previously discussed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/), we can do this as follows:
+Suppose we want to do steepest descent on the PSD cone under a norm $\|\cdot\|$ chosen a priori. That is, we want to minimize a differentiable and bounded-below objective function $f: \mathcal{M} \to \mathbb{R}$ while constraining our weights to be positive semidefinite and our weight updates to have bounded norm. As we previously discussed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/), we can do this as follows:
 
 1. Let $W_t \in \mathcal{M}$ be the 'weight' parameter at time step $t$. Compute the "raw gradient" $G_t = \nabla f(W_t)$ via e.g. backpropagation.
-2. Compute a 'optimal' descent direction $A^* \in T_{W_t} \mathcal{M}$ under the norm in the tangent space at $W_t$, $$\begin{equation} A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta,\quad A \in T_{W_t}\mathcal{M}, \end{equation}$$ where $\eta > 0$ is the learning rate.
+2. Compute a 'optimal' descent direction $A^* \in T_{W_t} \mathcal{M}$ under the norm in the tangent space at $W_t$ constrained as, $$\begin{align}
+    A^*
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} f(W_t) + \langle G, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta,\quad A \in T_{W_t}\mathcal{M} \nonumber \\
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta,\quad A \in T_{W_t}\mathcal{M},
+\end{align}$$
+where $\eta > 0$ is the learning rate.
 3. Update the weight in the direction of $A^*$, $$\widetilde{W}_{t+1} \leftarrow W_t + A^*.$$ Note that $\widetilde{W}_{t+1}$ may not be on the manifold $\mathcal{M}$. And so,
 4. Retract the result back to the manifold via a retraction map $W_{t+1} \leftarrow \texttt{retract}_{\mathcal{M}}(\widetilde{W}_{t+1})$.
 
