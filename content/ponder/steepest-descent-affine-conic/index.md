@@ -50,19 +50,22 @@ $$\begin{align}
     \mathcal{M}
         &= \{ W \in \mathbb{R}^{m \times n} : \| W \|_{2 \to 2} \leq R \} \nonumber \\
         &= \Bigl\{ W \in \mathbb{R}^{m \times n} : \begin{bmatrix}
-            RI_m, W \\
-            W^T, RI_n
+            RI_m & W \\
+            W^T  & RI_n
         \end{bmatrix} \succeq \mathbf{0} \Bigr\}, \nonumber \\
         &= \Bigl\{ W \in \mathbb{R}^{m \times n} : \begin{bmatrix}
-            RI_m, W \\
-            W^T, RI_n
-        \end{bmatrix} + \mathbf{0} \in -\mathbb{S}_{-}^{m+n} \Bigr\},
+            \mathbf{0} & W \\
+            W^T        & \mathbf{0}
+        \end{bmatrix} + \begin{bmatrix}
+            RI_m       & \mathbf{0} \\
+            \mathbf{0} & RI_n
+        \end{bmatrix} \in -\mathbb{S}_{-}^{m+n} \Bigr\},
 \end{align}$$
 2. The Birkhoff Polytope:
 $$\begin{align}
     \mathcal{M}
         &= \{ W \in \mathbb{R}^{m \times n} : W \mathbf{1}_n = \mathbf{1}_m, W^T \mathbf{1}_m = \mathbf{1}_n, W_{ij} \geq 0\} \nonumber \\
-        &= \Bigl\{ W \in \mathbb{R}^{m \times n} : (W \mathbf{1}_n, W^T \mathbf{1}_m, W) + (-\mathbf{1}, -\mathbf{1}, \mathbf{0}) \in -\{\mathbf{0}, \mathbf{0}, R_{-}^{m \times n}\} \Bigr\},
+        &= \Bigl\{ W \in \mathbb{R}^{m \times n} : (W \mathbf{1}_n, W^T \mathbf{1}_m, W) + (-\mathbf{1}, -\mathbf{1}, \mathbf{0}) \in -(\{\mathbf{0}\}, \{\mathbf{0}\}, R_{-}^{m \times n}) \Bigr\},
 \end{align}$$
 
 $\blacksquare$ We can then either solve the constrained $\eqref{eq:constrained_update}$ or regularized $\eqref{eq:regularized_update}$ linearized subproblem,
@@ -77,7 +80,7 @@ $$\begin{align}
 \end{align}$$
 where $\| \cdot \|_{W_t}$ is the chosen norm at point $W_t$. For now, we will focus on solving the constrained problem $\eqref{eq:constrained_update}$. The regularized problem $\eqref{eq:regularized_update}$ can be solved in a similar manner. To simplify notation, we drop the subscript $W_t$ from $\|\cdot\|_{W_t}$ in the rest of this section, but keep in mind that it could be point-dependent.
 
-Now let $A = W - W_t$. Then, we can rewrite $\eqref{eq:constrained_update_explicit}$ as,
+Now let $A = W - W_t$. Then, we can rewrite Equation $\eqref{eq:constrained_update_explicit}$ as,
 $$\begin{align}
     A_t^*
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \| \leq \eta, \quad L(W_t + A) + b \in -K \label{eq:optimaldescent} \\
