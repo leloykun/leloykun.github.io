@@ -13,10 +13,9 @@ Consider the optimization problem,
 $$\begin{align}
     W^* = \arg\min_{W \in \mathcal{M}} f(W),
 \end{align}$$
-where $f: \mathcal{M} \to \mathbb{R}$ is a differentiable and bounded-below objective function defined on a normed manifold or [manifold with boundary](https://ncatlab.org/nlab/show/manifold+with+boundary) $\mathcal{M}$. There are practical considerations on whether or not to include the boundary of $\mathcal{M}$: first, we often only have access to retraction maps that map to the boundary from 'outside' the manifold (e.g. the [PSD cone](https://en.wikipedia.org/wiki/Definite_matrix) and the [Spectral Ball](../steepest-descent-finsler-dual-ascent/#33-special-case-1-steepest-descent-on-the-spectral-ball-under-the--norm) of radius $R$); second, our update rules has to differ when we are at the boundaries and failure to account for this may lead to suboptimal solutions or divergence.
+where $f: \mathcal{M} \to \mathbb{R}$ is a differentiable and bounded-below objective function defined on a normed manifold or [manifold with boundary/corners](https://ncatlab.org/nlab/show/manifold+with+boundary) $\mathcal{M}$. There are practical considerations on whether or not to include the boundary of $\mathcal{M}$: first, we often only have access to retraction maps that map to the boundary from 'outside' the manifold (e.g. the [PSD cone](https://en.wikipedia.org/wiki/Definite_matrix) and the [Spectral Ball](../steepest-descent-finsler-dual-ascent/#33-special-case-1-steepest-descent-on-the-spectral-ball-under-the--norm) of radius $R$); second, our update rules have to differ when we are at the boundaries and failure to account for this may lead to suboptimal solutions or divergence.
 
-
-In previous blog posts, we discussed manifolds where the tangent space (at interior points) or tangent cone (at boundary points) $T_{W}\mathcal{M}$ at any point $W \in \mathcal{M}$ can be represented in the affine-conic form,
+In [previous](../steepest-descent-finsler-dual-ascent/) [blog](../steepest-descent-crit-bz/) [posts](../steepest-descent-doubly-stochastic/), we discussed manifolds where the tangent space (at interior points) or tangent cone (at boundary points) $T_{W}\mathcal{M}$ at any point $W \in \mathcal{M}$ can be represented in the affine-conic form,
 $$\begin{align}
     T_{W}\mathcal{M} = \{ A \in \mathbb{R}^{m \times n} : L_W(A) + b_W \in -K \},
 \end{align}$$
@@ -32,11 +31,11 @@ $$\begin{align}
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta, \quad A \in T_{W_t}\mathcal{M} \\
     A_t^*
         &= \arg\min_{A \in T_{W_t}\mathcal{M}} f(W_t) + \langle G_t, A \rangle + \frac{1}{2\eta} \| A \|_{W_t}^2 \label{eq:regularized_tangent_update}\tag{R1} \\
-        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle +  \frac{1}{2\eta} \| A \|_{W_t}^2 \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta \\
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle +  \frac{1}{2\eta} \| A \|_{W_t}^2 \quad \text{ s.t. } \quad A \in T_{W_t}\mathcal{M} \\
 \end{align}$$
 where $G_t \in \mathbb{R}^{m \times n}$ is the Riemannian gradient (or differential) of $f$ at $W_t$ (computed via backpropagation), $\|\cdot\|_{W_t}$ is the chosen norm at point $W_t$, and $\eta > 0$ is the learning rate hyperparameter.
 
-The problem with this approach is that the 'boundary-aware' constraints only activate *at* the boundaries. So we could be infinitisimally close to the boundary, but still ignore the possibility of crossing over it. In this blog post, we present an alternative approach where we directly constrain $W_{t} + A_t^*$ to lie in $\mathcal{M}$, or at least be as close as possible to $\mathcal{M}$.
+The problem with this approach is that the 'boundary-aware' constraints only activate *at* the boundaries. So we could be infinitesimally close to the boundary, but still ignore the possibility of crossing over it. In this blog post, we present an alternative approach where we directly constrain $W_{t} + A_t^*$ to lie in $\mathcal{M}$, or at least be as close as possible to $\mathcal{M}$.
 
 ## 2. Optimization on affine-conic representable manifolds with boundary
 
@@ -65,7 +64,7 @@ $$\begin{align}
 $$\begin{align}
     \mathcal{M}
         &= \{ W \in \mathbb{R}^{m \times n} : W \mathbf{1}_n = \mathbf{1}_m, W^T \mathbf{1}_m = \mathbf{1}_n, W_{ij} \geq 0\} \nonumber \\
-        &= \Bigl\{ W \in \mathbb{R}^{m \times n} : (W \mathbf{1}_n, W^T \mathbf{1}_m, W) + (-\mathbf{1}, -\mathbf{1}, \mathbf{0}) \in -(\{\mathbf{0}\}, \{\mathbf{0}\}, R_{-}^{m \times n}) \Bigr\},
+        &= \Bigl\{ W \in \mathbb{R}^{m \times n} : (W \mathbf{1}_n, W^T \mathbf{1}_m, W) + (-\mathbf{1}_m, -\mathbf{1}_n, \mathbf{0}) \in -(\{\mathbf{0}\}, \{\mathbf{0}\}, R_{-}^{m \times n}) \Bigr\},
 \end{align}$$
 
 $\blacksquare$ We can then either solve the constrained $\eqref{eq:constrained_update}$ or regularized $\eqref{eq:regularized_update}$ linearized subproblem,
@@ -102,9 +101,9 @@ $$\mathcal{i}_S(X) = \begin{cases}
 \end{cases}.$$
 
 One can then check that,
-$$A^*_t = \arg\min_{A \in T_{W_t}\mathcal{M}} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right]$$
+$$A^*_t = \arg\min_{A \in \mathbb{R}^{m \times n}} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right]$$
 which, by Sion's minimax theorem, we can solve by iteratively switching the order of minimization and maximization,
-$$ \min_{\| A \| \leq \eta} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right] = \max_{Y \in K^*} \left[ \underbrace{\min_{\| A \| \leq \eta} \mathcal{L}(A, Y)}_{\text{minimizer: } A^*(Y)} \right]$$
+$$ \min_{A \in \mathbb{R}^{m \times n}} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right] = \max_{Y \in K^*} \left[ \underbrace{\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y)}_{\text{minimizer: } A^*(Y)} \right]$$
 
 First, let us consider the primal minimizer,
 $$\begin{align}
@@ -112,18 +111,20 @@ $$\begin{align}
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y) \nonumber \\
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \cancel{\langle Y, L(W_t) + b \rangle} \nonumber \\
         &= \arg\min_{\| A \| \leq \eta} \langle G_t + L^*(Y), A \rangle \nonumber \\
-        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))
+        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)),
 \end{align}$$
+where $\texttt{LMO}_{\| \cdot \|}(Z) = \arg\max_{\| A \| \leq 1} \langle Z, A \rangle$ is the Linear Minimization Oracle under norm $\| \cdot \|$.
 
 Substituting $A^*(Y)$ back into the Lagrangian then yields the dual problem,
 $$\begin{align}
-    \max_{Y \in K^*} \mathcal{L}(A^*(Y), Y)
+    h(Y)
+        &= \max_{Y \in K^*} \mathcal{L}(A^*(Y), Y) \nonumber \\
         &= \max_{Y \in K^*} \langle G_t + L^*(Y), -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)) \rangle + \langle Y, L(W_t) + b \rangle \nonumber \\
         &= -\eta \| G_t + L^*(Y) \|^\dagger + \langle Y, L(W_t) + b \rangle
 \end{align}$$
 where $\| \cdot \|^\dagger$ is the dual norm of $\| \cdot \|$. And by chain rule, the dual problem above has *a* supergradient,
 $$\begin{align}
-    \nabla_{Y} \left( -\eta \| G_t + L^*(Y) \|^\dagger + \langle Y, L(W_t) + b \rangle \right)
+    \nabla_{Y} h(Y)
         &\ni -\eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))\right) + L(W_t) + b \nonumber \\
         &= L(A^*(Y)) + L(W_t) + b \nonumber \\
         &= L(W_t + A^*(Y)) + b
@@ -189,8 +190,8 @@ def dual_ascent_faithful(
 
     def body_fn(state):
         S, k, _ = state
-        A = W - eta * lmo(G + L_dual(S))
-        grad_S = jax.tree_util.tree_map(lambda pre_grad_s, b: pre_grad_s + b, L_primal(A), B)
+        W_next = W - eta * lmo(G + L_dual(S))
+        grad_S = jax.tree_util.tree_map(lambda pre_grad_s, b: pre_grad_s + b, L_primal(W_next), B)
         S_new = proj_K_dual(jax.tree_util.tree_map(lambda s, g: s + sigma / jnp.sqrt(k+1) * g, S, grad_S))
         res = norm_K_dual(grad_S)
         return S_new, k+1, res
