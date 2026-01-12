@@ -33,7 +33,7 @@ $$\begin{align}
         &= \arg\min_{A \in T_{W_t}\mathcal{M}} f(W_t) + \langle G_t, A \rangle + \frac{1}{2\eta} \| A \|_{W_t}^2 \label{eq:regularized_tangent_update}\tag{R1} \\
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle +  \frac{1}{2\eta} \| A \|_{W_t}^2 \quad \text{ s.t. } \quad A \in T_{W_t}\mathcal{M} \\
 \end{align}$$
-where $G_t \in \mathbb{R}^{m \times n}$ is the Riemannian gradient (or differential) of $f$ at $W_t$ (computed via backpropagation), $\|\cdot\|_{W_t}$ is the chosen norm at point $W_t$, and $\eta > 0$ is the learning rate hyperparameter.
+where $G_t := \nabla f(W_t) \in T_{W_t}^*\mathcal{M} \subseteq \mathbb{R}^{m \times n}$ is the Riemannian gradient (or differential) of $f$ at $W_t$ (computed via backpropagation), $\|\cdot\|_{W_t}$ is the chosen norm at point $W_t$, and $\eta > 0$ is the learning rate hyperparameter.
 
 The problem with this approach is that the 'boundary-aware' constraints only activate *at* the boundaries. So we could be infinitesimally close to the boundary, but still ignore the possibility of crossing over it. In this blog post, we present an alternative approach where we directly constrain $W_{t} + A_t^*$ to lie in $\mathcal{M}$, or at least be as close as possible to $\mathcal{M}$.
 
@@ -111,21 +111,21 @@ $$\begin{align}
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y) \nonumber \\
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \cancel{\langle Y, L(W_t) + b \rangle} \nonumber \\
         &= \arg\min_{\| A \| \leq \eta} \langle G_t + L^*(Y), A \rangle \nonumber \\
-        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)),
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)),
 \end{align}$$
-where $\texttt{LMO}_{\| \cdot \|}(Z) = \arg\max_{\| A \| \leq 1} \langle Z, A \rangle$ is the Linear Minimization Oracle under norm $\| \cdot \|$.
+where $\texttt{LMO}_{\| \cdot \|}(Z) = \arg\min_{\| A \| \leq 1} \langle Z, A \rangle$ is the Linear Minimization Oracle under norm $\| \cdot \|$.
 
 Substituting $A^*(Y)$ back into the Lagrangian then yields the dual problem,
 $$\begin{align}
     h(Y)
         &= \max_{Y \in K^*} \mathcal{L}(A^*(Y), Y) \nonumber \\
-        &= \max_{Y \in K^*} \langle G_t + L^*(Y), -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)) \rangle + \langle Y, L(W_t) + b \rangle \nonumber \\
+        &= \max_{Y \in K^*} \langle G_t + L^*(Y), \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)) \rangle + \langle Y, L(W_t) + b \rangle \nonumber \\
         &= -\eta \| G_t + L^*(Y) \|^\dagger + \langle Y, L(W_t) + b \rangle
 \end{align}$$
 where $\| \cdot \|^\dagger$ is the dual norm of $\| \cdot \|$. And by chain rule, the dual problem above has *a* supergradient,
 $$\begin{align}
     \nabla_{Y} h(Y)
-        &\ni -\eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))\right) + L(W_t) + b \nonumber \\
+        &\ni \eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))\right) + L(W_t) + b \nonumber \\
         &= L(A^*(Y)) + L(W_t) + b \nonumber \\
         &= L(W_t + A^*(Y)) + b
 \end{align}$$
@@ -134,14 +134,14 @@ which we can use to do gradient ascent on the dual variable $Y$. And finally, to
 $\blacksquare$ Putting everything together, we have the following update rule for the primal and dual variables $A^j_t$ and $Y^{j+1}_t$,
 $$\begin{align}
     A^j_t
-        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y^{j}_t)) \\
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y^{j}_t)) \\
     Y^{j+1}_t
         &= \texttt{proj}_{K^*} \left(Y^{j}_t + \sigma_j \left( L( W_t + A^j_t ) + b \right)\right)
 \end{align}$$
 or equivalently,
 $$\begin{align}
     W^j_{t+1}
-        &= W_t - \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y^{j}_t)) \\
+        &= W_t + \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y^{j}_t)) \\
     Y^{j+1}_t
         &= \texttt{proj}_{K^*} \left(Y^{j}_t + \sigma_j \left( L( W_{t+1}^j ) + b \right)\right),
 \end{align}$$
@@ -190,13 +190,13 @@ def dual_ascent_faithful(
 
     def body_fn(state):
         S, k, _ = state
-        W_next = W - eta * lmo(G + L_dual(S))
+        W_next = W + eta * lmo(G + L_dual(S))
         grad_S = jax.tree_util.tree_map(lambda pre_grad_s, b: pre_grad_s + b, L_primal(W_next), B)
         S_new = proj_K_dual(jax.tree_util.tree_map(lambda s, g: s + sigma / jnp.sqrt(k+1) * g, S, grad_S))
         res = norm_K_dual(grad_S)
         return S_new, k+1, res
 
     S_final, n_iters, final_res = jax.lax.while_loop(cond_fn, body_fn, (S_init, 0, jnp.inf))
-    A_final = -eta * lmo(G + L_dual(S_final))
+    A_final = eta * lmo(G + L_dual(S_final))
     return A_final
 ```

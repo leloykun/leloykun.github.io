@@ -359,13 +359,13 @@ As we discussed in the previous section, if $W_t$ is full rank, then the tangent
 
 | Norm           |               LMO                | preserves symmetry? |
 | :------------- | :------------------------------: | :-----------------: |
-| Frobenius norm | $X \to \frac{1}{\| X \|_F} X$ |         Yes         |
-| $\| \cdot \|_{2 \to 2}$  |    $X \to \texttt{msign}(X)$     |         Yes         |
+| Frobenius norm | $X \to -\frac{1}{\| X \|_F} X$ |         Yes         |
+| $\| \cdot \|_{2 \to 2}$  |    $X \to -\texttt{msign}(X)$     |         Yes         |
 
 Therefore, it would suffice to symmetrize the "raw gradient" $G_t$ first and then apply the LMO. This guarantees that our updates are indeed on-tangent and maximal (via theory behind LMOs). Our update rule would then be,
 $$\begin{align}
     W_{t+1}
-        &= \texttt{proj\_psd}\left(W_{t} + \texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(\texttt{sym}(-G_t)) \right)
+        &= \texttt{proj\_psd}\left(W_{t} + \eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}}(\texttt{sym}(G_t)) \right)
 \end{align}$$
 
 #### 3.3.2. General case
@@ -375,7 +375,7 @@ In general, LMOs derived for the case without the tangency constraint often 'sen
 1. A *heuristic* solution such as the one discussed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) where we iteratively apply the projection onto the tangent space and the LMO until convergence. That is,
 $$\begin{align}
     W_{t+1}
-        &= \texttt{proj\_psd}\left(W_{t} + \left(\texttt{LMO}_{\|\cdot\|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}} \right)^K (-G_t) \right)
+        &= \texttt{proj\_psd}\left(W_{t} + \left(-\eta \cdot \texttt{LMO}_{\|\cdot\|_{W_t}} \circ \texttt{proj}_{T_{W_{t}}\mathbb{S}^n_{+}} \right)^K (-G_t) \right)
 \end{align}$$
 for some integer $K \geq 1$ denoting the number of iterations (typically, $K = 4$ to $8$ suffices; but the iteration can be terminated upon convergence).
 2. An *exact* solution such as the primal-dual hybrid gradient method, $\texttt{pdhg}$, we discussed in [Ponder: Steepest Descent on Finsler-Structured (Matrix) Manifolds](../steepest-descent-finsler/),
@@ -457,7 +457,7 @@ def project_to_tangent_convex_spectrahedron(W: jax.Array, X: jax.Array, alpha: f
 If $W_t$ is an interior point of the Convex Spectrahedron $\mathcal{K}_{[\alpha, \beta]}$ (that is, $\alpha I \prec W_t \prec \beta I$), then the tangent space at that point is simply the space of all symmetric matrices. Thus, as in the [Section 3.3.1](#331-special-case--is-an-interior-point-of-the-psd-cone), we can use known LMOs that preserve symmetry. Our update rule would then be,
 $$\begin{align}
     W_{t+1}
-        &= \texttt{eig\_clip}_{[\alpha,\beta]}\left(W_{t} + \texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(\texttt{sym}(-G_t)) \right)
+        &= \texttt{eig\_clip}_{[\alpha,\beta]}\left(W_{t} + \eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}}(\texttt{sym}(G_t)) \right)
 \end{align}$$
 
 #### 4.2.2. General case
@@ -465,7 +465,7 @@ $$\begin{align}
 In general, we can use either the heuristic or the PDHG method discussed in [Section 3.3.2](#332-general-case),
 
 $$\begin{align}
-    W_{t+1} &= \texttt{eig\_clip}_{[\alpha,\beta]}\left(W_{t} + \left(\texttt{LMO}_{\|\cdot\|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_t}\mathcal{K}_{[\alpha, \beta]}} \right)^K (-G_t) \right)
+    W_{t+1} &= \texttt{eig\_clip}_{[\alpha,\beta]}\left(W_{t} + \left(-\eta \cdot \texttt{LMO}_{\|\cdot\|_{W_t}} \circ \texttt{proj}_{T_{W_t}\mathcal{K}_{[\alpha, \beta]}} \right)^K (-G_t) \right)
 \end{align}$$
 or,
 $$\begin{align}
@@ -600,14 +600,14 @@ If $W_t$ is inside the Spectral Ball, then the tangent space at that point is $\
 
 $$\begin{align}
     W_{t+1}
-        &= \texttt{spectral\_hardcap}_{R}\left(W_{t} + \texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(-G_t) \right)
+        &= \texttt{spectral\_hardcap}_{R}\left(W_{t} + \eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}}(G_t) \right)
 \end{align}$$
 
 #### 5.2.2. General case
 
 In general, we can use either the heuristic or the PDHG method discussed in [Section 3.3.2](#332-general-case),
 $$\begin{align}
-    W_{t+1} &= \texttt{spectral\_hardcap}_{R}\left(W_{t} + \left(\texttt{LMO}_{\|\cdot\|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_t}\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R}} \right)^K (-G_t) \right)
+    W_{t+1} &= \texttt{spectral\_hardcap}_{R}\left(W_{t} + \left(-\eta \cdot \texttt{LMO}_{\|\cdot\|_{W_t}} \circ \texttt{proj}_{T_{W_t}\mathcal{B}_{\|\cdot\|_{2 \to 2} \leq R}} \right)^K (-G_t) \right)
 \end{align}$$
 or,
 $$\begin{align}
@@ -831,57 +831,62 @@ $$\begin{align}
 One can then check that,
 $$A^* = \arg\min_{\| A \|_{W_t} \leq \eta} \left[ \max_{S_{\alpha} \in \mathbb{S}^{r_{\alpha}}_{-}, S_{\beta} \in \mathbb{S}^{r_{\beta}}_{+}} \mathcal{L}(A, S_{\alpha}, S_{\beta}) \right]$$
 And by Sion's minimax theorem, we can swap the order of minimization and maximization,
-$$ \min_{\| A \|_{W_t} \leq \eta} \left[ \max_{S_{\alpha} \in \mathbb{S}^{r_{\alpha}}_{-}, S_{\beta} \in \mathbb{S}^{r_{\beta}}_{+}} \mathcal{L}(A, S_{\alpha}, S_{\beta}) \right] = \max_{S_{\alpha} \in \mathbb{S}^{r_{\alpha}}_{-}, S_{\beta} \in \mathbb{S}^{r_{\beta}}_{+}} \left[ \underbrace{\min_{\| A \|_{W_t} \leq \eta} \mathcal{L}(A, S_{\alpha}, S_{\beta})}_{A(S_{\alpha}, S_{\beta})} \right]$$
+$$ \min_{\| A \|_{W_t} \leq \eta} \left[ \max_{S_{\alpha} \in \mathbb{S}^{r_{\alpha}}_{-}, S_{\beta} \in \mathbb{S}^{r_{\beta}}_{+}} \mathcal{L}(A, S_{\alpha}, S_{\beta}) \right] = \max_{S_{\alpha} \in \mathbb{S}^{r_{\alpha}}_{-}, S_{\beta} \in \mathbb{S}^{r_{\beta}}_{+}} \left[ \underbrace{\min_{\| A \|_{W_t} \leq \eta} \mathcal{L}(A, S_{\alpha}, S_{\beta})}_{\text{minimizer: }A^*(S_{\alpha}, S_{\beta})} \right]$$
 
 First, let us consider the primal minimizer,
 $$\begin{align}
-    A(S_{\alpha}, S_{\beta})
+    A^*(S_{\alpha}, S_{\beta})
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, S_{\alpha}, S_{\beta}) \nonumber \\
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}), A \rangle \nonumber \\
         &= \arg\min_{\| A \|_{W_t} \leq \eta} \langle G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}), A \rangle \nonumber \\
-        &= -\texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta})) \nonumber
+        &= \eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta})) \nonumber
 \end{align}$$
-where $\texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}$ is the linear minimization oracle for the norm $\| \cdot \|_{W_t}$ [(Pethick et al., 2025)](https://arxiv.org/abs/2502.07529). For the $\texttt{RMS} \to \texttt{RMS}$ norm, we have $\texttt{LMO}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta}(X) = \sqrt{\frac{m}{n}}\eta \cdot \texttt{msign}(X).$
+where $\texttt{LMO}_{\| \cdot \|_{W_t}}$ is the linear minimization oracle for the norm $\| \cdot \|_{W_t}$ [(Pethick et al., 2025)](https://arxiv.org/abs/2502.07529). For the $\texttt{RMS} \to \texttt{RMS}$ norm, we have $\texttt{LMO}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}}}(X) = -\sqrt{\frac{m}{n}} \texttt{msign}(X).$
 
 This then yields the dual problem,
-$$\begin{equation}
-    \max_{S_{\alpha} \in \mathbb{S}^{r_{\alpha}}_{-}, S_{\beta} \in \mathbb{S}^{r_{\beta}}_{+}} -\eta \| G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}) \|_{W_t}^*
-\end{equation}$$
+$$\begin{align}
+    h(S_\alpha, S_\beta)
+        &= \max_{S_{\alpha} \in \mathbb{S}^{r_{\alpha}}_{-}, S_{\beta} \in \mathbb{S}^{r_{\beta}}_{+}}
+            \mathcal{L}(A^*(S_{\alpha}, S_{\beta}), S_{\alpha}, S_{\beta}) \nonumber \\
+        &= -\eta \| G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}) \|_{W_t}^*
+\end{align}$$
 where $\| \cdot \|_{W_t}^*$ is the dual norm of $\| \cdot \|_{W_t}$. For the $\texttt{RMS} \to \texttt{RMS}$ norm, we have $\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}}^* \propto \| \cdot \|_{\text{nuc}}$. And by chain rule, the above has supergradients,
 $$\begin{align}
-    \nabla_{S_{\alpha}} (-\eta\| G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}) \|_{W_t}^*)
-        &= -L_{\alpha}(\texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}))) \nonumber \\
-    \nabla_{S_{\beta}} (-\eta\| G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}) \|_{W_t}^*)
-        &= -L_{\beta}(\texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}))) \nonumber
+    \nabla_{S_{\alpha}} h(S_\alpha, S_\beta)
+        &= \eta \cdot L_{\alpha}(\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}))) \nonumber \\
+        &= L_\alpha(A^*(S_{\alpha}, S_{\beta})) \nonumber \\
+    \nabla_{S_{\beta}} h(S_\alpha, S_\beta)
+        &= \eta \cdot L_{\beta}(\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}))) \nonumber \\
+        &= L_\beta(A^*(S_{\alpha}, S_{\beta})) \nonumber
 \end{align}$$
 We can then do gradient ascent on the dual variables $S_{\alpha}$ and $S_{\beta}$ while projecting them back to their respective cones after each step. Taking everything together then yields,
 $$\begin{align}
-    A_t
-        &= -\texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(G_t + L_{\alpha}^*(S_{\alpha, t}) + L_{\beta}^*(S_{\beta, t})) \\
-    S_{\alpha, t+1}
-        &= \texttt{proj\_nsd}\left(S_{\alpha, t} + \sigma L_{\alpha}( A_t )\right) \\
-    S_{\beta, t+1}
-        &= \texttt{proj\_psd}\left(S_{\beta, t} + \sigma L_{\beta}( A_t )\right)
+    A^j
+        &= -\eta \sqrt{\frac{m}{n}} \texttt{msign}(G_t + L_{\alpha}^*(S_{\alpha}^j) + L_{\beta}^*(S_{\beta}^j)) \\
+    S_{\alpha}^{j+1}
+        &= \texttt{proj\_nsd}\left(S_{\alpha}^j + \sigma_j L_{\alpha}( A^j )\right) \\
+    S_{\beta}^{j+1}
+        &= \texttt{proj\_psd}\left(S_{\beta}^j + \sigma_j L_{\beta}( A^j )\right)
 \end{align}$$
-where $\sigma > 0$ is the dual ascent learning rate. At convergence, we have $A_t \to A^*$.
+where $\sigma_j > 0$ is the dual ascent learning rate at dual ascent step $j$. At convergence, we have $A^j \to A^*$.
 
 #### A1.2.1. Initialization strategy
 
 We can initialize the dual states $S_{\alpha, 0}$ and $S_{\beta, 0}$ as zero matrices. However, notice that the update rule for $A_t$ above is already *similar* to the 1-step Alternating Projections heuristic we discussed and have shown to be effective in earlier sections.
 $$\begin{align}
-    \widetilde{A_0}
-        &= \texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(\texttt{proj}_{T_{W_t}\mathcal{S}_{[\alpha, \beta]}}(-G_t)) \qquad\text{(1-step Alternating Projections heuristic)} \nonumber \\
-        &= \texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}((-G_t) - U_{\alpha} (\texttt{sym}(U_{\alpha}^T (-G_t) V_{\alpha}))_{-} V_{\alpha}^T - U_{\beta} (\texttt{sym}(U_{\beta}^T (-G_t) V_{\beta}))_{+} V_{\beta}^T) \nonumber \\
-        &= -\texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(G_t + U_{\alpha} (\texttt{sym}(U_{\alpha}^T (-G_t) V_{\alpha}))_{-} V_
-        {\alpha}^T + U_{\beta} (\texttt{sym}(U_{\beta}^T (-G_t) V_{\beta}))_{+} V_{\beta}^T) \nonumber \\
-        &= -\texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta}(G_t + L_{\alpha}^*(\widetilde{S_{\alpha, 0}}) + L_{\beta}^*(\widetilde{S_{\beta, 0}})) \nonumber \\
+    \widetilde{A}_0
+        &= \left(-\eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}} \circ \texttt{proj}_{T_{W_t}\mathcal{S}_{[\alpha, \beta]}}\right)(-G_t) \qquad\text{(1-step Alternating Projections heuristic)} \nonumber \\
+        &= -\eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}}((-G_t) - U_{\alpha} (\texttt{sym}(U_{\alpha}^T (-G_t) V_{\alpha}))_{-} V_{\alpha}^T - U_{\beta} (\texttt{sym}(U_{\beta}^T (-G_t) V_{\beta}))_{+} V_{\beta}^T) \nonumber \\
+        &= \eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + U_{\alpha} (\texttt{sym}(U_{\alpha}^T G_t V_{\alpha}))_{-} V_
+        {\alpha}^T + U_{\beta} (\texttt{sym}(U_{\beta}^T G_t V_{\beta}))_{+} V_{\beta}^T) \nonumber \\
+        &= \eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L_{\alpha}^*(\widetilde{S}_{\alpha, 0}) + L_{\beta}^*(\widetilde{S}_{\beta, 0})) \nonumber \\
 \end{align}$$
 where,
 $$\begin{align}
-    \widetilde{S_{\alpha, 0}}
+    \widetilde{S}_{\alpha, 0}
         &= \texttt{proj\_nsd}(L_{\alpha}(-G_t))
         \qquad\qquad
-    \widetilde{S_{\beta, 0}}
+    \widetilde{S}_{\beta, 0}
         = \texttt{proj\_psd}(L_{\beta}(-G_t)) \nonumber \\
 \end{align}$$
 

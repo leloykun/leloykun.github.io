@@ -71,8 +71,8 @@ $\blacksquare$ Special case: if $T_{W_t}\mathcal{M} = \mathbb{R}^{m \times n}$, 
 $$\begin{align}
     A^*_t
         &= \arg\min_{\| A \|_{W_t} \leq \eta} \langle G_t, A \rangle \nonumber \\
-        &= -\eta \cdot \arg\max_{\| A \|_{W_t} \leq 1} \langle G_t, A \rangle \nonumber \\
-        &= -\eta \cdot \text{LMO}_{\|\cdot\|_{W_t}}(G_t). \nonumber
+        &= \eta \cdot \arg\min_{\| A \|_{W_t} \leq 1} \langle G_t, A \rangle \nonumber \\
+        &= \eta \cdot \text{LMO}_{\|\cdot\|_{W_t}}(G_t). \nonumber
 \end{align}$$
 
 Unfortunately, as we have discussed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel), LMOs typically do not preserve tangency for general $T_{W_t}\mathcal{M}$, requiring more complicated solutions to solve Equation $\eqref{eq:optimaldescent}$. We will discuss one such solution via dual ascent in the next section.
@@ -112,19 +112,20 @@ $$\begin{align}
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y) \nonumber \\
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \cancel{\langle Y, b \rangle} \nonumber \\
         &= \arg\min_{\| A \| \leq \eta} \langle G_t + L^*(Y), A \rangle \nonumber \\
-        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))
 \end{align}$$
 
 Substituting $A^*(Y)$ back into the Lagrangian then yields the dual problem,
 $$\begin{align}
-    \max_{Y \in K^*} \mathcal{L}(A^*(Y), Y)
-        &= \max_{Y \in K^*} \langle G_t + L^*(Y), -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)) \rangle + \langle Y, b \rangle \nonumber \\
+    h(Y)
+        &= \max_{Y \in K^*} \mathcal{L}(A^*(Y), Y) \nonumber \\
+        &= \max_{Y \in K^*} \langle G_t + L^*(Y), \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)) \rangle + \langle Y, b \rangle \nonumber \\
         &= -\eta \| G_t + L^*(Y) \|^\dagger + \langle Y, b \rangle
 \end{align}$$
 where $\| \cdot \|^\dagger$ is the dual norm of $\| \cdot \|$. And by chain rule, the dual problem above has *a* supergradient,
 $$\begin{align}
-    \nabla_{Y} \left( -\eta \| G_t + L^*(Y) \|^\dagger + \langle Y, b \rangle \right)
-        &\ni -\eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))\right) + b \nonumber \\
+    \nabla_{Y} h(Y)
+        &\ni \eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))\right) + b \nonumber \\
         &= L(A^*(Y)) + b
 \end{align}$$
 which we can use to do gradient ascent on the dual variable $Y$. And finally, to maintain $Y \in K^*$, we project the updated dual variable back to $K^*$ after each ascent step.
@@ -132,7 +133,7 @@ which we can use to do gradient ascent on the dual variable $Y$. And finally, to
 $\blacksquare$ Putting everything together, we have the following update rule for the primal and dual variables $A^j_t$ and $Y^{j+1}_t$,
 $$\begin{align}
     A^j_t
-        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y^{j}_t)) \\
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y^{j}_t)) \\
     Y^{j+1}_t
         &= \texttt{proj}_{K^*} \left(Y^{j}_t + \sigma_j \left( L( A^j_t ) + b \right)\right)
 \end{align}$$
@@ -157,10 +158,10 @@ where $\texttt{proj}^{L L^*}_{K^*}$ is the projection onto $K^*$ under the inner
 Now, if we initialize $Y^0_t = 0$, $A^0_t = -G_t$, and $\sigma_0 = 1$, then,
 $$\begin{align}
     A^1_t
-        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(\texttt{proj}_{K^*} (Y^{0}_t + \sigma_0 L( A^0_t )))) \nonumber \\
-        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(\underbrace{G_t - L^*(\texttt{proj}_{K^*} (L( G_t )))}_{\texttt{proj}_{T_{W_t}\mathcal{M}}(G_t)}) \nonumber \\
-        &= -\eta\cdot\left(\texttt{LMO}_{\| \cdot \|_{W_t}} \circ \texttt{proj}_{T_{W_t}\mathcal{M}} \right)(G_t) \nonumber \\
-        &= \left(\texttt{LMO}_{\| \cdot \|_{W_t} \leq \eta} \circ \texttt{proj}_{T_{W_t}\mathcal{M}} \right)(-G_t) \qquad\qquad\text{(1-step AP)} \nonumber \\
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(\texttt{proj}_{K^*} (Y^{0}_t + \sigma_0 L( A^0_t )))) \nonumber \\
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(\underbrace{G_t - L^*(\texttt{proj}_{K^*} (L( G_t )))}_{\texttt{proj}_{T_{W_t}\mathcal{M}}(G_t)}) \nonumber \\
+        &= \left(\eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}} \circ \texttt{proj}_{T_{W_t}\mathcal{M}} \right)(G_t) \nonumber \\
+        &= \left(-\eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}} \circ \texttt{proj}_{T_{W_t}\mathcal{M}} \right)(-G_t) \qquad\qquad\text{(1-step AP)} \nonumber \\
 \end{align}$$
 As to why it is reasonable to initialize $A^0_t$ as $-G_t$, note that $-G_t$ is the optimal solution to $\arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle$, or Equation $\eqref{eq:optimaldescent}$ without the norm ball and tangency constraints.
 
@@ -185,7 +186,7 @@ def dual_ascent(
 
     def body_fn(state):
         S, k, _ = state
-        A = -lmo(G + L_dual(S))
+        A = lmo(G + L_dual(S))
         grad_S = jax.tree_util.tree_map(lambda pre_grad_s, b: pre_grad_s + b, L_primal(A), B)
         S_new = proj_K_dual(jax.tree_util.tree_map(lambda s, g: s + sigma / jnp.sqrt(k+1) * g, S, grad_S))
         res = norm_K_dual(grad_S)
@@ -193,7 +194,7 @@ def dual_ascent(
 
     S_init = proj_K_dual(jax.tree_util.tree_map(lambda s, b: s + b, L_primal(-G), B))
     S_final, n_iters, final_res = jax.lax.while_loop(cond_fn, body_fn, (S_init, 0, jnp.inf))
-    A_final = -lmo(G + L_dual(S_final))
+    A_final = lmo(G + L_dual(S_final))
     return A_final
 ```
 
@@ -230,7 +231,7 @@ $$\begin{align}
 where $\texttt{proj\_nsd}$ and $\texttt{proj\_psd}$ are the accelerator-friendly implementations of the (orthogonal) projectors to the negative and positive semidefinite cones discussed in [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), respectively.
 
 And finally, the LMO for the $\texttt{RMS}\to\texttt{RMS}$ norm is given by,
-$$\texttt{LMO}_{\texttt{RMS}\to\texttt{RMS}}(G_t) = \sqrt{\frac{m}{n}} \texttt{msign}(G_t),$$
+$$\texttt{LMO}_{\texttt{RMS}\to\texttt{RMS}}(G_t) = -\sqrt{\frac{m}{n}} \texttt{msign}(G_t),$$
 where $\texttt{msign}(G_t)$ is the matrix sign function, $\texttt{msign}(G_t) = U V^T$ for the SVD $G_t = U \Sigma V^T$.
 
 $\blacksquare$ Taking everything together, our update rule becomes,
@@ -283,7 +284,7 @@ def dual_ascent_spectral_band(
     return jax.lax.cond(
         jnp.rint(jnp.trace(PV_alpha)) + jnp.rint(jnp.trace(PV_beta)) == 0,
         # jnp.rint(jnp.sum(mask_alpha)) + jnp.rint(jnp.sum(mask_beta)) == 0,
-        lambda: -lmo(G),
+        lambda: lmo(G),
         lambda: dual_ascent(
             G,
             B,
@@ -344,7 +345,7 @@ def dual_ascent_spectral_ball(
     return jax.lax.cond(
         jnp.rint(jnp.trace(PV_R)) == 0,
         # jnp.rint(jnp.sum(mask)).astype(jnp.int32) == 0,
-        lambda: -lmo(G),
+        lambda: lmo(G),
         lambda: dual_ascent(
             G,
             B,

@@ -101,7 +101,7 @@ $$\begin{align}
 \end{align}$$
 
 And finally, the LMO for the spectral norm is given by,
-$$\texttt{LMO}_{\| \cdot \|_{2 \to 2}}(G_t) = \texttt{msign}(G_t),$$
+$$\texttt{LMO}_{\| \cdot \|_{2 \to 2}}(G_t) = -\texttt{msign}(G_t),$$
 where $\texttt{msign}(G_t)$ is the matrix sign function, $\texttt{msign}(G_t) = U V^T$ for the SVD $G_t = U \Sigma V^T$.
 
 $\blacksquare$ Taking everything together, our dual ascent update rule becomes,
