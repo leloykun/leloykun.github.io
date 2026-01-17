@@ -37,6 +37,9 @@ where $G_t := \nabla f(W_t) \in T_{W_t}^*\mathcal{M} \subseteq \mathbb{R}^{m \ti
 
 The problem with this approach is that the 'boundary-aware' constraints only activate *at* the boundaries. So we could be infinitesimally close to the boundary, but still ignore the possibility of crossing over it. In this blog post, we present an alternative approach where we directly constrain $W_{t} + A_t^*$ to lie in $\mathcal{M}$, or at least be as close as possible to $\mathcal{M}$.
 
+> Recommended reading:
+> - [Steepest Descent on the Birkhoff Polytope Equipped with the Spectral Norm](../steepest-descent-doubly-stochastic)
+
 ## 2. Optimization on affine-conic representable manifolds with boundary
 
 Let $\mathcal{M}$ be a manifold with boundary that can be represented in the affine-conic form,
@@ -148,6 +151,18 @@ $$\begin{align}
 where $\sigma_j > 0$ is the dual ascent learning rate, and $\texttt{proj}_{K^*}$ is the orthogonal projection onto the dual cone $K^*$. Literature on dual ascent typically recommend using a learning rate schedule of $\sigma_j = \sigma_{0}/\sqrt{j+1}$. And if $K = \{ 0 \}$, the projection is simply the identity map. At convergence, we have $W^j_{t+1} \to W_{t+1}$.
 
 See [Appendix A1](#a1-jax-implementation-of-the-dual-ascent-optimizer) for implementation in JAX.
+
+## 3. Results
+
+### 3.1. Our optimizer yields larger effective weight updates vs LMO-based optimizers
+
+![](effective_weight_update_size.png#center)
+
+For a random $W_t \in \mathbb{B}_n$ and $G_t \in \mathbb{R}^{n \times n}$ with $n = 768$, we report the descent magnitude (measured after the retraction step),
+$$\begin{equation}
+    \text{descent\_magnitude} = \langle G_t, \texttt{retract}_{\mathcal{B}_n}(W_t + A_t^*) - W_t \rangle
+\end{equation}$$
+of our dual ascent optimizer after varying number of dual ascent steps relative to the LMO baseline (i.e., using only the LMO without considering the tangent cone constraints). We see that our optimizer yields larger effective weight updates across dual ascent steps.
 
 ## How to cite
 

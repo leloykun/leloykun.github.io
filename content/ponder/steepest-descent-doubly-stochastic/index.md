@@ -107,7 +107,7 @@ where $\texttt{msign}(G_t)$ is the matrix sign function, $\texttt{msign}(G_t) = 
 $\blacksquare$ Taking everything together, our dual ascent update rule becomes,
 $$\begin{align}
     A^j
-        &= -\eta \cdot \texttt{msign}\left(G + S_1 \mathbf{1}^\top + \mathbf{1} S_2^\top + S_3 \odot M \right) \\
+        &= -\eta \cdot \texttt{msign}\left(G_t + S_1 \mathbf{1}^\top + \mathbf{1} S_2^\top + S_3 \odot M \right) \\
     S_1^{j+1}
         &= S_1^j + \sigma \cdot A^j \mathbf{1} \\
     S_2^{j+1}
@@ -123,16 +123,17 @@ See [Appendix A1](#appendix-a1-jax-implementation-of-the-dual-ascent-optimizer) 
 
 Next, we need a retraction map $\texttt{retract}_{\mathcal{B}_n}: \mathbb{R}^{n \times n} \to \mathcal{B}_n$. The Sinkhorn-Knopp operator DeepSeek used is not actually a metric projection, but rather an entropic projection (that minimizes the KL divergence). We instead use Dykstra's algorithm. See [Appendix A2](#appendix-a2-jax-implementation-of-the-metric-projection-onto-the-birkhoff-polytope-via-dykstras-algorithm) for implementation in JAX.
 
-## 3. Results [under construction]
+## 3. Results
 
 ### 3.1. Our optimizer yields larger effective weight updates vs LMO-based optimizers
 
 ![](effective_weight_update_size.png#center)
 
-For a random $W \in \mathbb{B}_n$ and $G \in \mathbb{R}^{n \times n}$ with $n = 768$, we compare the effective weight update size, $$\begin{equation}
-    \text{eff\_update\_size} = \| \texttt{retract}_{\mathcal{B}_n}(W + A^*) - W \|_F / \eta,
+For a random $W_t \in \mathbb{B}_n$ and $G_t \in \mathbb{R}^{n \times n}$ with $n = 768$, we report the descent magnitude (measured after the retraction step),
+$$\begin{equation}
+    \text{descent\_magnitude} = \langle G_t, \texttt{retract}_{\mathcal{B}_n}(W_t + A_t^*) - W_t \rangle
 \end{equation}$$
-of our dual ascent optimizer vs LMO baseline. We see that our optimizer yields significantly larger effective weight updates across dual ascent steps, outperforming LMO baseline by at least $43\%$ even after only 1 step.
+of our dual ascent optimizer after varying number of dual ascent steps relative to the LMO baseline (i.e., using only the LMO without considering the tangent cone constraints). We see that our optimizer yields significantly larger effective weight updates across dual ascent steps.
 
 ## Acknowledgements
 
