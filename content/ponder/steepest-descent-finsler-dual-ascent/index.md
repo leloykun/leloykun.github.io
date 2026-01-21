@@ -43,13 +43,14 @@ But weight decay also often "interferes" with the updates. For example, when the
 
 ### 2.2. "Natural" feature and weight norms
 
-As we mentioned in the introduction, we can enable learning rate transfer across model widths by choosing a feature norm that scales appropriately with model width ([Pethick et al., 2025](https://arxiv.org/abs/2502.07529); [Bernstein et al., 2024](https://arxiv.org/abs/2409.20325); [Filatov et al., 2025](https://arxiv.org/abs/2510.03871)). We argue that the "natural" feature norm is a norm that has the following two properties:
-1. It has to scale with the entries. That is, if the entries are $\pm 1$, then $\| \cdot \| = 1$. Likewise, if the entries are $\pm r$, then $\| \cdot \| = r$. And,
-2. It has to be width-invariant, in a sense. Informally, if we double the width of our features by duplicating it width-wise, then the feature norm should remain unchanged. That is, for some $n, k > 0$,
-$$\| \underbrace{\begin{bmatrix} 1 & \ldots & 1 \end{bmatrix}}_{\text{width } n} \| = \| \underbrace{\begin{bmatrix} 1 & \ldots & 1 \end{bmatrix}}_{\text{width } k \cdot n} \|$$
-
-The $\texttt{RMS}$ norm, $\| \cdot \|_{\texttt{RMS}} = \frac{1}{\sqrt{n}} \| \cdot \|_F$, satisfies both criteria, and so it is a good candidate for the "natural" feature norm. This then induces the $\texttt{RMS}\to\texttt{RMS}$ norm,
-$$\| A \|_{\texttt{RMS}\to\texttt{RMS}} = \sup_{X \neq 0} \frac{\| AX \|_{\texttt{RMS}}}{\| X \|_{\texttt{RMS}}} = \sup_{X \neq 0} \frac{\| AX \|_{2} / \sqrt{m}}{\| X \|_{2} / \sqrt{n}} = \sqrt{\frac{n}{m}} \| A \|_{2 \to 2},$$
+As we mentioned in the introduction, we can enable learning rate transfer across model widths by choosing a feature norm that scales appropriately with model width ([Pethick et al., 2025](https://arxiv.org/abs/2502.07529); [Bernstein et al., 2024](https://arxiv.org/abs/2409.20325); [Filatov et al., 2025](https://arxiv.org/abs/2510.03871)). We argue that the "natural" feature norm is a norm that is preserved under concatenation. More precisely, for all $x \in \mathbb{R}^n$ and $y \in \mathbb{R}^m$, we want,
+$$\begin{equation}
+    \| x \| = \| y \| = c \implies \left\| \begin{bmatrix} x \\ y \end{bmatrix} \right\| = c,
+\end{equation}$$
+for $c \geq 0$. The $\texttt{RMS}$ norm, $\| \cdot \|_{\texttt{RMS}} = \frac{1}{\sqrt{n}} \| \cdot \|_F$, satisfies this criterium, and so it is a good candidate for the "natural" feature norm. This then induces the $\texttt{RMS}\to\texttt{RMS}$ norm,
+$$\begin{equation}
+    \| A \|_{\texttt{RMS}\to\texttt{RMS}} = \sup_{x \neq 0} \frac{\| Ax \|_{\texttt{RMS}}}{\| x \|_{\texttt{RMS}}} = \sup_{x \neq 0} \frac{\| Ax \|_{2} / \sqrt{m}}{\| x \|_{2} / \sqrt{n}} = \sqrt{\frac{n}{m}} \| A \|_{2 \to 2},
+\end{equation}$$
 as a good candidate for the "natural" weight norm. [Yang et al. (2024)](https://arxiv.org/abs/2310.17813) also makes a similar argument.
 
 ### 2.3. Constrained first-order optimization on Finsler geometries
