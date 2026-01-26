@@ -12,3 +12,4 @@ resources/
 *.ipynb_checkpoints
 *.ipynb
 data/
+**.pt

@@ -133,7 +133,7 @@ For a random $W_t \in \mathbb{B}_n$ and $G_t \in \mathbb{R}^{n \times n}$ with $
 $$\begin{equation}
     \text{descent\_magnitude} = \langle G_t, \texttt{retract}_{\mathcal{B}_n}(W_t + A_t^*) - W_t \rangle
 \end{equation}$$
-of our dual ascent optimizer after varying number of dual ascent steps relative to the LMO baseline (i.e., using only the LMO without considering the tangent cone constraints). We see that our optimizer yields significantly larger effective weight updates across dual ascent steps.
+of our dual ascent optimizer after varying number of dual ascent steps relative to the LMO baseline (i.e., using only the LMO without considering the tangent cone constraints). We see that our optimizer yields larger effective weight updates across dual ascent steps.
 
 ## Acknowledgements
 

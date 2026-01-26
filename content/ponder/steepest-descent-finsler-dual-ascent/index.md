@@ -88,13 +88,13 @@ $$\begin{equation}
 \end{equation}$$
 for some (possibly point-dependent) linear map $L_{W_t}: \mathbb{R}^{m \times n} \to \mathcal{Y}$, constant offset $b_{W_t} \in \mathcal{Y}$ (often $b_{W_t} = 0$), and a closed convex cone $K \subseteq \mathcal{Y}$. Equality constraints can be represented by setting $K = \{0\}$. For example, for the Stiefel manifold, we have $L_{W}(A) = W^\top A + A^\top W$ and $K = \{0\}$. To simplify notation, we shall drop the subscript $W_t$ from $L_{W_t}$, $b_{W_t}$, and $\|\cdot\|_{W_t}$ in the rest of this section, but keep in mind that they could be point-dependent.
 
-$\blacksquare$ Let $\mathcal{Y}^*$ be the dual space of $\mathcal{Y}$, then the adjoint of $L$, $L^*: \mathcal{Y}^* \to \mathbb{R}^{m \times n}$, is defined as the unique linear map satisfying,
-$$\langle L(A), Y \rangle = \langle A, L^*(Y) \rangle, \quad \forall A \in \mathbb{R}^{m \times n}, Y \in \mathcal{Y}^*.$$
+$\blacksquare$ Let $\mathcal{Y}^\dagger$ be the dual space of $\mathcal{Y}$, then the adjoint of $L$, $L^\dagger: \mathcal{Y}^\dagger \to \mathbb{R}^{m \times n}$, is defined as the unique linear map satisfying,
+$$\langle L(A), Y \rangle = \langle A, L^\dagger(Y) \rangle, \quad \forall A \in \mathbb{R}^{m \times n}, Y \in \mathcal{Y}^\dagger.$$
 
-Restricting $Y$ to the dual space $K^* \subseteq \mathcal{Y}^*$ then yields the Lagrangian of Equation $\eqref{eq:optimaldescent}$,
+Restricting $Y$ to the dual space $K^\dagger \subseteq \mathcal{Y}^\dagger$ then yields the Lagrangian of Equation $\eqref{eq:optimaldescent}$,
 $$\begin{align}
     \mathcal{L}(A, Y) &= \langle G_t, A \rangle + \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle Y, L(A) + b \rangle \nonumber \\
-        &= \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \langle Y, b \rangle
+        &= \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^\dagger(Y), A \rangle + \langle Y, b \rangle
 \end{align}$$
 where $\mathcal{i}_S$ is the indicator function of set $S$ defined as,
 $$\mathcal{i}_S(X) = \begin{cases}
@@ -103,65 +103,65 @@ $$\mathcal{i}_S(X) = \begin{cases}
 \end{cases}.$$
 
 One can then check that,
-$$A^*_t = \arg\min_{A \in T_{W_t}\mathcal{M}} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right]$$
+$$A^*_t = \arg\min_{A \in T_{W_t}\mathcal{M}} \left[ \max_{Y \in K^\dagger} \mathcal{L}(A, Y) \right]$$
 which, by Sion's minimax theorem, we can solve by iteratively switching the order of minimization and maximization,
-$$ \min_{\| A \| \leq \eta} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right] = \max_{Y \in K^*} \left[ \underbrace{\min_{\| A \| \leq \eta} \mathcal{L}(A, Y)}_{\text{minimizer: } A^*(Y)} \right]$$
+$$ \min_{\| A \| \leq \eta} \left[ \max_{Y \in K^\dagger} \mathcal{L}(A, Y) \right] = \max_{Y \in K^\dagger} \left[ \underbrace{\min_{\| A \| \leq \eta} \mathcal{L}(A, Y)}_{\text{minimizer: } A^*(Y)} \right]$$
 
 First, let us consider the primal minimizer,
 $$\begin{align}
     A^*(Y)
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y) \nonumber \\
-        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \cancel{\langle Y, b \rangle} \nonumber \\
-        &= \arg\min_{\| A \| \leq \eta} \langle G_t + L^*(Y), A \rangle \nonumber \\
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^\dagger(Y), A \rangle + \cancel{\langle Y, b \rangle} \nonumber \\
+        &= \arg\min_{\| A \| \leq \eta} \langle G_t + L^\dagger(Y), A \rangle \nonumber \\
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y))
 \end{align}$$
 
 Substituting $A^*(Y)$ back into the Lagrangian then yields the dual problem,
 $$\begin{align}
     h(Y)
-        &= \max_{Y \in K^*} \mathcal{L}(A^*(Y), Y) \nonumber \\
-        &= \max_{Y \in K^*} \langle G_t + L^*(Y), \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)) \rangle + \langle Y, b \rangle \nonumber \\
-        &= -\eta \| G_t + L^*(Y) \|^\dagger + \langle Y, b \rangle
+        &= \max_{Y \in K^\dagger} \mathcal{L}(A^*(Y), Y) \nonumber \\
+        &= \max_{Y \in K^\dagger} \langle G_t + L^\dagger(Y), \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)) \rangle + \langle Y, b \rangle \nonumber \\
+        &= -\eta \| G_t + L^\dagger(Y) \|^\dagger + \langle Y, b \rangle
 \end{align}$$
 where $\| \cdot \|^\dagger$ is the dual norm of $\| \cdot \|$. And by chain rule, the dual problem above has *a* supergradient,
 $$\begin{align}
     \nabla_{Y} h(Y)
-        &\ni \eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))\right) + b \nonumber \\
+        &\ni \eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y))\right) + b \nonumber \\
         &= L(A^*(Y)) + b
 \end{align}$$
-which we can use to do gradient ascent on the dual variable $Y$. And finally, to maintain $Y \in K^*$, we project the updated dual variable back to $K^*$ after each ascent step.
+which we can use to do gradient ascent on the dual variable $Y$. And finally, to maintain $Y \in K^\dagger$, we project the updated dual variable back to $K^\dagger$ after each ascent step.
 
 $\blacksquare$ Putting everything together, we have the following update rule for the primal and dual variables $A^j_t$ and $Y^{j+1}_t$,
 $$\begin{align}
     A^j_t
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y^{j}_t)) \\
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y^{j}_t)) \\
     Y^{j+1}_t
-        &= \texttt{proj}_{K^*} \left(Y^{j}_t + \sigma_j \left( L( A^j_t ) + b \right)\right)
+        &= \texttt{proj}_{K^\dagger} \left(Y^{j}_t + \sigma_j \left( L( A^j_t ) + b \right)\right)
 \end{align}$$
-where $\sigma_j > 0$ is the dual ascent learning rate, and $\texttt{proj}_{K^*}$ is the orthogonal projection onto the dual cone $K^*$. Literature on dual ascent typically recommend using a learning rate schedule of $\sigma_j = \sigma_{0}/\sqrt{j+1}$. And if $K = \{ 0 \}$, the projection is simply the identity map. At convergence, we have $A^j_t \to A^*_t$.
+where $\sigma_j > 0$ is the dual ascent learning rate, and $\texttt{proj}_{K^\dagger}$ is the orthogonal projection onto the dual cone $K^\dagger$. Literature on dual ascent typically recommend using a learning rate schedule of $\sigma_j = \sigma_{0}/\sqrt{j+1}$. And if $K = \{ 0 \}$, the projection is simply the identity map. At convergence, we have $A^j_t \to A^*_t$.
 
 In all, we only need three components to implement the above algorithm:
 1. The Linear Minimization Oracle (LMO) for the chosen norm $\| \cdot \|_{W}$;
-2. The linear map $L$ and its adjoint $L^*$ for the tangent/cone constraints; and
-3. The orthogonal projection onto the dual cone $K^*$.
+2. The linear map $L$ and its adjoint $L^\dagger$ for the tangent/cone constraints; and
+3. The orthogonal projection onto the dual cone $K^\dagger$.
 
 #### 3.1.1. Scales and the projection-projection heuristic
 
-First, notice that scaling $L$ in Equation $\eqref{eq:tangentset}$ by some positive constant $c > 0$ yields the same tangent set and therefore the same update rules for the primal and dual variables, except for $L^*$ being scaled as well. And so, we have an infinite degree of freedom in choosing $L$. Here we argue that it is most natural to choose scales such that,
-$$L L^* = I.$$
+First, notice that scaling $L$ in Equation $\eqref{eq:tangentset}$ by some positive constant $c > 0$ yields the same tangent set and therefore the same update rules for the primal and dual variables, except for $L^\dagger$ being scaled as well. And so, we have an infinite degree of freedom in choosing $L$. Here we argue that it is most natural to choose scales such that,
+$$L L^\dagger = I.$$
 
 This is because, under a certain initialization strategy, one step of dual ascent is equivalent to one step of the projection-projection heuristic that we have previously shown in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) to be optimal in some cases (and arguably already close-to-optimal in most cases).
 
 To see this, note that if $b = 0$, the orthogonal projection onto the tangent set $T_{W_t}\mathcal{M}$ given by Equation $\eqref{eq:tangentset}$ is as follows,
-$$\begin{equation} \texttt{proj}_{T_{W_t}\mathcal{M}}(X) = X - L^*\texttt{proj}^{L L^*}_{K^*}(LX) \end{equation}$$
-where $\texttt{proj}^{L L^*}_{K^*}$ is the projection onto $K^*$ under the inner product induced by $L L^*$. And if $L L^* = I$, then $\texttt{proj}^{L L^*}_{K^*} = \texttt{proj}_{K^*}$ which is often what we already have. We will discuss the proof in more detail in a future blog post, but in short, it follows from solving the orthogonal projection problem via Lagrangian optimization and the Moreau decomposition.
+$$\begin{equation} \texttt{proj}_{T_{W_t}\mathcal{M}}(X) = X - L^\dagger\texttt{proj}^{L L^\dagger}_{K^\dagger}(LX) \end{equation}$$
+where $\texttt{proj}^{L L^\dagger}_{K^\dagger}$ is the projection onto $K^\dagger$ under the inner product induced by $L L^\dagger$. And if $L L^\dagger = I$, then $\texttt{proj}^{L L^\dagger}_{K^\dagger} = \texttt{proj}_{K^\dagger}$ which is often what we already have. We will discuss the proof in more detail in a future blog post, but in short, it follows from solving the orthogonal projection problem via Lagrangian optimization and the Moreau decomposition.
 
 Now, if we initialize $Y^0_t = 0$, $A^0_t = -G_t$, and $\sigma_0 = 1$, then,
 $$\begin{align}
     A^1_t
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^*(\texttt{proj}_{K^*} (Y^{0}_t + \sigma_0 L( A^0_t )))) \nonumber \\
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(\underbrace{G_t - L^*(\texttt{proj}_{K^*} (L( G_t )))}_{\texttt{proj}_{T_{W_t}\mathcal{M}}(G_t)}) \nonumber \\
-        &= \left(\eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}} \circ \texttt{proj}_{T_{W_t}\mathcal{M}} \right)(G_t) \nonumber \\
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^\dagger(\texttt{proj}_{K^\dagger} (Y^{0}_t + \sigma_0 L( A^0_t )))) \nonumber \\
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^\dagger(\texttt{proj}_{K^\dagger} (L( -G_t )))) \nonumber \\
+        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(\underbrace{-G_t - L^\dagger(\texttt{proj}_{K^\dagger} (L( -G_t )))}_{\texttt{proj}_{T_{W_t}\mathcal{M}}(-G_t)}) \nonumber \\
         &= \left(-\eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}} \circ \texttt{proj}_{T_{W_t}\mathcal{M}} \right)(-G_t) \qquad\qquad\text{(1-step AP)} \nonumber \\
 \end{align}$$
 As to why it is reasonable to initialize $A^0_t$ as $-G_t$, note that $-G_t$ is the optimal solution to $\arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle$, or Equation $\eqref{eq:optimaldescent}$ without the norm ball and tangency constraints.
@@ -221,12 +221,12 @@ $$\begin{align}
 \end{align}$$
 
 The dual of the positive and negative semidefinite cones are themselves, and so,
-$$K^* = \mathbb{S}^{r_{\alpha}}_{-} \times \mathbb{S}^{r_{\beta}}_{+}.$$
-The adjoint of $L$, $L^*: K^* \to \mathbb{R}^{m \times n}$, and the projection onto the dual cone, $\texttt{proj}_{K^*}$, are given by,
+$$K^\dagger = \mathbb{S}^{r_{\alpha}}_{-} \times \mathbb{S}^{r_{\beta}}_{+}.$$
+The adjoint of $L$, $L^\dagger: K^\dagger \to \mathbb{R}^{m \times n}$, and the projection onto the dual cone, $\texttt{proj}_{K^\dagger}$, are given by,
 $$\begin{align}
-    L^*(Y_{\alpha}, Y_{\beta})
+    L^\dagger(Y_{\alpha}, Y_{\beta})
         &= U_{\alpha} Y_{\alpha} V_{\alpha}^T + U_{\beta} Y_{\beta} V_{\beta}^T \nonumber \\
-    \texttt{proj}_{K^*}(Y_{\alpha}, Y_{\beta})
+    \texttt{proj}_{K^\dagger}(Y_{\alpha}, Y_{\beta})
         &= (\texttt{proj\_nsd}(Y_{\alpha}), \texttt{proj\_psd}(Y_{\beta})), \nonumber
 \end{align}$$
 where $\texttt{proj\_nsd}$ and $\texttt{proj\_psd}$ are the accelerator-friendly implementations of the (orthogonal) projectors to the negative and positive semidefinite cones discussed in [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), respectively.

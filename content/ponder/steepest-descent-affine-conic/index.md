@@ -11,7 +11,7 @@ summary: "Novel optimizers for maximally descending on the loss landscape while 
 
 Consider the optimization problem,
 $$\begin{align}
-    W^* = \arg\min_{W \in \mathcal{M}} f(W),
+    W_* = \arg\min_{W \in \mathcal{M}} f(W),
 \end{align}$$
 where $f: \mathcal{M} \to \mathbb{R}$ is a differentiable and bounded-below objective function defined on a normed manifold or [manifold with boundary/corners](https://ncatlab.org/nlab/show/manifold+with+boundary) $\mathcal{M}$. There are practical considerations on whether or not to include the boundary of $\mathcal{M}$: first, we often only have access to retraction maps that map to the boundary from 'outside' the manifold (e.g. the [PSD cone](https://en.wikipedia.org/wiki/Definite_matrix) and the [Spectral Ball](../steepest-descent-finsler-dual-ascent/#33-special-case-1-steepest-descent-on-the-spectral-ball-under-the--norm) of radius $R$); second, our update rules have to differ when we are at the boundaries and failure to account for this may lead to suboptimal solutions or divergence.
 
@@ -89,13 +89,13 @@ $$\begin{align}
     W_{t+1}
         &= W_t + A_t^*.
 \end{align}$$
-Let $\mathcal{Y}^*$ be the dual space of $\mathcal{Y}$, then the adjoint of $L$, $L^*: \mathcal{Y}^* \to \mathbb{R}^{m \times n}$, is defined as the unique linear map satisfying,
-$$\langle L(A), Y \rangle = \langle A, L^*(Y) \rangle, \quad \forall A \in \mathbb{R}^{m \times n}, Y \in \mathcal{Y}^*.$$
+Let $\mathcal{Y}^\dagger$ be the dual space of $\mathcal{Y}$, then the adjoint of $L$, $L^\dagger: \mathcal{Y}^\dagger \to \mathbb{R}^{m \times n}$, is defined as the unique linear map satisfying,
+$$\langle L(A), Y \rangle = \langle A, L^\dagger(Y) \rangle, \quad \forall A \in \mathbb{R}^{m \times n}, Y \in \mathcal{Y}^\dagger.$$
 
-Restricting $Y$ to the dual space $K^* \subseteq \mathcal{Y}^*$ then yields the Lagrangian of Equation $\eqref{eq:optimaldescent}$,
+Restricting $Y$ to the dual space $K^\dagger \subseteq \mathcal{Y}^\dagger$ then yields the Lagrangian of Equation $\eqref{eq:optimaldescent}$,
 $$\begin{align}
     \mathcal{L}(A, Y) &= \langle G_t, A \rangle + \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle Y, L(W_t + A) + b \rangle \nonumber \\
-        &= \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \langle Y, L(W_t) + b \rangle
+        &= \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^\dagger(Y), A \rangle + \langle Y, L(W_t) + b \rangle
 \end{align}$$
 where $\mathcal{i}_S$ is the indicator function of set $S$ defined as,
 $$\mathcal{i}_S(X) = \begin{cases}
@@ -104,51 +104,51 @@ $$\mathcal{i}_S(X) = \begin{cases}
 \end{cases}.$$
 
 One can then check that,
-$$A^*_t = \arg\min_{A \in \mathbb{R}^{m \times n}} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right]$$
+$$A^*_t = \arg\min_{A \in \mathbb{R}^{m \times n}} \left[ \max_{Y \in K^\dagger} \mathcal{L}(A, Y) \right]$$
 which, by Sion's minimax theorem, we can solve by iteratively switching the order of minimization and maximization,
-$$ \min_{A \in \mathbb{R}^{m \times n}} \left[ \max_{Y \in K^*} \mathcal{L}(A, Y) \right] = \max_{Y \in K^*} \left[ \underbrace{\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y)}_{\text{minimizer: } A^*(Y)} \right]$$
+$$ \min_{A \in \mathbb{R}^{m \times n}} \left[ \max_{Y \in K^\dagger} \mathcal{L}(A, Y) \right] = \max_{Y \in K^\dagger} \left[ \underbrace{\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y)}_{\text{minimizer: } A^*(Y)} \right]$$
 
 First, let us consider the primal minimizer,
 $$\begin{align}
     A^*(Y)
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y) \nonumber \\
-        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^*(Y), A \rangle + \cancel{\langle Y, L(W_t) + b \rangle} \nonumber \\
-        &= \arg\min_{\| A \| \leq \eta} \langle G_t + L^*(Y), A \rangle \nonumber \\
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)),
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^\dagger(Y), A \rangle + \cancel{\langle Y, L(W_t) + b \rangle} \nonumber \\
+        &= \arg\min_{\| A \| \leq \eta} \langle G_t + L^\dagger(Y), A \rangle \nonumber \\
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)),
 \end{align}$$
 where $\texttt{LMO}_{\| \cdot \|}(Z) = \arg\min_{\| A \| \leq 1} \langle Z, A \rangle$ is the Linear Minimization Oracle under norm $\| \cdot \|$.
 
 Substituting $A^*(Y)$ back into the Lagrangian then yields the dual problem,
 $$\begin{align}
     h(Y)
-        &= \max_{Y \in K^*} \mathcal{L}(A^*(Y), Y) \nonumber \\
-        &= \max_{Y \in K^*} \langle G_t + L^*(Y), \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y)) \rangle + \langle Y, L(W_t) + b \rangle \nonumber \\
-        &= -\eta \| G_t + L^*(Y) \|^\dagger + \langle Y, L(W_t) + b \rangle
+        &= \max_{Y \in K^\dagger} \mathcal{L}(A^*(Y), Y) \nonumber \\
+        &= \max_{Y \in K^\dagger} \langle G_t + L^\dagger(Y), \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)) \rangle + \langle Y, L(W_t) + b \rangle \nonumber \\
+        &= -\eta \| G_t + L^\dagger(Y) \|^\dagger + \langle Y, L(W_t) + b \rangle
 \end{align}$$
 where $\| \cdot \|^\dagger$ is the dual norm of $\| \cdot \|$. And by chain rule, the dual problem above has *a* supergradient,
 $$\begin{align}
     \nabla_{Y} h(Y)
-        &\ni \eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y))\right) + L(W_t) + b \nonumber \\
+        &\ni \eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y))\right) + L(W_t) + b \nonumber \\
         &= L(A^*(Y)) + L(W_t) + b \nonumber \\
         &= L(W_t + A^*(Y)) + b
 \end{align}$$
-which we can use to do gradient ascent on the dual variable $Y$. And finally, to maintain $Y \in K^*$, we project the updated dual variable back to $K^*$ after each ascent step.
+which we can use to do gradient ascent on the dual variable $Y$. And finally, to maintain $Y \in K^\dagger$, we project the updated dual variable back to $K^\dagger$ after each ascent step.
 
 $\blacksquare$ Putting everything together, we have the following update rule for the primal and dual variables $A^j_t$ and $Y^{j+1}_t$,
 $$\begin{align}
     A^j_t
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y^{j}_t)) \\
+        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y^{j}_t)) \\
     Y^{j+1}_t
-        &= \texttt{proj}_{K^*} \left(Y^{j}_t + \sigma_j \left( L( W_t + A^j_t ) + b \right)\right)
+        &= \texttt{proj}_{K^\dagger} \left(Y^{j}_t + \sigma_j \left( L( W_t + A^j_t ) + b \right)\right)
 \end{align}$$
 or equivalently,
 $$\begin{align}
     W^j_{t+1}
-        &= W_t + \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^*(Y^{j}_t)) \\
+        &= W_t + \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y^{j}_t)) \\
     Y^{j+1}_t
-        &= \texttt{proj}_{K^*} \left(Y^{j}_t + \sigma_j \left( L( W_{t+1}^j ) + b \right)\right),
+        &= \texttt{proj}_{K^\dagger} \left(Y^{j}_t + \sigma_j \left( L( W_{t+1}^j ) + b \right)\right),
 \end{align}$$
-where $\sigma_j > 0$ is the dual ascent learning rate, and $\texttt{proj}_{K^*}$ is the orthogonal projection onto the dual cone $K^*$. Literature on dual ascent typically recommend using a learning rate schedule of $\sigma_j = \sigma_{0}/\sqrt{j+1}$. And if $K = \{ 0 \}$, the projection is simply the identity map. At convergence, we have $W^j_{t+1} \to W_{t+1}$.
+where $\sigma_j > 0$ is the dual ascent learning rate, and $\texttt{proj}_{K^\dagger}$ is the orthogonal projection onto the dual cone $K^\dagger$. Literature on dual ascent typically recommend using a learning rate schedule of $\sigma_j = \sigma_{0}/\sqrt{j+1}$. And if $K = \{ 0 \}$, the projection is simply the identity map. At convergence, we have $W^j_{t+1} \to W_{t+1}$.
 
 See [Appendix A1](#a1-jax-implementation-of-the-dual-ascent-optimizer) for implementation in JAX.
 
