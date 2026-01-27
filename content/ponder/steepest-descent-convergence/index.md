@@ -14,7 +14,7 @@ This work improves on [Kovalev's (2025)](https://arxiv.org/abs/2503.12645) prior
 2. Incorporating *decoupled* weight decay,
 3. Incorporating batch size,
 4. Computing gradient noise variance directly using the dual norm (instead of using Euclidean norm as a proxy), and
-5. Eliminating assumptions (e.g., $\eta \geq \lambda \{ \| W_0 \|, \| W^* \| \}$).
+5. Eliminating assumptions (e.g., $\eta \geq \lambda \{ \| W_0 \|, \| W_* \| \}$).
 
 ## 2. Convergence bound for steepest descent under arbitrary norms with Nesterov momentum without weight decay
 
@@ -129,9 +129,9 @@ $$\begin{align}
 
 From Theorem 14 in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), we have the following bound on the expected suboptimality when using steepest descent under an arbitrary norm $\| \cdot \|$ with Nesterov momentum and decoupled weight decay.
 
-> **Theorem 3 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), star-convexity of $f$ at $W^*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
+> **Theorem 3 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), star-convexity of $f$ at $W_*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
 $$\begin{align}
-    \mathbb{E}\left[ f(W_T) - f(W^*) \right]
+    \mathbb{E}\left[ f(W_T) - f(W_*) \right]
         &\leq (1 - \lambda\eta)^T \Delta_0 \nonumber \\
         &\quad+ \frac{2}{\lambda} \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber \\
         &\quad+ \left[
@@ -139,11 +139,11 @@ $$\begin{align}
             + \frac{2 \beta}{1 - \beta} \| G_0 \|^{\dagger}
         \right] \eta \label{eq:theorem2-bound}
 \end{align}$$
-where $\Delta_0 = f(W_0) - f(W^*)$ and $G_0 = \| \nabla f(W_0) \|^{\dagger}$.
+where $\Delta_0 = f(W_0) - f(W_*)$ and $G_0 = \| \nabla f(W_0) \|^{\dagger}$.
 
 We can then use this theorem to derive convergence bounds as follows.
 
-> **Corollary 4.** For some expected suboptimality tolerance $\epsilon > 0$, to ensure that, $\mathbb{E}\left[ f(W_T) - f(W^*) \right] \leq \epsilon$, via steepest descent under arbitrary norms with Nesterov momentum *with* decoupled weight decay, it suffices to set,
+> **Corollary 4.** For some expected suboptimality tolerance $\epsilon > 0$, to ensure that, $\mathbb{E}\left[ f(W_T) - f(W_*) \right] \leq \epsilon$, via steepest descent under arbitrary norms with Nesterov momentum *with* decoupled weight decay, it suffices to set,
 $$\begin{align}
     \theta &= 1 - \beta = \mathcal{O}\left(\min{\left\{1, \frac{\lambda^2 b \epsilon^2}{D \sigma^2}\right\}}\right) \\
     \eta &= \mathcal{O}\left(\min{\left\{\frac{\lambda\epsilon}{L}, \frac{\epsilon}{\| G_0 \|^{\dagger}},
@@ -160,8 +160,8 @@ $$\begin{align}
 
 **Proof.** As in the previous section, reparametrizing $\theta = 1 - \beta$ and using $\beta < 1$, we can simplify the bound in Theorem 5 as follows,
 $$\begin{align}
-    \mathbb{E}\left[ f(W_T) - f(W^*) \right]
-        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*))
+    \mathbb{E}\left[ f(W_T) - f(W_*) \right]
+        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W_*))
             + \frac{8}{\lambda\theta} L \eta
             + \frac{2\eta}{\theta} \| G_0 \|^{\dagger}
             + \frac{2\sqrt{2}}{\lambda} \sqrt{\theta} \frac{\sqrt{D} \sigma}{\sqrt{b}}
@@ -189,14 +189,14 @@ $$\begin{align}
         &\implies \eta \leq \frac{c_3}{2} \frac{\theta\epsilon}{\| G_0 \|^{\dagger}} \nonumber
 \end{align}$$
 
-Combining these with the constraints $\lambda \eta \leq 1$ and $\| W^* \| \leq \frac{1}{\lambda}$, we set,
+Combining these with the constraints $\lambda \eta \leq 1$ and $\| W_* \| \leq \frac{1}{\lambda}$, we set,
 $$\begin{equation}
-    \eta = \mathcal{O}\left( \min{\left\{ \| W^* \|, \frac{\lambda\theta\epsilon}{L}, \frac{\theta\epsilon}{\| G_0 \|^{\dagger}} \right\}} \right) \nonumber
+    \eta = \mathcal{O}\left( \min{\left\{ \| W_* \|, \frac{\lambda\theta\epsilon}{L}, \frac{\theta\epsilon}{\| G_0 \|^{\dagger}} \right\}} \right) \nonumber
 \end{equation}$$
 Substituting the bound on $\theta$ from above, we have,
 $$\begin{equation}
     \eta = \mathcal{O}\left(\min{\left\{
-        \| W^* \|,
+        \| W_* \|,
         \frac{\lambda\epsilon}{L},
         \frac{\epsilon}{\| G_0 \|^{\dagger}},
         \frac{\lambda^3 b \epsilon^3}{D \sigma^2 L},

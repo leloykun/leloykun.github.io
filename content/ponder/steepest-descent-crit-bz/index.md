@@ -15,7 +15,7 @@ This work generalizes prior results by [Sato et al. (2025)](https://arxiv.org/ab
 
 We consider the following optimization problem:
 $$\begin{equation}
-    W^* = \arg\min_{W \in \mathcal{W}} f(W) \label{eq:opt-problem}
+    W_* = \arg\min_{W \in \mathcal{W}} f(W) \label{eq:opt-problem}
 \end{equation}$$
 where $f(\cdot): \mathcal{W} \to \mathbb{R}$ is a bounded from below and differentiable objective function, and $\mathcal{W}$ is a finite-dimensional vector space over $\mathbb{R}$, e.g., $\mathcal{W} = \mathbb{R}^{m \times n}$, equipped with an arbitrary norm $\| \cdot \|$ and its dual norm $\| \cdot \|^{\dagger}$.
 
@@ -454,19 +454,19 @@ $$\begin{align}
 
 ### 3.2. Convergence bound with weight decay
 
-For our results below to hold, we need to assume that the objective function $f$ is star-convex at a minimzer $W^*$.
-> **Assumption 12 ($f$ is star-convexity at $W^*$).** For all $W \in \mathcal{W}$ and all $\alpha \in [0, 1]$,
+For our results below to hold, we need to assume that the objective function $f$ is star-convex at a minimzer $W_*$.
+> **Assumption 12 ($f$ is star-convexity at $W_*$).** For all $W \in \mathcal{W}$ and all $\alpha \in [0, 1]$,
 $$\begin{equation}
-    f((1 - \alpha) W + \alpha W^*) \leq (1 - \alpha) f(W) + \alpha f(W^*)
+    f((1 - \alpha) W + \alpha W_*) \leq (1 - \alpha) f(W) + \alpha f(W_*)
 \end{equation}$$
 
-And to ensure that $W^*$ can indeed be reached by our steepest descent algorithm, from Proposition 9, we also set $\lambda$ to be sufficiently small such that,
+And to ensure that $W_*$ can indeed be reached by our steepest descent algorithm, from Proposition 9, we also set $\lambda$ to be sufficiently small such that,
 $$\begin{equation}
-    \| W^* \| \leq \frac{1}{\lambda}
+    \| W_* \| \leq \frac{1}{\lambda}
 \end{equation}$$
 Now let,
 $$\begin{equation}
-    X_t = (1 - \lambda\eta) W_t + \lambda\eta W^* \label{eq:wd-proof-xt}
+    X_t = (1 - \lambda\eta) W_t + \lambda\eta W_* \label{eq:wd-proof-xt}
 \end{equation}$$
 Then we have the following useful lemmas.
 
@@ -490,28 +490,28 @@ $$\begin{align}
 The other two inequalities follow from the triangle inequality and the update rule,
 $$\begin{align}
     \| W_t - X_t \|
-        &= \| W_t - ((1 - \lambda\eta) W_t + \lambda\eta W^*) \| \nonumber \\
-        &= \lambda\eta \| W_t - W^* \| \nonumber \\
-        &\leq \lambda\eta \left( \| W_t \| + \| W^* \| \right) \nonumber \\
+        &= \| W_t - ((1 - \lambda\eta) W_t + \lambda\eta W_*) \| \nonumber \\
+        &= \lambda\eta \| W_t - W_* \| \nonumber \\
+        &\leq \lambda\eta \left( \| W_t \| + \| W_* \| \right) \nonumber \\
         &\leq 2\eta \nonumber \\
     \| W_{t+1} - X_t \|
-        &= \| ((1 - \lambda\eta) W_t + \eta A_t^*) - ((1 - \lambda\eta) W_t + \lambda\eta W^*) \| \nonumber \\
-        &= \| \eta A_t^* - \lambda\eta W^* \| \nonumber \\
-        &\leq \eta \| A_t^* \| + \lambda\eta \| W^* \| \nonumber \\
+        &= \| ((1 - \lambda\eta) W_t + \eta A_t^*) - ((1 - \lambda\eta) W_t + \lambda\eta W_*) \| \nonumber \\
+        &= \| \eta A_t^* - \lambda\eta W_* \| \nonumber \\
+        &\leq \eta \| A_t^* \| + \lambda\eta \| W_* \| \nonumber \\
         &\leq 2\eta \qquad\blacksquare \nonumber
 \end{align}$$
 
 ---
 
-> **Theorem 14 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4), star-convexity of $f$ at $W^*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have constants $X, Y, Z > 0$ such that,
+> **Theorem 14 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4), star-convexity of $f$ at $W_*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have constants $X, Y, Z > 0$ such that,
 $$\begin{align}
-    \mathbb{E}\left[ f(W_T) - f(W^*) \right]
+    \mathbb{E}\left[ f(W_T) - f(W_*) \right]
         &\leq (1 - \lambda\eta)^T X + \frac{Y}{\sqrt{b}} + Z
 \end{align}$$
 where $T$ is the total number of steps, $b$ is the batch size, and,
 $$\begin{align}
     X
-        &= f(W_0) - f(W^*) \\
+        &= f(W_0) - f(W_*) \\
     Y
         &= \frac{2}{\lambda} \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D} \sigma \\
     Z
@@ -550,35 +550,35 @@ $$\begin{align}
         &\leq f(X) + \frac{L}{2} \| X - W_t \|^2. \nonumber
 \end{align}$$
 
-Applying star-convexity of $f$ at $W^*$ on Inequality \eqref{eq:wd-proof-ineq-4} yields,
+Applying star-convexity of $f$ at $W_*$ on Inequality \eqref{eq:wd-proof-ineq-4} yields,
 $$\begin{align}
     f(W_{t+1})
-        &\leq f( (1 - \lambda\eta)W_t + \lambda\eta W^*)
+        &\leq f( (1 - \lambda\eta)W_t + \lambda\eta W_*)
             + 4L\eta^2
             + 2\eta \| \nabla f(W_t) - C_t \|^{\dagger} \nonumber \\
-        &\leq \left( (1 - \lambda\eta)f(W_t) + \lambda\eta f(W^*) \right)
+        &\leq \left( (1 - \lambda\eta)f(W_t) + \lambda\eta f(W_*) \right)
             + 4L\eta^2
             + 2\eta \| \nabla f(W_t) - C_t \|^{\dagger} \nonumber \\
-    f(W_{t+1}) - f(W^*)
-        &\leq (1 - \lambda\eta)(f(W_t) - f(W^*))
+    f(W_{t+1}) - f(W_*)
+        &\leq (1 - \lambda\eta)(f(W_t) - f(W_*))
             + 4L\eta^2
             + 2\eta \| \nabla f(W_t) - C_t \|^{\dagger} \nonumber
 \end{align}$$
 
 Taking expectations and applying Corollary 11, we have,
 $$\begin{align}
-    \mathbb{E}\left[ f(W_{t+1}) - f(W^*) \right]
-        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W^*) \right]
+    \mathbb{E}\left[ f(W_{t+1}) - f(W_*) \right]
+        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W_*) \right]
             + 4L\eta^2
             + 2\eta \mathbb{E}\left[ \| \nabla f(W_t) - C_t \|^{\dagger} \right] \nonumber \\
-        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W^*) \right]
+        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W_*) \right]
             + 4L\eta^2 \nonumber \\
         &\quad+ 2\eta\left(
                 \beta^{t+1} \| \nabla f(W_0) \|^{\dagger}
                 + \frac{2 \beta^2}{1 - \beta} L \eta
                 + \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}}
             \right) \nonumber \\
-        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W^*) \right]
+        &\leq (1 - \lambda\eta)\mathbb{E}\left[ f(W_t) - f(W_*) \right]
             + 4 \left(1 + \frac{\beta^2}{1 - \beta} \right) L \eta^2
             + 2\eta\beta^{t+1} \| \nabla f(W_0) \|^{\dagger} \nonumber \\
         &\quad+ 2\eta \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber
@@ -586,12 +586,12 @@ $$\begin{align}
 
 Unrolling the recurrence then yields,
 $$\begin{align}
-    \mathbb{E}\left[ f(W_T) - f(W^*) \right]
-        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*)) \nonumber \\
+    \mathbb{E}\left[ f(W_T) - f(W_*) \right]
+        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W_*)) \nonumber \\
             &\quad+ 4 \left(1 + \frac{\beta^2}{1 - \beta} \right) L \eta^2 \sum_{t=0}^{T-1} (1 - \lambda\eta)^{T-1-t} \nonumber \\
             &\quad+ 2\eta \| \nabla f(W_0) \|^{\dagger} \sum_{t=0}^{T-1} \beta^{t+1} (\underbrace{1 - \lambda\eta}_{\leq 1})^{T-1-t} \nonumber \\
             &\quad+ 2\eta \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \sum_{t=0}^{T-1} (1 - \lambda\eta)^{T-1-t} \nonumber \\
-        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W^*))
+        &\leq (1 - \lambda\eta)^T (f(W_0) - f(W_*))
             + \frac{4}{\lambda} \left(1 + \frac{\beta^2}{1 - \beta} \right) L \eta
             + \frac{2\eta\beta}{1 - \beta} \| \nabla f(W_0) \|^{\dagger} \nonumber \\
         &\quad+ \frac{2}{\lambda} \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber \\
@@ -600,7 +600,7 @@ $$\begin{align}
 where,
 $$\begin{align}
     X
-        &:= f(W_0) - f(W^*) \nonumber \\
+        &:= f(W_0) - f(W_*) \nonumber \\
     Y
         &:= \frac{2}{\lambda} \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \sqrt{D} \sigma \nonumber \\
     Z
@@ -668,7 +668,7 @@ where $\epsilon' := (\epsilon - Z)^2 > 0$.
 
 **Proof.** We consider the steepest descent iteration process to have $\epsilon$-converged at time step $T$ in terms of expected suboptimality when, for some $\epsilon > 0$,
 $$\begin{equation}
-    \mathbb{E}\left[ f(W_T) - f(W^*) \right]
+    \mathbb{E}\left[ f(W_T) - f(W_*) \right]
         \leq (1 - \lambda\eta)^T X + \frac{Y}{\sqrt{b}} + Z
         \leq e^{-\lambda\eta T} X + \frac{Y}{\sqrt{b}} + Z
         \leq \epsilon \label{eq:convergence-criterion-wd}
@@ -825,7 +825,7 @@ The main result of this work is that the *shape* of the convergence bounds in te
 $$\begin{align}
     \frac{1}{T}\sum_{t=0}^{T-1} \mathbb{E}[\| \nabla f(W_t) \|^{\dagger}]
         &= \frac{X(\eta, \beta)}{T} + \frac{Y(\beta, D)}{\sqrt{b}} + Z(\eta, \beta) \\
-    \mathbb{E}[f(W_t) - f(W^*)]
+    \mathbb{E}[f(W_t) - f(W_*)]
         &= (1 - \lambda\eta)^T X + \frac{Y(\beta, \lambda, D)}{\sqrt{b}} + Z(\eta, \beta, \lambda)
 \end{align}$$
 are universal across all norms used for steepest descent. In fact, for preconditioned steepest descent or steepest descent under norms induced by inner products, $D = 1$ and thus the bounds are exactly the same. And for non-inner-product norms like $\| \cdot \|_{\infty}$ and $\| \cdot \|_{2 \to 2}$, $D \approx 1$ empirically makes the bounds approximately the same as well.
