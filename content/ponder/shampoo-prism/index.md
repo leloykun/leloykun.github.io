@@ -71,7 +71,7 @@ $$\begin{align}
 
 ## 2. Anisotropic spectral shaping of Shampoo-PRISM
 
-Let $M_k = \sum_k \sigma_k u_k v_k^T$ be the singular value decomposition of $M_t$, where $\sigma_k \geq 0$ are the singular values, and $\{u_k\} \subset \mathbb{R}^m$ and $\{v_k\} \subset \mathbb{R}^n$ are the left and right singular vectors, respectively. We want to find coefficients $\rho_k^{\text{bi}} \in \mathbb{R}$ such that,
+Let $M_k = \sum_k \sigma_k u_k v_k^T$ be the singular value decomposition of $M_t$, where $\sigma_k \geq 0$ are the singular values, and $\{u_k\} \subset \mathbb{R}^m$ and $\{v_k\} \subset \mathbb{R}^n$ are the left and right singular vectors, respectively. We want to find coefficients $\rho_k^{\text{bi}} \in \mathbb{R}^{+}$ such that,
 $$\begin{align}
     \Delta W_t
         &\approx \sum_k \rho_k^{\text{bi}} u_k v_k^T, \label{eq:shampoo_prism_svd}
@@ -91,7 +91,7 @@ $$\begin{align}
 We then have,
 $$\begin{align}
     \alpha_k
-        &= u_k^T L_t u_k \nonumber \\
+        &= u_k^T \widetilde{L}_t u_k \nonumber \\
         &= u_k^T (M_t M_t^T + \gamma_L^2 D_t D_t^T) u_k, \nonumber \\
         &= \| M_t^T u_k \|_2^2 + \gamma_L^2 \| D_t^T u_k \|_2^2, \nonumber \\
         &= \| \sigma_k v_k \|_2^2 + \gamma_L^2 \| D_t^T u_k \|_2^2, \nonumber \\
@@ -129,7 +129,7 @@ $$\begin{align}
     \rho_k^{\text{bi}}
         &= \sqrt{\rho_k^{\text{left}} \cdot \rho_k^{\text{right}}} \label{eq:shampoo_prism_rho_geom}
 \end{align}$$
-Thus, if the signal-to-noise ratio is high on *both* sides, then $\rho_k^{\text{left}} \approx 1, \rho_k^{\text{right}} \approx 1 \implies \rho_k^{\text{bi}} \approx 1$, and if the SNR is low on *either* side, then $\rho_k^{\text{bi}} \ll 1$.
+Thus, if the signal-to-noise ratio is high on *both* sides, then $\rho_k^{\text{left}} \approx 1, \rho_k^{\text{right}} \approx 1 \implies \rho_k^{\text{bi}} \approx 1$, and we take full steps as in Muon; otherwise, if the SNR is low on *either* side, then $\rho_k^{\text{bi}} \ll 1$, and we take smaller to no steps along that direction.
 
 ## 3. GPU/TPU-friendly implementation
 
