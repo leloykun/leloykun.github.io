@@ -1,11 +1,10 @@
 ---
 title: "Shampoo-PRISM: Kronecker-Factored Optimization via Anisotropic Spectral Shaping"
-date: 2026-02-05
+date: 2026-02-04
 tags: ["Machine Learning", "Optimizers", "Muon"]
 author: ["Franz Louis Cesista"]
 description: "A novel optimizer that combines Shampoo-style preconditioning with PRISM's anisotropic spectral shaping to adaptively suppress noisy gradient directions while maximally descending under the spectral norm trust-region constraint."
 summary: "A novel optimizer that combines Shampoo-style preconditioning with PRISM's anisotropic spectral shaping to adaptively suppress noisy gradient directions while maximally descending under the spectral norm trust-region constraint."
-draft: true
 ---
 
 ## 1. Introduction
@@ -190,6 +189,19 @@ def shampoo_prism(M: jax.Array, D: jax.Array | None, *, gamma_L=1.0, gamma_R=1.0
     H_R = (M.T @ M) + gamma_R**2 * (D.T @ D) + eps_gram * jnp.eye(n, dtype=M.dtype)
     O = double_sided_matmul_invroot(H_L, M, H_R, r=4, steps=inv_steps, eps=inv_eps, scale=1.001)
     return O
+```
+
+## How to cite
+
+```bibtex
+@misc{cesista2026shampooprism,
+  author = {Franz Louis Cesista},
+  title = {{Shampoo-PRISM}: {K}ronecker-Factored Optimization via Anisotropic Spectral Shaping},
+  year = {2026},
+  month = {February},
+  day = {4},
+  url = {https://leloykun.github.io/ponder/shampoo-prism/},
+}
 ```
 
 ## References
