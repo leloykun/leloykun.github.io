@@ -85,12 +85,12 @@ Solving the above problems then yields the following update rules,
 $$\begin{align}
     \text{[CSD]}^{(3)} \quad
     W_{t+1}
-        &= (1 - \lambda\eta) W_t + \eta \texttt{LMO}(C_t) \label{eq:updateweightdecay} \\
+        &= (1 - \lambda\eta) W_t + \eta \texttt{LMO}_{\| \cdot \|}(C_t) \label{eq:updateweightdecay} \\
     \text{[RSD]}^{(3)} \quad
     W_{t+1}
-        &= (1 - \lambda\eta) W_t + \eta \| C_t \|^{\dagger} \texttt{LMO}(C_t)
+        &= (1 - \lambda\eta) W_t + \eta \| C_t \|^{\dagger} \texttt{LMO}_{\| \cdot \|}(C_t)
 \end{align}$$
-where $\texttt{LMO}(\cdot)$ is the linear minimization oracle under the norm $\| \cdot \|$ defined as,
+where $\texttt{LMO}_{\| \cdot \|}(\cdot)$ is the linear minimization oracle under the norm $\| \cdot \|$ defined as,
 $$\begin{equation}
     A_t^*
         := \texttt{LMO}_{\| \cdot \|}(C_t)
