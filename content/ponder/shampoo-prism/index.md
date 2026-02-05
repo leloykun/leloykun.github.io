@@ -114,7 +114,7 @@ $$\begin{align}
 and defining the left- and right-sided SNRs as,
 $$\begin{align}
     \text{SNR}_{L,k}
-        &= \frac{\sigma_k}{\gamma_L \| D_t^T u_k \|_2}, \qquad &&
+        &= \frac{\sigma_k}{\gamma_L \| D_t^T u_k \|_2} \qquad &&
     \text{SNR}_{R,k}
         = \frac{\sigma_k}{\gamma_R \| D_t v_k \|_2},
 \end{align}$$
