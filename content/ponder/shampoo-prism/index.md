@@ -135,9 +135,9 @@ Thus, if the signal-to-noise ratio is high on *both* sides, then $\rho_k^{\text{
 
 From [Efficient Calculation of Matrix Square Root and Inverse Square Root](https://kexue.fm/archives/11158) and [Efficient Calculation of Matrix r-th Roots and Inverse r-th Roots](https://rohin-garg.github.io/kexue-en/translations/translation_11175.html), we can compute products of the form,
 $$\begin{align}
-    Q^{-s/r} G P^{-s/r}
+    G P^{-s/r} \qquad \text{ and } \qquad Q^{-s/r} G P^{-s/r},
 \end{align}$$
-for $s, r \in \mathbb{Z}^+$ and SPD matrices $Q \in \mathbb{R}^{m \times m}$ and $P \in \mathbb{R}^{n \times n}$, using only matrix multiplications, matrix additions, and scalar operations, which are efficient on GPUs and TPUs as follows.
+for $s, r \in \mathbb{Z}^+$ and SPD matrices $Q \in \mathbb{R}^{m \times m}$ and $P \in \mathbb{R}^{n \times n}$, using only matrix multiplications, additions, and scalar operations, which are efficient on GPUs and TPUs. This allows us to efficiently compute Equation \eqref{eq:shampoo_prism_update} directly as follows.
 
 ```python
 import jax
@@ -163,31 +163,40 @@ def abc(r=1, steps=None, scale=1):
     for a, b, c in w[:steps] + w[-1:] * max(steps - len(w), 0):
         yield a / scale, b / scale**(r + 1), c / scale**(2 * r + 1)
 
-def double_sided_matmul_invroot(Q: jax.Array, G: jax.Array, P: jax.Array, *, r: int, s=1, steps: int = 4, eps: float = 1e-4, scale: float = 1.001):
+def matmul_invroot(G: jax.Array, P: jax.Array, r: int, s=1, steps=None, eps=1e-5):
+    # Computes G @ P^(-s/r)
+    I = jnp.eye(P.shape[0], dtype=P.dtype)
+    P = P / (t := (P * P.mT).sum()**0.5) + eps * I
+    for a, b, c in abc(r, steps, 1.001):
+        W = a * I + b * P + c * (P2 := P @ P)
+        W1, W2 = jnp.linalg.matrix_power(W, s), jnp.linalg.matrix_power(W, r)
+        G, P = G @ W1, P @ W2
+    return G * t**(-s / r)
+
+def double_sided_matmul_invroot(Q: jax.Array, G: jax.Array, P: jax.Array, *, r: int, s=1, steps: int=8, eps: float=1e-4, scale: float=1.001):
     # Computes Q^(-s/r) @ G @ P^(-s/r)
-    m = Q.shape[0]
-    n = P.shape[0]
-    Iq = jnp.eye(m, dtype=Q.dtype)
-    Ip = jnp.eye(n, dtype=P.dtype)
-    tQ = jnp.sqrt(jnp.sum(Q * Q.T))
-    tP = jnp.sqrt(jnp.sum(P * P.T))
-    Q = Q / tQ + eps * Iq
-    P = P / tP + eps * Ip
+    m, n = G.shape
+    I_m, I_n = jnp.eye(m, dtype=Q.dtype), jnp.eye(n, dtype=P.dtype)
+    Q = Q / (tQ := jnp.sum(Q * Q.T)**0.5) + eps * I_m
+    P = P / (tP := jnp.sum(P * P.T)**0.5) + eps * I_n
     for a, b, c in abc(4, steps, scale=scale):
-        WQ = a * Iq + b * Q + c * (Q @ Q)
-        WP = a * Ip + b * P + c * (P @ P)
+        WQ = a * I_m + b * Q + c * (Q @ Q)
+        WP = a * I_n + b * P + c * (P @ P)
         WQ1, WQ2 = jnp.linalg.matrix_power(WQ, s), jnp.linalg.matrix_power(WQ, r)
         WP1, WP2 = jnp.linalg.matrix_power(WP, s), jnp.linalg.matrix_power(WP, r)
         Q, G, P = Q @ WQ2, WQ1 @ G @ WP1, P @ WP2
     G = G * (tQ ** (-s/r)) * (tP ** (-s/r))
     return G
 
-def shampoo_prism(M: jax.Array, D: jax.Array | None, *, gamma_L=1.0, gamma_R=1.0, eps_gram=1e-6, inv_steps=4, inv_eps=1e-5):
+def shampoo_prism(M: jax.Array, D: jax.Array | None, *, gamma_L=0.0, gamma_R=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5):
     m, n = M.shape
     D = D if D is not None else jnp.zeros_like(M)
-    H_L = (M @ M.T) + gamma_L**2 * (D @ D.T) + eps_gram * jnp.eye(m, dtype=M.dtype)
-    H_R = (M.T @ M) + gamma_R**2 * (D.T @ D) + eps_gram * jnp.eye(n, dtype=M.dtype)
+    H_L = M @ M.T + gamma_L**2 * D @ D.T + eps_gram * jnp.eye(m, dtype=M.dtype)
+    H_R = M.T @ M + gamma_R**2 * D.T @ D + eps_gram * jnp.eye(n, dtype=M.dtype)
     O = double_sided_matmul_invroot(H_L, M, H_R, r=4, steps=inv_steps, eps=inv_eps, scale=1.001)
+    # Alternatively,
+    # MR = matmul_invroot(M, H_R, r=4, steps=inv_steps, eps=inv_eps)
+    # O  = matmul_invroot(MR.T, H_L, r=4, steps=inv_steps, eps=inv_eps).T
     return O
 ```
 
@@ -212,3 +221,19 @@ def shampoo_prism(M: jax.Array, D: jax.Array | None, *, gamma_L=1.0, gamma_R=1.0
 4. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
 5. Jianlin Su (2025). Efficient Calculation of Matrix Square Root and Inverse Square Root. URL https://kexue.fm/archives/11158
 6. Jianlin Su (2025). Efficient Calculation of Matrix r-th Roots and Inverse r-th Roots. URL https://rohin-garg.github.io/kexue-en/translations/translation_11175.html
+
+## Appendix
+
+### A1. Optimized PRISM
+
+In the original PRISM paper, we need to construct the $2m \times n$ matrix $\widetilde{M}_t$ and then apply the orthogonalization operator to this larger matrix. This wastes both GPU memory and compute. Instead, we can directly compute the preconditioner $P_t$ in Equation \eqref{eq:prism_preconditioner}, and $M_t P_t^{-1/2}$ using the matrix multiply-with-inverse-root discussed in [Section 3](#3-gputpu-friendly-implementation) above, as shown below.
+
+```python
+def prism_v2(M: jax.Array, D: jax.Array | None, *, gamma=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5):
+    _, n = M.shape
+    D = D if D is not None else jnp.zeros_like(M)
+    H_R = M.T @ M + gamma**2 * D.T @ D + eps_gram * jnp.eye(n, dtype=M.dtype)
+    return matmul_invroot(M, H_R, r=4, steps=inv_steps, eps=inv_eps)
+```
+
+This only costs $\mathcal{O}(n^2)$ in extra memory, instead of $\mathcal{O}(2mn)$. And for $T$ iterations, it only costs $\mathcal{O}(2mn^2 + Tmn^2 + 3Tn^3)$ flops vs. $\mathcal{O}(4Tmn^2 + Tn^3)$ flops in the original implementation. For $4n \times n$ weight matrices commonly found in up- and down-projections in MLPs in Llama-like models, this results in a $4\times$ memory saving and $\approx 2\times$ speedup.
