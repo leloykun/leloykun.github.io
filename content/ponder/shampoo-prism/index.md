@@ -173,10 +173,10 @@ def matmul_invroot(G: jax.Array, P: jax.Array, r: int, s=1, steps=None, eps=1e-5
     I = jnp.eye(P.shape[0], dtype=P.dtype)
     P = P / (t := (P * P.mT).sum()**0.5) + eps * I
     for a, b, c in abc(r, steps, 1.001):
-        W = a * I + b * P + c * (P2 := P @ P)
+        W = a * I + b * P + c * P @ P
         W1, W2 = jnp.linalg.matrix_power(W, s), jnp.linalg.matrix_power(W, r)
         G, P = G @ W1, P @ W2
-    return G * t**(-s / r)
+    return G * t**(-s/r)
 
 def double_sided_matmul_invroot(Q: jax.Array, G: jax.Array, P: jax.Array, *, r: int, s=1, steps: int=8, eps: float=1e-4, scale: float=1.001):
     # Computes Q^(-s/r) @ G @ P^(-s/r)
@@ -185,12 +185,12 @@ def double_sided_matmul_invroot(Q: jax.Array, G: jax.Array, P: jax.Array, *, r: 
     Q = Q / (tQ := jnp.sum(Q * Q.T)**0.5) + eps * I_m
     P = P / (tP := jnp.sum(P * P.T)**0.5) + eps * I_n
     for a, b, c in abc(4, steps, scale=scale):
-        WQ = a * I_m + b * Q + c * (Q @ Q)
-        WP = a * I_n + b * P + c * (P @ P)
+        WQ = a * I_m + b * Q + c * Q @ Q
+        WP = a * I_n + b * P + c * P @ P
         WQ1, WQ2 = jnp.linalg.matrix_power(WQ, s), jnp.linalg.matrix_power(WQ, r)
         WP1, WP2 = jnp.linalg.matrix_power(WP, s), jnp.linalg.matrix_power(WP, r)
         Q, G, P = Q @ WQ2, WQ1 @ G @ WP1, P @ WP2
-    G = G * (tQ ** (-s/r)) * (tP ** (-s/r))
+    G = G * tQ**(-s/r) * tP**(-s/r)
     return G
 
 def shampoo_prism(M: jax.Array, D: jax.Array | None, *, gamma_L=0.0, gamma_R=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5):
