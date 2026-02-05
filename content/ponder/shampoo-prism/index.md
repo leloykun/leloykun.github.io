@@ -168,23 +168,22 @@ def abc(r=1, steps=None, scale=1):
     for a, b, c in w[:steps] + w[-1:] * max(steps - len(w), 0):
         yield a / scale, b / scale**(r + 1), c / scale**(2 * r + 1)
 
-def matmul_invroot(G: jax.Array, P: jax.Array, r: int, s=1, steps=None, eps=1e-5):
+def matmul_invroot(G: jax.Array, P: jax.Array, r: int, s=1, steps=None, eps=1e-5, scale: float=1.001):
     # Computes G @ P^(-s/r)
     I = jnp.eye(P.shape[0], dtype=P.dtype)
     P = P / (t := (P * P.mT).sum()**0.5) + eps * I
-    for a, b, c in abc(r, steps, 1.001):
+    for a, b, c in abc(r, steps, scale=scale):
         W = a * I + b * P + c * P @ P
         W1, W2 = jnp.linalg.matrix_power(W, s), jnp.linalg.matrix_power(W, r)
         G, P = G @ W1, P @ W2
     return G * t**(-s/r)
 
-def double_sided_matmul_invroot(Q: jax.Array, G: jax.Array, P: jax.Array, *, r: int, s=1, steps: int=8, eps: float=1e-4, scale: float=1.001):
+def double_sided_matmul_invroot(Q: jax.Array, G: jax.Array, P: jax.Array, *, r: int, s=1, steps=None, eps: float=1e-5, scale: float=1.001):
     # Computes Q^(-s/r) @ G @ P^(-s/r)
-    m, n = G.shape
-    I_m, I_n = jnp.eye(m, dtype=Q.dtype), jnp.eye(n, dtype=P.dtype)
+    I_m, I_n = jnp.eye(G.shape[0], dtype=Q.dtype), jnp.eye(G.shape[1], dtype=P.dtype)
     Q = Q / (tQ := jnp.sum(Q * Q.T)**0.5) + eps * I_m
     P = P / (tP := jnp.sum(P * P.T)**0.5) + eps * I_n
-    for a, b, c in abc(4, steps, scale=scale):
+    for a, b, c in abc(r, steps, scale=scale):
         WQ = a * I_m + b * Q + c * Q @ Q
         WP = a * I_n + b * P + c * P @ P
         WQ1, WQ2 = jnp.linalg.matrix_power(WQ, s), jnp.linalg.matrix_power(WQ, r)
@@ -193,12 +192,10 @@ def double_sided_matmul_invroot(Q: jax.Array, G: jax.Array, P: jax.Array, *, r: 
     G = G * tQ**(-s/r) * tP**(-s/r)
     return G
 
-def shampoo_prism(M: jax.Array, D: jax.Array | None, *, gamma_L=0.0, gamma_R=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5):
-    m, n = M.shape
-    D = D if D is not None else jnp.zeros_like(M)
-    H_L = M @ M.T + gamma_L**2 * D @ D.T + eps_gram * jnp.eye(m, dtype=M.dtype)
-    H_R = M.T @ M + gamma_R**2 * D.T @ D + eps_gram * jnp.eye(n, dtype=M.dtype)
-    O = double_sided_matmul_invroot(H_L, M, H_R, r=4, steps=inv_steps, eps=inv_eps, scale=1.001)
+def shampoo_prism(M: jax.Array, D: jax.Array, *, gamma_L=0.0, gamma_R=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5, inv_scale=1.001):
+    H_L = M @ M.T + gamma_L**2 * D @ D.T + eps_gram * jnp.eye(G.shape[0], dtype=M.dtype)
+    H_R = M.T @ M + gamma_R**2 * D.T @ D + eps_gram * jnp.eye(G.shape[1], dtype=M.dtype)
+    O = double_sided_matmul_invroot(H_L, M, H_R, r=4, steps=inv_steps, eps=inv_eps, scale=inv_scale)
     # Alternatively,
     # MR = matmul_invroot(M, H_R, r=4, steps=inv_steps, eps=inv_eps)
     # O  = matmul_invroot(MR.T, H_L, r=4, steps=inv_steps, eps=inv_eps).T
@@ -234,11 +231,9 @@ def shampoo_prism(M: jax.Array, D: jax.Array | None, *, gamma_L=0.0, gamma_R=0.0
 In the original PRISM paper, we need to construct the $2m \times n$ matrix $\widetilde{M}_t$ and then apply the orthogonalization operator to this larger matrix. This wastes both GPU memory and compute. Instead, we can directly compute the preconditioner $P_t$ in Equation \eqref{eq:prism_preconditioner}, and $M_t P_t^{-1/2}$ using the matrix multiply-with-inverse-root discussed in [Section 3](#3-gputpu-friendly-implementation) above, as shown below.
 
 ```python
-def prism_v2(M: jax.Array, D: jax.Array | None, *, gamma=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5):
-    _, n = M.shape
-    D = D if D is not None else jnp.zeros_like(M)
-    H_R = M.T @ M + gamma**2 * D.T @ D + eps_gram * jnp.eye(n, dtype=M.dtype)
-    return matmul_invroot(M, H_R, r=2, steps=inv_steps, eps=inv_eps)
+def prism_v2(M: jax.Array, D: jax.Array, *, gamma=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5, inv_scale=1.001):
+    H_R = M.T @ M + gamma**2 * D.T @ D + eps_gram * jnp.eye(G.shape[1], dtype=M.dtype)
+    return matmul_invroot(M, H_R, r=2, steps=inv_steps, eps=inv_eps, scale=inv_scale)
 ```
 
 This only costs $\mathcal{O}(n^2)$ in extra memory, instead of $\mathcal{O}(2mn)$. And for $T$ iterations, it only costs $\mathcal{O}((2+T)mn^2 + 3Tn^3)$ flops vs. $\mathcal{O}(4Tmn^2 + Tn^3)$ flops in the original implementation. For $4n \times n$ weight matrices commonly found in up- and down-projections in MLPs in Llama-like models, this results in a $8\times$ memory saving and $2.125\times$ speedup.
