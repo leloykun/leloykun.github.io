@@ -176,6 +176,9 @@ def abc(r=1, steps=None, scale=1):
     for a, b, c in w[:steps] + w[-1:] * max(steps - len(w), 0):
         yield a / scale, b / scale**(r + 1), c / scale**(2 * r + 1)
 
+def _sym(M: jax.Array) -> jax.Array:
+    return 0.5 * (M + M.mT)
+
 def matmul_invroot(G: jax.Array, P: jax.Array, r: int, s=1, steps=None, eps=1e-5, scale: float=1.001):
     # Computes G @ P^(-s/r)
     I = jnp.eye(P.shape[0], dtype=P.dtype)
@@ -183,30 +186,30 @@ def matmul_invroot(G: jax.Array, P: jax.Array, r: int, s=1, steps=None, eps=1e-5
     for a, b, c in abc(r, steps, scale=scale):
         W = a * I + b * P + c * P @ P
         W1, W2 = jnp.linalg.matrix_power(W, s), jnp.linalg.matrix_power(W, r)
-        G, P = G @ W1, P @ W2
+        G, P = G @ W1, _sym(P @ W2)
     return G * t**(-s/r)
 
 def double_sided_matmul_invroot(Q: jax.Array, G: jax.Array, P: jax.Array, *, r: int, s=1, steps=None, eps: float=1e-5, scale: float=1.001):
     # Computes Q^(-s/r) @ G @ P^(-s/r)
     I_m, I_n = jnp.eye(G.shape[0], dtype=Q.dtype), jnp.eye(G.shape[1], dtype=P.dtype)
-    Q = Q / (tQ := jnp.sum(Q * Q.T)**0.5) + eps * I_m
-    P = P / (tP := jnp.sum(P * P.T)**0.5) + eps * I_n
+    Q = Q / (tQ := jnp.sum(Q * Q.mT)**0.5) + eps * I_m
+    P = P / (tP := jnp.sum(P * P.mT)**0.5) + eps * I_n
     for a, b, c in abc(r, steps, scale=scale):
         WQ = a * I_m + b * Q + c * Q @ Q
         WP = a * I_n + b * P + c * P @ P
         WQ1, WQ2 = jnp.linalg.matrix_power(WQ, s), jnp.linalg.matrix_power(WQ, r)
         WP1, WP2 = jnp.linalg.matrix_power(WP, s), jnp.linalg.matrix_power(WP, r)
-        Q, G, P = Q @ WQ2, WQ1 @ G @ WP1, P @ WP2
+        Q, G, P = _sym(Q @ WQ2), WQ1 @ G @ WP1, _sym(P @ WP2)
     G = G * tQ**(-s/r) * tP**(-s/r)
     return G
 
 def shampoo_prism(M: jax.Array, D: jax.Array, *, gamma_L=0.0, gamma_R=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5, inv_scale=1.001):
-    H_L = M @ M.T + gamma_L**2 * D @ D.T + eps_gram * jnp.eye(M.shape[0], dtype=M.dtype)
-    H_R = M.T @ M + gamma_R**2 * D.T @ D + eps_gram * jnp.eye(M.shape[1], dtype=M.dtype)
+    H_L = M @ M.mT + gamma_L**2 * D @ D.mT + eps_gram * jnp.eye(M.shape[0], dtype=M.dtype)
+    H_R = M.mT @ M + gamma_R**2 * D.mT @ D + eps_gram * jnp.eye(M.shape[1], dtype=M.dtype)
     O = double_sided_matmul_invroot(H_L, M, H_R, r=4, steps=inv_steps, eps=inv_eps, scale=inv_scale)
     # Alternatively,
     # MR = matmul_invroot(M, H_R, r=4, steps=inv_steps, eps=inv_eps)
-    # O  = matmul_invroot(MR.T, H_L, r=4, steps=inv_steps, eps=inv_eps).T
+    # O  = matmul_invroot(MR.mT, H_L, r=4, steps=inv_steps, eps=inv_eps).mT
     return O
 ```
 
@@ -240,7 +243,7 @@ In the original PRISM paper, we need to construct the $2m \times n$ matrix $\wid
 
 ```python
 def prism_v2(M: jax.Array, D: jax.Array, *, gamma=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5, inv_scale=1.001):
-    H_R = M.T @ M + gamma**2 * D.T @ D + eps_gram * jnp.eye(M.shape[1], dtype=M.dtype)
+    H_R = M.mT @ M + gamma**2 * D.mT @ D + eps_gram * jnp.eye(M.shape[1], dtype=M.dtype)
     return matmul_invroot(M, H_R, r=2, steps=inv_steps, eps=inv_eps, scale=inv_scale)
 ```
 
