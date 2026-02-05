@@ -233,7 +233,7 @@ def prism_v2(M: jax.Array, D: jax.Array | None, *, gamma=0.0, eps_gram=1e-6, inv
     _, n = M.shape
     D = D if D is not None else jnp.zeros_like(M)
     H_R = M.T @ M + gamma**2 * D.T @ D + eps_gram * jnp.eye(n, dtype=M.dtype)
-    return matmul_invroot(M, H_R, r=4, steps=inv_steps, eps=inv_eps)
+    return matmul_invroot(M, H_R, r=2, steps=inv_steps, eps=inv_eps)
 ```
 
 This only costs $\mathcal{O}(n^2)$ in extra memory, instead of $\mathcal{O}(2mn)$. And for $T$ iterations, it only costs $\mathcal{O}(2mn^2 + Tmn^2 + 3Tn^3)$ flops vs. $\mathcal{O}(4Tmn^2 + Tn^3)$ flops in the original implementation. For $4n \times n$ weight matrices commonly found in up- and down-projections in MLPs in Llama-like models, this results in a $4\times$ memory saving and $\approx 2\times$ speedup.
