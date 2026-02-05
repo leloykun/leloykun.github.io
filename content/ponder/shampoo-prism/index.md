@@ -193,8 +193,8 @@ def double_sided_matmul_invroot(Q: jax.Array, G: jax.Array, P: jax.Array, *, r: 
     return G
 
 def shampoo_prism(M: jax.Array, D: jax.Array, *, gamma_L=0.0, gamma_R=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5, inv_scale=1.001):
-    H_L = M @ M.T + gamma_L**2 * D @ D.T + eps_gram * jnp.eye(G.shape[0], dtype=M.dtype)
-    H_R = M.T @ M + gamma_R**2 * D.T @ D + eps_gram * jnp.eye(G.shape[1], dtype=M.dtype)
+    H_L = M @ M.T + gamma_L**2 * D @ D.T + eps_gram * jnp.eye(M.shape[0], dtype=M.dtype)
+    H_R = M.T @ M + gamma_R**2 * D.T @ D + eps_gram * jnp.eye(M.shape[1], dtype=M.dtype)
     O = double_sided_matmul_invroot(H_L, M, H_R, r=4, steps=inv_steps, eps=inv_eps, scale=inv_scale)
     # Alternatively,
     # MR = matmul_invroot(M, H_R, r=4, steps=inv_steps, eps=inv_eps)
@@ -232,7 +232,7 @@ In the original PRISM paper, we need to construct the $2m \times n$ matrix $\wid
 
 ```python
 def prism_v2(M: jax.Array, D: jax.Array, *, gamma=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5, inv_scale=1.001):
-    H_R = M.T @ M + gamma**2 * D.T @ D + eps_gram * jnp.eye(G.shape[1], dtype=M.dtype)
+    H_R = M.T @ M + gamma**2 * D.T @ D + eps_gram * jnp.eye(M.shape[1], dtype=M.dtype)
     return matmul_invroot(M, H_R, r=2, steps=inv_steps, eps=inv_eps, scale=inv_scale)
 ```
 
