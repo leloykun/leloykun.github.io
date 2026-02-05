@@ -236,7 +236,7 @@ def shampoo_prism(M: jax.Array, D: jax.Array, *, gamma_L=0.0, gamma_R=0.0, eps_g
 
 ### A1. Optimized PRISM
 
-In the original PRISM paper, we need to construct the $2m \times n$ matrix $\widetilde{M}_t$ and then apply the orthogonalization operator to this larger matrix. This wastes both GPU memory and compute. Instead, we can directly compute the preconditioner $P_t$ in Equation \eqref{eq:prism_preconditioner}, and $M_t P_t^{-1/2}$ using the matrix multiply-with-inverse-root discussed in [Section 3](#3-gputpu-friendly-implementation) above, as shown below.
+In the original PRISM paper, we need to construct the $2m \times n$ matrix $\widetilde{M}_t$ and then apply the orthogonalization operator to this larger matrix. This wastes both GPU memory and compute. Instead, we can directly compute $H_R := M_t^T M_t + \gamma^2 D_t^T D_t$ in Equation \eqref{eq:prism_preconditioner}, and then $M_t H_R^{-1/2}$ using the matrix multiply-with-inverse-root function discussed in [Section 3](#3-gputpu-friendly-implementation) above, as shown below.
 
 ```python
 def prism_v2(M: jax.Array, D: jax.Array, *, gamma=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5, inv_scale=1.001):
