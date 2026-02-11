@@ -3,9 +3,8 @@ title: "Error-Compensating Optimizers: Handling Weight Decay and Matrix LMOs"
 date: 2026-02-10
 tags: ["Machine Learning", "Optimizers", "Muon"]
 author: ["Franz Louis Cesista"]
-description: "-"
-summary: "-"
-draft: true
+description: "Quantized training without full-precision master weights, extended to handle weight decay and matrix LMOs."
+summary: "Quantized training without full-precision master weights, extended to handle weight decay and matrix LMOs."
 ---
 
 ## 1. Introduction
