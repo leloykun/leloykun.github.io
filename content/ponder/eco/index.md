@@ -11,15 +11,15 @@ summary: "Quantized training without full-precision master weights, extended to 
 
 To optimize inference in production settings, we typically need to quantize the model weights first, and then do all subsequent computation in low precision. But training in low precision natively is difficult, and so we often pretrain in high precision, quantize, then fine-tune to recover any lost performance. This wastes compute and we often do not fully recover the original performance.
 
-Error-Compensating Optimizers (ECO), on the other hand, allows the (idealized) master weights to evolve in high precision while only materializing quantized weights ([Nikdan et. al, 2026](https://arxiv.org/abs/2601.22101)). This prevents performance degradation from quantization, and eliminates the need for a separate fine-tuning phase. The crux is to (1) compute the gradients with respect to the quantized weights, and (2) 'pull' the quantization 'error' back into the momentum buffer for use in the next step. 
+Error-Compensating Optimizers (ECO), on the other hand, allows the (idealized) master weights to evolve in high precision while only materializing quantized weights ([Nikdan et al., 2026](https://arxiv.org/abs/2601.22101)). This prevents performance degradation from quantization, and eliminates the need for a separate fine-tuning phase. The crux is to (1) compute the gradients with respect to the quantized weights, and (2) 'pull' the quantization 'error' back into the momentum buffer for use in the next step. 
 
-Here we shall discuss how to handle weight decay, matrix LMOs, and federated learning in the ECO framework.
+In this blog post, we shall discuss how to handle weight decay and matrix LMOs in the ECO framework.
 
 ## 2. ECO with weight decay
 
 ### 2.1. ECO for SGD with momentum and weight decay
 
-Let $q(\cdot)$ be the quantization function, $W_t^*$ and $M_t^*$ be the (idealized)master weights and momentum, and $\widehat{W}_t$ and $M_t$ be the (materialized) quantized weights and (unquantized) momentum at step $t$. Then, the master-weight SGD update with momentum and weight decay is given by,
+Let $q(\cdot)$ be the quantization function, $W_t^*$ and $M_t^*$ be the (idealized) master weights and momentum, and $\widehat{W}_t$ and $M_t$ be the (materialized) quantized weights and (unquantized) momentum at step $t$. Then, the master-weight SGD update with momentum and weight decay is given by,
 $$\begin{align}
     \widehat{W}_t &= q(W_t^*) \\
     G_t &= \nabla L(\widehat{W}_t) \\
@@ -41,14 +41,14 @@ $$\begin{align}
     E_{t+1}
         &= \widetilde{W}_{t+1} - \widehat{W}_{t+1} \label{eq:eco_sgdm_error} \\
     M_{t+1}
-        &= g(\widetilde{M}_{t+}, E_{t+1}),
+        &= g(\widetilde{M}_{t+1}, E_{t+1}),
 \end{align}$$
-where $\widetilde{M}_{t+}$ and $\widetilde{W}_{t+1}$ are intermediate variables, and $g$ is the error-compensation function that 'pulls' the quantization 'error' back into the momentum buffer for use in the next step. We derive $g$ as follows.
+where $\widetilde{M}_{t+1}$ and $\widetilde{W}_{t+1}$ are intermediate variables, and $g$ is the error-compensation function that 'pulls' the quantization 'error' back into the momentum buffer for use in the next step.
 
-First, since $\widetilde{W}_t = \widehat{W}_t + E_t$, it is sensible to set,
+The challenge then is to find $g$ such that the intermediate weight variable $\widetilde{W}_t$ evolves the same as the (idealized) master weight $W_t^*$. That is, we want to enfore the invariant,
 $$\begin{align}
     W_t^*
-        &:= \widetilde{W}_t = \widehat{W}_t + E_t.
+        &= \widetilde{W}_t.
 \end{align}$$
 
 Combining Equations $\eqref{eq:sgdm_w_update}$, $\eqref{eq:eco_sgdm_w_update}$, and $\eqref{eq:eco_sgdm_error}$, we have,
@@ -116,7 +116,7 @@ $$\begin{align}
     E_{t+1}
         &= \widetilde{W}_{t+1} - \widehat{W}_{t+1} \label{eq:eco_sgdm_error_2} \\
     M_{t+1}
-        &= g(\widetilde{M}_{t+}, E_{t+1}),
+        &= g(\widetilde{M}_{t+1}, E_{t+1}),
 \end{align}$$
 
 Setting $W_t^* := \widetilde{W}_t$ as before, we have,
@@ -131,7 +131,7 @@ $$\begin{align}
         &= U_{t+1} + \frac{1 - \eta \lambda}{\eta} E_t
 \end{align}$$
 
-We then make the following first-order approximation of the LMO:
+We then make the following approximation of the LMO by freezing $h$ (valid for small perturbations $\Delta X$ or small learning rates $\eta$ which are common in practice):
 $$\begin{align}
     \texttt{LMO}(X + \Delta X)
         &\approx \texttt{LMO}(X) + \Delta X h(X)
@@ -173,10 +173,10 @@ $$\begin{align}
         &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{\frac{1}{h(\widetilde{M}_{t+1})} \odot}} E_{t+1}
 \end{align}$$
 
-For AdamW, we have, $\texttt{LMO}(M_t) = \frac{M_t / (1 - \beta_1^t)}{\sqrt{V_t} / (1 - \beta_2^t) + \epsilon}$, where $V_t$ is the second moment accumulator, and so we have,
+For AdamW, we have, $\texttt{LMO}(M_t) = \frac{M_t / (1 - \beta_1^t)}{\sqrt{V_t / (1 - \beta_2^t)} + \epsilon}$, where $V_t$ is the second moment accumulator, and so we have,
 $$\begin{align}
     M_{t+1}
-        &\approx \widetilde{M}_{t+1} + \frac{{\color{red}{(1 - \eta \lambda)}}(1 - \beta_1^{t+1})}{\eta} \left( 1 - \frac{1}{\beta} \right) \left( \frac{\sqrt{V_{t+1}}}{1 - \beta_2^{t+1}} + \epsilon \right) \odot E_{t+1}
+        &\approx \widetilde{M}_{t+1} + \frac{{\color{red}{(1 - \eta \lambda)}}(1 - \beta_1^{t+1})}{\eta} \left( 1 - \frac{1}{\beta_1} \right) \left( \sqrt{\frac{V_{t+1}}{1 - \beta_2^{t+1}}} + \epsilon \right) \odot E_{t+1}
 \end{align}$$
 
 ## How to cite
@@ -239,16 +239,16 @@ def matmul_invroot(G: torch.Tensor, P: torch.Tensor, r: int, s=1, steps=None, ep
         G, P = G @ W1, _sym(P @ W2)
     return G * (t ** (-s / r) if t > eps else 0.)
 
-def orthogonalize(G: torch.Tensor, steps=None, eps=1e-5, scale: float = 1.001):
+def orthogonalize(G: torch.Tensor, steps=None, eps=1e-5, scale: float = 1.001) -> torch.Tensor:
     S = G.T @ G
     return matmul_invroot(G, S, r=2, steps=steps, eps=eps, scale=scale)
 
 def quantize(W: torch.Tensor) -> torch.Tensor:
     ...
 
-def update(G: torch.Tensor, M: torch.Tensor, W_quantized: torch.Tensor, *, eta, beta: 0.9, lamb: 0.1):
+def update(G: torch.Tensor, M: torch.Tensor, W_quantized: torch.Tensor, eta: float, *, beta=0.9, lamb=0.1) -> torch.Tensor:
     M_tilde = beta * M + (1 - beta) * G
-    W_tilde = (1 - eta * lamb) * W_quantized.to(G.dtype) - eta * orthogonalize(G)
+    W_tilde = (1 - eta * lamb) * W_quantized.to(M_tilde.dtype) - eta * orthogonalize(M_tilde)
     W_quantized_next = quantize(W_tilde)
     E = W_tilde - W_quantized_next
     S = M_tilde.T @ M_tilde
