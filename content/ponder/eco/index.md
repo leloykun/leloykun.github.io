@@ -197,3 +197,61 @@ $$\begin{align}
 
 1. Mahdi Nikdan, Amir Zandieh, Dan Alistarh, Vahab Mirrokni (2026). ECO: Quantized Training without Full-Precision Master Weights. URL https://arxiv.org/abs/2601.22101
 2. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
+
+## Appendix A1. Sample implementation
+
+```python
+coefs = [
+    None,  # r = 0
+    None,  # r = 1, omitted
+    [  # r = 2
+        (7.42487, -18.3958, 12.8967),
+        (3.48773, -2.33004, 0.440469),
+        (2.77661, -2.07064, 0.463023),
+        (1.99131, -1.37394, 0.387593),
+        (15 / 8, -5 / 4, 3 / 8),
+    ],
+    None,  # r = 3, omitted
+    [  # r = 4
+        (3.85003, -10.8539, 8.61893),
+        (1.80992, -0.587778, 0.0647852),
+        (1.50394, -0.594516, 0.121161),
+        (45 / 32, -9 / 16, 5 / 32),
+    ],
+]
+
+def abc(r=1, steps=None, scale=1.0):
+    w, steps = coefs[r], steps or len(coefs[r])
+    for a, b, c in w[:steps] + w[-1:] * max(steps - len(w), 0):
+        yield a / scale, b / scale ** (r + 1), c / scale ** (2 * r + 1)
+
+def _sym(M: torch.Tensor) -> torch.Tensor:
+    return 0.5 * (M + M.mT)
+
+def matmul_invroot(G: torch.Tensor, P: torch.Tensor, r: int, s=1, steps=None, eps=1e-5, scale: float = 1.001):
+    # Computes G @ P^(-s/r)
+    I_n = torch.eye(P.shape[0], dtype=P.dtype)
+    P = P / (t := torch.linalg.norm(P)) + eps * I_n
+    # P = P / ((t := torch.linalg.norm(P)) + eps)
+    for a, b, c in abc(r, steps, scale=scale):
+        W = a * I_n + b * P + c * P @ P
+        W1, W2 = torch.linalg.matrix_power(W, s), torch.linalg.matrix_power(W, r)
+        G, P = G @ W1, _sym(P @ W2)
+    return G * (t ** (-s / r) if t > eps else 0.)
+
+def orthogonalize(G: torch.Tensor, steps=None, eps=1e-5, scale: float = 1.001):
+    S = G.T @ G
+    return matmul_invroot(G, S, r=2, steps=steps, eps=eps, scale=scale)
+
+def quantize(W: torch.Tensor) -> torch.Tensor:
+    ...
+
+def update(G: torch.Tensor, M: torch.Tensor, W_quantized: torch.Tensor, *, eta, beta: 0.9, lamb: 0.1):
+    M_tilde = beta * M + (1 - beta) * G
+    W_tilde = (1 - eta * lamb) * W_quantized.to(G.dtype) - eta * orthogonalize(G)
+    W_quantized_next = quantize(W_tilde)
+    E = W_tilde - W_quantized_next
+    S = M_tilde.T @ M_tilde
+    M_next = M_tilde + (1 - eta * lamb) / eta * (1 - 1 / beta) * E @ matmul_invroot(S, S, r=2)
+    return M_next, W_quantized_next
+```
