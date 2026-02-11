@@ -32,7 +32,7 @@ $$\begin{align}
     W_{t+1}
         &= \arg\min_{W \in \mathcal{M}} \langle M_t, W - (1 - \eta\lambda) W_t \rangle \quad \text{ s.t. } \quad \|W - (1 - \eta\lambda) W_t\| \leq \eta, \label{eq:final_update}
 \end{align}$$
-which has a solution, via the Linear Minimization Oracle (LMO) of the norm $\| \cdot \|$,
+which has a solution, via the Linear Minimization Oracle (LMO) of the norm $\| \cdot \|$ (Pethick et al., 2025),
 $$\begin{align}
     W_{t+1}
         &= (1 - \eta\lambda) W_t - \eta \texttt{LMO}_{\| \cdot \|}(M_t). \label{eq:lmo_solution}
@@ -228,12 +228,13 @@ def shampoo_prism(M: jax.Array, D: jax.Array, *, gamma_L=0.0, gamma_R=0.0, eps_g
 
 ## References
 
-1. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
-2. Yujie Yang (2026). PRISM: Structured Optimization via Anisotropic Spectral Shaping. Available at: https://arxiv.org/abs/2602.03096
-3. Rohan Anil, Vineet Gupta, Tomer Koren, Kevin Regan, Yoram Singer (2020). Scalable second order optimization for deep learning. URL https://arxiv.org/abs/2002.09018
-4. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
-5. Jianlin Su (2025). Efficient Calculation of Matrix Square Root and Inverse Square Root. URL https://kexue.fm/archives/11158
-6. Jianlin Su (2025). Efficient Calculation of Matrix r-th Roots and Inverse r-th Roots. URL https://rohin-garg.github.io/kexue-en/translations/translation_11175.html
+1. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
+2. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
+3. Yujie Yang (2026). PRISM: Structured Optimization via Anisotropic Spectral Shaping. Available at: https://arxiv.org/abs/2602.03096
+4. Rohan Anil, Vineet Gupta, Tomer Koren, Kevin Regan, Yoram Singer (2020). Scalable second order optimization for deep learning. URL https://arxiv.org/abs/2002.09018
+5. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
+6. Jianlin Su (2025). Efficient Calculation of Matrix Square Root and Inverse Square Root. URL https://kexue.fm/archives/11158
+7. Jianlin Su (2025). Efficient Calculation of Matrix r-th Roots and Inverse r-th Roots. URL https://rohin-garg.github.io/kexue-en/translations/translation_11175.html
 
 ## Appendix
 
