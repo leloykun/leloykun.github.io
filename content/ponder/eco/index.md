@@ -119,7 +119,7 @@ $$\begin{align}
         &= g(\widetilde{M}_{t+1}, E_{t+1}),
 \end{align}$$
 
-Setting $W_t^* := \widetilde{W}_t$ as before, we have,
+Enforcing $W_t^* = \widetilde{W}_t$ as before, we have,
 $$\begin{align}
     W_{t+1}^*
         &= \widetilde{W}_{t+1} \nonumber \\
@@ -131,13 +131,13 @@ $$\begin{align}
         &= U_{t+1} + \frac{1 - \eta \lambda}{\eta} E_t
 \end{align}$$
 
-We then make the following approximation of the LMO by freezing $h$ (valid for small perturbations $\Delta X$ or small learning rates $\eta$ which are common in practice):
+For LMOs of the form $\texttt{LMO}(X) = X h(X)$ with invertible $h(X)$, we then make the following approximation by freezing $h$ (valid for small perturbations $\Delta X$ or small learning rates $\eta$ which are common in practice):
 $$\begin{align}
     \texttt{LMO}(X + \Delta X)
         &\approx \texttt{LMO}(X) + \Delta X h(X)
 \end{align}$$
 
-Thus, for LMOs of the form $\texttt{LMO}(X) = X h(X)$ with invertible $h(X)$, we have,
+Thus, we have,
 $$\begin{align}
     U_{t+1}^*
         &= \texttt{LMO}(\widetilde{M}_{t+1} + (M_{t+1}^* - \widetilde{M}_{t+1})) \nonumber \\
@@ -173,11 +173,12 @@ $$\begin{align}
         &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{\frac{1}{h(\widetilde{M}_{t+1})} \odot}} E_{t+1}
 \end{align}$$
 
-For AdamW, we have, $\texttt{LMO}(M_t) = \frac{M_t / (1 - \beta_1^t)}{\sqrt{V_t / (1 - \beta_2^t)} + \epsilon}$, where $V_t$ is the second moment accumulator, and so we have,
+And finally, for AdamW (Adam with (decoupled) weight decay), we have, $\texttt{LMO}(M_t) = \frac{M_t / (1 - \beta_1^t)}{\sqrt{V_t / (1 - \beta_2^t)} + \epsilon}$, where $V_t$ is the second moment accumulator. Thus,
 $$\begin{align}
     M_{t+1}
-        &\approx \widetilde{M}_{t+1} + \frac{{\color{red}{(1 - \eta \lambda)}}(1 - \beta_1^{t+1})}{\eta} \left( 1 - \frac{1}{\beta_1} \right) \left( \sqrt{\frac{V_{t+1}}{1 - \beta_2^{t+1}}} + \epsilon \right) \odot E_{t+1}
+        &\approx \widetilde{M}_{t+1} + \frac{{\color{blue}{(1 - \eta \lambda)}}(1 - \beta_1^{t+1})}{\eta} \left( 1 - \frac{1}{\beta_1} \right) \left( \sqrt{\frac{V_{t+1}}{1 - \beta_2^{t+1}}} + \epsilon \right) \odot E_{t+1},
 \end{align}$$
+where the blue-colored term is the difference from Algorithm 3 in the ECO paper.
 
 ## 3. Experiments [WIP]
 

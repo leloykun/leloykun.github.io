@@ -42,13 +42,15 @@ FP8_E4M3_MIN_NORMAL = 2.0 ** -6
 FP8_E4M3_MIN_SUBNORMAL = 2.0 ** -9
 RMS_NORM_EPS = 1e-5
 
-# Newton-Schulz coefficients from the ECO appendix for r=2.
+# Newton-Schulz coefficients for matrix square roots (trace-normalized iteration).
 COEFS_R2: List[Tuple[float, float, float]] = [
-    (7.42487, -18.3958, 12.8967),
-    (3.48773, -2.33004, 0.440469),
-    (2.77661, -2.07064, 0.463023),
-    (1.99131, -1.37394, 0.387593),
-    (15.0 / 8.0, -5.0 / 4.0, 3.0 / 8.0),
+    (8.287212018145622, -23.59588651909882, 17.300387312530923),
+    (4.107059111542197, -2.9478499167379084, 0.54484310829266),
+    (3.9486908534822938, -2.908902115962947, 0.5518191394370131),
+    (3.3184196573706055, -2.488488024314878, 0.5100489401237208),
+    (2.3006520199548186, -1.6689039845747518, 0.4188073119525678),
+    (1.8913014077874002, -1.2679958271945908, 0.37680408948524996),
+    (1.875, -1.25, 0.375),
 ]
 
 # Muon orthogonalization coefficients.
@@ -84,58 +86,42 @@ def make_torch_generator(seed: int, device: torch.device) -> torch.Generator:
     return gen
 
 
-def _sym(m: torch.Tensor) -> torch.Tensor:
-    return 0.5 * (m + m.mT)
-
-
 def _abc_for_r2(step: int, scale: float) -> Tuple[float, float, float]:
     a, b, c = COEFS_R2[step] if step < len(COEFS_R2) else COEFS_R2[-1]
     # For r=2: (a/scale, b/scale^3, c/scale^5).
     return a / scale, b / (scale**3), c / (scale**5)
 
 
-def right_mul_invsqrt(
-    g: torch.Tensor,
-    p: torch.Tensor,
+def matrix_sqrt_ns(
+    P: torch.Tensor,
     *,
-    steps: int = 5,
+    steps: int = 6,
     eps: float = 1e-6,
-    scale: float = 1.001,
+    scale: float = 1.01,
 ) -> torch.Tensor:
-    """
-    Compute g @ p^(-1/2) for SPD-ish p using Newton-Schulz-style polynomial iteration.
-    """
-    assert p.ndim == 2 and p.shape[0] == p.shape[1], "p must be square"
-    assert g.ndim == 2 and g.shape[1] == p.shape[0], "shape mismatch"
-
-    i_n = torch.eye(p.shape[0], device=p.device, dtype=p.dtype)
-    norm_p = torch.linalg.norm(p)
-    norm_p_value = float(norm_p.item())
-    if norm_p_value <= eps:
-        return torch.zeros_like(g)
-
-    p_hat = p / norm_p + eps * i_n
-    out = g
+    # Computes P^{1/2}
+    assert P.ndim == 2 and P.shape[0] == P.shape[1], "P must be square"
+    norm = torch.linalg.norm(P, dim=(-2, -1), keepdim=True)
+    if norm <= eps:
+        return torch.zeros_like(P)
+    Y = YZ = P / norm
+    I_n = torch.eye(P.shape[0], device=P.device, dtype=P.dtype)
     for k in range(steps):
         a, b, c = _abc_for_r2(k, scale)
-        w = a * i_n + b * p_hat + c * (p_hat @ p_hat)
-        out = out @ w
-        p_hat = _sym(p_hat @ (w @ w))
-    return out * (norm_p ** -0.5)
+        W = a * I_n + b * YZ + c * (YZ @ YZ)
+        Y, YZ = W @ Y, (W @ W) @ YZ
+    return Y * norm**0.5
 
 
 def _orthogonalize(M: torch.Tensor, niter: int = len(MUON_NS_COEFFS)) -> torch.Tensor:
-    """
-    Approximate matrix-sign orthogonalization via 5th-order Newton-Schulz iteration.
-    """
+    # Computes msign(M) = M (M^T M)^{-1/2}
     transpose = M.shape[0] > M.shape[1]
     if transpose:
         M = M.mT
     norm = torch.linalg.norm(M, dim=(-2, -1), keepdim=True)
     M = M / (norm + 1e-20)
     for a, b, c in MUON_NS_COEFFS[:niter]:
-        u = M @ M.mT
-        M = a * M + (b * u + c * (u @ u)) @ M
+        M = a * M + (b * (U := M @ M.mT) + c * (U @ U)) @ M
     if transpose:
         M = M.mT
     return M
@@ -835,7 +821,7 @@ class FP8MuonNoMasterECO(torch.optim.Optimizer):
                 e = w_tilde - w_q_next
                 if eco_comp:
                     if p.ndim == 2 and gram is not None:
-                        comp = right_mul_invsqrt(e @ gram, gram, steps=ns_steps, eps=ns_eps, scale=ns_scale)
+                        comp = e @ matrix_sqrt_ns(gram, steps=ns_steps, eps=ns_eps, scale=ns_scale)
                         m_next = m_tilde + (eco_coef / muon_scale) * comp
                     else:
                         m_next = m_tilde + eco_coef * e
@@ -1044,6 +1030,7 @@ def train_one_run(
 def plot_loss_curves(
     all_logs: Dict[str, List[Dict[str, float]]],
     output_path: Path,
+    optimizer_name: str,
 ) -> None:
     try:
         import matplotlib.pyplot as plt
@@ -1057,7 +1044,7 @@ def plot_loss_curves(
     }
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(10, 4))
     all_steps: List[int] = []
     late_horizon_vals: List[float] = []
     for run_name, logs in all_logs.items():
@@ -1084,8 +1071,12 @@ def plot_loss_curves(
         y_min, _ = plt.ylim()
         y_top = max(late_horizon_vals)
         if y_top > y_min:
-            plt.ylim(top=y_top)
-    plt.title("Tiny Shakespeare Residual MLP: Loss vs Training Steps")
+            plt.ylim(None, y_top)
+    optimizer_name_stylized = {
+        "adamw": "AdamW",
+        "muon": "Muon",
+    }[optimizer_name]
+    plt.title(f"{optimizer_name_stylized} on Tiny Shakespeare Residual MLP: Loss vs Training Steps")
     plt.grid(True, alpha=0.3)
     plt.legend()
     plt.tight_layout()
@@ -1388,7 +1379,7 @@ def main() -> None:
 
     script_dir = Path(__file__).resolve().parent
     plot_out = args.plot_out if args.plot_out is not None else script_dir / "loss_vs_training_steps_shakespeare_eco.png"
-    plot_loss_curves(all_logs, plot_out)
+    plot_loss_curves(all_logs, plot_out, args.optimizer)
     print(f"Saved plot to {plot_out}")
 
     if args.json_out is not None:
