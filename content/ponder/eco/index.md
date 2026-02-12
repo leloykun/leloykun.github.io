@@ -179,6 +179,24 @@ $$\begin{align}
         &\approx \widetilde{M}_{t+1} + \frac{{\color{red}{(1 - \eta \lambda)}}(1 - \beta_1^{t+1})}{\eta} \left( 1 - \frac{1}{\beta_1} \right) \left( \sqrt{\frac{V_{t+1}}{1 - \beta_2^{t+1}}} + \epsilon \right) \odot E_{t+1}
 \end{align}$$
 
+## 3. Experiments [WIP]
+
+Here we train 4-layer Residual MLPs on the Tiny Shakespeare dataset with FP8 ECO-AdamW and ECO-Muon, and compare with their (still FP8) non-ECO counterparts and a reference full-precision implemention. For the FP8 training runs, we quantize both the weights and activations with a straight-through estimator in the forward pass of the linear layers. Language model heads are kept in full-precision for all runs since it is the most sensitive to quantization. And Embedding layers are always optimized either by ECO-AdamW or its non-ECO counterpart since Muon is only designed for linear layers.
+
+> Important note: these are preliminary results, and I haven't fully tuned the hyperparameters for these runs yet.
+
+### 3.1. ECO-AdamW
+
+![](loss_plot_adamw.png)
+
+### 3.2. ECO-Muon
+
+![](loss_plot_muon.png)
+
+### 3.3. Discussion
+
+Our results show that ECO-AdamW and ECO-Muon closely track their full-precision counterparts, while the non-ECO versions noticeably diverge, demonstrating the effectiveness of ECO in preventing performance degradation from quantization. When FP8 training is enabled for all components (including the language model head), we see even more significant divergence for the non-ECO versions, while the ECO versions see only a slight increase in loss, matching the results by [Nikdan et al., 2026](https://arxiv.org/abs/2601.22101).
+
 ## How to cite
 
 ```bibtex
