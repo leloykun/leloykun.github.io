@@ -578,8 +578,8 @@ class FP8AdamWNoMasterECO(torch.optim.Optimizer):
                 e = w_tilde - w_q_next
 
                 if eco_comp:
-                    eco_coef = ((1.0 - lr * wd) * bias_c1 / lr) * (1.0 - 1.0 / beta1)
-                    m_next = m_tilde + eco_coef * denom * e
+                    eco_coef = ((1.0 - lr * wd) * bias_c1 * denom / lr) * (1.0 - 1.0 / beta1)
+                    m_next = m_tilde + eco_coef * e
                 else:
                     m_next = m_tilde
 
@@ -767,8 +767,6 @@ class FP8MuonNoMasterECO(torch.optim.Optimizer):
             use_ema_scales = group["use_ema_scales"]
             scale_ema_decay = group["scale_ema_decay"]
 
-            eco_coef = ((1.0 - lr * wd) / lr) * (1.0 - 1.0 / beta)
-
             for p in group["params"]:
                 if p.grad is None:
                     continue
@@ -820,6 +818,7 @@ class FP8MuonNoMasterECO(torch.optim.Optimizer):
 
                 e = w_tilde - w_q_next
                 if eco_comp:
+                    eco_coef = ((1.0 - lr * wd) / lr) * (1.0 - 1.0 / beta)
                     if p.ndim == 2 and gram is not None:
                         comp = e @ matrix_sqrt_ns(gram, steps=ns_steps, eps=ns_eps, scale=ns_scale)
                         m_next = m_tilde + (eco_coef / muon_scale) * comp

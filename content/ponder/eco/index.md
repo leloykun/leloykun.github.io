@@ -52,7 +52,9 @@ $$\begin{align}
 \end{align}$$
 for all $t \geq 0$.
 
-To do this, let us first combine this constraint with Equations $\eqref{eq:sgdm_w_update}$, $\eqref{eq:eco_sgdm_w_update}$, and $\eqref{eq:eco_sgdm_error}$ as follows,
+**Base case**: At $t=0$, we can simply initialize $W_0^* = \widetilde{W}_0 = \widehat{W}_0$ and $M_0^* = M_0 = \mathbf{0}$.
+
+**Inductive case**: Assuming $W_t^* = \widetilde{W}_t$ for some $t \geq 0$, we want to find $\texttt{pullback}$ such that $W_{t+1}^* = \widetilde{W}_{t+1}$ as well. To do this, let us first combine this constraint with Equations $\eqref{eq:sgdm_w_update}$, $\eqref{eq:eco_sgdm_w_update}$, and $\eqref{eq:eco_sgdm_error}$ as follows,
 $$\begin{align}
     W_{t+1}^*
         &= \widetilde{W}_{t+1} \nonumber \\
@@ -91,7 +93,7 @@ $$\begin{align}
 \end{align}$$
 where the red-colored term is the difference from Algorithm 2 in the ECO paper.
 
-### 2.2. ECO for steepest descent with LMOs of the form $\texttt{LMO}(X) = Xh(X)$
+### 2.2. ECO for steepest descent with LMOs of the form $\texttt{LMO}(X) = g(X) X h(X)$
 
 Steepest descent under a norm $\| \cdot \|$ with Linear Minimization Oracle (LMO), $\texttt{LMO}(X)$, has the following master-weight update rule:
 $$\begin{align}
@@ -131,10 +133,10 @@ $$\begin{align}
         &= U_{t+1} + \frac{1 - \eta \lambda}{\eta} E_t. \label{eq:u_star_from_u}
 \end{align}$$
 
-For LMOs of the form $\texttt{LMO}(X) = X h(X)$ with invertible matrix-function $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$, we then make the following approximation by freezing $h$ (valid for small perturbations $\Delta X$ or small learning rates $\eta$ which are common in practice):
+Now suppose we have LMOs of the form $\texttt{LMO}(X) = g(X) X h(X)$ with matrix functions $g: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ such that there exist $g^{-1}: \mathbb{R}^{m \times m} \to \mathbb{R}^{m \times m}$ and $h^{-1}: \mathbb{R}^{n \times n} \to \mathbb{R}^{n \times n}$ satisfying $g^{-1}(X) g(X) = I_m$ and $h(X) h^{-1}(X) = I_n$ for all $X$. Then, we can make the following approximation by freezing $g$ and $h$ (valid for small perturbations $\Delta X$ or small learning rates $\eta$ which are common in practice):
 $$\begin{align}
     \texttt{LMO}(X + \Delta X)
-        &\approx \texttt{LMO}(X) + \Delta X h(X). \label{eq:lmo_approx}
+        &\approx \texttt{LMO}(X) + g(X) \Delta X h(X). \label{eq:lmo_approx}
 \end{align}$$
 
 Thus, combining Equations $\eqref{eq:u_star_from_lmo}$, $\eqref{eq:u_star_from_u}$, and $\eqref{eq:lmo_approx}$, we have,
@@ -142,33 +144,50 @@ $$\begin{align}
     U_{t+1}^*
         &= \texttt{LMO}(M_{t+1}^*) \nonumber \\
         &= \texttt{LMO}(\widetilde{M}_{t+1} + (M_{t+1}^* - \widetilde{M}_{t+1})) \nonumber \\
-        &\approx U_{t+1} + (M_{t+1}^* - \widetilde{M}_{t+1}) h(\widetilde{M}_{t+1}) \nonumber \\
+        &\approx U_{t+1} + g(\widetilde{M}_{t+1}) (M_{t+1}^* - \widetilde{M}_{t+1}) h(\widetilde{M}_{t+1}) \nonumber \\
     \cancel{U_{t+1}} + \frac{1 - \eta \lambda}{\eta} E_t
-        &\approx \cancel{U_{t+1}} + (M_{t+1}^* - \widetilde{M}_{t+1}) h(\widetilde{M}_{t+1}) \nonumber \\
+        &\approx \cancel{U_{t+1}} + g(\widetilde{M}_{t+1}) (M_{t+1}^* - \widetilde{M}_{t+1}) h(\widetilde{M}_{t+1}) \nonumber \\
     M_{t+1}^*
-        &\approx \widetilde{M}_{t+1} + \frac{1 - \eta \lambda}{\eta} E_t h^{-1}(\widetilde{M}_{t+1}).
+        &\approx \widetilde{M}_{t+1} + \frac{1 - \eta \lambda}{\eta} g^{-1}(\widetilde{M}_{t+1}) E_t h^{-1}(\widetilde{M}_{t+1}).
 \end{align}$$
 
 Following the same steps as before then yields,
 $$\begin{align}
     M_{t+1}
-        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) E_{t+1} \color{red}{h^{-1}(\widetilde{M}_{t+1})}.
+        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{g^{-1}(\widetilde{M}_{t+1})}} E_{t+1} {\color{red}{h^{-1}(\widetilde{M}_{t+1})}}. \label{eq:lmo_error_compensation}
 \end{align}$$
 
 #### 2.2.1. ECO-Muon
 
-Specializing to steepest descent under the spectral norm (as in the Muon optimizer), we have the error-compensating momentum update rule for Muon:
+Steepest descent under the RMS-to-RMS norm as in the Muon optimizer ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)) have the following LMO:
 $$\begin{align}
     \texttt{LMO}(X)
-        &= \texttt{msign}(X) = X \underbrace{(X^T X)^{-1/2}}_{h(X)} \nonumber \\
+        &= \texttt{msign}(X) = \sqrt{\frac{m}{n}} X (X^T X)^{-1/2}
+\end{align}$$
+
+Thus, setting either $g(X) = \sqrt{\frac{m}{n}} I_m$ and $h(X) = (X^T X)^{-1/2}$ or $g(X) = I_m$ and $h(X) = \sqrt{\frac{n}{m}} (X^T X)^{-1/2}$ in Equation $\eqref{eq:lmo_error_compensation}$ then gives us the error-compensating momentum update rule for Muon:
+$$\begin{align}
     M_{t+1}
-        &\approx \widetilde{M}_{t+1} + \frac{1 - \eta \lambda}{\eta}\left(1 - \frac{1}{\beta}\right) E_{t+1} (\widetilde{M}_{t+1}^T \widetilde{M}_{t+1})^{1/2},
+        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{\sqrt{\frac{n}{m}}}} E_{t+1} {\color{red}{(\widetilde{M}_{t+1}^T \widetilde{M}_{t+1})^{1/2}}},
 \end{align}$$
 which we can compute as in [Appendix A1](#appendix-a1-sample-implementation).
 
+#### 2.2.2. ECO-Shampoo
+
+The Shampoo optimizer ([Gupta et al., 2018](https://arxiv.org/abs/1802.09568), [Anil et al., 2020](https://arxiv.org/abs/2002.09018)) instead calculates the updates as follows:
+$$\begin{align}
+    U_{t}
+        &= L_t^{-1/r} \widetilde{M}_{t} R_t^{-1/r}, \\
+\end{align}$$
+where $L_t: \mathbb{R}^{m \times m}$ and $R_t: \mathbb{R}^{n \times n}$ are the left and right preconditioners, respectively, and $r \in [2, 4]$ is some root hyperparameter usually set to $r=4$. Thus, setting $g(X) = L_t^{-1/r}$ and $h(X) = R_t^{-1/r}$ in Equation $\eqref{eq:lmo_error_compensation}$ then gives us the error-compensating momentum update rule for Shampoo:
+$$\begin{align}
+    M_{t+1}
+        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{L_{t}^{1/r}}} E_{t+1} {\color{red}{R_{t}^{1/r}}},
+\end{align}$$
+
 ### 2.3. ECO for steepest descent with LMOs of the form $\texttt{LMO}(X) = X \odot h(X)$
 
-Following the steps above for LMOs of the form $\texttt{LMO}(X) = X \odot h(X)$, where we apply the element-wise product $\odot$ between $X$ and $h(X)$, we instead have,
+Suppose we instead have LMOs of the form $\texttt{LMO}(X) = X \odot h(X)$, where $\odot$ is the element-wise product, and $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ is some matrix function such that there exists $h^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ satisfying $h(X) \odot h^{-1}(X) = \mathbf{1}_{m \times n}$ for all $X$. Then, following the same steps as before, we have the error-compensating momentum update rule,
 $$\begin{align}
     M_{t+1}^*
         &\approx \widetilde{M}_{t+1} + \frac{1 - \eta \lambda}{\eta} \frac{1}{h(\widetilde{M}_{t+1})} \odot E_t \\
@@ -178,15 +197,15 @@ $$\begin{align}
 
 #### 2.3.1. ECO-AdamW
 
-And finally, for AdamW (Adam with (decoupled) weight decay), we have,
+For AdamW (Adam with (decoupled) weight decay), we have the LMO,
 $$\begin{align}
-    \texttt{LMO}(M_t)
-        &= M_t \odot \frac{1 / (1 - \beta_1^t)}{\sqrt{V_t / (1 - \beta_2^t)} + \epsilon},
+    \texttt{LMO}(\widetilde{M}_t)
+        &= \widetilde{M}_t \odot \frac{1 / (1 - \beta_1^t)}{\sqrt{\widetilde{V}_t / (1 - \beta_2^t)} + \epsilon},
 \end{align}$$
-where $V_t$ is the second moment accumulator. Thus,
+where $\widetilde{V}_t$ is the second moment accumulator. Thus,
 $$\begin{align}
     M_{t+1}
-        &\approx \widetilde{M}_{t+1} + \frac{{\color{blue}{(1 - \eta \lambda)}}(1 - \beta_1^{t+1})}{\eta} \left( 1 - \frac{1}{\beta_1} \right) \left( \sqrt{\frac{V_{t+1}}{1 - \beta_2^{t+1}}} + \epsilon \right) \odot E_{t+1},
+        &\approx \widetilde{M}_{t+1} + \frac{{\color{blue}{(1 - \eta \lambda)}}(1 - \beta_1^{t+1})}{\eta} \left( 1 - \frac{1}{\beta_1} \right) \left( \sqrt{\frac{\widetilde{V}_{t+1}}{1 - \beta_2^{t+1}}} + \epsilon \right) \odot E_{t+1},
 \end{align}$$
 where the blue-colored term is the difference from Algorithm 3 in the ECO paper.
 
@@ -226,6 +245,9 @@ Our results show that ECO-AdamW and ECO-Muon closely track their full-precision 
 
 1. Mahdi Nikdan, Amir Zandieh, Dan Alistarh, Vahab Mirrokni (2026). ECO: Quantized Training without Full-Precision Master Weights. URL https://arxiv.org/abs/2601.22101
 2. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
+3. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
+4. Rohan Anil, Vineet Gupta, Tomer Koren, Kevin Regan, Yoram Singer (2020). Scalable second order optimization for deep learning. URL https://arxiv.org/abs/2002.09018
+5. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
 
 ## Appendix A1. Sample implementation
 
