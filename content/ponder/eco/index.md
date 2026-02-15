@@ -24,7 +24,7 @@ $$\begin{align}
     \widehat{W}_t &= q(W_t^*) \\
     G_t &= \nabla L(\widehat{W}_t) \\
     M_{t+1}^* &= \beta M_t^* + (1-\beta) G_t \label{eq:sgdm_m_update} \\
-    W_{t+1}^* &= (1 - \eta \lambda) W_t^* - \eta M_{t+1}^* \label{eq:sgdm_w_update}
+    W_{t+1}^* &= (1 - \eta \lambda) W_t^* - \eta M_{t+1}^*, \label{eq:sgdm_w_update}
 \end{align}$$
 where $0 \leq \beta < 1, \eta > 0, \lambda \geq 0$ are the momentum, learning rate, and weight decay hyperparameters, respectively.
 
@@ -75,7 +75,7 @@ $$\begin{align}
     \cancel{\widetilde{M}_{t+1}} + \beta \alpha_t
         &= \cancel{\widetilde{M}_{t+1}} + \frac{1 - \eta \lambda}{\eta} E_t \nonumber \\
     \alpha_t
-        &= \frac{1 - \eta \lambda}{\beta \eta} E_t
+        &= \frac{1 - \eta \lambda}{\beta \eta} E_t,
 \end{align}$$
 and since this holds for all $t$, we have,
 $$\begin{align}
@@ -83,13 +83,13 @@ $$\begin{align}
         &= \frac{1 - \eta \lambda}{\beta \eta} E_{t+1} \nonumber \\
     M_{t+1}
         &= M_{t+1}^* - \frac{1 - \eta \lambda}{\beta \eta} E_{t+1} \nonumber \\
-        &= \widetilde{M}_{t+1} + \frac{1 - \eta \lambda}{\eta} E_t - \frac{1 - \eta \lambda}{\beta \eta} E_{t+1}
+        &= \widetilde{M}_{t+1} + \frac{1 - \eta \lambda}{\eta} E_t - \frac{1 - \eta \lambda}{\beta \eta} E_{t+1}.
 \end{align}$$
 
 Lastly, we can eliminate the dependence on $E_t$ using the heuristic $E_t \approx E_{t+1}$ observed in practice, which gives us the error-compensating momentum update rule for SGD with momentum:
 $$\begin{align}
     M_{t+1}
-        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) E_{t+1} \label{eq:sgdm_error_compensation}
+        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) E_{t+1}, \label{eq:sgdm_error_compensation}
 \end{align}$$
 where the red-colored term is the difference from Algorithm 2 in the ECO paper.
 
@@ -101,7 +101,7 @@ $$\begin{align}
     G_t &= \nabla L(\widehat{W}_t) \\
     M_{t+1}^* &= \beta M_t^* + (1-\beta) G_t \label{eq:sgdm_m_update_2} \\
     U_{t+1}^* &= \texttt{LMO}(M_{t+1}^*) \\
-    W_{t+1}^* &= (1 - \eta \lambda) W_t^* - \eta U_{t+1}^* \label{eq:sgdm_w_update_2}
+    W_{t+1}^* &= (1 - \eta \lambda) W_t^* - \eta U_{t+1}^*, \label{eq:sgdm_w_update_2}
 \end{align}$$
 and as in the previous section, the ECO-style update is given by,
 $$\begin{align}
@@ -118,7 +118,7 @@ $$\begin{align}
     E_{t+1}
         &= \widetilde{W}_{t+1} - \widehat{W}_{t+1} \label{eq:eco_sgdm_error_2} \\
     M_{t+1}
-        &= \texttt{pullback}(\widetilde{M}_{t+1}, E_{t+1}),
+        &= \texttt{pullback}(\widetilde{M}_{t+1}, E_{t+1}).
 \end{align}$$
 
 Enforcing $W_t^* = \widetilde{W}_t$ as before, we have,
@@ -182,7 +182,7 @@ $$\begin{align}
 where $L_t: \mathbb{R}^{m \times m}$ and $R_t: \mathbb{R}^{n \times n}$ are the left and right preconditioners, respectively, and $r \in [2, 4]$ is some root hyperparameter usually set to $r=4$. Thus, setting $g(X) = L_t^{-1/r}$ and $h(X) = R_t^{-1/r}$ in Equation $\eqref{eq:lmo_error_compensation}$ then gives us the error-compensating momentum update rule for Shampoo:
 $$\begin{align}
     M_{t+1}
-        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{L_{t}^{1/r}}} E_{t+1} {\color{red}{R_{t}^{1/r}}},
+        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{L_{t}^{1/r}}} E_{t+1} {\color{red}{R_{t}^{1/r}}}.
 \end{align}$$
 
 ### 2.3. ECO for steepest descent with LMOs of the form $\texttt{LMO}(X) = X \odot h(X)$
@@ -192,7 +192,7 @@ $$\begin{align}
     M_{t+1}^*
         &\approx \widetilde{M}_{t+1} + \frac{1 - \eta \lambda}{\eta} \frac{1}{h(\widetilde{M}_{t+1})} \odot E_t \\
     M_{t+1}
-        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{\frac{1}{h(\widetilde{M}_{t+1})} \odot}} E_{t+1}
+        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{\frac{1}{h(\widetilde{M}_{t+1})} \odot}} E_{t+1}.
 \end{align}$$
 
 #### 2.3.1. ECO-AdamW
@@ -211,7 +211,7 @@ where the blue-colored term is the difference from Algorithm 3 in the ECO paper.
 
 ## 3. Experiments [WIP]
 
-Here we train 4-layer Residual MLPs on the Tiny Shakespeare dataset with FP8 ECO-AdamW and ECO-Muon, and compare with their (still FP8) non-ECO counterparts and a reference full-precision implemention. For the FP8 training runs, we quantize both the weights and activations with a straight-through estimator in the forward pass of the linear layers. Language model heads are kept in full-precision for all runs since it is the most sensitive to quantization. And Embedding layers are always optimized either by ECO-AdamW or its non-ECO counterpart since Muon is only designed for linear layers.
+Here we train 4-layer Residual MLPs on the Tiny Shakespeare dataset with FP8 ECO-AdamW, ECO-Muon, and ECO-Shampoo, and compare with their (still FP8) non-ECO counterparts and reference full-precision implementions. For the FP8 training runs, we quantize both the weights and activations with a straight-through estimator in the forward pass of the linear layers. Language model heads are kept in full-precision for all runs since it is the most sensitive to quantization. And Embedding layers are always optimized either by ECO-AdamW or its non-ECO counterpart since Muon is only designed for linear layers. And lastly, we also match the spectral norms of the updates for Muon and Shampoo to that of AdamW for a more direct comparison.
 
 > Important note: these are preliminary results, and I haven't fully tuned the hyperparameters for these runs yet.
 
@@ -223,9 +223,13 @@ Here we train 4-layer Residual MLPs on the Tiny Shakespeare dataset with FP8 ECO
 
 ![](loss_plot_muon.png)
 
+### 3.3. ECO-Shampoo
+
+![](loss_plot_shampoo.png)
+
 ### 3.3. Discussion
 
-Our results show that ECO-AdamW and ECO-Muon closely track their full-precision counterparts, while the non-ECO versions noticeably diverge, demonstrating the effectiveness of ECO in FP8-native training without master weights. When FP8 training is enabled for all components (including the language model head), we see even more significant divergence for the non-ECO versions, while the ECO versions see only a slight increase in loss, matching the results by [Nikdan et al., 2026](https://arxiv.org/abs/2601.22101).
+Our results show that ECO-AdamW, ECO-Muon, and ECO-Shampoo closely track their full-precision counterparts, while the non-ECO versions noticeably diverge, demonstrating the effectiveness of ECO in FP8-native training without master weights. When FP8 training is enabled for all components (including the language model head), we see even more significant divergence for the non-ECO versions, while the ECO versions see only a slight increase in loss, matching the results by [Nikdan et al., 2026](https://arxiv.org/abs/2601.22101).
 
 ## How to cite
 

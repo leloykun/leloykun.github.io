@@ -42,8 +42,28 @@ FP8_E4M3_MIN_NORMAL = 2.0 ** -6
 FP8_E4M3_MIN_SUBNORMAL = 2.0 ** -9
 RMS_NORM_EPS = 1e-5
 
-# Newton-Schulz coefficients for matrix square roots (trace-normalized iteration).
-COEFS_R2: List[Tuple[float, float, float]] = [
+# Newton-Schulz coefficients for matrix inverse roots.
+NTH_ROOT_COEFS: List[Optional[List[Tuple[float, float, float]]]] = [
+    None,  # r = 0
+    None,  # r = 1
+    [  # r = 2
+        (7.42487, -18.3958, 12.8967),
+        (3.48773, -2.33004, 0.440469),
+        (2.77661, -2.07064, 0.463023),
+        (1.99131, -1.37394, 0.387593),
+        (15.0 / 8.0, -5.0 / 4.0, 3.0 / 8.0),
+    ],
+    None,  # r = 3
+    [  # r = 4
+        (3.85003, -10.8539, 8.61893),
+        (1.80992, -0.587778, 0.0647852),
+        (1.50394, -0.594516, 0.121161),
+        (45.0 / 32.0, -9.0 / 16.0, 5.0 / 32.0),
+    ],
+]
+
+# Muon ECO square-root coefficients (trace-normalized iteration).
+MUON_SQRT_COEFS: List[Tuple[float, float, float]] = [
     (8.287212018145622, -23.59588651909882, 17.300387312530923),
     (4.107059111542197, -2.9478499167379084, 0.54484310829266),
     (3.9486908534822938, -2.908902115962947, 0.5518191394370131),
@@ -86,33 +106,6 @@ def make_torch_generator(seed: int, device: torch.device) -> torch.Generator:
     return gen
 
 
-def _abc_for_r2(step: int, scale: float) -> Tuple[float, float, float]:
-    a, b, c = COEFS_R2[step] if step < len(COEFS_R2) else COEFS_R2[-1]
-    # For r=2: (a/scale, b/scale^3, c/scale^5).
-    return a / scale, b / (scale**3), c / (scale**5)
-
-
-def matrix_sqrt_ns(
-    P: torch.Tensor,
-    *,
-    steps: int = 6,
-    eps: float = 1e-6,
-    scale: float = 1.01,
-) -> torch.Tensor:
-    # Computes P^{1/2}
-    assert P.ndim == 2 and P.shape[0] == P.shape[1], "P must be square"
-    norm = torch.linalg.norm(P, dim=(-2, -1), keepdim=True)
-    if norm <= eps:
-        return torch.zeros_like(P)
-    Y = YZ = P / norm
-    I_n = torch.eye(P.shape[0], device=P.device, dtype=P.dtype)
-    for k in range(steps):
-        a, b, c = _abc_for_r2(k, scale)
-        W = a * I_n + b * YZ + c * (YZ @ YZ)
-        Y, YZ = W @ Y, (W @ W) @ YZ
-    return Y * norm**0.5
-
-
 def _orthogonalize(M: torch.Tensor, niter: int = len(MUON_NS_COEFFS)) -> torch.Tensor:
     # Computes msign(M) = M (M^T M)^{-1/2}
     transpose = M.shape[0] > M.shape[1]
@@ -127,7 +120,150 @@ def _orthogonalize(M: torch.Tensor, niter: int = len(MUON_NS_COEFFS)) -> torch.T
     return M
 
 
-def _muon_update_scale(p: torch.Tensor) -> float:
+def _supported_root_or_raise(r: int) -> int:
+    if r <= 1 or r >= len(NTH_ROOT_COEFS) or NTH_ROOT_COEFS[r] is None:
+        raise ValueError(f"Unsupported root r={r}. Supported roots: 2 and 4.")
+    return r
+
+
+def _normalize_supported_root(root: float) -> int:
+    r = int(round(float(root)))
+    if abs(float(root) - float(r)) > 1e-8:
+        raise ValueError(f"root must be an integer in {{2, 4}}, got {root}")
+    return _supported_root_or_raise(r)
+
+
+def abc(
+    r: int = 2,
+    steps: Optional[int] = None,
+    scale: float = 1.0,
+):
+    r = _supported_root_or_raise(r)
+    w = NTH_ROOT_COEFS[r]
+    assert w is not None
+    max_steps = steps or len(w)
+    for a, b, c in w[:max_steps] + w[-1:] * max(max_steps - len(w), 0):
+        yield a / scale, b / (scale ** (r + 1)), c / (scale ** (2 * r + 1))
+
+
+def _sym(M: torch.Tensor) -> torch.Tensor:
+    return 0.5 * (M + M.mT)
+
+
+def _abc_for_muon_sqrt(step: int, scale: float) -> Tuple[float, float, float]:
+    a, b, c = MUON_SQRT_COEFS[step] if step < len(MUON_SQRT_COEFS) else MUON_SQRT_COEFS[-1]
+    return a / scale, b / (scale**3), c / (scale**5)
+
+
+def matmul_invroot(
+    G: torch.Tensor,
+    P: torch.Tensor,
+    *,
+    r: int,
+    s: int = 1,
+    steps: Optional[int] = None,
+    eps: float = 1e-5,
+    scale: float = 1.001,
+) -> torch.Tensor:
+    """
+    Computes G @ P^(-s/r) using Newton-Schulz iterations.
+    """
+    r = _supported_root_or_raise(r)
+    if s < 0:
+        raise ValueError("matmul_invroot expects s >= 0")
+    assert P.ndim == 2 and P.shape[0] == P.shape[1], "P must be square"
+    assert G.ndim == 2 and G.shape[1] == P.shape[0], "shape mismatch"
+
+    I_n = torch.eye(P.shape[0], device=P.device, dtype=P.dtype)
+    t = torch.linalg.norm(P)
+    t_value = float(t.item())
+    Pn = P / t + eps * I_n
+    out = G
+    for a, b, c in abc(r=r, steps=steps, scale=scale):
+        W = a * I_n + b * Pn + c * (Pn @ Pn)
+        W1 = torch.linalg.matrix_power(W, s)
+        W2 = torch.linalg.matrix_power(W, r)
+        out = out @ W1
+        Pn = _sym(Pn @ W2)
+    return out * ((t ** (-float(s) / float(r))) if t_value > eps else 0.0)
+
+
+def double_sided_matmul_invroot(
+    Q: torch.Tensor,
+    G: torch.Tensor,
+    P: torch.Tensor,
+    *,
+    r: int,
+    s: int = 1,
+    steps: Optional[int] = None,
+    eps: float = 1e-5,
+    scale: float = 1.001,
+) -> torch.Tensor:
+    """
+    Computes Q^(-s/r) @ G @ P^(-s/r) using coupled Newton-Schulz iterations.
+    """
+    r = _supported_root_or_raise(r)
+    assert Q.ndim == 2 and Q.shape[0] == Q.shape[1], "Q must be square"
+    assert P.ndim == 2 and P.shape[0] == P.shape[1], "P must be square"
+    assert G.ndim == 2 and G.shape[0] == Q.shape[0] and G.shape[1] == P.shape[0], "shape mismatch"
+
+    I_m = torch.eye(G.shape[0], device=G.device, dtype=G.dtype)
+    I_n = torch.eye(G.shape[1], device=G.device, dtype=G.dtype)
+
+    t_q = torch.linalg.norm(Q)
+    t_p = torch.linalg.norm(P)
+    t_q_value = float(t_q.item())
+    t_p_value = float(t_p.item())
+    t_q_safe = t_q if t_q_value > eps else torch.tensor(1.0, device=G.device, dtype=G.dtype)
+    t_p_safe = t_p if t_p_value > eps else torch.tensor(1.0, device=G.device, dtype=G.dtype)
+
+    Qn = Q / t_q_safe + eps * I_m
+    Pn = P / t_p_safe + eps * I_n
+    out = G
+    for a, b, c in abc(r=r, steps=steps, scale=scale):
+        W_q = a * I_m + b * Qn + c * (Qn @ Qn)
+        W_p = a * I_n + b * Pn + c * (Pn @ Pn)
+        W_q1 = torch.linalg.matrix_power(W_q, s)
+        W_q2 = torch.linalg.matrix_power(W_q, r)
+        W_p1 = torch.linalg.matrix_power(W_p, s)
+        W_p2 = torch.linalg.matrix_power(W_p, r)
+        Qn = _sym(Qn @ W_q2)
+        out = W_q1 @ out @ W_p1
+        Pn = _sym(Pn @ W_p2)
+
+    q_scale = (t_q ** (-float(s) / float(r))) if t_q_value > eps else 0.0
+    p_scale = (t_p ** (-float(s) / float(r))) if t_p_value > eps else 0.0
+    return out * q_scale * p_scale
+
+
+def matrix_sqrt_ns(
+    P: torch.Tensor,
+    *,
+    steps: int = 6,
+    eps: float = 1e-6,
+    scale: float = 1.001,
+) -> torch.Tensor:
+    """
+    Muon-specific Newton-Schulz matrix square root used in ECO compensation.
+    Kept separate from Shampoo's nth-root backend to preserve Muon behavior.
+    """
+    assert P.ndim == 2 and P.shape[0] == P.shape[1], "P must be square"
+    norm = torch.linalg.norm(P)
+    norm_value = float(norm.item())
+    if norm_value <= eps:
+        return torch.zeros_like(P)
+    Y = P / norm
+    YZ = Y
+    I_n = torch.eye(P.shape[0], device=P.device, dtype=P.dtype)
+    for k in range(steps):
+        a, b, c = _abc_for_muon_sqrt(k, scale)
+        W = a * I_n + b * YZ + c * (YZ @ YZ)
+        Y = W @ Y
+        YZ = (W @ W) @ YZ
+    return Y * (norm**0.5)
+
+
+def _matrix_update_scale(p: torch.Tensor) -> float:
     if p.ndim != 2:
         return 1.0
     fan_out, fan_in = p.shape
@@ -650,13 +786,303 @@ class MuonOptimizer(torch.optim.Optimizer):
                 m_tilde = beta * m + (1.0 - beta) * g
 
                 if p.ndim == 2:
-                    update = _muon_update_scale(p) * _orthogonalize(m_tilde, niter=ns_steps)
+                    update = _matrix_update_scale(p) * _orthogonalize(m_tilde, niter=ns_steps)
                 else:
                     update = m_tilde
 
                 w_next = (1.0 - lr * wd) * p.detach().to(torch.float32) - lr * update
                 p.copy_(w_next.to(dtype=p.dtype))
                 m.copy_(m_tilde)
+
+        return loss
+
+
+class ShampooOptimizer(torch.optim.Optimizer):
+    """
+    Reference Shampoo with momentum and decoupled weight decay.
+
+    Matrix Shampoo update:
+      U_t = L_t^{-1/r} @ M_tilde @ R_t^{-1/r}
+    """
+
+    def __init__(
+        self,
+        params: Iterable[nn.Parameter],
+        *,
+        lr: float = 3e-4,
+        beta: float = 0.9,
+        weight_decay: float = 0.1,
+        precond_beta: float = 0.9,
+        eps: float = 1e-8,
+        root: float = 4.0,
+    ):
+        if lr <= 0:
+            raise ValueError("lr must be > 0")
+        if not (0.0 < beta < 1.0):
+            raise ValueError("beta must be in (0, 1)")
+        if not (0.0 <= precond_beta < 1.0):
+            raise ValueError("precond_beta must be in [0, 1)")
+        if eps <= 0:
+            raise ValueError("eps must be > 0")
+        _normalize_supported_root(root)
+
+        defaults = dict(
+            lr=lr,
+            beta=beta,
+            weight_decay=weight_decay,
+            precond_beta=precond_beta,
+            eps=eps,
+            root=root,
+        )
+        super().__init__(params, defaults)
+
+    @torch.no_grad()
+    def step(self, closure=None):
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
+        for group in self.param_groups:
+            lr = group["lr"]
+            beta = group["beta"]
+            wd = group["weight_decay"]
+            precond_beta = group["precond_beta"]
+            eps = group["eps"]
+            root = _normalize_supported_root(group["root"])
+
+            for p in group["params"]:
+                if p.grad is None:
+                    continue
+                if p.grad.is_sparse:
+                    raise RuntimeError("Sparse gradients are not supported.")
+
+                state = self.state[p]
+                if "momentum" not in state:
+                    state["momentum"] = torch.zeros_like(p, dtype=torch.float32)
+                    if p.ndim == 2:
+                        m_dim, n_dim = p.shape
+                        state["left_precond"] = torch.zeros((m_dim, m_dim), device=p.device, dtype=torch.float32)
+                        state["right_precond"] = torch.zeros((n_dim, n_dim), device=p.device, dtype=torch.float32)
+                m = state["momentum"]
+
+                g = p.grad.detach().to(torch.float32)
+                m_tilde = beta * m + (1.0 - beta) * g
+
+                if p.ndim == 2:
+                    left = state["left_precond"]
+                    right = state["right_precond"]
+                    left_t = precond_beta * left + (1.0 - precond_beta) * (g @ g.mT)
+                    right_t = precond_beta * right + (1.0 - precond_beta) * (g.mT @ g)
+                    update = _matrix_update_scale(p) * double_sided_matmul_invroot(
+                        left_t,
+                        m_tilde,
+                        right_t,
+                        r=root,
+                        s=1,
+                        eps=eps,
+                        scale=1.001,
+                    )
+                    state["left_precond"] = left_t
+                    state["right_precond"] = right_t
+                else:
+                    update = m_tilde
+
+                w_next = (1.0 - lr * wd) * p.detach().to(torch.float32) - lr * update
+                p.copy_(w_next.to(dtype=p.dtype))
+                m.copy_(m_tilde)
+
+        return loss
+
+
+class FP8ShampooNoMasterECO(torch.optim.Optimizer):
+    """
+    FP8 Shampoo without master weights, with optional ECO compensation.
+
+    Uses matrix Shampoo preconditioners:
+      U_t = L_t^{-1/r} @ M_tilde @ R_t^{-1/r}
+      M_next = M_tilde + coef * L_t^{1/r} @ E @ R_t^{1/r}
+    where coef = ((1 - lr*wd)/lr) * (1 - 1/beta).
+    """
+
+    def __init__(
+        self,
+        params: Iterable[nn.Parameter],
+        *,
+        lr: float = 3e-4,
+        beta: float = 0.9,
+        weight_decay: float = 0.1,
+        precond_beta: float = 0.9,
+        eps: float = 1e-8,
+        root: float = 4.0,
+        fp8_scale_mode: ScaleMode = "row",
+        fp8_stochastic_rounding: bool = True,
+        eco_compensation: bool = True,
+        use_ema_scales: bool = True,
+        scale_ema_decay: float = 0.99,
+        sr_generator: Optional[torch.Generator] = None,
+    ):
+        if lr <= 0:
+            raise ValueError("lr must be > 0")
+        if not (0.0 < beta < 1.0):
+            raise ValueError("beta must be in (0, 1)")
+        if not (0.0 <= precond_beta < 1.0):
+            raise ValueError("precond_beta must be in [0, 1)")
+        if eps <= 0:
+            raise ValueError("eps must be > 0")
+        _normalize_supported_root(root)
+        if not (0.0 <= scale_ema_decay < 1.0):
+            raise ValueError("scale_ema_decay must be in [0, 1)")
+
+        defaults = dict(
+            lr=lr,
+            beta=beta,
+            weight_decay=weight_decay,
+            precond_beta=precond_beta,
+            eps=eps,
+            root=root,
+            fp8_scale_mode=fp8_scale_mode,
+            fp8_stochastic_rounding=fp8_stochastic_rounding,
+            eco_compensation=eco_compensation,
+            use_ema_scales=use_ema_scales,
+            scale_ema_decay=scale_ema_decay,
+        )
+        super().__init__(params, defaults)
+        self.sr_generator = sr_generator
+        self._quantize_all_params()
+
+    @torch.no_grad()
+    def _quantize_all_params(self) -> None:
+        for group in self.param_groups:
+            scale_mode = group["fp8_scale_mode"]
+            sr = group["fp8_stochastic_rounding"]
+            use_ema_scales = group["use_ema_scales"]
+            for p in group["params"]:
+                if use_ema_scales:
+                    state = self.state[p]
+                    scale = compute_fp8_scale(p.data, scale_mode=scale_mode)
+                    state["fp8_scale"] = scale.detach().to(torch.float32).clone()
+                    p.copy_(
+                        quantize_fp8_e4m3_with_scale(
+                            p.data,
+                            scale=state["fp8_scale"],
+                            stochastic_rounding=sr,
+                            generator=self.sr_generator,
+                        ).to(dtype=p.dtype)
+                    )
+                else:
+                    p.copy_(
+                        quantize_fp8_e4m3(
+                            p,
+                            stochastic_rounding=sr,
+                            scale_mode=scale_mode,
+                            generator=self.sr_generator,
+                        ).to(dtype=p.dtype)
+                    )
+
+    @torch.no_grad()
+    def step(self, closure=None):
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
+        for group in self.param_groups:
+            lr = group["lr"]
+            beta = group["beta"]
+            wd = group["weight_decay"]
+            precond_beta = group["precond_beta"]
+            eps = group["eps"]
+            root = _normalize_supported_root(group["root"])
+            scale_mode = group["fp8_scale_mode"]
+            sr = group["fp8_stochastic_rounding"]
+            eco_comp = group["eco_compensation"]
+            use_ema_scales = group["use_ema_scales"]
+            scale_ema_decay = group["scale_ema_decay"]
+
+            eco_coef = ((1.0 - lr * wd) / lr) * (1.0 - 1.0 / beta)
+
+            for p in group["params"]:
+                if p.grad is None:
+                    continue
+                if p.grad.is_sparse:
+                    raise RuntimeError("Sparse gradients are not supported.")
+
+                state = self.state[p]
+                if "momentum" not in state:
+                    state["momentum"] = torch.zeros_like(p, dtype=torch.float32)
+                    if p.ndim == 2:
+                        m_dim, n_dim = p.shape
+                        state["left_precond"] = torch.zeros((m_dim, m_dim), device=p.device, dtype=torch.float32)
+                        state["right_precond"] = torch.zeros((n_dim, n_dim), device=p.device, dtype=torch.float32)
+                    if use_ema_scales and "fp8_scale" not in state:
+                        state["fp8_scale"] = compute_fp8_scale(p.data, scale_mode=scale_mode).to(torch.float32)
+                m = state["momentum"]
+
+                g = p.grad.detach().to(torch.float32)
+                m_tilde = beta * m + (1.0 - beta) * g
+
+                if p.ndim == 2:
+                    left = state["left_precond"]
+                    right = state["right_precond"]
+                    matrix_scale = _matrix_update_scale(p)
+                    left_t = precond_beta * left + (1.0 - precond_beta) * (g @ g.mT)
+                    right_t = precond_beta * right + (1.0 - precond_beta) * (g.mT @ g)
+                    update = matrix_scale * double_sided_matmul_invroot(
+                        left_t,
+                        m_tilde,
+                        right_t,
+                        r=root,
+                        s=1,
+                        eps=eps,
+                        scale=1.001,
+                    )
+                else:
+                    left_t = None
+                    right_t = None
+                    update = m_tilde
+
+                w_q = p.detach().to(torch.float32)
+                w_tilde = (1.0 - lr * wd) * w_q - lr * update
+                if use_ema_scales:
+                    scale_now = compute_fp8_scale(w_tilde, scale_mode=scale_mode).to(torch.float32)
+                    scale_ema = state.get("fp8_scale")
+                    if scale_ema is None:
+                        scale_ema = scale_now.detach().clone()
+                    else:
+                        scale_ema = scale_ema * scale_ema_decay + scale_now * (1.0 - scale_ema_decay)
+                    state["fp8_scale"] = scale_ema
+                    w_q_next = quantize_fp8_e4m3_with_scale(
+                        w_tilde,
+                        scale=scale_ema,
+                        stochastic_rounding=sr,
+                        generator=self.sr_generator,
+                    )
+                else:
+                    w_q_next = quantize_fp8_e4m3(
+                        w_tilde,
+                        stochastic_rounding=sr,
+                        scale_mode=scale_mode,
+                        generator=self.sr_generator,
+                    )
+
+                e = w_tilde - w_q_next
+                if eco_comp:
+                    if p.ndim == 2 and left_t is not None and right_t is not None:
+                        left_pos = matrix_sqrt_ns(left_t, steps=6, eps=max(eps, 1e-6), scale=1.001)
+                        right_pos = matrix_sqrt_ns(right_t, steps=6, eps=max(eps, 1e-6), scale=1.001)
+                        comp = left_pos @ e @ right_pos
+                        m_next = m_tilde + (eco_coef / matrix_scale) * comp
+                    else:
+                        m_next = m_tilde + eco_coef * e
+                else:
+                    m_next = m_tilde
+
+                p.copy_(w_q_next.to(dtype=p.dtype))
+                m.copy_(m_next)
+                if p.ndim == 2 and left_t is not None and right_t is not None:
+                    state["left_precond"] = left_t
+                    state["right_precond"] = right_t
 
         return loss
 
@@ -784,11 +1210,11 @@ class FP8MuonNoMasterECO(torch.optim.Optimizer):
                 m_tilde = beta * m + (1.0 - beta) * g
 
                 if p.ndim == 2:
-                    muon_scale = _muon_update_scale(p)
-                    u = muon_scale * _orthogonalize(m_tilde, niter=ns_steps)
+                    matrix_scale = _matrix_update_scale(p)
+                    u = matrix_scale * _orthogonalize(m_tilde, niter=ns_steps)
                     gram = m_tilde.mT @ m_tilde
                 else:
-                    muon_scale = 1.0
+                    matrix_scale = 1.0
                     u = m_tilde
                     gram = None
 
@@ -821,7 +1247,7 @@ class FP8MuonNoMasterECO(torch.optim.Optimizer):
                     eco_coef = ((1.0 - lr * wd) / lr) * (1.0 - 1.0 / beta)
                     if p.ndim == 2 and gram is not None:
                         comp = e @ matrix_sqrt_ns(gram, steps=ns_steps, eps=ns_eps, scale=ns_scale)
-                        m_next = m_tilde + (eco_coef / muon_scale) * comp
+                        m_next = m_tilde + (eco_coef / matrix_scale) * comp
                     else:
                         m_next = m_tilde + eco_coef * e
                 else:
@@ -1012,7 +1438,8 @@ def train_one_run(
             min_lr_ratio=min_lr_ratio,
         )
         for param_group in optimizer.param_groups:
-            param_group["lr"] = current_lr
+            lr_scale = float(param_group.get("lr_scale", 1.0))
+            param_group["lr"] = current_lr * lr_scale
 
         optimizer.zero_grad(set_to_none=True)
         _, loss = model(xb, yb)
@@ -1074,6 +1501,7 @@ def plot_loss_curves(
     optimizer_name_stylized = {
         "adamw": "AdamW",
         "muon": "Muon",
+        "shampoo": "Shampoo",
     }[optimizer_name]
     plt.title(f"{optimizer_name_stylized} on Tiny Shakespeare Residual MLP: Loss vs Training Steps")
     plt.grid(True, alpha=0.3)
@@ -1143,12 +1571,13 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--min_lr_ratio", type=float, default=0.1)
-    parser.add_argument("--optimizer", type=str, default="adamw", choices=["adamw", "muon"])
+    parser.add_argument("--optimizer", type=str, default="adamw", choices=["adamw", "muon", "shampoo"])
     parser.add_argument("--beta1", type=float, default=0.9)
     parser.add_argument("--beta2", type=float, default=0.9)
     parser.add_argument("--eps", type=float, default=1e-8)
     parser.add_argument("--weight_decay", type=float, default=0.1)
     parser.add_argument("--muon_ns_steps", type=int, default=8)
+    parser.add_argument("--shampoo_root", type=float, default=4.0)
 
     parser.add_argument("--fp8_scale_mode", type=str, default="row", choices=["none", "tensor", "row"])
     parser.add_argument("--eco_update_sr", action=argparse.BooleanOptionalAction, default=True)
@@ -1196,10 +1625,16 @@ def main() -> None:
     print(f"Optimizer family: {args.optimizer}")
     print("Rounding policy: weights=stochastic-rounding, activations=round-to-nearest")
     print("FP8 run policy: optimizer-side EMA scales (decay=0.99), lm_head kept in FP32")
+    matrix_lr_scale = 0.2 * (max(args.d_model, args.mlp_hidden))**0.5
     if args.optimizer == "muon":
         print(f"Muon config: beta={args.beta1:.3f}, ns_steps={args.muon_ns_steps}")
-        muon_lr_scale = 0.2 * (max(args.d_model, args.mlp_hidden))**0.5
-        print(f"Muon lr scale: {muon_lr_scale:.3f}")
+        print(f"Muon lr scale: {matrix_lr_scale:.3f}")
+    elif args.optimizer == "shampoo":
+        print(
+            f"Shampoo config: beta={args.beta1:.3f}, precond_beta={args.beta2:.3f}, "
+            f"root={args.shampoo_root:.1f} (matrix preconditioners)"
+        )
+        print(f"Shampoo lr scale: {matrix_lr_scale:.3f}")
 
     # Build one canonical initialization and reuse it for all runs.
     base_model = build_model(
@@ -1254,13 +1689,13 @@ def main() -> None:
                     eps=args.eps,
                     weight_decay=args.weight_decay,
                 )
-            else:
+            elif args.optimizer == "muon":
                 named_params = list(model.named_parameters())
                 adamw_params = [p for name, p in named_params if name.startswith("lm_head.") or "_embedding" in name]
                 muon_params = [p for name, p in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
                 muon_optimizer = MuonOptimizer(
                     muon_params,
-                    lr=args.lr * muon_lr_scale,
+                    lr=args.lr,
                     beta=args.beta1,
                     weight_decay=args.weight_decay,
                     ns_steps=args.muon_ns_steps,
@@ -1272,7 +1707,34 @@ def main() -> None:
                     eps=args.eps,
                     weight_decay=args.weight_decay,
                 )
+                for group in muon_optimizer.param_groups:
+                    group["lr_scale"] = matrix_lr_scale
                 optimizer = CompositeOptimizer([adamw_optimizer, muon_optimizer])
+            elif args.optimizer == "shampoo":
+                named_params = list(model.named_parameters())
+                adamw_params = [p for name, p in named_params if name.startswith("lm_head.") or "_embedding" in name]
+                shampoo_params = [p for name, p in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
+                shampoo_optimizer = ShampooOptimizer(
+                    shampoo_params,
+                    lr=args.lr,
+                    beta=args.beta1,
+                    weight_decay=args.weight_decay,
+                    precond_beta=args.beta2,
+                    eps=args.eps,
+                    root=args.shampoo_root,
+                )
+                adamw_optimizer = torch.optim.AdamW(
+                    adamw_params,
+                    lr=args.lr,
+                    betas=(args.beta1, args.beta2),
+                    eps=args.eps,
+                    weight_decay=args.weight_decay,
+                )
+                for group in shampoo_optimizer.param_groups:
+                    group["lr_scale"] = matrix_lr_scale
+                optimizer = CompositeOptimizer([adamw_optimizer, shampoo_optimizer])
+            else:
+                raise ValueError(f"Unknown optimizer: {args.optimizer}")
         elif run_name in ("eco_fp8_nomaster", "fp8_nomaster_noeco"):
             eco_comp = run_name == "eco_fp8_nomaster"
 
@@ -1301,14 +1763,14 @@ def main() -> None:
                     weight_decay=args.weight_decay,
                 )
                 optimizer = CompositeOptimizer([fp8_optimizer, fp32_optimizer])
-            else:
+            elif args.optimizer == "muon":
                 named_params = list(model.named_parameters())
                 embedding_params = [p for name, p in named_params if "_embedding" in name]
                 fp32_params = [p for name, p in named_params if name.startswith("lm_head.") and "_embedding" not in name]
                 fp8_params = [p for name, p in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
                 fp8_optimizer = FP8MuonNoMasterECO(
                     fp8_params,
-                    lr=args.lr * muon_lr_scale,
+                    lr=args.lr,
                     beta=args.beta1,
                     weight_decay=args.weight_decay,
                     ns_steps=args.muon_ns_steps,
@@ -1319,6 +1781,8 @@ def main() -> None:
                     scale_ema_decay=0.99,
                     sr_generator=make_torch_generator(sr_seed_base + run_seed_offset + 2, device),
                 )
+                for group in fp8_optimizer.param_groups:
+                    group["lr_scale"] = matrix_lr_scale
                 adamw_fp8_optimizer = FP8AdamWNoMasterECO(
                     embedding_params,
                     lr=args.lr,
@@ -1340,6 +1804,51 @@ def main() -> None:
                     weight_decay=args.weight_decay,
                 )
                 optimizer = CompositeOptimizer([fp8_optimizer, adamw_fp8_optimizer, adamw_fp32_optimizer])
+            elif args.optimizer == "shampoo":
+                named_params = list(model.named_parameters())
+                embedding_params = [p for name, p in named_params if "_embedding" in name]
+                fp32_params = [p for name, p in named_params if name.startswith("lm_head.") and "_embedding" not in name]
+                fp8_params = [p for name, p in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
+                fp8_optimizer = FP8ShampooNoMasterECO(
+                    fp8_params,
+                    lr=args.lr,
+                    beta=args.beta1,
+                    weight_decay=args.weight_decay,
+                    precond_beta=args.beta2,
+                    eps=args.eps,
+                    root=args.shampoo_root,
+                    fp8_scale_mode=args.fp8_scale_mode,
+                    fp8_stochastic_rounding=args.eco_update_sr,
+                    eco_compensation=eco_comp,
+                    use_ema_scales=True,
+                    scale_ema_decay=0.99,
+                    sr_generator=make_torch_generator(sr_seed_base + run_seed_offset + 2, device),
+                )
+                for group in fp8_optimizer.param_groups:
+                    group["lr_scale"] = matrix_lr_scale
+                adamw_fp8_optimizer = FP8AdamWNoMasterECO(
+                    embedding_params,
+                    lr=args.lr,
+                    betas=(args.beta1, args.beta2),
+                    eps=args.eps,
+                    weight_decay=args.weight_decay,
+                    fp8_scale_mode=args.fp8_scale_mode,
+                    fp8_stochastic_rounding=args.eco_update_sr,
+                    eco_compensation=eco_comp,
+                    use_ema_scales=True,
+                    scale_ema_decay=0.99,
+                    sr_generator=make_torch_generator(sr_seed_base + run_seed_offset + 3, device),
+                )
+                adamw_fp32_optimizer = torch.optim.AdamW(
+                    fp32_params,
+                    lr=args.lr,
+                    betas=(args.beta1, args.beta2),
+                    eps=args.eps,
+                    weight_decay=args.weight_decay,
+                )
+                optimizer = CompositeOptimizer([fp8_optimizer, adamw_fp8_optimizer, adamw_fp32_optimizer])
+            else:
+                raise ValueError(f"Unknown optimizer: {args.optimizer}")
         else:
             raise ValueError(f"Unknown run mode: {run_name}")
 
