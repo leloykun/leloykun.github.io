@@ -133,7 +133,7 @@ $$\begin{align}
         &= U_{t+1} + \frac{1 - \eta \lambda}{\eta} E_t. \label{eq:u_star_from_u}
 \end{align}$$
 
-Now suppose we have LMOs of the form $\texttt{LMO}(X) = g(X) X h(X)$ with matrix functions $g: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ such that there exist $g^{-1}: \mathbb{R}^{m \times m} \to \mathbb{R}^{m \times m}$ and $h^{-1}: \mathbb{R}^{n \times n} \to \mathbb{R}^{n \times n}$ satisfying $g^{-1}(X) g(X) = I_m$ and $h(X) h^{-1}(X) = I_n$ for all $X$. Then, we can make the following approximation by freezing $g$ and $h$ (valid for small perturbations $\Delta X$ or small learning rates $\eta$ which are common in practice):
+Now suppose we have LMOs of the form $\texttt{LMO}(X) = g(X) X h(X)$ with matrix functions $g: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ such that there exist $g^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ satisfying $g^{-1}(X) g(X) = I_m$ and $h(X) h^{-1}(X) = I_n$ for all $X$. Then, we can make the following approximation by freezing $g$ and $h$ (valid for small perturbations $\Delta X$ or small learning rates $\eta$ which are common in practice):
 $$\begin{align}
     \texttt{LMO}(X + \Delta X)
         &\approx \texttt{LMO}(X) + g(X) \Delta X h(X). \label{eq:lmo_approx}
@@ -165,24 +165,24 @@ $$\begin{align}
         &= \texttt{msign}(X) = \sqrt{\frac{m}{n}} X (X^T X)^{-1/2}
 \end{align}$$
 
-Thus, setting either $g(X) = \sqrt{\frac{m}{n}} I_m$ and $h(X) = (X^T X)^{-1/2}$ or $g(X) = I_m$ and $h(X) = \sqrt{\frac{n}{m}} (X^T X)^{-1/2}$ in Equation $\eqref{eq:lmo_error_compensation}$ then gives us the error-compensating momentum update rule for Muon:
+Thus, setting either $g(X) = \sqrt{\frac{m}{n}} I_m$ and $h(X) = (X^T X)^{-1/2}$ or $g(X) = I_m$ and $h(X) = \sqrt{\frac{m}{n}} (X^T X)^{-1/2}$ then gives us the error-compensating momentum update rule for Muon:
 $$\begin{align}
     M_{t+1}
         &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{\sqrt{\frac{n}{m}}}} E_{t+1} {\color{red}{(\widetilde{M}_{t+1}^T \widetilde{M}_{t+1})^{1/2}}},
 \end{align}$$
-which we can compute as in [Appendix A1](#appendix-a1-sample-implementation).
+which we can compute as in [Appendix A1](#appendix-a1-sample-implementation-of-eco-muon).
 
 #### 2.2.2. ECO-Shampoo
 
 The Shampoo optimizer ([Gupta et al., 2018](https://arxiv.org/abs/1802.09568), [Anil et al., 2020](https://arxiv.org/abs/2002.09018)) instead calculates the updates as follows:
 $$\begin{align}
     U_{t}
-        &= L_t^{-1/r} \widetilde{M}_{t} R_t^{-1/r}, \\
+        &= \sqrt{\frac{m}{n}} L_t^{-1/r} \widetilde{M}_{t} R_t^{-1/r}, \\
 \end{align}$$
-where $L_t: \mathbb{R}^{m \times m}$ and $R_t: \mathbb{R}^{n \times n}$ are the left and right preconditioners, respectively, and $r \in [2, 4]$ is some root hyperparameter usually set to $r=4$. Thus, setting $g(X) = L_t^{-1/r}$ and $h(X) = R_t^{-1/r}$ in Equation $\eqref{eq:lmo_error_compensation}$ then gives us the error-compensating momentum update rule for Shampoo:
+where $L_t: \mathbb{R}^{m \times m}$ and $R_t: \mathbb{R}^{n \times n}$ are the left and right preconditioners, respectively, $r \in [2, 4]$ is some root hyperparameter usually set to $r=4$, and the $\sqrt{\frac{m}{n}}$ factor ensures that the RMS-to-RMS norm of $U_t$ is approximately 1 as in Muon. Thus, setting $g(X) = \sqrt{\frac{m}{n}} L_t^{-1/r}$ and $h(X) = R_t^{-1/r}$ then yields the error-compensating momentum update rule for Shampoo:
 $$\begin{align}
     M_{t+1}
-        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{L_{t}^{1/r}}} E_{t+1} {\color{red}{R_{t}^{1/r}}}.
+        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{\sqrt{\frac{n}{m}} L_{t}^{1/r}}} E_{t+1} {\color{red}{R_{t}^{1/r}}}.
 \end{align}$$
 
 ### 2.3. ECO for steepest descent with LMOs of the form $\texttt{LMO}(X) = X \odot h(X)$
@@ -227,7 +227,7 @@ Here we train 4-layer Residual MLPs on the Tiny Shakespeare dataset with FP8 ECO
 
 ![](loss_plot_shampoo.png)
 
-### 3.3. Discussion
+### 3.4. Discussion
 
 Our results show that ECO-AdamW, ECO-Muon, and ECO-Shampoo closely track their full-precision counterparts, while the non-ECO versions noticeably diverge, demonstrating the effectiveness of ECO in FP8-native training without master weights. When FP8 training is enabled for all components (including the language model head), we see even more significant divergence for the non-ECO versions, while the ECO versions see only a slight increase in loss, matching the results by [Nikdan et al., 2026](https://arxiv.org/abs/2601.22101).
 
@@ -253,7 +253,7 @@ Our results show that ECO-AdamW, ECO-Muon, and ECO-Shampoo closely track their f
 4. Rohan Anil, Vineet Gupta, Tomer Koren, Kevin Regan, Yoram Singer (2020). Scalable second order optimization for deep learning. URL https://arxiv.org/abs/2002.09018
 5. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
 
-## Appendix A1. Sample implementation
+## Appendix A1. Sample implementation of ECO-Muon
 
 ```python
 # Newton-Schulz coefficients for matrix square roots
@@ -316,11 +316,13 @@ def quantize(W: torch.Tensor) -> torch.Tensor:
     ...
 
 def update(G: torch.Tensor, M: torch.Tensor, W_quantized: torch.Tensor, eta: float, beta=0.9, lamb=0.1) -> torch.Tensor:
+    m, n = G.shape
     M_tilde = beta * M + (1 - beta) * G
-    W_tilde = (1 - eta * lamb) * W_quantized.to(M_tilde.dtype) - eta * _orthogonalize(M_tilde)
+    U = (m/n)**0.5 * _orthogonalize(M_tilde)
+    W_tilde = (1 - eta * lamb) * W_quantized.to(M_tilde.dtype) - eta * U
     W_quantized_next = quantize(W_tilde)
     E = W_tilde - W_quantized_next
     # Pullback weight quantization error to momentum buffer for use in the next step.
-    M_next = M_tilde + (1 - eta * lamb) / eta * (1 - 1 / beta) * E @ _matrix_sqrt(M_tilde.T @ M_tilde)
+    M_next = M_tilde + (1 - eta * lamb) / eta * (1 - 1 / beta) * (n/m)**0.5 * E @ _matrix_sqrt(M_tilde.T @ M_tilde)
     return M_next, W_quantized_next
 ```
