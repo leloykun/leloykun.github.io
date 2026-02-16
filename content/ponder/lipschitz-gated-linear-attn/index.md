@@ -5,7 +5,7 @@ tags: ["Machine Learning", "Linear Attention", "Test-Time Regression"]
 author: "Franz Louis Cesista"
 description: "We derive sensitivity and sharpness bounds for Gated DeltaNet and Mamba 2, showing that they can be made 1-Lipschitz with appropriate parameter constraints."
 summary: "We derive sensitivity and sharpness bounds for Gated DeltaNet and Mamba 2, showing that they can be made 1-Lipschitz with appropriate parameter constraints."
-draft: false
+draft: true
 ---
 
 ## Introduction
