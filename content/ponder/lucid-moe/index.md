@@ -13,34 +13,34 @@ Standard Softmax Attention has a long-context problem: the longer the context is
 
 $$\begin{align}
     \texttt{Softmax-Attn}(Q, K, V)
-        &= \text{softmax}\left( M \circ \exp(QK^T) \right) V \\
+        &= \text{softmax}\left( M \circ \frac{QK^T}{\sqrt{d}} \right) V \\
     \texttt{LUCID-Attn}(Q, K, V)
-        &= \text{softmax}\left( M \circ \exp(QK^T) \right) \underbrace{\left( M \circ \exp(KK^T) \right)^{-1}}_{P^{-1}} V
+        &= \text{softmax}\left( M \circ \frac{QK^T}{\sqrt{d}} \right) \underbrace{\left( M \circ \exp(KK^T) \right)^{-1}}_{P^{-1}} V
 \end{align}$$
 
 More intuitively, think softmax attention as a retrieval operation where we have a "query" $q$ (the representation of the current token), and we want to use it to "retrieve" the closest "keys" $K$ (representations of context tokens). The operation,
 $$\begin{align}
     qK^T
         &= \begin{bmatrix}
-            qk_1^T & qk_2^T & \cdots & qk_N^T
+            qk_1^T & qk_2^T & \cdots & qk_T^T
         \end{bmatrix} \\
         &= \begin{bmatrix}
-            \text{similarity}(q, k_1) & \text{similarity}(q, k_2) & \cdots & \text{similarity}(q, k_N)
+            \text{similarity}(q, k_1) & \text{similarity}(q, k_2) & \cdots & \text{similarity}(q, k_T)
         \end{bmatrix},
 \end{align}$$
 computes the "similarity" between the query and each key, and the softmax afterwards makes them positive (via exponentiation) and sums to 1 (via normalization), yielding a probability distribution over the keys,
 $$\begin{align}
-    p(k_i \text{ gets picked}) = \text{softmax}(qK^T)_i = \frac{\overbrace{\exp(\text{similarity}(q, k_i))}^{> 0}}{\sum_{j=1}^N \exp(\text{similarity}(q, k_j))}.
+    p(k_i \text{ gets picked}) = \text{softmax}(qK^T)_i = \frac{\overbrace{\exp(\text{similarity}(q, k_i))}^{> 0}}{\sum_{j=1}^T \exp(\text{similarity}(q, k_j))}.
 \end{align}$$
 
 Ideally, we only want to "pick" the key or keys that are closest (highest similarity) to the query, and ignore the rest. However, if there are $N$ tokens that are similar to the closest key, but (perhaps slightly) farther away from the query, then the softmax will still assign all of them roughly equal attention scores, despite not all of them being relevant. Or they could even be irrelevant, but redundant. Either way, they are distracting and should be ignored. And the longer the context is, the larger $N$ is, the worse the problem becomes. Hence the attention score whitening step to "undo" the effect of key correlations:
 $$\begin{align}
     P^{-1}
         &= \begin{bmatrix}
-            \text{similarity}(k_1, k_1) & 0 & \cdots & 0 \\
-            \text{similarity}(k_1, k_2) & \text{similarity}(k_2, k_2) & \cdots & 0 \\
+            \exp(\text{similarity}(k_1, k_1)) & 0 & \cdots & 0 \\
+            \exp(\text{similarity}(k_1, k_2)) & \exp(\text{similarity}(k_2, k_2)) & \cdots & 0 \\
             \vdots & \vdots & \ddots & \vdots \\
-            \text{similarity}(k_1, k_N) & \text{similarity}(k_2, k_N) & \cdots & \text{similarity}(k_N, k_N)
+            \exp(\text{similarity}(k_1, k_T)) & \exp(\text{similarity}(k_2, k_T)) & \cdots & \exp(\text{similarity}(k_T, k_T))
         \end{bmatrix}^{-1}
 \end{align}$$
 
@@ -63,12 +63,12 @@ $$\begin{align}
 with,
 $$\begin{align}
     P^{-1}
-        &= \left( E E^T \right)^{-1}
-        = \begin{bmatrix}
-            \text{similarity}(e_1, e_1) & \text{similarity}(e_2, e_1) & \cdots & \text{similarity}(e_N, e_1) \\
-            \text{similarity}(e_1, e_2) & \text{similarity}(e_2, e_2) & \cdots & \text{similarity}(e_N, e_2) \\
+        &= \left( \exp(E E^T) \right)^{-1} \nonumber \\
+        &= \begin{bmatrix}
+            \exp(\text{similarity}(e_1, e_1)) & \exp(\text{similarity}(e_2, e_1)) & \cdots & \exp(\text{similarity}(e_K, e_1)) \\
+            \exp(\text{similarity}(e_1, e_2)) & \exp(\text{similarity}(e_2, e_2)) & \cdots & \exp(\text{similarity}(e_K, e_2)) \\
             \vdots & \vdots & \ddots & \vdots \\
-            \text{similarity}(e_1, e_N) & \text{similarity}(e_2, e_N) & \cdots & \text{similarity}(e_N, e_N)
+            \exp(\text{similarity}(e_1, e_K)) & \exp(\text{similarity}(e_2, e_K)) & \cdots & \exp(\text{similarity}(e_K, e_K))
         \end{bmatrix}^{-1}.
 \end{align}$$
 
