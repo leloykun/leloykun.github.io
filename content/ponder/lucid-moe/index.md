@@ -18,7 +18,7 @@ $$\begin{align}
         &= \text{softmax}\left( M \circ \frac{QK^T}{\sqrt{d}} \right) \underbrace{\left( M \circ \exp(KK^T) \right)^{-1}}_{P^{-1}} V
 \end{align}$$
 
-More intuitively, think softmax attention as a retrieval operation where we have a "query" $q$ (the representation of the current token), and we want to use it to "retrieve" the closest "keys" $K$ (representations of context tokens). The operation,
+More intuitively, think of softmax attention as a retrieval operation where we have a "query" $q$ (the representation of the current token), and we want to use it to "retrieve" the closest "keys" $K$ (representations of context tokens). The operation,
 $$\begin{align}
     qK^T
         &= \begin{bmatrix}
@@ -33,7 +33,7 @@ $$\begin{align}
     p(k_i \text{ gets picked}) = \text{softmax}(qK^T)_i = \frac{\overbrace{\exp(\text{similarity}(q, k_i))}^{> 0}}{\sum_{j=1}^T \exp(\text{similarity}(q, k_j))}.
 \end{align}$$
 
-Ideally, we only want to "pick" the key or keys that are closest (highest similarity) to the query, and ignore the rest. However, if there are $N$ tokens that are similar to the closest key, but (perhaps slightly) farther away from the query, then the softmax will still assign all of them roughly equal attention scores, despite not all of them being relevant. Or they could even be irrelevant, but redundant. Either way, they are distracting and should be ignored. And the longer the context is, the larger $N$ is, the worse the problem becomes. Hence the attention score whitening step to "undo" the effect of key correlations:
+Ideally, we only want to "pick" the key or keys that are closest (highest similarity) to the query, and ignore the rest. However, if there are $N$ tokens that are similar to the closest key, but (perhaps slightly) farther away from the query, then the softmax will still assign all of them roughly equal attention scores, despite not all of them being relevant. Or they could even be relevant, but redundant. Either way, they are distracting and should be ignored. And the longer the context is, the larger $N$ is, the worse the problem becomes. Hence the attention score whitening step to "undo" the effect of key correlations:
 $$\begin{align}
     P^{-1}
         &= \begin{bmatrix}
