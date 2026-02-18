@@ -1,5 +1,5 @@
 ---
-title: "Shampoo-PRISM: Kronecker-Factored Optimization via Anisotropic Spectral Shaping"
+title: "Bidirectional-PRISM: Kronecker-Factored Optimization via Anisotropic Spectral Shaping"
 date: 2026-02-04
 tags: ["Machine Learning", "Optimizers", "Muon"]
 author: ["Franz Louis Cesista"]
@@ -53,7 +53,7 @@ $$\begin{align}
 \end{align}$$
 where $D_t := G_t - M_t$ is called the 'momentum-based prediction', and $\gamma \geq 0$ is a hyperparameter controlling the strength of the covariance correction.
 
-### 1.1. Shampoo-PRISM
+### 1.1. Bidirectional-PRISM
 
 Notice that, since PRISM only applies the preconditioner on the right side of $M_t$ in equation \eqref{eq:muon_update_2}, it only 'shapes' the updates using the geometry of the *column space* of $M_t$. I.e., it 'whitens' along the input-feature directions, but not the output-feature directions. And gradient noise can be anisotropic in either direction. A simple fix then is to apply PRISM-style anisotropic shaping on both sides, yielding the following Shampoo-style update rule ([Anil et al., 2020](https://arxiv.org/abs/2002.09018); [Gupta et al., 2018](https://arxiv.org/abs/1802.09568)),
 $$\begin{align}
@@ -73,7 +73,7 @@ for some $\gamma_L, \gamma_R \geq 0$.
 
 As to *why* the use of the $-1/4$ roots, firstly so that we recover Muon's update rule in Equation $\eqref{eq:muon_update}$ when $\gamma_L = \gamma_R = 0$; and secondly, because this makes the bidirectional anisotropic spectral shaping the geometric mean of the left- and right-sided one-sided PRISM shaping, as we will see in the next section.
 
-## 2. Anisotropic spectral shaping of Shampoo-PRISM
+## 2. Anisotropic spectral shaping of Bidirectional-PRISM
 
 Let $M_t = \sum_k \sigma_k u_k v_k^T$ be the singular value decomposition of $M_t$, where $\sigma_k \geq 0$ are the singular values, and $\{u_k\} \subset \mathbb{R}^m$ and $\{v_k\} \subset \mathbb{R}^n$ are the left and right singular vectors, respectively. We want to find coefficients $\rho_k^{\text{bi}} \in \mathbb{R}^{+}$ such that,
 $$\begin{align}
@@ -135,7 +135,7 @@ $$\begin{align}
 \end{align}$$
 Thus, if the signal-to-noise ratio is high on *both* sides, then $\rho_k^{\text{left}} \approx 1, \rho_k^{\text{right}} \approx 1 \implies \rho_k^{\text{bi}} \approx 1$, and we take full steps as in Muon; otherwise, if the SNR is low on *either* side, then $\rho_k^{\text{bi}} \ll 1$, and we take smaller to no steps along that direction.
 
-### 2.1. Shampoo-PRISM follows the spectral norm trust-region constraint
+### 2.1. Bidirectional-PRISM follows the spectral norm trust-region constraint
 
 Note that $0 \leq \frac{1}{\sqrt{1 + 1/x^2}} \leq 1$ for all $x \in \mathbb{R}$. Thus, both $\rho_k^{\text{left}}$ and $\rho_k^{\text{right}}$ lie in $[0, 1]$, and so does their geometric mean $\rho_k^{\text{bi}}$. Hence, $\| \eta \Delta W \|_{2 \to 2} = \eta \cdot \max_k \rho_k^{\text{bi}} \leq \eta$.
 
@@ -218,7 +218,7 @@ def shampoo_prism(M: jax.Array, D: jax.Array, *, gamma_L=0.0, gamma_R=0.0, eps_g
 ```bibtex
 @misc{cesista2026shampooprism,
   author = {Franz Louis Cesista},
-  title = {{Shampoo-PRISM}: {K}ronecker-Factored Optimization via Anisotropic Spectral Shaping},
+  title = {{Bidirectional-PRISM}: {K}ronecker-Factored Optimization via Anisotropic Spectral Shaping},
   year = {2026},
   month = {February},
   day = {4},
