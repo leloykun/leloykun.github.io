@@ -1,10 +1,10 @@
 ---
 title: "LUCID-MoE: Mixture of Experts with Preconditioned Routing"
-date: 2026-02-15
-tags: ["Machine Learning"]
+date: 2026-02-17
+tags: ["Machine Learning", "Attention", "Mixture-of-Experts"]
 author: ["Franz Louis Cesista"]
-description: "-"
-summary: "-"
+description: "Sharper Mixture-of-Experts routing with LUCID preconditioning."
+summary: "Sharper Mixture-of-Experts routing with LUCID preconditioning."
 ---
 
 ## 1. Introduction
