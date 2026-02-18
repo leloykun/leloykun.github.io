@@ -50,6 +50,7 @@ def _reference_mh_lmoe_forward(
     x: torch.Tensor,
     *,
     enable_lucid_router: bool,
+    enable_qe_norm: bool,
 ) -> torch.Tensor:
     cfg = model.cfg
     if x.ndim != 3:
@@ -58,12 +59,14 @@ def _reference_mh_lmoe_forward(
     B, T, _ = x.shape
     H, d, k = cfg.moe_heads, model.d_head, cfg.top_k
     Ntok = B * T
+    router_weight_all = mh_lmoe_lucid.norm(model.router_weight) if enable_qe_norm else model.router_weight
 
     xh = model.in_proj(x).view(B, T, H, d)
     head_outputs = []
     for h in range(H):
         q = xh[:, :, h, :].reshape(Ntok, d).contiguous()  # (Ntok, d)
-        logits = torch.matmul(q, model.router_weight[h].transpose(0, 1))  # (Ntok, E)
+        q_router = mh_lmoe_lucid.norm(q) if enable_qe_norm else q
+        logits = torch.matmul(q_router, router_weight_all[h].transpose(0, 1))  # (Ntok, E)
         topk = torch.topk(logits, k=k, dim=-1)
         topk_idx = topk.indices  # (Ntok, k)
         alpha = torch.softmax(topk.values, dim=-1)  # (Ntok, k)
@@ -78,8 +81,11 @@ def _reference_mh_lmoe_forward(
         y_assign = torch.bmm(hidden.unsqueeze(1), selected_w2).squeeze(1).view(Ntok, k, d)
 
         if enable_lucid_router and k > 1:
-            router_weight = model.router_weight[h]  # (E, d)
-            key_embed = mh_lmoe_lucid.norm(router_weight[topk_idx])  # (Ntok, k, d)
+            router_weight = router_weight_all[h]  # (E, d)
+            if enable_qe_norm:
+                key_embed = router_weight[topk_idx]
+            else:
+                key_embed = mh_lmoe_lucid.norm(router_weight[topk_idx])  # (Ntok, k, d)
             sim = key_embed @ key_embed.transpose(-1, -2)
             P = torch.exp(sim.to(torch.float32) / math.sqrt(d) - math.sqrt(d))
             eye = torch.eye(k, device=P.device, dtype=P.dtype).unsqueeze(0)
@@ -147,7 +153,8 @@ def test_flex_expert_assignments_match_reference() -> None:
 @pytest.mark.skipif(not HAS_FLEX, reason="FlexAttention is unavailable in this PyTorch build.")
 @pytest.mark.skipif(not HAS_CUDA, reason="CUDA is required for FlexAttention parity tests.")
 @pytest.mark.parametrize("enable_lucid_router", [False, True])
-def test_mh_lmoe_forward_runs(enable_lucid_router: bool) -> None:
+@pytest.mark.parametrize("enable_qe_norm", [False, True])
+def test_mh_lmoe_forward_runs(enable_lucid_router: bool, enable_qe_norm: bool) -> None:
     torch.manual_seed(11)
     device = torch.device("cuda")
 
@@ -166,7 +173,11 @@ def test_mh_lmoe_forward_runs(enable_lucid_router: bool) -> None:
 
     x = torch.randn(8, 32, cfg.d_model, device=device)
     with torch.no_grad():
-        y = model(x, enable_lucid_router=enable_lucid_router)
+        y = model(
+            x,
+            enable_lucid_router=enable_lucid_router,
+            enable_qe_norm=enable_qe_norm,
+        )
 
     assert y.shape == (8, 32, cfg.d_model)
     assert torch.isfinite(y).all()
@@ -175,7 +186,8 @@ def test_mh_lmoe_forward_runs(enable_lucid_router: bool) -> None:
 @pytest.mark.skipif(not HAS_FLEX, reason="FlexAttention is unavailable in this PyTorch build.")
 @pytest.mark.skipif(not HAS_CUDA, reason="CUDA is required for FlexAttention parity tests.")
 @pytest.mark.parametrize("enable_lucid_router", [False, True])
-def test_mh_lmoe_forward_matches_reference(enable_lucid_router: bool) -> None:
+@pytest.mark.parametrize("enable_qe_norm", [False, True])
+def test_mh_lmoe_forward_matches_reference(enable_lucid_router: bool, enable_qe_norm: bool) -> None:
     torch.manual_seed(17)
     device = torch.device("cuda")
 
@@ -193,8 +205,17 @@ def test_mh_lmoe_forward_matches_reference(enable_lucid_router: bool) -> None:
 
     x = torch.randn(4, 16, cfg.d_model, device=device)
     with torch.no_grad():
-        y_flex = model(x, enable_lucid_router=enable_lucid_router)
-        y_ref = _reference_mh_lmoe_forward(model, x, enable_lucid_router=enable_lucid_router)
+        y_flex = model(
+            x,
+            enable_lucid_router=enable_lucid_router,
+            enable_qe_norm=enable_qe_norm,
+        )
+        y_ref = _reference_mh_lmoe_forward(
+            model,
+            x,
+            enable_lucid_router=enable_lucid_router,
+            enable_qe_norm=enable_qe_norm,
+        )
 
     torch.testing.assert_close(y_flex, y_ref, rtol=2e-4, atol=2e-5)
 

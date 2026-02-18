@@ -12,6 +12,7 @@ set -euo pipefail
 #   RUN_BOTH_LUCID_ROUTER=off|on
 #   PLOT_LOSS=off|on
 #   DETERMINISTIC=on|off
+#   QE_NORM=off|on
 #
 # RTX 2060 (6GB) friendly defaults are intentionally conservative.
 
@@ -24,6 +25,7 @@ LUCID_ROUTER="${LUCID_ROUTER:-off}"             # off | on
 RUN_BOTH_LUCID_ROUTER="${RUN_BOTH_LUCID_ROUTER:-off}"  # off | on
 PLOT_LOSS="${PLOT_LOSS:-on}"      # on | off
 DETERMINISTIC="${DETERMINISTIC:-on}"  # on | off
+QE_NORM="${QE_NORM:-off}"         # off | on
 DEVICE="${DEVICE:-cuda}"          # auto | cuda | cpu
 
 # Longer run defaults.
@@ -80,6 +82,7 @@ run_one() {
   local json_out="${OUT_DIR}/${run_name}.json"
   local plot_out="${OUT_DIR}/${run_name}.png"
   local deterministic_arg
+  local qe_norm_arg
 
   local d_head_moe=$((D_MODEL / MOE_HEADS))
   local d_head_attn=$((D_MODEL / ATTN_HEADS))
@@ -118,6 +121,14 @@ run_one() {
     echo "Invalid DETERMINISTIC=${DETERMINISTIC}. Use on|off." >&2
     exit 1
   fi
+  if [[ "${QE_NORM}" == "on" ]]; then
+    qe_norm_arg="--enable_qe_norm"
+  elif [[ "${QE_NORM}" == "off" ]]; then
+    qe_norm_arg="--no-enable_qe_norm"
+  else
+    echo "Invalid QE_NORM=${QE_NORM}. Use on|off." >&2
+    exit 1
+  fi
 
   echo "=== Starting ${run_name} ==="
   echo "device=${DEVICE} steps=${STEPS} batch=${BATCH_SIZE} block=${BLOCK_SIZE} d_model=${D_MODEL} heads(attn/moe)=${ATTN_HEADS}/${MOE_HEADS} sparsity=${TOP_K}/${NUM_EXPERTS}"
@@ -126,6 +137,7 @@ run_one() {
     "${CONDA_BIN}" run -n "${CONDA_ENV}" python "${PY_SCRIPT}"
     --device "${DEVICE}"
     "${deterministic_arg}"
+    "${qe_norm_arg}"
     "${lucid_router_arg}"
     --steps "${STEPS}"
     --eval_interval "${EVAL_INTERVAL}"
@@ -169,6 +181,7 @@ run_both() {
   local json_out="${OUT_DIR}/${run_name}.json"
   local plot_out="${OUT_DIR}/${run_name}.png"
   local deterministic_arg
+  local qe_norm_arg
 
   local d_head_moe=$((D_MODEL / MOE_HEADS))
   local d_head_attn=$((D_MODEL / ATTN_HEADS))
@@ -207,6 +220,14 @@ run_both() {
     echo "Invalid DETERMINISTIC=${DETERMINISTIC}. Use on|off." >&2
     exit 1
   fi
+  if [[ "${QE_NORM}" == "on" ]]; then
+    qe_norm_arg="--enable_qe_norm"
+  elif [[ "${QE_NORM}" == "off" ]]; then
+    qe_norm_arg="--no-enable_qe_norm"
+  else
+    echo "Invalid QE_NORM=${QE_NORM}. Use on|off." >&2
+    exit 1
+  fi
 
   if [[ "${LUCID_ROUTER}" != "off" ]]; then
     echo "RUN_BOTH_LUCID_ROUTER=on ignores LUCID_ROUTER=${LUCID_ROUTER}." >&2
@@ -219,6 +240,7 @@ run_both() {
     "${CONDA_BIN}" run -n "${CONDA_ENV}" python "${PY_SCRIPT}"
     --device "${DEVICE}"
     "${deterministic_arg}"
+    "${qe_norm_arg}"
     --run_both_lucid_router
     --steps "${STEPS}"
     --eval_interval "${EVAL_INTERVAL}"

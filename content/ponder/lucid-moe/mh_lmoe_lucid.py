@@ -107,9 +107,8 @@ def _orthogonalize(M: torch.Tensor, niter: int = len(MUON_NS_COEFFS)) -> torch.T
 
 
 def _matrix_update_scale(p: torch.Tensor) -> float:
-    if p.ndim != 2:
-        return 1.0
-    fan_out, fan_in = p.shape
+    assert p.ndim >= 2, "Expected weight matrix of rank 2 or higher, got shape {}".format(p.shape)
+    fan_out, fan_in = p.shape[-2], p.shape[-1]
     return math.sqrt(float(fan_out) / float(fan_in))
 
 
@@ -156,9 +155,9 @@ class MuonOptimizer(torch.optim.Optimizer):
                     continue
                 if p.grad.is_sparse:
                     raise RuntimeError("Sparse gradients are not supported.")
-                if p.ndim != 2:
+                if p.ndim < 2:
                     raise RuntimeError(
-                        f"MuonOptimizer expects only 2D weight parameters, got shape {tuple(p.shape)}"
+                        f"MuonOptimizer expects rank-2 or higher parameters; got {p.ndim} for parameter with shape {p.shape}."
                     )
 
                 state = self.state[p]
@@ -533,6 +532,7 @@ class MoEConfig:
     expert_hidden: int
     lucid_router_eps: float = 1e-4
     enable_lucid_router_default: bool = False
+    enable_qe_norm_default: bool = False
     kv_block_size: int = 128
 
 
@@ -566,7 +566,7 @@ class MultiHeadLatentMoE(nn.Module):
 
         self.in_proj = nn.Linear(cfg.d_model, H * d, bias=False)
         self.out_proj = nn.Linear(H * d, cfg.d_model, bias=False)
-        self.router_weight = nn.Parameter(torch.empty(H, E, d))
+        self.router_embedding = nn.Parameter(torch.empty(H, E, d))
 
         self.W1 = nn.Parameter(torch.empty(H, E, d, m))
         self.W2 = nn.Parameter(torch.empty(H, E, m, d))
@@ -576,9 +576,16 @@ class MultiHeadLatentMoE(nn.Module):
     def reset_parameters(self, *, init_generator: Optional[torch.Generator] = None) -> None:
         nn.init.kaiming_uniform_(self.in_proj.weight, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.out_proj.weight, a=math.sqrt(5), generator=init_generator)
-        nn.init.kaiming_uniform_(self.router_weight, a=math.sqrt(5), generator=init_generator)
+        nn.init.kaiming_uniform_(self.router_embedding, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.W1, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.W2, a=math.sqrt(5), generator=init_generator)
+        with torch.no_grad():
+            self.in_proj.weight.data = _orthogonalize(self.in_proj.weight.data)
+            self.out_proj.weight.data = _orthogonalize(self.out_proj.weight.data)
+            self.W1.data = _orthogonalize(self.W1.data)
+            self.W2.data = _orthogonalize(self.W2.data)
+            if self.cfg.enable_qe_norm_default:
+                self.router_embedding.data = norm(self.router_embedding.data)
 
     def _expert_ffn_assignments(
         self,
@@ -604,12 +611,15 @@ class MultiHeadLatentMoE(nn.Module):
         x: torch.Tensor,
         *,
         enable_lucid_router: Optional[bool],
+        enable_qe_norm: Optional[bool],
     ) -> torch.Tensor:
         if x.ndim != 3:
             raise ValueError("x must be rank-3 (B, T, d_model).")
 
         if enable_lucid_router is None:
             enable_lucid_router = self.cfg.enable_lucid_router_default
+        if enable_qe_norm is None:
+            enable_qe_norm = self.cfg.enable_qe_norm_default
 
         B, T, _ = x.shape
         H, d, k = self.cfg.moe_heads, self.d_head, self.cfg.top_k
@@ -617,9 +627,17 @@ class MultiHeadLatentMoE(nn.Module):
 
         # (Ntok, H, d) -> (H, Ntok, d)
         q_by_head = self.in_proj(x).view(B, T, H, d).reshape(Ntok, H, d).permute(1, 0, 2).contiguous()
+        if enable_qe_norm:
+            q_router = norm(q_by_head)
+            router_embedding = norm(self.router_embedding)
+            logits_factor = math.sqrt(d)
+        else:
+            q_router = q_by_head
+            router_embedding = self.router_embedding
+            logits_factor = 1.0
 
         # Router logits: (H, Ntok, E)
-        logits = torch.einsum("hnd,hed->hne", q_by_head, self.router_weight)
+        logits = torch.einsum("hnd,hed->hne", q_router, router_embedding) / logits_factor
         topk_values, topk_idx = torch.topk(logits, k=k, dim=-1)
         alpha = torch.softmax(topk_values, dim=-1)  # (H, Ntok, k)
 
@@ -638,7 +656,7 @@ class MultiHeadLatentMoE(nn.Module):
         else:
             # Gather selected router embeddings for each (head, token, top-k).
             h_idx = torch.arange(H, device=x.device, dtype=torch.int64)[:, None, None].expand(H, Ntok, k)
-            key_embed = norm(self.router_weight[h_idx, topk_idx])  # (H, Ntok, k, d)
+            key_embed = norm(router_embedding[h_idx, topk_idx])  # (H, Ntok, k, d)
             sim = key_embed @ key_embed.transpose(-1, -2)
             P = torch.exp(sim.to(torch.float32) / math.sqrt(d) - math.sqrt(d))
             eye = torch.eye(k, device=P.device, dtype=P.dtype).view(1, 1, k, k)
@@ -657,10 +675,17 @@ class MultiHeadLatentMoE(nn.Module):
         y = mixed_by_head.permute(1, 0, 2).contiguous().view(B, T, H * d)
         return self.out_proj(y)
 
-    def forward(self, x: torch.Tensor, *, enable_lucid_router: Optional[bool] = None) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        *,
+        enable_lucid_router: Optional[bool] = None,
+        enable_qe_norm: Optional[bool] = None,
+    ) -> torch.Tensor:
         return self._forward_impl(
             x,
             enable_lucid_router=enable_lucid_router,
+            enable_qe_norm=enable_qe_norm,
         )
 
 
@@ -734,14 +759,20 @@ class CausalSelfAttention(nn.Module):
         self.head_dim = d_model // num_heads
         self.block_size = block_size
         self.qkv_proj = nn.Linear(d_model, 3 * d_model, bias=False)
-        self.out_proj = nn.Linear(d_model, d_model, bias=False)
+        # self.qkv_proj = nn.Parameter(torch.empty(3, num_heads, self.head_dim, d_model))
+        self.out_proj = nn.Linear(num_heads * self.head_dim, d_model, bias=False)
         self.rope = RoPE(self.head_dim, base=rope_base)
         self._block_mask_cache: Dict[Tuple[torch.device, int, int], "BlockMask"] = {}
         self.reset_parameters(init_generator=init_generator)
 
     def reset_parameters(self, *, init_generator: Optional[torch.Generator] = None) -> None:
         nn.init.kaiming_uniform_(self.qkv_proj.weight, a=math.sqrt(5), generator=init_generator)
+        # nn.init.kaiming_uniform_(self.qkv_proj, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.out_proj.weight, a=math.sqrt(5), generator=init_generator)
+        with torch.no_grad():
+            self.qkv_proj.weight.data = _orthogonalize(self.qkv_proj.weight.data)
+            # self.qkv_proj.data = _orthogonalize(self.qkv_proj.data)
+            self.out_proj.weight.data = _orthogonalize(self.out_proj.weight.data)
 
     def _get_causal_block_mask(
         self,
@@ -774,10 +805,12 @@ class CausalSelfAttention(nn.Module):
         return block_mask
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        bsz, seqlen, d_model = x.shape
-        qkv = self.qkv_proj(x).view(bsz, seqlen, 3, self.num_heads, self.head_dim)
+        B, T, d_model = x.shape
+        qkv = self.qkv_proj(x).view(B, T, 3, self.num_heads, self.head_dim)
         qkv = qkv.permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]  # (B, H, T, Dh)
+        # qkv = torch.einsum("ahdf,btf->abhtd", self.qkv_proj, x)
+        # q, k, v = qkv[0], qkv[1], qkv[2]
 
         # QK norm
         q, k = norm(q), norm(k)
@@ -789,11 +822,11 @@ class CausalSelfAttention(nn.Module):
             raise RuntimeError("FlexAttention path requires CUDA tensors.")
         block_mask = self._get_causal_block_mask(
             device=q.device,
-            batch_size=bsz,
-            seqlen=seqlen,
+            batch_size=B,
+            seqlen=T,
         )
         y = flex_attention(q, k, v, block_mask=block_mask)
-        y = y.transpose(1, 2).contiguous().view(bsz, seqlen, d_model)
+        y = y.transpose(1, 2).contiguous().view(B, T, d_model)
         return self.out_proj(y)
 
 
@@ -844,7 +877,6 @@ class LatentMoEShakespeareLM(nn.Module):
 
         self.block_size = block_size
         self.token_embedding = nn.Embedding(vocab_size, d_model)
-        self.position_embedding = nn.Parameter(torch.empty(block_size, d_model))
         self.blocks = nn.ModuleList(
             [
                 ResidualBlock(
@@ -863,8 +895,9 @@ class LatentMoEShakespeareLM(nn.Module):
 
     def reset_parameters(self, *, init_generator: Optional[torch.Generator] = None) -> None:
         nn.init.normal_(self.token_embedding.weight, mean=0.0, std=0.02, generator=init_generator)
-        nn.init.normal_(self.position_embedding, mean=0.0, std=0.02, generator=init_generator)
         nn.init.normal_(self.lm_head.weight, mean=0.0, std=0.02, generator=init_generator)
+        with torch.no_grad():
+            self.token_embedding.weight.data = norm(self.token_embedding.weight.data)
 
     def forward(
         self,
@@ -877,10 +910,7 @@ class LatentMoEShakespeareLM(nn.Module):
         if seqlen > self.block_size:
             raise ValueError(f"Sequence length {seqlen} exceeds block size {self.block_size}.")
 
-        tok = self.token_embedding(idx)
-        pos = self.position_embedding[:seqlen]
-        x = tok + pos.unsqueeze(0)
-        x = norm(x)
+        x = norm(self.token_embedding(idx))
 
         block_entropies: List[float] = []
         for block in self.blocks:
@@ -1136,27 +1166,20 @@ def plot_loss_curves(
         if not run_logs:
             continue
         steps = [rec["step"] for rec in run_logs]
-        train_losses = [rec["train_loss"] for rec in run_logs]
         val_losses = [rec["val_loss"] for rec in run_logs]
         label = {
             "mh_lmoe_lucid_off": "MH-LatentMoE (no LUCID-Routers)",
             "mh_lmoe_lucid_on": "MH-LatentMoE (with LUCID-Routers)",
         }.get(run_name, run_name.replace("_", " "))
         for rec in run_logs:
-            tl = float(rec["train_loss"])
             vl = float(rec["val_loss"])
-            if math.isfinite(tl) and tl > 0.0:
-                all_losses.append(tl)
             if math.isfinite(vl) and vl > 0.0:
                 all_losses.append(vl)
             if rec["step"] >= cut_step:
-                if math.isfinite(tl) and tl > 0.0:
-                    remaining_losses.append(tl)
                 if math.isfinite(vl) and vl > 0.0:
                     remaining_losses.append(vl)
 
-        plt.plot(steps, train_losses, linestyle="--", linewidth=1.8, label=f"{label} train")
-        plt.plot(steps, val_losses, linestyle="-", linewidth=2.2, label=f"{label} val")
+        plt.plot(steps, val_losses, linestyle="-", linewidth=2.2, label=label)
 
     plt.yscale("log")
     y_values = remaining_losses if remaining_losses else all_losses
@@ -1164,12 +1187,14 @@ def plot_loss_curves(
         y_min = min(y_values)
         y_max = max(y_values)
         if y_min > 0.0 and y_max > 0.0:
-            plt.ylim(bottom=y_min * 0.95, top=y_max)
+            y_span = y_max - y_min
+            y_low = max(0.0, y_min - 0.05 * y_span)
+            plt.ylim(bottom=y_low, top=y_max)
     if max_step > cut_step:
         plt.xlim(left=cut_step, right=max_step)
 
     plt.xlabel("Step")
-    plt.ylabel("Loss (log scale)")
+    plt.ylabel("Validation Loss (log scale)")
     plt.title(
         "LUCID-MoE: Mixture-of-Experts with Preconditioned Routing\n"
         "Multi-Head LatentMoE (base) on Tiny Shakespeare"
@@ -1196,22 +1221,46 @@ def plot_routing_entropy_curves(
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     plt.figure(figsize=(10.0, 4.0))
+    max_step = max(rec["step"] for run_logs in logs_by_run.values() for rec in run_logs)
+    cut_step = 0.5 * max_step
+    remaining_entropies: List[float] = []
+    all_entropies: List[float] = []
     for run_name, run_logs in logs_by_run.items():
         if not run_logs:
             continue
         steps = [rec["step"] for rec in run_logs]
-        train_entropy = [rec.get("train_routing_entropy", float("nan")) for rec in run_logs]
         val_entropy = [rec.get("val_routing_entropy", float("nan")) for rec in run_logs]
         label = {
             "mh_lmoe_lucid_off": "MH-LatentMoE (no LUCID-Routers)",
             "mh_lmoe_lucid_on": "MH-LatentMoE (with LUCID-Routers)",
         }.get(run_name, run_name.replace("_", " "))
+        for rec in run_logs:
+            ve = float(rec.get("val_routing_entropy", float("nan")))
+            if math.isfinite(ve):
+                all_entropies.append(ve)
+                if rec["step"] >= cut_step:
+                    remaining_entropies.append(ve)
 
-        plt.plot(steps, train_entropy, linestyle="--", linewidth=1.8, label=f"{label} train")
-        plt.plot(steps, val_entropy, linestyle="-", linewidth=2.2, label=f"{label} val")
+        plt.plot(steps, val_entropy, linestyle="-", linewidth=2.2, label=label)
+
+    y_values = remaining_entropies if remaining_entropies else all_entropies
+    if y_values:
+        y_min = min(y_values)
+        y_max = max(y_values)
+        if math.isfinite(y_min) and math.isfinite(y_max):
+            if y_max > y_min:
+                y_span = y_max - y_min
+                y_low = max(0.0, y_min - 0.05 * y_span)
+                plt.ylim(bottom=y_low, top=y_max)
+            else:
+                wiggle = 0.05 * max(1.0, abs(y_max))
+                y_low = max(0.0, y_min - wiggle)
+                plt.ylim(bottom=y_low, top=y_max + wiggle)
+    if max_step > cut_step:
+        plt.xlim(left=cut_step, right=max_step)
 
     plt.xlabel("Step")
-    plt.ylabel("Routing Entropy")
+    plt.ylabel("Validation Routing Entropy")
     plt.title(
         "LUCID-MoE: Routing Distribution Entropy on Tiny Shakespeare"
     )
@@ -1251,6 +1300,7 @@ def build_model(
     expert_hidden: int,
     lucid_router_eps: float,
     enable_lucid_router_default: bool,
+    enable_qe_norm_default: bool,
     kv_block_size: int,
     device: torch.device,
     init_generator: Optional[torch.Generator] = None,
@@ -1263,6 +1313,7 @@ def build_model(
         expert_hidden=expert_hidden,
         lucid_router_eps=lucid_router_eps,
         enable_lucid_router_default=enable_lucid_router_default,
+        enable_qe_norm_default=enable_qe_norm_default,
         kv_block_size=kv_block_size,
     )
     model = LatentMoEShakespeareLM(
@@ -1288,45 +1339,22 @@ def build_optimizer(
     eps: float,
     weight_decay: float,
     muon_ns_steps: int,
-) -> Tuple[torch.optim.Optimizer | CompositeOptimizer, Dict[str, int]]:
+) -> Tuple[
+    torch.optim.Optimizer | CompositeOptimizer,
+    Dict[str, int],
+    Dict[str, List[str]],
+]:
     if lr_embedding <= 0.0 or lr_linear <= 0.0 or lr_lm_head <= 0.0:
         raise ValueError("All learning rates must be > 0.")
 
-    lm_head_id = id(model.lm_head.weight)
-    linear_param_ids: set[int] = set()
-    embedding_param_ids: set[int] = set()
-    for module in model.modules():
-        if isinstance(module, nn.Linear):
-            linear_param_ids.add(id(module.weight))
-        elif isinstance(module, nn.Embedding):
-            embedding_param_ids.add(id(module.weight))
-    embedding_param_ids.add(id(model.position_embedding))
+    named_params = list(model.named_parameters())
+    embedding_adamw_params = [p for name, p in named_params if "_embedding" in name]
+    lm_head_muon_params = [p for name, p in named_params if name.startswith("lm_head.") and "_embedding" not in name]
+    linear_muon_params = [p for name, p in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
 
-    embedding_adamw_params: List[nn.Parameter] = []
-    linear_muon_params: List[nn.Parameter] = []
-    lm_head_muon_params: List[nn.Parameter] = []
-    fallback_adamw_count = 0
-    seen_param_ids: set[int] = set()
-    for _, p in model.named_parameters():
-        if not p.requires_grad:
-            continue
-        pid = id(p)
-        if pid in seen_param_ids:
-            continue
-        seen_param_ids.add(pid)
-        if pid in embedding_param_ids:
-            embedding_adamw_params.append(p)
-        elif pid == lm_head_id:
-            if p.ndim != 2:
-                raise RuntimeError(f"lm_head weight must be rank-2 for Muon, got shape {tuple(p.shape)}.")
-            lm_head_muon_params.append(p)
-        elif pid in linear_param_ids and p.ndim == 2:
-            linear_muon_params.append(p)
-        else:
-            # Non-linear and tensor parameters not represented by nn.Linear
-            # stay on AdamW with embedding LR.
-            embedding_adamw_params.append(p)
-            fallback_adamw_count += 1
+    embedding_adamw_names = [name for name, _ in named_params if "_embedding" in name]
+    lm_head_muon_names = [name for name, _ in named_params if name.startswith("lm_head.") and "_embedding" not in name]
+    linear_muon_names = [name for name, _ in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
 
     optimizers: List[torch.optim.Optimizer] = []
     if embedding_adamw_params:
@@ -1372,11 +1400,15 @@ def build_optimizer(
         "embedding_adamw": len(embedding_adamw_params),
         "linear_muon": len(linear_muon_params),
         "lm_head_muon": len(lm_head_muon_params),
-        "adamw_fallback_non_linear": fallback_adamw_count,
+    }
+    split_names = {
+        "embedding_adamw": embedding_adamw_names,
+        "linear_muon": linear_muon_names,
+        "lm_head_muon": lm_head_muon_names,
     }
     if len(optimizers) == 1:
-        return optimizers[0], split_counts
-    return CompositeOptimizer(optimizers), split_counts
+        return optimizers[0], split_counts, split_names
+    return CompositeOptimizer(optimizers), split_counts, split_names
 
 
 def parse_args() -> argparse.Namespace:
@@ -1405,6 +1437,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--enable_lucid_router", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--run_both_lucid_router", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--lucid_router_eps", type=float, default=1e-4)
+    parser.add_argument("--enable_qe_norm", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--deterministic", action=argparse.BooleanOptionalAction, default=True)
 
     parser.add_argument("--lr", type=float, default=3e-4)
@@ -1473,6 +1506,7 @@ def main() -> None:
         f"lm_head {lr_lm_head:.3e}->{lr_lm_head * args.min_lr_ratio:.3e} | "
         f"Heads(attn/moe)={attn_heads}/{args.moe_heads} | "
         f"LUCID_ROUTER={'both (off,on)' if args.run_both_lucid_router else ('on' if args.enable_lucid_router else 'off')} | "
+        f"QE_NORM={'on' if args.enable_qe_norm else 'off'} | "
         f"FlexAttention=on | "
         f"Deterministic={'on' if args.deterministic else 'off'}"
     )
@@ -1498,11 +1532,12 @@ def main() -> None:
             expert_hidden=args.expert_hidden,
             lucid_router_eps=args.lucid_router_eps,
             enable_lucid_router_default=run_enable_lucid_router,
+            enable_qe_norm_default=args.enable_qe_norm,
             kv_block_size=args.kv_block_size,
             device=device,
             init_generator=init_rng,
         )
-        optimizer, split_counts = build_optimizer(
+        optimizer, split_counts, split_names = build_optimizer(
             model=model,
             lr_embedding=lr_embedding,
             lr_linear=lr_linear,
@@ -1518,8 +1553,10 @@ def main() -> None:
             f"embedding_adamw={split_counts['embedding_adamw']}, "
             f"linear_muon={split_counts['linear_muon']}, "
             f"lm_head_muon={split_counts['lm_head_muon']}, "
-            f"adamw_fallback_non_linear={split_counts['adamw_fallback_non_linear']}"
         )
+        print(f"[{run_name}] AdamW params: {', '.join(split_names['embedding_adamw'])}")
+        print(f"[{run_name}] Muon linear params: {', '.join(split_names['linear_muon'])}")
+        print(f"[{run_name}] Muon lm_head params: {', '.join(split_names['lm_head_muon'])}")
 
         logs_by_run[run_name] = train_one_run(
             run_name=run_name,

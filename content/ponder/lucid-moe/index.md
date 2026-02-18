@@ -55,10 +55,10 @@ We will focus on the first setting, MoE routing, because the preconditioners $P$
 
 The routers in Mixture-of-Experts are "attention-like" in the sense that, modulo top-K sparsity, they also compute dot-product similarities between token representations $X$ and expert representations $E$, followed by a softmax to get the routing probabilities. Thus, they suffer from having "diffused" routing probabilities across correlated experts, which lead to less-specialized experts, and worse performance when some of the redundant experts do not get picked in the top-K filter. The simple fix then is to apply the same preconditioning step as in LUCID Attention, which "undoes" the effect of expert correlation before applying the expert outputs $O$:
 $$\begin{align}
-    \texttt{Softmax-Routing}(X, E, O)
-        &= \text{softmax}\left( X E^T \right) O \\
-    \texttt{LUCID-Routing}(X, E, O)
-        &= \text{softmax}\left( X E^T \right) P^{-1} O,
+    \texttt{Softmax-Routing}(Q, E, O)
+        &= \text{softmax}\left( Q E^T \right) O \\
+    \texttt{LUCID-Routing}(Q, E, O)
+        &= \text{softmax}\left( Q E^T \right) P^{-1} O,
 \end{align}$$
 with,
 $$\begin{align}
