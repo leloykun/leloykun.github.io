@@ -14,10 +14,11 @@ Standard Softmax Attention has a long-context problem: the longer the context is
 $$\begin{align}
     \texttt{Softmax-Attn}(Q, K, V)
         &= \text{softmax}\left( M \circ \frac{QK^T}{\sqrt{d}} \right) V \\
+        &= \frac{1}{Z} \left( M \circ \exp\left( \frac{QK^T}{\sqrt{d}} \right) \right) V \\
     \texttt{LUCID-Attn}(Q, K, V)
-        &= \text{softmax}\left( M \circ \frac{QK^T}{\sqrt{d}} \right) P^{-1} V,
+        &= \frac{1}{Z} \left( M \circ \exp\left( \frac{QK^T}{\sqrt{d}} \right) \right) P^{-1} V,
 \end{align}$$
-where,
+where $Z$ is the normalization term, $M$ is the causal mask,
 $$\begin{align}
     P^{-1}
         &= \left( M \circ \exp\left(\frac{K_{\text{RN}} K_{\text{RN}}^T}{\sqrt{d}} - \sqrt{d}\mathbf{1}\mathbf{1}^T\right) \right)^{-1}, \label{eq:lucid-preconditioner}
@@ -66,9 +67,9 @@ We will focus on the first setting, MoE routing, because the preconditioners $P$
 The routers in Mixture-of-Experts are "attention-like" in the sense that, modulo top-K sparsity, they also compute dot-product similarities between token representations $X$ and expert representations $E$, followed by a softmax to get the routing probabilities. Thus, they suffer from having "diffused" routing probabilities across correlated experts, which lead to less-specialized experts, and worse performance when some of the redundant experts do not get picked in the top-K filter. The simple fix then is to apply the same preconditioning step as in LUCID Attention, which "undoes" the effect of expert correlation before applying the expert outputs $O$:
 $$\begin{align}
     \texttt{Softmax-Routing}(Q, E, O)
-        &= \text{softmax}\left( Q E^T \right) O \\
+        &= \frac{1}{Z} \exp(Q E^T) O \\
     \texttt{LUCID-Softmax-Routing}(Q, E, O)
-        &= \text{softmax}\left( Q E^T \right) P^{-1} O,
+        &= \frac{1}{Z} \exp(Q E^T) P^{-1} O,
 \end{align}$$
 with,
 $$\begin{align}
@@ -81,11 +82,11 @@ $$\begin{align}
 With Sigmoid Gating, our kernel becomes $k(\cdot) = \text{sigmoid}(\cdot)$ instead of $k(\cdot) = \text{exp}(\cdot)$, and,
 $$\begin{align}
     \texttt{Sigmoid-Routing}(Q, E, O)
-        &= \frac{\text{sigmoid}\left( Q E^T \right) O}{Z} \\
+        &= \frac{1}{Z} \text{sigmoid}\left( Q E^T \right) O \\
     \texttt{LUCID-Sigmoid-Routing}(Q, E, O)
-        &= \frac{\text{sigmoid}\left( Q E^T \right)}{Z} P^{-1} O,
+        &= \frac{1}{Z} \text{sigmoid}\left( Q E^T \right) P^{-1} O,
 \end{align}$$
-where $Z$ is the normalization term, and,
+where,
 $$\begin{align}
     P^{-1}
         &= \left( 2\cdot\text{sigmoid}\left(\frac{E_{\text{RN}} E_{\text{RN}}^T}{\sqrt{d}} - \sqrt{d}\mathbf{1}\mathbf{1}^T \right) \right)^{-1}.
