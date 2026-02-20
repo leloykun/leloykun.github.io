@@ -13,6 +13,8 @@ set -euo pipefail
 #   PLOT_LOSS=off|on
 #   DETERMINISTIC=on|off
 #   QE_NORM=off|on
+#   SIGMOID_GATING=off|on
+#   AUXFREE_BIAS=off|on
 #
 # RTX 2060 (6GB) friendly defaults are intentionally conservative.
 
@@ -26,6 +28,8 @@ RUN_BOTH_LUCID_ROUTER="${RUN_BOTH_LUCID_ROUTER:-off}"  # off | on
 PLOT_LOSS="${PLOT_LOSS:-on}"      # on | off
 DETERMINISTIC="${DETERMINISTIC:-on}"  # on | off
 QE_NORM="${QE_NORM:-off}"         # off | on
+SIGMOID_GATING="${SIGMOID_GATING:-off}" # off | on
+AUXFREE_BIAS="${AUXFREE_BIAS:-on}" # off | on
 DEVICE="${DEVICE:-cuda}"          # auto | cuda | cpu
 
 # Longer run defaults.
@@ -46,14 +50,17 @@ EXPERT_HIDDEN="${EXPERT_HIDDEN:-128}"
 KV_BLOCK_SIZE="${KV_BLOCK_SIZE:-64}"
 
 LR="${LR:-5e-3}"
-LR_EMBEDDING="${LR_EMBEDDING:-$LR}"
-LR_LINEAR="${LR_LINEAR:-1e-2}"
-LR_LM_HEAD="${LR_LM_HEAD:-$LR}"
+LR_EMBEDDING="${LR_EMBEDDING:-1e-1}"
+LR_ROUTER_EMBEDDING="${LR_ROUTER_EMBEDDING:-5e-2}"
+LR_LINEAR="${LR_LINEAR:-5e-2}"
+LR_LM_HEAD="${LR_LM_HEAD:-1e-2}"
 MIN_LR_RATIO="${MIN_LR_RATIO:-0.1}"
 BETA1="${BETA1:-0.9}"
 BETA2="${BETA2:-0.9}"
 EPS="${EPS:-1e-8}"
 WEIGHT_DECAY="${WEIGHT_DECAY:-0.1}"
+AUXFREE_BIAS_LR="${AUXFREE_BIAS_LR:-1e-2}"
+AUXFREE_BIAS_CLIP="${AUXFREE_BIAS_CLIP:-10.0}"
 SEED="${SEED:-1337}"
 DATA_SEED="${DATA_SEED:-2026}"
 
@@ -83,6 +90,8 @@ run_one() {
   local plot_out="${OUT_DIR}/${run_name}.png"
   local deterministic_arg
   local qe_norm_arg
+  local sigmoid_gating_arg
+  local auxfree_bias_arg
 
   local d_head_moe=$((D_MODEL / MOE_HEADS))
   local d_head_attn=$((D_MODEL / ATTN_HEADS))
@@ -129,6 +138,22 @@ run_one() {
     echo "Invalid QE_NORM=${QE_NORM}. Use on|off." >&2
     exit 1
   fi
+  if [[ "${SIGMOID_GATING}" == "on" ]]; then
+    sigmoid_gating_arg="--enable_sigmoid_gating"
+  elif [[ "${SIGMOID_GATING}" == "off" ]]; then
+    sigmoid_gating_arg="--no-enable_sigmoid_gating"
+  else
+    echo "Invalid SIGMOID_GATING=${SIGMOID_GATING}. Use on|off." >&2
+    exit 1
+  fi
+  if [[ "${AUXFREE_BIAS}" == "on" ]]; then
+    auxfree_bias_arg="--enable_auxfree_bias"
+  elif [[ "${AUXFREE_BIAS}" == "off" ]]; then
+    auxfree_bias_arg="--no-enable_auxfree_bias"
+  else
+    echo "Invalid AUXFREE_BIAS=${AUXFREE_BIAS}. Use on|off." >&2
+    exit 1
+  fi
 
   echo "=== Starting ${run_name} ==="
   echo "device=${DEVICE} steps=${STEPS} batch=${BATCH_SIZE} block=${BLOCK_SIZE} d_model=${D_MODEL} heads(attn/moe)=${ATTN_HEADS}/${MOE_HEADS} sparsity=${TOP_K}/${NUM_EXPERTS}"
@@ -138,6 +163,8 @@ run_one() {
     --device "${DEVICE}"
     "${deterministic_arg}"
     "${qe_norm_arg}"
+    "${sigmoid_gating_arg}"
+    "${auxfree_bias_arg}"
     "${lucid_router_arg}"
     --steps "${STEPS}"
     --eval_interval "${EVAL_INTERVAL}"
@@ -154,6 +181,7 @@ run_one() {
     --kv_block_size "${KV_BLOCK_SIZE}"
     --lr "${LR}"
     --lr_embedding "${LR_EMBEDDING}"
+    --lr_router_embedding "${LR_ROUTER_EMBEDDING}"
     --lr_linear "${LR_LINEAR}"
     --lr_lm_head "${LR_LM_HEAD}"
     --min_lr_ratio "${MIN_LR_RATIO}"
@@ -161,6 +189,8 @@ run_one() {
     --beta2 "${BETA2}"
     --eps "${EPS}"
     --weight_decay "${WEIGHT_DECAY}"
+    --auxfree_bias_lr "${AUXFREE_BIAS_LR}"
+    --auxfree_bias_clip "${AUXFREE_BIAS_CLIP}"
     --seed "${SEED}"
     --data_seed "${DATA_SEED}"
     --json_out "${json_out}"
@@ -182,6 +212,8 @@ run_both() {
   local plot_out="${OUT_DIR}/${run_name}.png"
   local deterministic_arg
   local qe_norm_arg
+  local sigmoid_gating_arg
+  local auxfree_bias_arg
 
   local d_head_moe=$((D_MODEL / MOE_HEADS))
   local d_head_attn=$((D_MODEL / ATTN_HEADS))
@@ -228,6 +260,22 @@ run_both() {
     echo "Invalid QE_NORM=${QE_NORM}. Use on|off." >&2
     exit 1
   fi
+  if [[ "${SIGMOID_GATING}" == "on" ]]; then
+    sigmoid_gating_arg="--enable_sigmoid_gating"
+  elif [[ "${SIGMOID_GATING}" == "off" ]]; then
+    sigmoid_gating_arg="--no-enable_sigmoid_gating"
+  else
+    echo "Invalid SIGMOID_GATING=${SIGMOID_GATING}. Use on|off." >&2
+    exit 1
+  fi
+  if [[ "${AUXFREE_BIAS}" == "on" ]]; then
+    auxfree_bias_arg="--enable_auxfree_bias"
+  elif [[ "${AUXFREE_BIAS}" == "off" ]]; then
+    auxfree_bias_arg="--no-enable_auxfree_bias"
+  else
+    echo "Invalid AUXFREE_BIAS=${AUXFREE_BIAS}. Use on|off." >&2
+    exit 1
+  fi
 
   if [[ "${LUCID_ROUTER}" != "off" ]]; then
     echo "RUN_BOTH_LUCID_ROUTER=on ignores LUCID_ROUTER=${LUCID_ROUTER}." >&2
@@ -241,6 +289,8 @@ run_both() {
     --device "${DEVICE}"
     "${deterministic_arg}"
     "${qe_norm_arg}"
+    "${sigmoid_gating_arg}"
+    "${auxfree_bias_arg}"
     --run_both_lucid_router
     --steps "${STEPS}"
     --eval_interval "${EVAL_INTERVAL}"
@@ -257,6 +307,7 @@ run_both() {
     --kv_block_size "${KV_BLOCK_SIZE}"
     --lr "${LR}"
     --lr_embedding "${LR_EMBEDDING}"
+    --lr_router_embedding "${LR_ROUTER_EMBEDDING}"
     --lr_linear "${LR_LINEAR}"
     --lr_lm_head "${LR_LM_HEAD}"
     --min_lr_ratio "${MIN_LR_RATIO}"
@@ -264,6 +315,8 @@ run_both() {
     --beta2 "${BETA2}"
     --eps "${EPS}"
     --weight_decay "${WEIGHT_DECAY}"
+    --auxfree_bias_lr "${AUXFREE_BIAS_LR}"
+    --auxfree_bias_clip "${AUXFREE_BIAS_CLIP}"
     --seed "${SEED}"
     --data_seed "${DATA_SEED}"
     --json_out "${json_out}"

@@ -15,8 +15,14 @@ $$\begin{align}
     \texttt{Softmax-Attn}(Q, K, V)
         &= \text{softmax}\left( M \circ \frac{QK^T}{\sqrt{d}} \right) V \\
     \texttt{LUCID-Attn}(Q, K, V)
-        &= \text{softmax}\left( M \circ \frac{QK^T}{\sqrt{d}} \right) \underbrace{\left( M \circ \exp(KK^T) \right)^{-1}}_{P^{-1}} V
+        &= \text{softmax}\left( M \circ \frac{QK^T}{\sqrt{d}} \right) P^{-1} V,
 \end{align}$$
+where,
+$$\begin{align}
+    P^{-1}
+        &= \left( M \circ \exp\left(\frac{K_{\text{RN}} K_{\text{RN}}^T}{\sqrt{d}} - \sqrt{d}\mathbf{1}\mathbf{1}^T\right) \right)^{-1}, \label{eq:lucid-preconditioner}
+\end{align}$$
+and $K_{\text{RN}}$ is the row-RMS-normalized keys, $K_{i, \text{RN}} = \text{rms\_normalize}(K_i)$.
 
 More intuitively, think of softmax attention as a retrieval operation where we have a "query" $q$ (the representation of the current token), and we want to use it to "retrieve" the closest "keys" $K$ (representations of context tokens). The operation,
 $$\begin{align}
@@ -35,14 +41,16 @@ $$\begin{align}
 
 Ideally, we only want to "pick" the key or keys that are closest (highest similarity) to the query, and ignore the rest. However, if there are $N$ tokens that are similar to the closest key, but (perhaps slightly) farther away from the query, then the softmax will still assign all of them roughly equal attention scores, despite not all of them being relevant. Or they could even be relevant, but redundant. Either way, they are distracting and should be ignored. And the longer the context is, the larger $N$ is, the worse the problem becomes. Hence the attention score whitening step to "undo" the effect of key correlations:
 $$\begin{align}
-    P^{-1}
+    \widetilde{P}^{-1}
         &= \begin{bmatrix}
             \exp(\text{similarity}(k_1, k_1)) & 0 & \cdots & 0 \\
             \exp(\text{similarity}(k_1, k_2)) & \exp(\text{similarity}(k_2, k_2)) & \cdots & 0 \\
             \vdots & \vdots & \ddots & \vdots \\
             \exp(\text{similarity}(k_1, k_T)) & \exp(\text{similarity}(k_2, k_T)) & \cdots & \exp(\text{similarity}(k_T, k_T))
-        \end{bmatrix}^{-1}
+        \end{bmatrix}^{-1},
 \end{align}$$
+
+And to avoid numerical instability in practice, we want $P$ to have unit-diagonals and controlled off-diagonals. Thus, we also RMS-normalize the keys first (which typically already come pre-RMS-normalized if QK-normalization is enabled), and do the scaling in Equation $\eqref{eq:lucid-preconditioner}$.
 
 In this blog post, we argue that LUCID's preconditioning step also helps in any "retrieve most-relevant information via dot-product and softmax" setting, such as:
 1. Mixture of Experts (MoE) routing, where the "queries" are token representations, the "keys" are expert representations, and the "values" are the expert outputs.
@@ -53,32 +61,52 @@ We will focus on the first setting, MoE routing, because the preconditioners $P$
 
 ## 2. LUCID-MoE
 
+### 2.1. LUCID-MoE with Softmax Gating
+
 The routers in Mixture-of-Experts are "attention-like" in the sense that, modulo top-K sparsity, they also compute dot-product similarities between token representations $X$ and expert representations $E$, followed by a softmax to get the routing probabilities. Thus, they suffer from having "diffused" routing probabilities across correlated experts, which lead to less-specialized experts, and worse performance when some of the redundant experts do not get picked in the top-K filter. The simple fix then is to apply the same preconditioning step as in LUCID Attention, which "undoes" the effect of expert correlation before applying the expert outputs $O$:
 $$\begin{align}
     \texttt{Softmax-Routing}(Q, E, O)
         &= \text{softmax}\left( Q E^T \right) O \\
-    \texttt{LUCID-Routing}(Q, E, O)
+    \texttt{LUCID-Softmax-Routing}(Q, E, O)
         &= \text{softmax}\left( Q E^T \right) P^{-1} O,
 \end{align}$$
 with,
 $$\begin{align}
     P^{-1}
-        &= \left( \exp(E E^T) \right)^{-1} \nonumber \\
-        &= \begin{bmatrix}
-            \exp(\text{similarity}(e_1, e_1)) & \exp(\text{similarity}(e_2, e_1)) & \cdots & \exp(\text{similarity}(e_K, e_1)) \\
-            \exp(\text{similarity}(e_1, e_2)) & \exp(\text{similarity}(e_2, e_2)) & \cdots & \exp(\text{similarity}(e_K, e_2)) \\
-            \vdots & \vdots & \ddots & \vdots \\
-            \exp(\text{similarity}(e_1, e_K)) & \exp(\text{similarity}(e_2, e_K)) & \cdots & \exp(\text{similarity}(e_K, e_K))
-        \end{bmatrix}^{-1}.
+        &= \left( \exp\left(\frac{E_{\text{RN}} E_{\text{RN}}^T}{\sqrt{d}} - \sqrt{d}\mathbf{1}\mathbf{1}^T \right) \right)^{-1}.
 \end{align}$$
+
+### 2.2. LUCID-MoE with Sigmoid Gating
+
+With Sigmoid Gating, our kernel becomes $k(\cdot) = \text{sigmoid}(\cdot)$ instead of $k(\cdot) = \text{exp}(\cdot)$, and,
+$$\begin{align}
+    \texttt{Sigmoid-Routing}(Q, E, O)
+        &= \frac{\text{sigmoid}\left( Q E^T \right) O}{Z} \\
+    \texttt{LUCID-Sigmoid-Routing}(Q, E, O)
+        &= \frac{\text{sigmoid}\left( Q E^T \right)}{Z} P^{-1} O,
+\end{align}$$
+where $Z$ is the normalization term, and,
+$$\begin{align}
+    P^{-1}
+        &= \left( 2\cdot\text{sigmoid}\left(\frac{E_{\text{RN}} E_{\text{RN}}^T}{\sqrt{d}} - \sqrt{d}\mathbf{1}\mathbf{1}^T \right) \right)^{-1}.
+\end{align}$$
+The factor of $2$ is to ensure that $P$ has unit diagonals.
 
 ## 3. Experiments
 
-Here we train a 2-layer Latent-MoE model ([Cui et al., 2026](https://arxiv.org/abs/2602.04870v1)) on TinyShakespeare, with 32 experts, top-4 routing, and 128 hidden dimension per expert with the Muon optimizer ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)). We observe that LUCID-MoE achieves better validation loss and lower expert entropy, indicating more specialized experts, than the standard MoE baseline.
+Here we train a 2-layer Latent-MoE model ([Cui et al., 2026](https://arxiv.org/abs/2602.04870v1)) on TinyShakespeare, with 64 experts, top-8 routing, auxiliary-free expert load balancing, and the Muon optimizer ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)). We observe that both LUCID-Softmax-MoE and LUCID-Sigmoid-MoE achieve better validation loss and lower max expert load violation compared to their standard counterparts, with the sigmoid gating variant having a more significant improvement.
 
-![](./lucid_moe_loss.png)
+### 3.1. LUCID-MoE with Softmax Gating
 
-![](./lucid_moe_entropy.png)
+![](./lucid_softmax_moe_loss.png)
+
+![](./lucid_softmax_moe_load_violation.png)
+
+### 3.2. LUCID-MoE with Sigmoid Gating
+
+![](./lucid_sigmoid_moe_loss.png)
+
+![](./lucid_sigmoid_moe_load_violation.png)
 
 ## How to cite
 

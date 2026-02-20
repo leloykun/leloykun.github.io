@@ -532,7 +532,11 @@ class MoEConfig:
     expert_hidden: int
     lucid_router_eps: float = 1e-4
     enable_lucid_router_default: bool = False
+    enable_sigmoid_gating_default: bool = False
     enable_qe_norm_default: bool = False
+    enable_auxfree_bias_default: bool = True
+    auxfree_bias_lr: float = 1e-2
+    auxfree_bias_clip: float = 10.0
     kv_block_size: int = 128
 
 
@@ -546,6 +550,7 @@ class MultiHeadLatentMoE(nn.Module):
         cfg: MoEConfig,
         *,
         init_generator: Optional[torch.Generator] = None,
+        split_heads: bool = True,
     ):
         super().__init__()
         if cfg.d_model % cfg.moe_heads != 0:
@@ -557,6 +562,7 @@ class MultiHeadLatentMoE(nn.Module):
 
         self.cfg = cfg
         self.d_head = cfg.d_model // cfg.moe_heads
+        self.split_heads = split_heads
         if self.d_head < 16:
             raise ValueError(
                 f"Compiled FlexAttention requires per-head dim >= 16; got d_head={self.d_head}."
@@ -564,28 +570,40 @@ class MultiHeadLatentMoE(nn.Module):
 
         H, E, d, m = cfg.moe_heads, cfg.num_experts, self.d_head, cfg.expert_hidden
 
-        self.in_proj = nn.Linear(cfg.d_model, H * d, bias=False)
+        if split_heads:
+            self.in_proj = nn.Parameter(torch.empty(H, d, cfg.d_model))
+        else:
+            self.in_proj = nn.Linear(cfg.d_model, H * d, bias=False)
         self.out_proj = nn.Linear(H * d, cfg.d_model, bias=False)
         self.router_embedding = nn.Parameter(torch.empty(H, E, d))
+        self.register_buffer("auxfree_bias", torch.zeros(H, E, dtype=torch.float32), persistent=True)
 
         self.W1 = nn.Parameter(torch.empty(H, E, d, m))
         self.W2 = nn.Parameter(torch.empty(H, E, m, d))
         self.last_routing_entropy: Optional[float] = None
+        self.last_max_load_violation: Optional[float] = None
         self.reset_parameters(init_generator=init_generator)
 
     def reset_parameters(self, *, init_generator: Optional[torch.Generator] = None) -> None:
-        nn.init.kaiming_uniform_(self.in_proj.weight, a=math.sqrt(5), generator=init_generator)
+        if self.split_heads:
+            nn.init.kaiming_uniform_(self.in_proj, a=math.sqrt(5), generator=init_generator)
+        else:
+            nn.init.kaiming_uniform_(self.in_proj.weight, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.out_proj.weight, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.router_embedding, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.W1, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.W2, a=math.sqrt(5), generator=init_generator)
         with torch.no_grad():
-            self.in_proj.weight.data = _orthogonalize(self.in_proj.weight.data)
-            self.out_proj.weight.data = _orthogonalize(self.out_proj.weight.data)
-            self.W1.data = _orthogonalize(self.W1.data)
-            self.W2.data = _orthogonalize(self.W2.data)
+            if self.split_heads:
+                self.in_proj.data = _matrix_update_scale(self.in_proj.data) * _orthogonalize(self.in_proj.data)
+            else:
+                self.in_proj.weight.data = _matrix_update_scale(self.in_proj.weight.data) * _orthogonalize(self.in_proj.weight.data)
+            self.out_proj.weight.data = _matrix_update_scale(self.out_proj.weight.data) * _orthogonalize(self.out_proj.weight.data)
+            self.W1.data = _matrix_update_scale(self.W1.data) * _orthogonalize(self.W1.data)
+            self.W2.data = _matrix_update_scale(self.W2.data) * _orthogonalize(self.W2.data)
             if self.cfg.enable_qe_norm_default:
                 self.router_embedding.data = norm(self.router_embedding.data)
+            self.auxfree_bias.zero_()
 
     def _expert_ffn_assignments(
         self,
@@ -606,11 +624,66 @@ class MultiHeadLatentMoE(nn.Module):
             q_block=1,
         )
 
+    def _remove_auxfree_bias(
+        self,
+        top_logit: torch.Tensor,
+        top_idx: torch.Tensor,
+    ) -> torch.Tensor:
+        if top_logit.ndim != 3 or top_idx.ndim != 3:
+            raise ValueError("top_logit/top_idx must be rank-3 (H, Ntok, K).")
+        if top_logit.shape != top_idx.shape:
+            raise ValueError("top_logit and top_idx shapes must match.")
+        H, Ntok, k = top_logit.shape
+        selected_bias = torch.gather(
+            self.auxfree_bias.to(dtype=top_logit.dtype),
+            dim=1,
+            index=top_idx.reshape(H, Ntok * k),
+        ).reshape(H, Ntok, k)
+        return top_logit - selected_bias
+
+    def _update_auxfree_bias(self, topk_idx: torch.Tensor) -> None:
+        if not self.cfg.enable_auxfree_bias_default or not self.training or not torch.is_grad_enabled():
+            return
+        if topk_idx.ndim != 3:
+            raise ValueError("topk_idx must be rank-3 (H, Ntok, K).")
+
+        with torch.no_grad():
+            H, Ntok, k = topk_idx.shape
+            E = self.cfg.num_experts
+            if Ntok == 0 or k == 0:
+                return
+
+            expert_assign = topk_idx.reshape(H, Ntok * k).to(torch.int64)
+            expert_bincount = _batched_bincount(expert_assign, minlength=E)
+            load = expert_bincount.to(torch.float32) / float(Ntok * k)
+
+            target = 1.0 / float(E)
+            self.auxfree_bias.add_(self.cfg.auxfree_bias_lr * (target - load))
+            # Keep only per-expert relative offsets for each head.
+            self.auxfree_bias.sub_(self.auxfree_bias.mean(dim=1, keepdim=True))
+
+            clip = float(self.cfg.auxfree_bias_clip)
+            if clip > 0.0:
+                self.auxfree_bias.clamp_(min=-clip, max=clip)
+
+    def _compute_block_expert_load(self, topk_idx: torch.Tensor) -> torch.Tensor:
+        if topk_idx.ndim != 3:
+            raise ValueError("topk_idx must be rank-3 (H, Ntok, K).")
+        H, Ntok, k = topk_idx.shape
+        E = self.cfg.num_experts
+        if Ntok == 0 or k == 0:
+            return torch.zeros((E,), dtype=torch.float32, device=topk_idx.device)
+
+        expert_assign = topk_idx.reshape(H * Ntok * k).to(torch.int64)
+        expert_bincount = torch.bincount(expert_assign, minlength=E)
+        return expert_bincount.to(torch.float32) / float(H * Ntok * k)
+
     def _forward_impl(
         self,
         x: torch.Tensor,
         *,
         enable_lucid_router: Optional[bool],
+        enable_sigmoid_gating: Optional[bool],
         enable_qe_norm: Optional[bool],
     ) -> torch.Tensor:
         if x.ndim != 3:
@@ -618,6 +691,8 @@ class MultiHeadLatentMoE(nn.Module):
 
         if enable_lucid_router is None:
             enable_lucid_router = self.cfg.enable_lucid_router_default
+        if enable_sigmoid_gating is None:
+            enable_sigmoid_gating = self.cfg.enable_sigmoid_gating_default
         if enable_qe_norm is None:
             enable_qe_norm = self.cfg.enable_qe_norm_default
 
@@ -626,7 +701,10 @@ class MultiHeadLatentMoE(nn.Module):
         Ntok = B * T
 
         # (Ntok, H, d) -> (H, Ntok, d)
-        q_by_head = self.in_proj(x).view(B, T, H, d).reshape(Ntok, H, d).permute(1, 0, 2).contiguous()
+        if self.split_heads:
+            q_by_head = torch.einsum("hdf,btf->hbtd", self.in_proj, x).reshape(H, Ntok, d).contiguous()
+        else:
+            q_by_head = self.in_proj(x).view(B, T, H, d).reshape(Ntok, H, d).permute(1, 0, 2).contiguous()
         if enable_qe_norm:
             q_router = norm(q_by_head)
             router_embedding = norm(self.router_embedding)
@@ -638,11 +716,26 @@ class MultiHeadLatentMoE(nn.Module):
 
         # Router logits: (H, Ntok, E)
         logits = torch.einsum("hnd,hed->hne", q_router, router_embedding) / logits_factor
-        topk_values, topk_idx = torch.topk(logits, k=k, dim=-1)
-        alpha = torch.softmax(topk_values, dim=-1)  # (H, Ntok, k)
+        if self.cfg.enable_auxfree_bias_default:
+            dirty_logits = logits + self.auxfree_bias.to(dtype=logits.dtype).unsqueeze(1)
+            topk_dirty_values, topk_idx = torch.topk(dirty_logits, k=k, dim=-1)
+            topk_values = self._remove_auxfree_bias(topk_dirty_values, topk_idx)
+        else:
+            topk_values, topk_idx = torch.topk(logits, k=k, dim=-1)
+        if enable_sigmoid_gating:
+            gate = torch.sigmoid(topk_values)
+            alpha = gate / gate.sum(dim=-1, keepdim=True).clamp_min(1e-12)
+        else:
+            alpha = torch.softmax(topk_values, dim=-1)  # (H, Ntok, k)
+        self._update_auxfree_bias(topk_idx)
+        block_expert_load = self._compute_block_expert_load(topk_idx)
+        mean_load = block_expert_load.mean()
+        max_load = block_expert_load.max()
+        load_violation = (max_load - mean_load) / mean_load.clamp_min(1e-12)
+        self.last_max_load_violation = float(load_violation.item())
 
         # Expand assignments without repeat_interleave.
-        q_assign_stacked = q_by_head.unsqueeze(2).expand(H, Ntok, k, d).reshape(H, Ntok * k, d)
+        q_assign_stacked = norm(q_router).unsqueeze(2).expand(H, Ntok, k, d).reshape(H, Ntok * k, d)
         expert_ids_stacked = topk_idx.reshape(H, Ntok * k).to(torch.int64)
 
         y_assign_stacked = self._expert_ffn_assignments(
@@ -656,9 +749,12 @@ class MultiHeadLatentMoE(nn.Module):
         else:
             # Gather selected router embeddings for each (head, token, top-k).
             h_idx = torch.arange(H, device=x.device, dtype=torch.int64)[:, None, None].expand(H, Ntok, k)
-            key_embed = norm(router_embedding[h_idx, topk_idx])  # (H, Ntok, k, d)
+            key_embed = norm(router_embedding[h_idx, topk_idx])  # (H, Ntok, k, d); norm(*) is idempotent
             sim = key_embed @ key_embed.transpose(-1, -2)
-            P = torch.exp(sim.to(torch.float32) / math.sqrt(d) - math.sqrt(d))
+            if enable_sigmoid_gating:
+                P = 2.0 * torch.sigmoid(sim.to(torch.float32) / math.sqrt(d) - math.sqrt(d))
+            else:
+                P = torch.exp(sim.to(torch.float32) / math.sqrt(d) - math.sqrt(d))
             eye = torch.eye(k, device=P.device, dtype=P.dtype).view(1, 1, k, k)
             P = P + self.cfg.lucid_router_eps * eye
 
@@ -667,7 +763,7 @@ class MultiHeadLatentMoE(nn.Module):
             mixed_by_head = (alpha.to(torch.float32).unsqueeze(-1) * y_assign_corr).sum(dim=2)
             mixed_by_head = mixed_by_head.to(dtype=y_assign_stacked.dtype)
 
-        beta_mass = beta_for_entropy.abs().to(torch.float32)
+        beta_mass = (beta_for_entropy.to(torch.float32))**2
         beta_dist = beta_mass / beta_mass.sum(dim=-1, keepdim=True).clamp_min(1e-12)
         entropy = -(beta_dist * beta_dist.clamp_min(1e-12).log()).sum(dim=-1)
         self.last_routing_entropy = float(entropy.mean().item())
@@ -680,11 +776,13 @@ class MultiHeadLatentMoE(nn.Module):
         x: torch.Tensor,
         *,
         enable_lucid_router: Optional[bool] = None,
+        enable_sigmoid_gating: Optional[bool] = None,
         enable_qe_norm: Optional[bool] = None,
     ) -> torch.Tensor:
         return self._forward_impl(
             x,
             enable_lucid_router=enable_lucid_router,
+            enable_sigmoid_gating=enable_sigmoid_gating,
             enable_qe_norm=enable_qe_norm,
         )
 
@@ -751,6 +849,7 @@ class CausalSelfAttention(nn.Module):
         block_size: int = 128,
         rope_base: float = 10000.0,
         init_generator: Optional[torch.Generator] = None,
+        split_heads: bool = True,
     ):
         super().__init__()
         if d_model % num_heads != 0:
@@ -758,21 +857,28 @@ class CausalSelfAttention(nn.Module):
         self.num_heads = num_heads
         self.head_dim = d_model // num_heads
         self.block_size = block_size
-        self.qkv_proj = nn.Linear(d_model, 3 * d_model, bias=False)
-        # self.qkv_proj = nn.Parameter(torch.empty(3, num_heads, self.head_dim, d_model))
+        self.split_heads = split_heads
+        if self.split_heads:
+            self.qkv_proj = nn.Parameter(torch.empty(3, num_heads, self.head_dim, d_model))
+        else:
+            self.qkv_proj = nn.Linear(d_model, 3 * d_model, bias=False)
         self.out_proj = nn.Linear(num_heads * self.head_dim, d_model, bias=False)
         self.rope = RoPE(self.head_dim, base=rope_base)
         self._block_mask_cache: Dict[Tuple[torch.device, int, int], "BlockMask"] = {}
         self.reset_parameters(init_generator=init_generator)
 
     def reset_parameters(self, *, init_generator: Optional[torch.Generator] = None) -> None:
-        nn.init.kaiming_uniform_(self.qkv_proj.weight, a=math.sqrt(5), generator=init_generator)
-        # nn.init.kaiming_uniform_(self.qkv_proj, a=math.sqrt(5), generator=init_generator)
+        if self.split_heads:
+            nn.init.kaiming_uniform_(self.qkv_proj, a=math.sqrt(5), generator=init_generator)
+        else:
+            nn.init.kaiming_uniform_(self.qkv_proj.weight, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.out_proj.weight, a=math.sqrt(5), generator=init_generator)
         with torch.no_grad():
-            self.qkv_proj.weight.data = _orthogonalize(self.qkv_proj.weight.data)
-            # self.qkv_proj.data = _orthogonalize(self.qkv_proj.data)
-            self.out_proj.weight.data = _orthogonalize(self.out_proj.weight.data)
+            if self.split_heads:
+                self.qkv_proj.data = _matrix_update_scale(self.qkv_proj.data) * _orthogonalize(self.qkv_proj.data)
+            else:
+                self.qkv_proj.weight.data = _matrix_update_scale(self.qkv_proj.weight.data) * _orthogonalize(self.qkv_proj.weight.data)
+            self.out_proj.weight.data = _matrix_update_scale(self.out_proj.weight.data) * _orthogonalize(self.out_proj.weight.data)
 
     def _get_causal_block_mask(
         self,
@@ -806,11 +912,13 @@ class CausalSelfAttention(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, T, d_model = x.shape
-        qkv = self.qkv_proj(x).view(B, T, 3, self.num_heads, self.head_dim)
-        qkv = qkv.permute(2, 0, 3, 1, 4)
-        q, k, v = qkv[0], qkv[1], qkv[2]  # (B, H, T, Dh)
-        # qkv = torch.einsum("ahdf,btf->abhtd", self.qkv_proj, x)
-        # q, k, v = qkv[0], qkv[1], qkv[2]
+        if self.split_heads:
+            qkv = torch.einsum("ahdf,btf->abhtd", self.qkv_proj, x)
+            q, k, v = qkv[0], qkv[1], qkv[2]
+        else:
+            qkv = self.qkv_proj(x).view(B, T, 3, self.num_heads, self.head_dim)
+            qkv = qkv.permute(2, 0, 3, 1, 4)
+            q, k, v = qkv[0], qkv[1], qkv[2]
 
         # QK norm
         q, k = norm(q), norm(k)
@@ -853,9 +961,19 @@ class ResidualBlock(nn.Module):
             init_generator=init_generator,
         )
 
-    def forward(self, x: torch.Tensor, *, enable_lucid_router: Optional[bool]) -> torch.Tensor:
+    def forward(
+        self,
+        x: torch.Tensor,
+        *,
+        enable_lucid_router: Optional[bool],
+        enable_sigmoid_gating: Optional[bool],
+    ) -> torch.Tensor:
         x = (1. - self.alpha) * x + self.alpha * self.self_attn(norm(x))
-        x = (1. - self.alpha) * x + self.alpha * self.moe(norm(x), enable_lucid_router=enable_lucid_router)
+        x = (1. - self.alpha) * x + self.alpha * self.moe(
+            norm(x),
+            enable_lucid_router=enable_lucid_router,
+            enable_sigmoid_gating=enable_sigmoid_gating,
+        )
         return x
 
 
@@ -891,6 +1009,7 @@ class LatentMoEShakespeareLM(nn.Module):
         )
         self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
         self.last_routing_entropy: Optional[float] = None
+        self.last_max_load_violation: Optional[float] = None
         self.reset_parameters(init_generator=init_generator)
 
     def reset_parameters(self, *, init_generator: Optional[torch.Generator] = None) -> None:
@@ -905,6 +1024,7 @@ class LatentMoEShakespeareLM(nn.Module):
         targets: Optional[torch.Tensor] = None,
         *,
         enable_lucid_router: Optional[bool] = None,
+        enable_sigmoid_gating: Optional[bool] = None,
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         bsz, seqlen = idx.shape
         if seqlen > self.block_size:
@@ -913,13 +1033,25 @@ class LatentMoEShakespeareLM(nn.Module):
         x = norm(self.token_embedding(idx))
 
         block_entropies: List[float] = []
+        block_load_violations: List[float] = []
         for block in self.blocks:
-            x = block(x, enable_lucid_router=enable_lucid_router)
+            x = block(
+                x,
+                enable_lucid_router=enable_lucid_router,
+                enable_sigmoid_gating=enable_sigmoid_gating,
+            )
             if block.moe.last_routing_entropy is not None:
                 block_entropies.append(block.moe.last_routing_entropy)
+            if block.moe.last_max_load_violation is not None:
+                block_load_violations.append(block.moe.last_max_load_violation)
 
         self.last_routing_entropy = (
             float(sum(block_entropies) / len(block_entropies)) if block_entropies else None
+        )
+        self.last_max_load_violation = (
+            float(sum(block_load_violations) / len(block_load_violations))
+            if block_load_violations
+            else None
         )
 
         logits = self.lm_head(norm(x)).float()
@@ -986,19 +1118,31 @@ class TrainConfig:
     block_size: int
 
 
-def cosine_lr_with_floor(
+def constant_then_decay_lr_with_floor(
     step: int,
     *,
     total_steps: int,
     peak_lr: float,
     min_lr_ratio: float,
+    decay_fraction: float = 0.2,
 ) -> float:
     if total_steps <= 1:
         return peak_lr
+    if not (0.0 < decay_fraction <= 1.0):
+        raise ValueError("decay_fraction must be in (0, 1].")
+
     min_lr = peak_lr * min_lr_ratio
-    progress = float(step) / float(total_steps - 1)
-    cosine = 0.5 * (1.0 + math.cos(math.pi * progress))
-    return min_lr + (peak_lr - min_lr) * cosine
+    decay_steps = max(1, int(math.ceil(float(total_steps) * decay_fraction)))
+    decay_start = max(0, total_steps - decay_steps)
+
+    if step < decay_start:
+        return peak_lr
+    if decay_steps == 1:
+        return min_lr
+
+    progress = float(step - decay_start) / float(decay_steps - 1)
+    progress = max(0.0, min(1.0, progress))
+    return peak_lr + (min_lr - peak_lr) * progress
 
 
 def _get_group_lrs(optimizer: torch.optim.Optimizer | CompositeOptimizer) -> Dict[str, float]:
@@ -1019,7 +1163,7 @@ def _set_scheduled_lrs(
     for group in optimizer.param_groups:
         peak_lr = float(group.get("lr_peak", group["lr"]))
         group["lr_peak"] = peak_lr
-        group["lr"] = cosine_lr_with_floor(
+        group["lr"] = constant_then_decay_lr_with_floor(
             step,
             total_steps=total_steps,
             peak_lr=peak_lr,
@@ -1036,12 +1180,14 @@ def evaluate(
     cfg: TrainConfig,
     rng: torch.Generator,
     enable_lucid_router: bool,
+    enable_sigmoid_gating: bool,
 ) -> Dict[str, float]:
     model.eval()
     out: Dict[str, float] = {}
     for split in ("train", "val"):
         losses: List[float] = []
         entropies: List[float] = []
+        load_violations: List[float] = []
         for _ in range(cfg.eval_batches):
             xb, yb = dataset.get_batch(
                 split,  # type: ignore[arg-type]
@@ -1050,15 +1196,25 @@ def evaluate(
                 device=device,
                 generator=rng,
             )
-            _, loss = model(xb, yb, enable_lucid_router=enable_lucid_router)
+            _, loss = model(
+                xb,
+                yb,
+                enable_lucid_router=enable_lucid_router,
+                enable_sigmoid_gating=enable_sigmoid_gating,
+            )
             if loss is None:
                 raise RuntimeError("Loss should not be None during evaluation.")
             losses.append(float(loss.item()))
             if model.last_routing_entropy is not None:
                 entropies.append(model.last_routing_entropy)
+            if model.last_max_load_violation is not None:
+                load_violations.append(model.last_max_load_violation)
         out[f"{split}_loss"] = sum(losses) / len(losses)
         out[f"{split}_routing_entropy"] = (
             sum(entropies) / len(entropies) if entropies else float("nan")
+        )
+        out[f"{split}_max_load_violation"] = (
+            sum(load_violations) / len(load_violations) if load_violations else float("nan")
         )
     model.train()
     return out
@@ -1075,6 +1231,7 @@ def train_one_run(
     data_seed: int,
     min_lr_ratio: float,
     enable_lucid_router: bool,
+    enable_sigmoid_gating: bool,
 ) -> List[Dict[str, float]]:
     logs: List[Dict[str, float]] = []
     train_rng = make_torch_generator(data_seed, torch.device("cpu"))
@@ -1090,18 +1247,23 @@ def train_one_run(
                 cfg=cfg,
                 rng=eval_rng,
                 enable_lucid_router=enable_lucid_router,
+                enable_sigmoid_gating=enable_sigmoid_gating,
             )
             elapsed = time.time() - t0
             group_lrs = _get_group_lrs(optimizer)
-            current_lr = group_lrs.get("embedding_adamw", float(next(iter(group_lrs.values()))))
+            current_lr = group_lrs.get("token_embedding_adamw", float(next(iter(group_lrs.values()))))
             rec = {
                 "step": float(step),
                 "train_loss": stats["train_loss"],
                 "val_loss": stats["val_loss"],
                 "train_routing_entropy": stats["train_routing_entropy"],
                 "val_routing_entropy": stats["val_routing_entropy"],
+                "train_max_load_violation": stats["train_max_load_violation"],
+                "val_max_load_violation": stats["val_max_load_violation"],
                 "lr": current_lr,
-                "lr_embedding": group_lrs.get("embedding_adamw", float("nan")),
+                "lr_embedding": group_lrs.get("token_embedding_adamw", float("nan")),
+                "lr_token_embedding": group_lrs.get("token_embedding_adamw", float("nan")),
+                "lr_router_embedding": group_lrs.get("router_embedding_adamw", float("nan")),
                 "lr_linear": group_lrs.get("linear_muon", float("nan")),
                 "lr_lm_head": group_lrs.get("lm_head_muon", float("nan")),
                 "elapsed_sec": elapsed,
@@ -1112,6 +1274,8 @@ def train_one_run(
                 f"train_loss={stats['train_loss']:.4f} val_loss={stats['val_loss']:.4f} "
                 f"train_entropy={stats['train_routing_entropy']:.4f} "
                 f"val_entropy={stats['val_routing_entropy']:.4f} "
+                f"train_load_violation={stats['train_max_load_violation']:.4f} "
+                f"val_load_violation={stats['val_max_load_violation']:.4f} "
                 f"elapsed={elapsed:.1f}s"
             )
 
@@ -1134,7 +1298,12 @@ def train_one_run(
         )
 
         optimizer.zero_grad(set_to_none=True)
-        _, loss = model(xb, yb, enable_lucid_router=enable_lucid_router)
+        _, loss = model(
+            xb,
+            yb,
+            enable_lucid_router=enable_lucid_router,
+            enable_sigmoid_gating=enable_sigmoid_gating,
+        )
         if loss is None:
             raise RuntimeError("Loss should not be None in training.")
         loss.backward()
@@ -1271,6 +1440,69 @@ def plot_routing_entropy_curves(
     plt.close()
 
 
+def plot_max_load_violation_curves(
+    *,
+    logs_by_run: Dict[str, List[Dict[str, float]]],
+    out_path: Path,
+) -> None:
+    try:
+        import matplotlib.pyplot as plt
+    except Exception as exc:
+        raise RuntimeError(
+            "--plot_losses was requested but matplotlib is unavailable in this environment."
+        ) from exc
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    plt.figure(figsize=(10.0, 4.0))
+    max_step = max(rec["step"] for run_logs in logs_by_run.values() for rec in run_logs)
+    cut_step = 0.5 * max_step
+    remaining_violations: List[float] = []
+    all_violations: List[float] = []
+    for run_name, run_logs in logs_by_run.items():
+        if not run_logs:
+            continue
+        steps = [rec["step"] for rec in run_logs]
+        val_violations = [rec.get("val_max_load_violation", float("nan")) for rec in run_logs]
+        label = {
+            "mh_lmoe_lucid_off": "MH-LatentMoE (no LUCID-Routers)",
+            "mh_lmoe_lucid_on": "MH-LatentMoE (with LUCID-Routers)",
+        }.get(run_name, run_name.replace("_", " "))
+        for rec in run_logs:
+            vv = float(rec.get("val_max_load_violation", float("nan")))
+            if math.isfinite(vv):
+                all_violations.append(vv)
+                if rec["step"] >= cut_step:
+                    remaining_violations.append(vv)
+
+        plt.plot(steps, val_violations, linestyle="-", linewidth=2.2, label=label)
+
+    y_values = remaining_violations if remaining_violations else all_violations
+    if y_values:
+        y_min = min(y_values)
+        y_max = max(y_values)
+        if math.isfinite(y_min) and math.isfinite(y_max):
+            if y_max > y_min:
+                y_span = y_max - y_min
+                y_low = max(0.0, y_min - 0.05 * y_span)
+                plt.ylim(bottom=y_low, top=y_max)
+            else:
+                wiggle = 0.05 * max(1.0, abs(y_max))
+                y_low = max(0.0, y_min - wiggle)
+                plt.ylim(bottom=y_low, top=y_max + wiggle)
+    if max_step > cut_step:
+        plt.xlim(left=cut_step, right=max_step)
+
+    plt.xlabel("Step")
+    plt.ylabel("Validation Max Load Violation")
+    plt.title("LUCID-MoE: Validation Max Load Violation on Tiny Shakespeare")
+    plt.grid(alpha=0.25)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=160)
+    plt.close()
+
+
 def resolve_plot_out_path(*, plot_out: Optional[Path], json_out: Optional[Path]) -> Path:
     if plot_out is not None:
         return plot_out
@@ -1287,6 +1519,14 @@ def resolve_entropy_plot_out_path(*, plot_out: Optional[Path], json_out: Optiona
     return Path("routing_entropy_plot.png")
 
 
+def resolve_load_violation_plot_out_path(*, plot_out: Optional[Path], json_out: Optional[Path]) -> Path:
+    if plot_out is not None:
+        return plot_out.with_name(f"{plot_out.stem}_load_violation{plot_out.suffix}")
+    if json_out is not None:
+        return json_out.with_name(f"{json_out.stem}_load_violation.png")
+    return Path("routing_load_violation_plot.png")
+
+
 def build_model(
     *,
     vocab_size: int,
@@ -1300,7 +1540,11 @@ def build_model(
     expert_hidden: int,
     lucid_router_eps: float,
     enable_lucid_router_default: bool,
+    enable_sigmoid_gating_default: bool,
     enable_qe_norm_default: bool,
+    enable_auxfree_bias_default: bool,
+    auxfree_bias_lr: float,
+    auxfree_bias_clip: float,
     kv_block_size: int,
     device: torch.device,
     init_generator: Optional[torch.Generator] = None,
@@ -1313,7 +1557,11 @@ def build_model(
         expert_hidden=expert_hidden,
         lucid_router_eps=lucid_router_eps,
         enable_lucid_router_default=enable_lucid_router_default,
+        enable_sigmoid_gating_default=enable_sigmoid_gating_default,
         enable_qe_norm_default=enable_qe_norm_default,
+        enable_auxfree_bias_default=enable_auxfree_bias_default,
+        auxfree_bias_lr=auxfree_bias_lr,
+        auxfree_bias_clip=auxfree_bias_clip,
         kv_block_size=kv_block_size,
     )
     model = LatentMoEShakespeareLM(
@@ -1332,6 +1580,7 @@ def build_optimizer(
     *,
     model: LatentMoEShakespeareLM,
     lr_embedding: float,
+    lr_router_embedding: float,
     lr_linear: float,
     lr_lm_head: float,
     beta1: float,
@@ -1344,31 +1593,77 @@ def build_optimizer(
     Dict[str, int],
     Dict[str, List[str]],
 ]:
-    if lr_embedding <= 0.0 or lr_linear <= 0.0 or lr_lm_head <= 0.0:
+    if lr_embedding <= 0.0 or lr_router_embedding <= 0.0 or lr_linear <= 0.0 or lr_lm_head <= 0.0:
         raise ValueError("All learning rates must be > 0.")
 
     named_params = list(model.named_parameters())
-    embedding_adamw_params = [p for name, p in named_params if "_embedding" in name]
-    lm_head_muon_params = [p for name, p in named_params if name.startswith("lm_head.") and "_embedding" not in name]
-    linear_muon_params = [p for name, p in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
+    token_embedding_adamw_params = [
+        p for name, p in named_params if name.startswith("token_embedding.")
+    ]
+    router_embedding_adamw_params = [
+        p for name, p in named_params if name.endswith("router_embedding")
+    ]
+    lm_head_muon_params = [
+        p
+        for name, p in named_params
+        if name.startswith("lm_head.")
+        and not name.startswith("token_embedding.")
+        and not name.endswith("router_embedding")
+    ]
+    linear_muon_params = [
+        p
+        for name, p in named_params
+        if not name.startswith("lm_head.")
+        and not name.startswith("token_embedding.")
+        and not name.endswith("router_embedding")
+    ]
 
-    embedding_adamw_names = [name for name, _ in named_params if "_embedding" in name]
-    lm_head_muon_names = [name for name, _ in named_params if name.startswith("lm_head.") and "_embedding" not in name]
-    linear_muon_names = [name for name, _ in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
+    token_embedding_adamw_names = [
+        name for name, _ in named_params if name.startswith("token_embedding.")
+    ]
+    router_embedding_adamw_names = [
+        name for name, _ in named_params if name.endswith("router_embedding")
+    ]
+    lm_head_muon_names = [
+        name
+        for name, _ in named_params
+        if name.startswith("lm_head.")
+        and not name.startswith("token_embedding.")
+        and not name.endswith("router_embedding")
+    ]
+    linear_muon_names = [
+        name
+        for name, _ in named_params
+        if not name.startswith("lm_head.")
+        and not name.startswith("token_embedding.")
+        and not name.endswith("router_embedding")
+    ]
 
     optimizers: List[torch.optim.Optimizer] = []
-    if embedding_adamw_params:
-        adamw_opt = torch.optim.AdamW(
-            embedding_adamw_params,
+    if token_embedding_adamw_params:
+        token_adamw_opt = torch.optim.AdamW(
+            token_embedding_adamw_params,
             lr=lr_embedding,
             betas=(beta1, beta2),
             eps=eps,
             weight_decay=weight_decay,
         )
-        for group in adamw_opt.param_groups:
-            group["group_name"] = "embedding_adamw"
+        for group in token_adamw_opt.param_groups:
+            group["group_name"] = "token_embedding_adamw"
             group["lr_peak"] = lr_embedding
-        optimizers.append(adamw_opt)
+        optimizers.append(token_adamw_opt)
+    if router_embedding_adamw_params:
+        router_adamw_opt = torch.optim.AdamW(
+            router_embedding_adamw_params,
+            lr=lr_router_embedding,
+            betas=(beta1, beta2),
+            eps=eps,
+            weight_decay=weight_decay,
+        )
+        for group in router_adamw_opt.param_groups:
+            group["group_name"] = "router_embedding_adamw"
+            group["lr_peak"] = lr_router_embedding
+        optimizers.append(router_adamw_opt)
     if linear_muon_params:
         linear_muon_opt = MuonOptimizer(
             linear_muon_params,
@@ -1397,12 +1692,14 @@ def build_optimizer(
     if not optimizers:
         raise RuntimeError("No trainable parameters found for optimizer construction.")
     split_counts = {
-        "embedding_adamw": len(embedding_adamw_params),
+        "token_embedding_adamw": len(token_embedding_adamw_params),
+        "router_embedding_adamw": len(router_embedding_adamw_params),
         "linear_muon": len(linear_muon_params),
         "lm_head_muon": len(lm_head_muon_params),
     }
     split_names = {
-        "embedding_adamw": embedding_adamw_names,
+        "token_embedding_adamw": token_embedding_adamw_names,
+        "router_embedding_adamw": router_embedding_adamw_names,
         "linear_muon": linear_muon_names,
         "lm_head_muon": lm_head_muon_names,
     }
@@ -1437,11 +1734,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--enable_lucid_router", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--run_both_lucid_router", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--lucid_router_eps", type=float, default=1e-4)
+    parser.add_argument("--enable_sigmoid_gating", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--enable_qe_norm", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--enable_auxfree_bias", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--auxfree_bias_lr", type=float, default=1e-2)
+    parser.add_argument("--auxfree_bias_clip", type=float, default=10.0)
     parser.add_argument("--deterministic", action=argparse.BooleanOptionalAction, default=True)
 
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--lr_embedding", type=float, default=None)
+    parser.add_argument("--lr_router_embedding", type=float, default=None)
     parser.add_argument("--lr_linear", type=float, default=None)
     parser.add_argument("--lr_lm_head", type=float, default=None)
     parser.add_argument("--min_lr_ratio", type=float, default=0.1)
@@ -1462,6 +1764,10 @@ def main() -> None:
 
     if not (0.0 < args.min_lr_ratio <= 1.0):
         raise ValueError("--min_lr_ratio must be in (0, 1].")
+    if args.auxfree_bias_lr < 0.0:
+        raise ValueError("--auxfree_bias_lr must be >= 0.")
+    if args.auxfree_bias_clip < 0.0:
+        raise ValueError("--auxfree_bias_clip must be >= 0.")
 
     configure_determinism(args.deterministic)
 
@@ -1496,17 +1802,22 @@ def main() -> None:
         block_size=args.block_size,
     )
     lr_embedding = args.lr if args.lr_embedding is None else args.lr_embedding
+    lr_router_embedding = lr_embedding if args.lr_router_embedding is None else args.lr_router_embedding
     lr_linear = args.lr if args.lr_linear is None else args.lr_linear
     lr_lm_head = args.lr if args.lr_lm_head is None else args.lr_lm_head
     attn_heads = args.moe_heads if args.attn_heads is None else args.attn_heads
     print(
-        f"LR schedule (cosine): "
-        f"embed {lr_embedding:.3e}->{lr_embedding * args.min_lr_ratio:.3e}, "
+        f"LR schedule (constant then decay in last 20%): "
+        f"token_embed {lr_embedding:.3e}->{lr_embedding * args.min_lr_ratio:.3e}, "
+        f"router_embed {lr_router_embedding:.3e}->{lr_router_embedding * args.min_lr_ratio:.3e}, "
         f"linear {lr_linear:.3e}->{lr_linear * args.min_lr_ratio:.3e}, "
         f"lm_head {lr_lm_head:.3e}->{lr_lm_head * args.min_lr_ratio:.3e} | "
         f"Heads(attn/moe)={attn_heads}/{args.moe_heads} | "
         f"LUCID_ROUTER={'both (off,on)' if args.run_both_lucid_router else ('on' if args.enable_lucid_router else 'off')} | "
+        f"GATING={'sigmoid' if args.enable_sigmoid_gating else 'softmax'} | "
         f"QE_NORM={'on' if args.enable_qe_norm else 'off'} | "
+        f"AUXFREE_BIAS={'on' if args.enable_auxfree_bias else 'off'} "
+        f"(lr={args.auxfree_bias_lr:.2e}, clip={args.auxfree_bias_clip:.2f}) | "
         f"FlexAttention=on | "
         f"Deterministic={'on' if args.deterministic else 'off'}"
     )
@@ -1532,7 +1843,11 @@ def main() -> None:
             expert_hidden=args.expert_hidden,
             lucid_router_eps=args.lucid_router_eps,
             enable_lucid_router_default=run_enable_lucid_router,
+            enable_sigmoid_gating_default=args.enable_sigmoid_gating,
             enable_qe_norm_default=args.enable_qe_norm,
+            enable_auxfree_bias_default=args.enable_auxfree_bias,
+            auxfree_bias_lr=args.auxfree_bias_lr,
+            auxfree_bias_clip=args.auxfree_bias_clip,
             kv_block_size=args.kv_block_size,
             device=device,
             init_generator=init_rng,
@@ -1540,6 +1855,7 @@ def main() -> None:
         optimizer, split_counts, split_names = build_optimizer(
             model=model,
             lr_embedding=lr_embedding,
+            lr_router_embedding=lr_router_embedding,
             lr_linear=lr_linear,
             lr_lm_head=lr_lm_head,
             beta1=args.beta1,
@@ -1550,11 +1866,13 @@ def main() -> None:
         )
         print(
             f"[{run_name}] optimizer split: "
-            f"embedding_adamw={split_counts['embedding_adamw']}, "
+            f"token_embedding_adamw={split_counts['token_embedding_adamw']}, "
+            f"router_embedding_adamw={split_counts['router_embedding_adamw']}, "
             f"linear_muon={split_counts['linear_muon']}, "
             f"lm_head_muon={split_counts['lm_head_muon']}, "
         )
-        print(f"[{run_name}] AdamW params: {', '.join(split_names['embedding_adamw'])}")
+        print(f"[{run_name}] AdamW token_embedding params: {', '.join(split_names['token_embedding_adamw'])}")
+        print(f"[{run_name}] AdamW router_embedding params: {', '.join(split_names['router_embedding_adamw'])}")
         print(f"[{run_name}] Muon linear params: {', '.join(split_names['linear_muon'])}")
         print(f"[{run_name}] Muon lm_head params: {', '.join(split_names['lm_head_muon'])}")
 
@@ -1568,6 +1886,7 @@ def main() -> None:
             data_seed=args.data_seed,
             min_lr_ratio=args.min_lr_ratio,
             enable_lucid_router=run_enable_lucid_router,
+            enable_sigmoid_gating=args.enable_sigmoid_gating,
         )
 
     summary = {run_name: logs[-1]["val_loss"] for run_name, logs in logs_by_run.items()}
@@ -1578,13 +1897,20 @@ def main() -> None:
 
     plot_path: Optional[Path] = None
     entropy_plot_path: Optional[Path] = None
+    load_violation_plot_path: Optional[Path] = None
     if args.plot_losses:
         plot_path = resolve_plot_out_path(plot_out=args.plot_out, json_out=args.json_out)
         entropy_plot_path = resolve_entropy_plot_out_path(plot_out=args.plot_out, json_out=args.json_out)
+        load_violation_plot_path = resolve_load_violation_plot_out_path(
+            plot_out=args.plot_out,
+            json_out=args.json_out,
+        )
         plot_loss_curves(logs_by_run=logs_by_run, out_path=plot_path)
         plot_routing_entropy_curves(logs_by_run=logs_by_run, out_path=entropy_plot_path)
+        plot_max_load_violation_curves(logs_by_run=logs_by_run, out_path=load_violation_plot_path)
         print(f"Wrote loss plot to {plot_path}")
         print(f"Wrote routing entropy plot to {entropy_plot_path}")
+        print(f"Wrote max load violation plot to {load_violation_plot_path}")
 
     if args.json_out is not None:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
@@ -1595,6 +1921,8 @@ def main() -> None:
             config["plot_out"] = str(plot_path)
         if entropy_plot_path is not None:
             config["plot_out_entropy"] = str(entropy_plot_path)
+        if load_violation_plot_path is not None:
+            config["plot_out_load_violation"] = str(load_violation_plot_path)
         payload = {
             "config": {**config, "device": str(device)},
             "train_config": {
