@@ -278,20 +278,6 @@ def _matrix_update_scale(p: Tensor) -> float:
     return math.sqrt(float(fan_out) / float(fan_in))
 
 
-def _stochastic_round_nonnegative(
-    x: Tensor,
-    *,
-    generator: Optional[torch.Generator] = None,
-) -> Tensor:
-    x_floor = torch.floor(x)
-    frac = torch.clamp(x - x_floor, min=0.0, max=1.0)
-    if generator is None:
-        rand = torch.rand_like(frac)
-    else:
-        rand = torch.rand(frac.shape, device=frac.device, dtype=frac.dtype, generator=generator)
-    return x_floor + (rand < frac).to(dtype=x.dtype)
-
-
 def _quantize_fp8_e4m3_no_scale(
     x: Tensor,
     *,
@@ -435,6 +421,7 @@ def quantize_ste(
 @dataclass
 class QuantForwardConfig:
     scale_mode: ScaleMode = "row"
+    enable_weight_quantization: bool = True
     weight_stochastic_rounding: bool = True
     activation_stochastic_rounding: bool = False
     activation_scale_mode: ScaleMode = "tensor"
@@ -442,6 +429,8 @@ class QuantForwardConfig:
 
 
 def quantize_weight_ste(x: Tensor, qcfg: QuantForwardConfig) -> Tensor:
+    if not qcfg.enable_weight_quantization:
+        return x
     return quantize_ste(
         x,
         stochastic_rounding=qcfg.weight_stochastic_rounding,
@@ -1502,7 +1491,7 @@ def plot_loss_curves(
 
     if all_steps:
         max_step = max(all_steps)
-        cutoff = 0.10 * float(max_step)
+        cutoff = 0.25 * float(max_step)
         for logs in all_logs.values():
             for rec in logs:
                 if float(rec["step"]) >= cutoff:
@@ -1512,15 +1501,16 @@ def plot_loss_curves(
     plt.ylabel("Validation Loss")
     # plt.yscale("log")
     if late_horizon_vals:
-        y_min, _ = plt.ylim()
+        y_min = min(late_horizon_vals)
         y_top = max(late_horizon_vals)
         if y_top > y_min:
-            plt.ylim(None, y_top)
+            plt.ylim(y_min - 0.05 * (y_top - y_min), y_top)
     optimizer_name_stylized = {
         "adamw": "AdamW",
         "muon": "Muon",
         "shampoo": "Shampoo",
     }[optimizer_name]
+    plt.yscale("log")
     plt.title(f"{optimizer_name_stylized} on Tiny Shakespeare Residual MLP: Loss vs Training Steps")
     plt.grid(True, alpha=0.3)
     plt.legend()
@@ -1537,12 +1527,14 @@ def build_model(
     n_layers: int,
     mlp_hidden: int,
     scale_mode: ScaleMode,
+    enable_weight_quantization: bool,
     lm_head_quantized: bool,
     device: torch.device,
     sr_generator: Optional[torch.Generator],
 ) -> ResidualMLPLM:
     qcfg = QuantForwardConfig(
         scale_mode=scale_mode,
+        enable_weight_quantization=enable_weight_quantization,
         weight_stochastic_rounding=True,
         activation_stochastic_rounding=False,
         activation_scale_mode="tensor",
@@ -1668,6 +1660,7 @@ def main() -> None:
         n_layers=args.n_layers,
         mlp_hidden=args.mlp_hidden,
         scale_mode=args.fp8_scale_mode,
+        enable_weight_quantization=True,
         lm_head_quantized=True,
         device=torch.device("cpu"),
         sr_generator=None,
@@ -1690,6 +1683,7 @@ def main() -> None:
         set_seed(args.seed)
         run_seed_offset = {"reference": 0, "eco_fp8_nomaster": 10_000, "fp8_nomaster_noeco": 20_000}[run_name]
         model_sr_gen = make_torch_generator(sr_seed_base + run_seed_offset + 1, device)
+        enable_weight_quantization = (run_name == "reference")
 
         model = build_model(
             vocab_size=dataset.vocab_size,
@@ -1698,6 +1692,7 @@ def main() -> None:
             n_layers=args.n_layers,
             mlp_hidden=args.mlp_hidden,
             scale_mode=args.fp8_scale_mode,
+            enable_weight_quantization=enable_weight_quantization,
             lm_head_quantized=True,
             device=device,
             sr_generator=model_sr_gen,
