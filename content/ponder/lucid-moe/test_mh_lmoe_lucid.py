@@ -38,11 +38,12 @@ def _reference_expert_ffn(
     W1: torch.Tensor,
     W2: torch.Tensor,
 ) -> torch.Tensor:
-    selected_w1 = W1[expert_ids.to(torch.int64)]  # (Nassign, d, m)
-    hidden = torch.bmm(q_assign.unsqueeze(1), selected_w1).squeeze(1)
+    # W1: (E, m, d), W2: (E, d, m)
+    selected_w1 = W1[expert_ids.to(torch.int64)]  # (Nassign, m, d)
+    hidden = torch.bmm(q_assign.unsqueeze(1), selected_w1.transpose(1, 2)).squeeze(1)
     hidden = F.gelu(hidden)
-    selected_w2 = W2[expert_ids.to(torch.int64)]  # (Nassign, m, d)
-    return torch.bmm(hidden.unsqueeze(1), selected_w2).squeeze(1)
+    selected_w2 = W2[expert_ids.to(torch.int64)]  # (Nassign, d, m)
+    return torch.bmm(hidden.unsqueeze(1), selected_w2.transpose(1, 2)).squeeze(1)
 
 
 def _reference_mh_lmoe_forward(
@@ -57,69 +58,86 @@ def _reference_mh_lmoe_forward(
         raise ValueError("x must be rank-3 (B, T, d_model).")
 
     B, T, _ = x.shape
-    H, d, k = cfg.moe_heads, model.d_head, cfg.top_k
+    H, d, k = cfg.moe_heads, model.d_moe_latent, cfg.top_k
     Ntok = B * T
-    router_weight_all = mh_lmoe_lucid.norm(model.router_weight) if enable_qe_norm else model.router_weight
+    q_by_head = torch.einsum("hdf,btf->hbtd", model.in_proj, x).reshape(H, Ntok, d).contiguous()
+    if enable_qe_norm:
+        q_router = mh_lmoe_lucid.norm(q_by_head)
+        router_embedding = mh_lmoe_lucid.norm(model.router_embedding)
+        logits_factor = 1.0 / math.sqrt(d)
+    else:
+        q_router = q_by_head
+        router_embedding = model.router_embedding
+        logits_factor = 1.0
 
-    xh = model.in_proj(x).view(B, T, H, d)
-    head_outputs = []
-    for h in range(H):
-        q = xh[:, :, h, :].reshape(Ntok, d).contiguous()  # (Ntok, d)
-        q_router = mh_lmoe_lucid.norm(q) if enable_qe_norm else q
-        logits = torch.matmul(q_router, router_weight_all[h].transpose(0, 1))  # (Ntok, E)
-        topk = torch.topk(logits, k=k, dim=-1)
-        topk_idx = topk.indices  # (Ntok, k)
-        alpha = torch.softmax(topk.values, dim=-1)  # (Ntok, k)
+    logits = logits_factor * torch.einsum("hnd,hed->hne", q_router, router_embedding)
+    if cfg.enable_auxfree_bias_default:
+        dirty_logits = logits + model.auxfree_bias.to(dtype=logits.dtype).unsqueeze(1)
+        topk_dirty_values, topk_idx = torch.topk(dirty_logits, k=k, dim=-1)
+        selected_bias = torch.gather(
+            model.auxfree_bias.to(dtype=topk_dirty_values.dtype),
+            dim=1,
+            index=topk_idx.reshape(H, Ntok * k),
+        ).reshape(H, Ntok, k)
+        topk_values = topk_dirty_values - selected_bias
+    else:
+        topk_values, topk_idx = torch.topk(logits, k=k, dim=-1)
 
-        q_assign = q.repeat_interleave(k, dim=0)  # (Ntok*k, d)
-        expert_ids = topk_idx.reshape(-1).to(torch.int64)  # (Ntok*k,)
+    alpha = torch.softmax(topk_values, dim=-1)  # (H, Ntok, k)
+    q_assign_stacked = mh_lmoe_lucid.norm(q_router).unsqueeze(2).expand(H, Ntok, k, d).reshape(H, Ntok * k, d)
+    expert_ids_stacked = topk_idx.reshape(H, Ntok * k).to(torch.int64)
 
-        selected_w1 = model.W1[h][expert_ids]  # (Ntok*k, d, m)
-        hidden = torch.bmm(q_assign.unsqueeze(1), selected_w1).squeeze(1)  # (Ntok*k, m)
-        hidden = F.gelu(hidden)
-        selected_w2 = model.W2[h][expert_ids]  # (Ntok*k, m, d)
-        y_assign = torch.bmm(hidden.unsqueeze(1), selected_w2).squeeze(1).view(Ntok, k, d)
+    y_assign_stacked = torch.stack(
+        [
+            _reference_expert_ffn(
+                q_assign_stacked[h],
+                expert_ids_stacked[h],
+                model.W1[h],
+                model.W2[h],
+            )
+            for h in range(H)
+        ],
+        dim=0,
+    ).view(H, Ntok, k, d)
 
-        if enable_lucid_router and k > 1:
-            router_weight = router_weight_all[h]  # (E, d)
-            if enable_qe_norm:
-                key_embed = router_weight[topk_idx]
-            else:
-                key_embed = mh_lmoe_lucid.norm(router_weight[topk_idx])  # (Ntok, k, d)
-            sim = key_embed @ key_embed.transpose(-1, -2)
-            P = torch.exp(sim.to(torch.float32) / math.sqrt(d) - math.sqrt(d))
-            eye = torch.eye(k, device=P.device, dtype=P.dtype).unsqueeze(0)
-            P = P + cfg.lucid_router_eps * eye
-            y_assign_corr = torch.linalg.solve(P, y_assign.to(torch.float32))
-            mixed = (alpha.to(torch.float32).unsqueeze(-1) * y_assign_corr).sum(dim=1).to(y_assign.dtype)
-        else:
-            mixed = (alpha.unsqueeze(-1) * y_assign).sum(dim=1)
+    if not enable_lucid_router or k <= 1:
+        mixed_by_head = (alpha.unsqueeze(-1) * y_assign_stacked).sum(dim=2)
+    else:
+        h_idx = torch.arange(H, device=x.device, dtype=torch.int64)[:, None, None].expand(H, Ntok, k)
+        key_embed = mh_lmoe_lucid.norm(router_embedding[h_idx, topk_idx])
+        sim = key_embed @ key_embed.transpose(-1, -2)
+        P = torch.exp(sim.to(torch.float32) / math.sqrt(d) - math.sqrt(d))
+        eye = torch.eye(k, device=P.device, dtype=P.dtype).view(1, 1, k, k)
+        P = P + cfg.lucid_router_eps * eye
+        y_assign_corr = torch.linalg.solve(P, y_assign_stacked.to(torch.float32))
+        mixed_by_head = (alpha.to(torch.float32).unsqueeze(-1) * y_assign_corr).sum(dim=2)
+        mixed_by_head = mixed_by_head.to(dtype=y_assign_stacked.dtype)
 
-        head_outputs.append(mixed.view(B, T, d))
-
-    y = torch.cat(head_outputs, dim=-1)
+    y = mixed_by_head.permute(1, 0, 2).contiguous().view(B, T, H * d)
     return model.out_proj(y)
 
 
 @pytest.mark.skipif(not HAS_FLEX, reason="FlexAttention is unavailable in this PyTorch build.")
 @pytest.mark.skipif(not HAS_CUDA, reason="CUDA is required for FlexAttention parity tests.")
-def test_flex_expert_assignments_match_reference() -> None:
+@pytest.mark.parametrize("num_heads", [1, 3], ids=["single_head", "multi_head"])
+def test_flex_expert_assignments_match_reference(num_heads: int) -> None:
     torch.manual_seed(7)
     device = torch.device("cuda")
 
-    # Match the code path used by MultiHeadLatentMoE: multi-head assignment kernel.
-    H, E, d, m = 3, 7, 16, 77
+    # Match the code path used by MultiHeadLatentMoE expert assignment kernel.
+    H, E, d, m = num_heads, 7, 16, 77
     q_len = 193
 
     q_by_head = torch.randn(H, q_len, d, device=device)
     expert_ids_by_head = torch.randint(0, E, (H, q_len), device=device, dtype=torch.int64)
 
-    W1 = torch.randn(H, E, d, m, device=device)
-    W2 = torch.randn(H, E, m, d, device=device)
+    W1 = torch.randn(H, E, m, d, device=device)
+    W2 = torch.randn(H, E, d, m, device=device)
 
     cfg = mh_lmoe_lucid.MoEConfig(
         d_model=H * d,
         moe_heads=H,
+        d_moe_latent=d,
         num_experts=E,
         top_k=2,
         expert_hidden=m,
@@ -154,13 +172,15 @@ def test_flex_expert_assignments_match_reference() -> None:
 @pytest.mark.skipif(not HAS_CUDA, reason="CUDA is required for FlexAttention parity tests.")
 @pytest.mark.parametrize("enable_lucid_router", [False, True])
 @pytest.mark.parametrize("enable_qe_norm", [False, True])
-def test_mh_lmoe_forward_runs(enable_lucid_router: bool, enable_qe_norm: bool) -> None:
+@pytest.mark.parametrize("moe_heads", [1, 4], ids=["single_head", "multi_head"])
+def test_mh_lmoe_forward_runs(enable_lucid_router: bool, enable_qe_norm: bool, moe_heads: int) -> None:
     torch.manual_seed(11)
     device = torch.device("cuda")
 
     cfg = mh_lmoe_lucid.MoEConfig(
         d_model=64,
-        moe_heads=4,
+        moe_heads=moe_heads,
+        d_moe_latent=64 // moe_heads,
         num_experts=8,
         top_k=2,
         expert_hidden=19,
@@ -187,13 +207,15 @@ def test_mh_lmoe_forward_runs(enable_lucid_router: bool, enable_qe_norm: bool) -
 @pytest.mark.skipif(not HAS_CUDA, reason="CUDA is required for FlexAttention parity tests.")
 @pytest.mark.parametrize("enable_lucid_router", [False, True])
 @pytest.mark.parametrize("enable_qe_norm", [False, True])
-def test_mh_lmoe_forward_matches_reference(enable_lucid_router: bool, enable_qe_norm: bool) -> None:
+@pytest.mark.parametrize("moe_heads", [1, 4], ids=["single_head", "multi_head"])
+def test_mh_lmoe_forward_matches_reference(enable_lucid_router: bool, enable_qe_norm: bool, moe_heads: int) -> None:
     torch.manual_seed(17)
     device = torch.device("cuda")
 
     cfg = mh_lmoe_lucid.MoEConfig(
         d_model=64,
-        moe_heads=4,
+        moe_heads=moe_heads,
+        d_moe_latent=64 // moe_heads,
         num_experts=8,
         top_k=2,
         expert_hidden=19,
@@ -222,13 +244,15 @@ def test_mh_lmoe_forward_matches_reference(enable_lucid_router: bool, enable_qe_
 
 @pytest.mark.skipif(not HAS_FLEX, reason="FlexAttention is unavailable in this PyTorch build.")
 @pytest.mark.skipif(not HAS_CUDA, reason="CUDA is required for FlexAttention parity tests.")
-def test_enable_lucid_router_toggle_changes_reference_output() -> None:
+@pytest.mark.parametrize("moe_heads", [1, 4], ids=["single_head", "multi_head"])
+def test_enable_lucid_router_toggle_changes_reference_output(moe_heads: int) -> None:
     torch.manual_seed(123)
     device = torch.device("cuda")
 
     cfg = mh_lmoe_lucid.MoEConfig(
         d_model=64,
-        moe_heads=4,
+        moe_heads=moe_heads,
+        d_moe_latent=64 // moe_heads,
         num_experts=8,
         top_k=2,
         expert_hidden=19,

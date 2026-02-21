@@ -11,6 +11,7 @@ set -euo pipefail
 #   LUCID_ROUTER=off|on
 #   RUN_BOTH_LUCID_ROUTER=off|on
 #   PLOT_LOSS=off|on
+#   LIVE_PLOT=off|on
 #   DETERMINISTIC=on|off
 #   QE_NORM=off|on
 #   SIGMOID_GATING=off|on
@@ -24,8 +25,9 @@ PY_SCRIPT="${PY_SCRIPT:-content/ponder/lucid-moe/mh_lmoe_lucid.py}"
 OUT_DIR="${OUT_DIR:-content/ponder/lucid-moe/runs}"
 
 LUCID_ROUTER="${LUCID_ROUTER:-off}"             # off | on
-RUN_BOTH_LUCID_ROUTER="${RUN_BOTH_LUCID_ROUTER:-off}"  # off | on
+RUN_BOTH_LUCID_ROUTER="${RUN_BOTH_LUCID_ROUTER:-on}"  # off | on
 PLOT_LOSS="${PLOT_LOSS:-on}"      # on | off
+LIVE_PLOT="${LIVE_PLOT:-on}"      # on | off (only used when PLOT_LOSS=on)
 DETERMINISTIC="${DETERMINISTIC:-on}"  # on | off
 QE_NORM="${QE_NORM:-off}"         # off | on
 SIGMOID_GATING="${SIGMOID_GATING:-off}" # off | on
@@ -43,6 +45,7 @@ BLOCK_SIZE="${BLOCK_SIZE:-128}"
 D_MODEL="${D_MODEL:-64}"
 N_LAYERS="${N_LAYERS:-2}"
 MOE_HEADS="${MOE_HEADS:-1}"
+D_MOE_LATENT="${D_MOE_LATENT:-$((D_MODEL / MOE_HEADS))}"
 ATTN_HEADS="${ATTN_HEADS:-$MOE_HEADS}"
 NUM_EXPERTS="${NUM_EXPERTS:-32}"
 TOP_K="${TOP_K:-4}"
@@ -92,24 +95,25 @@ run_one() {
   local qe_norm_arg
   local sigmoid_gating_arg
   local auxfree_bias_arg
+  local live_plot_arg
 
-  local d_head_moe=$((D_MODEL / MOE_HEADS))
+  local d_moe_latent=$D_MOE_LATENT
   local d_head_attn=$((D_MODEL / ATTN_HEADS))
-  if (( D_MODEL % MOE_HEADS != 0 )); then
-    echo "Invalid config: D_MODEL (${D_MODEL}) must be divisible by MOE_HEADS (${MOE_HEADS})." >&2
-    exit 1
-  fi
   if (( D_MODEL % ATTN_HEADS != 0 )); then
     echo "Invalid config: D_MODEL (${D_MODEL}) must be divisible by ATTN_HEADS (${ATTN_HEADS})." >&2
     exit 1
   fi
-  if (( (d_head_moe & (d_head_moe - 1)) != 0 )); then
-    echo "Invalid config for MoE FlexAttention: d_head_moe=${d_head_moe} is not a power of 2." >&2
-    echo "Set D_MODEL/MOE_HEADS so per-head dim is 32/64/128..." >&2
+  if (( d_moe_latent <= 0 )); then
+    echo "Invalid config: D_MOE_LATENT (${d_moe_latent}) must be > 0." >&2
     exit 1
   fi
-  if (( d_head_moe < 16 )); then
-    echo "Invalid config for compiled MoE FlexAttention: d_head_moe=${d_head_moe} must be >= 16." >&2
+  if (( (d_moe_latent & (d_moe_latent - 1)) != 0 )); then
+    echo "Invalid config for MoE FlexAttention: d_moe_latent=${d_moe_latent} is not a power of 2." >&2
+    echo "Set D_MOE_LATENT so per-head dim is 32/64/128..." >&2
+    exit 1
+  fi
+  if (( d_moe_latent < 16 )); then
+    echo "Invalid config for compiled MoE FlexAttention: d_moe_latent=${d_moe_latent} must be >= 16." >&2
     exit 1
   fi
   if (( (d_head_attn & (d_head_attn - 1)) != 0 )); then
@@ -154,9 +158,17 @@ run_one() {
     echo "Invalid AUXFREE_BIAS=${AUXFREE_BIAS}. Use on|off." >&2
     exit 1
   fi
+  if [[ "${LIVE_PLOT}" == "on" ]]; then
+    live_plot_arg="--live_plot"
+  elif [[ "${LIVE_PLOT}" == "off" ]]; then
+    live_plot_arg="--no-live_plot"
+  else
+    echo "Invalid LIVE_PLOT=${LIVE_PLOT}. Use on|off." >&2
+    exit 1
+  fi
 
   echo "=== Starting ${run_name} ==="
-  echo "device=${DEVICE} steps=${STEPS} batch=${BATCH_SIZE} block=${BLOCK_SIZE} d_model=${D_MODEL} heads(attn/moe)=${ATTN_HEADS}/${MOE_HEADS} sparsity=${TOP_K}/${NUM_EXPERTS}"
+  echo "device=${DEVICE} steps=${STEPS} batch=${BATCH_SIZE} block=${BLOCK_SIZE} d_model=${D_MODEL} heads(attn/moe)=${ATTN_HEADS}/${MOE_HEADS} d_moe_latent=${D_MOE_LATENT} sparsity=${TOP_K}/${NUM_EXPERTS}"
 
   local cmd=(
     "${CONDA_BIN}" run -n "${CONDA_ENV}" python "${PY_SCRIPT}"
@@ -175,6 +187,7 @@ run_one() {
     --n_layers "${N_LAYERS}"
     --attn_heads "${ATTN_HEADS}"
     --moe_heads "${MOE_HEADS}"
+    --d_moe_latent "${D_MOE_LATENT}"
     --num_experts "${NUM_EXPERTS}"
     --top_k "${TOP_K}"
     --expert_hidden "${EXPERT_HIDDEN}"
@@ -197,7 +210,7 @@ run_one() {
   )
 
   if [[ "${PLOT_LOSS}" == "on" ]]; then
-    cmd+=(--plot_losses --plot_out "${plot_out}")
+    cmd+=(--plot_losses "${live_plot_arg}" --plot_out "${plot_out}")
   elif [[ "${PLOT_LOSS}" != "off" ]]; then
     echo "Invalid PLOT_LOSS=${PLOT_LOSS}. Use off|on." >&2
     exit 1
@@ -214,24 +227,25 @@ run_both() {
   local qe_norm_arg
   local sigmoid_gating_arg
   local auxfree_bias_arg
+  local live_plot_arg
 
-  local d_head_moe=$((D_MODEL / MOE_HEADS))
+  local d_moe_latent=$D_MOE_LATENT
   local d_head_attn=$((D_MODEL / ATTN_HEADS))
-  if (( D_MODEL % MOE_HEADS != 0 )); then
-    echo "Invalid config: D_MODEL (${D_MODEL}) must be divisible by MOE_HEADS (${MOE_HEADS})." >&2
-    exit 1
-  fi
   if (( D_MODEL % ATTN_HEADS != 0 )); then
     echo "Invalid config: D_MODEL (${D_MODEL}) must be divisible by ATTN_HEADS (${ATTN_HEADS})." >&2
     exit 1
   fi
-  if (( (d_head_moe & (d_head_moe - 1)) != 0 )); then
-    echo "Invalid config for MoE FlexAttention: d_head_moe=${d_head_moe} is not a power of 2." >&2
-    echo "Set D_MODEL/MOE_HEADS so per-head dim is 32/64/128..." >&2
+  if (( d_moe_latent <= 0 )); then
+    echo "Invalid config: D_MOE_LATENT (${d_moe_latent}) must be > 0." >&2
     exit 1
   fi
-  if (( d_head_moe < 16 )); then
-    echo "Invalid config for compiled MoE FlexAttention: d_head_moe=${d_head_moe} must be >= 16." >&2
+  if (( (d_moe_latent & (d_moe_latent - 1)) != 0 )); then
+    echo "Invalid config for MoE FlexAttention: d_moe_latent=${d_moe_latent} is not a power of 2." >&2
+    echo "Set D_MOE_LATENT so per-head dim is 32/64/128..." >&2
+    exit 1
+  fi
+  if (( d_moe_latent < 16 )); then
+    echo "Invalid config for compiled MoE FlexAttention: d_moe_latent=${d_moe_latent} must be >= 16." >&2
     exit 1
   fi
   if (( (d_head_attn & (d_head_attn - 1)) != 0 )); then
@@ -276,13 +290,21 @@ run_both() {
     echo "Invalid AUXFREE_BIAS=${AUXFREE_BIAS}. Use on|off." >&2
     exit 1
   fi
+  if [[ "${LIVE_PLOT}" == "on" ]]; then
+    live_plot_arg="--live_plot"
+  elif [[ "${LIVE_PLOT}" == "off" ]]; then
+    live_plot_arg="--no-live_plot"
+  else
+    echo "Invalid LIVE_PLOT=${LIVE_PLOT}. Use on|off." >&2
+    exit 1
+  fi
 
   if [[ "${LUCID_ROUTER}" != "off" ]]; then
     echo "RUN_BOTH_LUCID_ROUTER=on ignores LUCID_ROUTER=${LUCID_ROUTER}." >&2
   fi
 
   echo "=== Starting ${run_name} ==="
-  echo "device=${DEVICE} steps=${STEPS} batch=${BATCH_SIZE} block=${BLOCK_SIZE} d_model=${D_MODEL} heads(attn/moe)=${ATTN_HEADS}/${MOE_HEADS} sparsity=${TOP_K}/${NUM_EXPERTS}"
+  echo "device=${DEVICE} steps=${STEPS} batch=${BATCH_SIZE} block=${BLOCK_SIZE} d_model=${D_MODEL} heads(attn/moe)=${ATTN_HEADS}/${MOE_HEADS} d_moe_latent=${D_MOE_LATENT} sparsity=${TOP_K}/${NUM_EXPERTS}"
 
   local cmd=(
     "${CONDA_BIN}" run -n "${CONDA_ENV}" python "${PY_SCRIPT}"
@@ -301,6 +323,7 @@ run_both() {
     --n_layers "${N_LAYERS}"
     --attn_heads "${ATTN_HEADS}"
     --moe_heads "${MOE_HEADS}"
+    --d_moe_latent "${D_MOE_LATENT}"
     --num_experts "${NUM_EXPERTS}"
     --top_k "${TOP_K}"
     --expert_hidden "${EXPERT_HIDDEN}"
@@ -323,7 +346,7 @@ run_both() {
   )
 
   if [[ "${PLOT_LOSS}" == "on" ]]; then
-    cmd+=(--plot_losses --plot_out "${plot_out}")
+    cmd+=(--plot_losses "${live_plot_arg}" --plot_out "${plot_out}")
   elif [[ "${PLOT_LOSS}" != "off" ]]; then
     echo "Invalid PLOT_LOSS=${PLOT_LOSS}. Use off|on." >&2
     exit 1

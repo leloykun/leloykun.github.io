@@ -37,6 +37,7 @@ from torch import Tensor
 
 
 ScaleMode = Literal["none", "tensor", "row"]
+DEFAULT_SCALE_EMA_DECAY = 0.99
 
 # E4M3
 FP8_STORAGE_DTYPE = torch.float8_e4m3fn
@@ -574,7 +575,7 @@ class FP8AdamWNoMasterECO(torch.optim.Optimizer):
         fp8_stochastic_rounding: bool = True,
         eco_compensation: bool = True,
         use_ema_scales: bool = True,
-        scale_ema_decay: float = 0.99,
+        scale_ema_decay: float = DEFAULT_SCALE_EMA_DECAY,
         sr_generator: Optional[torch.Generator] = None,
     ):
         if lr <= 0:
@@ -920,7 +921,7 @@ class FP8ShampooNoMasterECO(torch.optim.Optimizer):
         fp8_stochastic_rounding: bool = True,
         eco_compensation: bool = True,
         use_ema_scales: bool = True,
-        scale_ema_decay: float = 0.99,
+        scale_ema_decay: float = DEFAULT_SCALE_EMA_DECAY,
         sr_generator: Optional[torch.Generator] = None,
     ):
         if lr <= 0:
@@ -1047,9 +1048,6 @@ class FP8ShampooNoMasterECO(torch.optim.Optimizer):
                     eps=ns_eps,
                     scale=ns_scale,
                 )
-                # left_inv = matrix_invroot(left_t, r=root, steps=ns_steps, eps=ns_eps, scale=ns_scale)
-                # right_inv = matrix_invroot(right_t, r=root, steps=ns_steps, eps=ns_eps, scale=ns_scale)
-                # update = matrix_scale * left_inv @ m_tilde @ right_inv
 
                 w_q = p.detach().to(torch.float32)
                 w_tilde = (1.0 - lr * wd) * w_q - lr * update
@@ -1123,7 +1121,7 @@ class FP8MuonNoMasterECO(torch.optim.Optimizer):
         fp8_stochastic_rounding: bool = True,
         eco_compensation: bool = True,
         use_ema_scales: bool = True,
-        scale_ema_decay: float = 0.99,
+        scale_ema_decay: float = DEFAULT_SCALE_EMA_DECAY,
         sr_generator: Optional[torch.Generator] = None,
     ):
         if lr <= 0:
@@ -1552,6 +1550,29 @@ def build_model(
     return model.to(device)
 
 
+def split_named_params(
+    named_params: List[Tuple[str, nn.Parameter]],
+) -> Tuple[List[nn.Parameter], List[nn.Parameter], List[nn.Parameter], List[nn.Parameter], List[nn.Parameter]]:
+    matrix_params: List[nn.Parameter] = []
+    embedding_params: List[nn.Parameter] = []
+    lm_head_params: List[nn.Parameter] = []
+    non_lm_head_params: List[nn.Parameter] = []
+    aux_adamw_params: List[nn.Parameter] = []
+    for name, p in named_params:
+        if name.startswith("lm_head."):
+            lm_head_params.append(p)
+            aux_adamw_params.append(p)
+            continue
+
+        non_lm_head_params.append(p)
+        if "_embedding" in name:
+            embedding_params.append(p)
+            aux_adamw_params.append(p)
+        else:
+            matrix_params.append(p)
+    return matrix_params, embedding_params, lm_head_params, non_lm_head_params, aux_adamw_params
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Minimal ECO vs reference training on Tiny Shakespeare.")
 
@@ -1593,6 +1614,7 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--fp8_scale_mode", type=str, default="row", choices=["none", "tensor", "row"])
     parser.add_argument("--eco_update_sr", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--scale_ema_decay", type=float, default=DEFAULT_SCALE_EMA_DECAY)
 
     parser.add_argument("--json_out", type=Path, default=None)
     parser.add_argument("--plot_out", type=Path, default=None)
@@ -1605,6 +1627,8 @@ def main() -> None:
 
     if not (0.0 < args.min_lr_ratio <= 1.0):
         raise ValueError("--min_lr_ratio must be in (0, 1].")
+    if not (0.0 <= args.scale_ema_decay < 1.0):
+        raise ValueError("--scale_ema_decay must be in [0, 1).")
 
     if args.device == "auto":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -1636,7 +1660,7 @@ def main() -> None:
     print(f"LR schedule: cosine decay from {args.lr:.3e} to {args.lr * args.min_lr_ratio:.3e}")
     print(f"Optimizer family: {args.optimizer}")
     print("Rounding policy: weights=stochastic-rounding, activations=round-to-nearest")
-    print("FP8 run policy: optimizer-side EMA scales (decay=0.99), lm_head kept in FP32")
+    print(f"FP8 run policy: optimizer-side EMA scales (decay={args.scale_ema_decay:.3f}), lm_head kept in FP32")
     matrix_lr_scale = 0.2 * (max(args.d_model, args.mlp_hidden))**0.5
     if args.optimizer == "muon":
         print(
@@ -1710,8 +1734,7 @@ def main() -> None:
                 )
             elif args.optimizer == "muon":
                 named_params = list(model.named_parameters())
-                adamw_params = [p for name, p in named_params if name.startswith("lm_head.") or "_embedding" in name]
-                muon_params = [p for name, p in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
+                muon_params, _, _, _, adamw_params = split_named_params(named_params)
                 muon_optimizer = MuonOptimizer(
                     muon_params,
                     lr=args.lr,
@@ -1731,8 +1754,7 @@ def main() -> None:
                 optimizer = CompositeOptimizer([adamw_optimizer, muon_optimizer])
             elif args.optimizer == "shampoo":
                 named_params = list(model.named_parameters())
-                adamw_params = [p for name, p in named_params if name.startswith("lm_head.") or "_embedding" in name]
-                shampoo_params = [p for name, p in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
+                shampoo_params, _, _, _, adamw_params = split_named_params(named_params)
                 shampoo_optimizer = ShampooOptimizer(
                     shampoo_params,
                     lr=args.lr,
@@ -1761,10 +1783,9 @@ def main() -> None:
 
             if args.optimizer == "adamw":
                 named_params = list(model.named_parameters())
-                fp32_params = [p for name, p in named_params if name.startswith("lm_head.")]
-                fp8_params = [p for name, p in named_params if not name.startswith("lm_head.")]
+                _, _, lm_head_params, non_lm_head_params, _ = split_named_params(named_params)
                 fp8_optimizer = FP8AdamWNoMasterECO(
-                    fp8_params,
+                    non_lm_head_params,
                     lr=args.lr,
                     betas=(args.beta1, args.beta2),
                     eps=args.eps,
@@ -1773,11 +1794,11 @@ def main() -> None:
                     fp8_stochastic_rounding=args.eco_update_sr,
                     eco_compensation=eco_comp,
                     use_ema_scales=True,
-                    scale_ema_decay=0.99,
+                    scale_ema_decay=args.scale_ema_decay,
                     sr_generator=make_torch_generator(sr_seed_base + run_seed_offset + 2, device),
                 )
                 fp32_optimizer = torch.optim.AdamW(
-                    fp32_params,
+                    lm_head_params,
                     lr=args.lr,
                     betas=(args.beta1, args.beta2),
                     eps=args.eps,
@@ -1786,9 +1807,7 @@ def main() -> None:
                 optimizer = CompositeOptimizer([fp8_optimizer, fp32_optimizer])
             elif args.optimizer == "muon":
                 named_params = list(model.named_parameters())
-                embedding_params = [p for name, p in named_params if "_embedding" in name]
-                fp32_params = [p for name, p in named_params if name.startswith("lm_head.") and "_embedding" not in name]
-                fp8_params = [p for name, p in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
+                fp8_params, embedding_params, lm_head_params, _, _ = split_named_params(named_params)
                 fp8_optimizer = FP8MuonNoMasterECO(
                     fp8_params,
                     lr=args.lr,
@@ -1801,7 +1820,7 @@ def main() -> None:
                     fp8_stochastic_rounding=args.eco_update_sr,
                     eco_compensation=eco_comp,
                     use_ema_scales=True,
-                    scale_ema_decay=0.99,
+                    scale_ema_decay=args.scale_ema_decay,
                     sr_generator=make_torch_generator(sr_seed_base + run_seed_offset + 2, device),
                 )
                 for group in fp8_optimizer.param_groups:
@@ -1816,11 +1835,11 @@ def main() -> None:
                     fp8_stochastic_rounding=args.eco_update_sr,
                     eco_compensation=eco_comp,
                     use_ema_scales=True,
-                    scale_ema_decay=0.99,
+                    scale_ema_decay=args.scale_ema_decay,
                     sr_generator=make_torch_generator(sr_seed_base + run_seed_offset + 3, device),
                 )
                 adamw_fp32_optimizer = torch.optim.AdamW(
-                    fp32_params,
+                    lm_head_params,
                     lr=args.lr,
                     betas=(args.beta1, args.beta2),
                     eps=args.eps,
@@ -1829,9 +1848,7 @@ def main() -> None:
                 optimizer = CompositeOptimizer([fp8_optimizer, adamw_fp8_optimizer, adamw_fp32_optimizer])
             elif args.optimizer == "shampoo":
                 named_params = list(model.named_parameters())
-                embedding_params = [p for name, p in named_params if "_embedding" in name]
-                fp32_params = [p for name, p in named_params if name.startswith("lm_head.") and "_embedding" not in name]
-                fp8_params = [p for name, p in named_params if not name.startswith("lm_head.") and "_embedding" not in name]
+                fp8_params, embedding_params, lm_head_params, _, _ = split_named_params(named_params)
                 fp8_optimizer = FP8ShampooNoMasterECO(
                     fp8_params,
                     lr=args.lr,
@@ -1846,7 +1863,7 @@ def main() -> None:
                     fp8_stochastic_rounding=args.eco_update_sr,
                     eco_compensation=eco_comp,
                     use_ema_scales=True,
-                    scale_ema_decay=0.99,
+                    scale_ema_decay=args.scale_ema_decay,
                     sr_generator=make_torch_generator(sr_seed_base + run_seed_offset + 2, device),
                 )
                 for group in fp8_optimizer.param_groups:
@@ -1861,11 +1878,11 @@ def main() -> None:
                     fp8_stochastic_rounding=args.eco_update_sr,
                     eco_compensation=eco_comp,
                     use_ema_scales=True,
-                    scale_ema_decay=0.99,
+                    scale_ema_decay=args.scale_ema_decay,
                     sr_generator=make_torch_generator(sr_seed_base + run_seed_offset + 3, device),
                 )
                 adamw_fp32_optimizer = torch.optim.AdamW(
-                    fp32_params,
+                    lm_head_params,
                     lr=args.lr,
                     betas=(args.beta1, args.beta2),
                     eps=args.eps,

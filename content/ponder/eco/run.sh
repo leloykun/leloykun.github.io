@@ -8,6 +8,7 @@ LR="${LR:-1e-2}"
 NS_STEPS="${NS_STEPS:-10}"
 NS_EPS="${NS_EPS:-1e-20}"
 NS_SCALE="${NS_SCALE:-1.0}"
+SCALE_EMA_DECAY="${SCALE_EMA_DECAY:-0.99}"
 
 echo "${OPTIMIZER}" "${RUN}" "${STEPS}" "${LR}"
 
@@ -27,4 +28,5 @@ echo "${OPTIMIZER}" "${RUN}" "${STEPS}" "${LR}"
   --lr "${LR}" \
   --ns_steps "${NS_STEPS}" \
   --ns_eps "${NS_EPS}" \
-  --ns_scale "${NS_SCALE}"
+  --ns_scale "${NS_SCALE}" \
+  --scale_ema_decay "${SCALE_EMA_DECAY}"

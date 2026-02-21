@@ -8,7 +8,7 @@ import time
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Literal, Optional, Tuple
+from typing import Callable, Dict, Iterable, List, Literal, Optional, Tuple
 
 import torch
 import torch.nn as nn
@@ -416,6 +416,10 @@ def flex_expert_ffn_assignments_directmask_multihead(
     """
     Multi-head FlexAttention path implementing exact expert FFN for assignment rows:
       y[h, i] = GELU(q[h, i] @ W1[h, e]) @ W2[h, e]
+
+    Weight layouts (swapped for consistency):
+      W1: (H, E, m, d)
+      W2: (H, E, d, m)
     """
     if flex_attention is None:
         raise RuntimeError("FlexAttention is not available in this PyTorch build.")
@@ -430,8 +434,8 @@ def flex_expert_ffn_assignments_directmask_multihead(
     if expert_ids_by_head.shape != (H, q_len):
         raise ValueError("expert_ids_by_head shape must match q_by_head's first two dims.")
 
-    Hw1, E, dw1, m = W1.shape
-    Hw2, Ew2, mw2, dw2 = W2.shape
+    Hw1, E, m, dw1 = W1.shape
+    Hw2, Ew2, dw2, mw2 = W2.shape
     if Hw1 != H or Hw2 != H:
         raise ValueError("W1/W2 head count must match q_by_head.")
     if E != Ew2 or dw1 != d or mw2 != m or dw2 != d:
@@ -460,8 +464,8 @@ def flex_expert_ffn_assignments_directmask_multihead(
     q_len_packed = int(q_packed.shape[1])
 
     # KV layout per head: [expert0 neurons][expert1 neurons]...[expertE-1 neurons]
-    K = W1.permute(0, 1, 3, 2).contiguous()  # (H, E, m, d)
-    V = W2.contiguous()  # (H, E, m, d)
+    K = W1.contiguous()  # (H, E, m, d)
+    V = W2.transpose(-1, -2).contiguous()  # (H, E, m, d)
     if pad:
         K = F.pad(K, (0, 0, 0, pad))
         V = F.pad(V, (0, 0, 0, pad))
@@ -469,7 +473,7 @@ def flex_expert_ffn_assignments_directmask_multihead(
     K_all = K.view(H, E * m_pad, d)
     V_all = V.view(H, E * m_pad, d)
 
-    bias_table = W2.sum(dim=2)  # (H, E, d)
+    bias_table = V.sum(dim=2)  # (H, E, d)
     gather_index = expert_ids_packed.to(torch.int64).unsqueeze(-1).expand(H, q_len_packed, d)
     bias_packed = torch.gather(bias_table, dim=1, index=gather_index)  # (H, Q_LEN_PAD, d)
 
@@ -527,6 +531,7 @@ def norm(x: torch.Tensor) -> torch.Tensor:
 class MoEConfig:
     d_model: int
     moe_heads: int
+    d_moe_latent: int
     num_experts: int
     top_k: int
     expert_hidden: int
@@ -550,54 +555,45 @@ class MultiHeadLatentMoE(nn.Module):
         cfg: MoEConfig,
         *,
         init_generator: Optional[torch.Generator] = None,
-        split_heads: bool = True,
     ):
         super().__init__()
-        if cfg.d_model % cfg.moe_heads != 0:
-            raise ValueError("d_model must be divisible by moe_heads.")
+        if cfg.d_moe_latent <= 0:
+            raise ValueError("d_moe_latent must be > 0.")
         if not (1 <= cfg.top_k <= cfg.num_experts):
             raise ValueError("top_k must satisfy 1 <= top_k <= num_experts.")
         if cfg.kv_block_size <= 0:
             raise ValueError("kv_block_size must be > 0.")
 
         self.cfg = cfg
-        self.d_head = cfg.d_model // cfg.moe_heads
-        self.split_heads = split_heads
-        if self.d_head < 16:
+        self.d_moe_latent = cfg.d_moe_latent
+        if self.d_moe_latent < 16:
             raise ValueError(
-                f"Compiled FlexAttention requires per-head dim >= 16; got d_head={self.d_head}."
+                f"Compiled FlexAttention requires per-head dim >= 16; got d_moe_latent={self.d_moe_latent}."
             )
 
-        H, E, d, m = cfg.moe_heads, cfg.num_experts, self.d_head, cfg.expert_hidden
+        H, E, d, m = cfg.moe_heads, cfg.num_experts, self.d_moe_latent, cfg.expert_hidden
 
-        if split_heads:
-            self.in_proj = nn.Parameter(torch.empty(H, d, cfg.d_model))
-        else:
-            self.in_proj = nn.Linear(cfg.d_model, H * d, bias=False)
+        self.in_proj = nn.Parameter(torch.empty(H, d, cfg.d_model))
         self.out_proj = nn.Linear(H * d, cfg.d_model, bias=False)
         self.router_embedding = nn.Parameter(torch.empty(H, E, d))
         self.register_buffer("auxfree_bias", torch.zeros(H, E, dtype=torch.float32), persistent=True)
 
-        self.W1 = nn.Parameter(torch.empty(H, E, d, m))
-        self.W2 = nn.Parameter(torch.empty(H, E, m, d))
+        # Store expert FFN weights as (fan_out, fan_in)-style per expert:
+        # W1: (H, E, m, d), W2: (H, E, d, m)
+        self.W1 = nn.Parameter(torch.empty(H, E, m, d))
+        self.W2 = nn.Parameter(torch.empty(H, E, d, m))
         self.last_routing_entropy: Optional[float] = None
         self.last_max_load_violation: Optional[float] = None
         self.reset_parameters(init_generator=init_generator)
 
     def reset_parameters(self, *, init_generator: Optional[torch.Generator] = None) -> None:
-        if self.split_heads:
-            nn.init.kaiming_uniform_(self.in_proj, a=math.sqrt(5), generator=init_generator)
-        else:
-            nn.init.kaiming_uniform_(self.in_proj.weight, a=math.sqrt(5), generator=init_generator)
+        nn.init.kaiming_uniform_(self.in_proj, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.out_proj.weight, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.router_embedding, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.W1, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.W2, a=math.sqrt(5), generator=init_generator)
         with torch.no_grad():
-            if self.split_heads:
-                self.in_proj.data = _matrix_update_scale(self.in_proj.data) * _orthogonalize(self.in_proj.data)
-            else:
-                self.in_proj.weight.data = _matrix_update_scale(self.in_proj.weight.data) * _orthogonalize(self.in_proj.weight.data)
+            self.in_proj.data = _matrix_update_scale(self.in_proj.data) * _orthogonalize(self.in_proj.data)
             self.out_proj.weight.data = _matrix_update_scale(self.out_proj.weight.data) * _orthogonalize(self.out_proj.weight.data)
             self.W1.data = _matrix_update_scale(self.W1.data) * _orthogonalize(self.W1.data)
             self.W2.data = _matrix_update_scale(self.W2.data) * _orthogonalize(self.W2.data)
@@ -658,7 +654,7 @@ class MultiHeadLatentMoE(nn.Module):
             load = expert_bincount.to(torch.float32) / float(Ntok * k)
 
             target = 1.0 / float(E)
-            self.auxfree_bias.add_(self.cfg.auxfree_bias_lr * (target - load))
+            self.auxfree_bias.add_(self.cfg.auxfree_bias_lr * torch.sign(target - load))
             # Keep only per-expert relative offsets for each head.
             self.auxfree_bias.sub_(self.auxfree_bias.mean(dim=1, keepdim=True))
 
@@ -697,25 +693,22 @@ class MultiHeadLatentMoE(nn.Module):
             enable_qe_norm = self.cfg.enable_qe_norm_default
 
         B, T, _ = x.shape
-        H, d, k = self.cfg.moe_heads, self.d_head, self.cfg.top_k
+        H, d, k = self.cfg.moe_heads, self.d_moe_latent, self.cfg.top_k
         Ntok = B * T
 
         # (Ntok, H, d) -> (H, Ntok, d)
-        if self.split_heads:
-            q_by_head = torch.einsum("hdf,btf->hbtd", self.in_proj, x).reshape(H, Ntok, d).contiguous()
-        else:
-            q_by_head = self.in_proj(x).view(B, T, H, d).reshape(Ntok, H, d).permute(1, 0, 2).contiguous()
+        q_by_head = torch.einsum("hdm,btm->hbtd", self.in_proj, x).reshape(H, Ntok, d).contiguous()
         if enable_qe_norm:
             q_router = norm(q_by_head)
             router_embedding = norm(self.router_embedding)
-            logits_factor = math.sqrt(d)
+            logits_factor = 1.0 / math.sqrt(d)
         else:
             q_router = q_by_head
             router_embedding = self.router_embedding
             logits_factor = 1.0
 
         # Router logits: (H, Ntok, E)
-        logits = torch.einsum("hnd,hed->hne", q_router, router_embedding) / logits_factor
+        logits = logits_factor * torch.einsum("hnd,hed->hne", q_router, router_embedding)
         if self.cfg.enable_auxfree_bias_default:
             dirty_logits = logits + self.auxfree_bias.to(dtype=logits.dtype).unsqueeze(1)
             topk_dirty_values, topk_idx = torch.topk(dirty_logits, k=k, dim=-1)
@@ -849,7 +842,6 @@ class CausalSelfAttention(nn.Module):
         block_size: int = 128,
         rope_base: float = 10000.0,
         init_generator: Optional[torch.Generator] = None,
-        split_heads: bool = True,
     ):
         super().__init__()
         if d_model % num_heads != 0:
@@ -857,27 +849,17 @@ class CausalSelfAttention(nn.Module):
         self.num_heads = num_heads
         self.head_dim = d_model // num_heads
         self.block_size = block_size
-        self.split_heads = split_heads
-        if self.split_heads:
-            self.qkv_proj = nn.Parameter(torch.empty(3, num_heads, self.head_dim, d_model))
-        else:
-            self.qkv_proj = nn.Linear(d_model, 3 * d_model, bias=False)
+        self.qkv_proj = nn.Parameter(torch.empty(3, num_heads, self.head_dim, d_model))
         self.out_proj = nn.Linear(num_heads * self.head_dim, d_model, bias=False)
         self.rope = RoPE(self.head_dim, base=rope_base)
         self._block_mask_cache: Dict[Tuple[torch.device, int, int], "BlockMask"] = {}
         self.reset_parameters(init_generator=init_generator)
 
     def reset_parameters(self, *, init_generator: Optional[torch.Generator] = None) -> None:
-        if self.split_heads:
-            nn.init.kaiming_uniform_(self.qkv_proj, a=math.sqrt(5), generator=init_generator)
-        else:
-            nn.init.kaiming_uniform_(self.qkv_proj.weight, a=math.sqrt(5), generator=init_generator)
+        nn.init.kaiming_uniform_(self.qkv_proj, a=math.sqrt(5), generator=init_generator)
         nn.init.kaiming_uniform_(self.out_proj.weight, a=math.sqrt(5), generator=init_generator)
         with torch.no_grad():
-            if self.split_heads:
-                self.qkv_proj.data = _matrix_update_scale(self.qkv_proj.data) * _orthogonalize(self.qkv_proj.data)
-            else:
-                self.qkv_proj.weight.data = _matrix_update_scale(self.qkv_proj.weight.data) * _orthogonalize(self.qkv_proj.weight.data)
+            self.qkv_proj.data = _matrix_update_scale(self.qkv_proj.data) * _orthogonalize(self.qkv_proj.data)
             self.out_proj.weight.data = _matrix_update_scale(self.out_proj.weight.data) * _orthogonalize(self.out_proj.weight.data)
 
     def _get_causal_block_mask(
@@ -911,14 +893,9 @@ class CausalSelfAttention(nn.Module):
         return block_mask
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        B, T, d_model = x.shape
-        if self.split_heads:
-            qkv = torch.einsum("ahdf,btf->abhtd", self.qkv_proj, x)
-            q, k, v = qkv[0], qkv[1], qkv[2]
-        else:
-            qkv = self.qkv_proj(x).view(B, T, 3, self.num_heads, self.head_dim)
-            qkv = qkv.permute(2, 0, 3, 1, 4)
-            q, k, v = qkv[0], qkv[1], qkv[2]
+        B, T, _ = x.shape
+        qkv = torch.einsum("ahdm,btm->abhtd", self.qkv_proj, x)
+        q, k, v = qkv[0], qkv[1], qkv[2]
 
         # QK norm
         q, k = norm(q), norm(k)
@@ -934,7 +911,7 @@ class CausalSelfAttention(nn.Module):
             seqlen=T,
         )
         y = flex_attention(q, k, v, block_mask=block_mask)
-        y = y.transpose(1, 2).contiguous().view(B, T, d_model)
+        y = y.transpose(1, 2).contiguous().view(B, T, self.num_heads * self.head_dim)
         return self.out_proj(y)
 
 
@@ -1232,8 +1209,9 @@ def train_one_run(
     min_lr_ratio: float,
     enable_lucid_router: bool,
     enable_sigmoid_gating: bool,
+    logs: List[Dict[str, float]],
+    on_eval: Optional[Callable[[], None]] = None,
 ) -> List[Dict[str, float]]:
-    logs: List[Dict[str, float]] = []
     train_rng = make_torch_generator(data_seed, torch.device("cpu"))
     eval_rng = make_torch_generator(data_seed + 10_000, torch.device("cpu"))
 
@@ -1278,6 +1256,8 @@ def train_one_run(
                 f"val_load_violation={stats['val_max_load_violation']:.4f} "
                 f"elapsed={elapsed:.1f}s"
             )
+            if on_eval is not None:
+                on_eval()
 
         if step == cfg.steps:
             break
@@ -1312,6 +1292,70 @@ def train_one_run(
     return logs
 
 
+def _run_label(run_name: str) -> str:
+    return {
+        "mh_lmoe_lucid_off": "MH-LatentMoE (no LUCID-Routers)",
+        "mh_lmoe_lucid_on": "MH-LatentMoE (with LUCID-Routers)",
+    }.get(run_name, run_name.replace("_", " "))
+
+
+def _collect_plot_window_values(
+    *,
+    logs_by_run: Dict[str, List[Dict[str, float]]],
+    key: str,
+    require_positive: bool = False,
+) -> Tuple[float, float, List[float]]:
+    non_empty_logs = [run_logs for run_logs in logs_by_run.values() if run_logs]
+    if not non_empty_logs:
+        return 0.0, 0.0, []
+
+    max_step = max(float(rec["step"]) for run_logs in non_empty_logs for rec in run_logs)
+    cut_step = 0.5 * max_step
+    remaining: List[float] = []
+    all_values: List[float] = []
+
+    for run_logs in non_empty_logs:
+        for rec in run_logs:
+            value = float(rec.get(key, float("nan")))
+            if not math.isfinite(value):
+                continue
+            if require_positive and value <= 0.0:
+                continue
+            all_values.append(value)
+            if float(rec["step"]) >= cut_step:
+                remaining.append(value)
+
+    y_values = remaining if remaining else all_values
+    return max_step, cut_step, y_values
+
+
+def _apply_plot_y_limits(
+    *,
+    plt_mod,
+    y_values: List[float],
+    clamp_zero_min: bool,
+) -> None:
+    if not y_values:
+        return
+    y_min = min(y_values)
+    y_max = max(y_values)
+    if not (math.isfinite(y_min) and math.isfinite(y_max)):
+        return
+
+    if y_max > y_min:
+        y_span = y_max - y_min
+        y_low = y_min - 0.05 * y_span
+        if clamp_zero_min:
+            y_low = max(0.0, y_low)
+        plt_mod.ylim(bottom=y_low, top=y_max)
+    else:
+        wiggle = 0.05 * max(1.0, abs(y_max))
+        y_low = y_min - wiggle
+        if clamp_zero_min:
+            y_low = max(0.0, y_low)
+        plt_mod.ylim(bottom=y_low, top=y_max + wiggle)
+
+
 def plot_loss_curves(
     *,
     logs_by_run: Dict[str, List[Dict[str, float]]],
@@ -1325,40 +1369,24 @@ def plot_loss_curves(
         ) from exc
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    if not any(run_logs for run_logs in logs_by_run.values()):
+        raise ValueError("plot_loss_curves received no logs.")
 
     plt.figure(figsize=(10.0, 4.0))
-    max_step = max(rec["step"] for run_logs in logs_by_run.values() for rec in run_logs)
-    cut_step = 0.5 * max_step
-    remaining_losses: List[float] = []
-    all_losses: List[float] = []
+    max_step, cut_step, y_values = _collect_plot_window_values(
+        logs_by_run=logs_by_run,
+        key="val_loss",
+        require_positive=True,
+    )
     for run_name, run_logs in logs_by_run.items():
         if not run_logs:
             continue
         steps = [rec["step"] for rec in run_logs]
         val_losses = [rec["val_loss"] for rec in run_logs]
-        label = {
-            "mh_lmoe_lucid_off": "MH-LatentMoE (no LUCID-Routers)",
-            "mh_lmoe_lucid_on": "MH-LatentMoE (with LUCID-Routers)",
-        }.get(run_name, run_name.replace("_", " "))
-        for rec in run_logs:
-            vl = float(rec["val_loss"])
-            if math.isfinite(vl) and vl > 0.0:
-                all_losses.append(vl)
-            if rec["step"] >= cut_step:
-                if math.isfinite(vl) and vl > 0.0:
-                    remaining_losses.append(vl)
-
-        plt.plot(steps, val_losses, linestyle="-", linewidth=2.2, label=label)
+        plt.plot(steps, val_losses, linestyle="-", linewidth=2.2, label=_run_label(run_name))
 
     plt.yscale("log")
-    y_values = remaining_losses if remaining_losses else all_losses
-    if y_values:
-        y_min = min(y_values)
-        y_max = max(y_values)
-        if y_min > 0.0 and y_max > 0.0:
-            y_span = y_max - y_min
-            y_low = max(0.0, y_min - 0.05 * y_span)
-            plt.ylim(bottom=y_low, top=y_max)
+    _apply_plot_y_limits(plt_mod=plt, y_values=y_values, clamp_zero_min=True)
     if max_step > cut_step:
         plt.xlim(left=cut_step, right=max_step)
 
@@ -1388,43 +1416,23 @@ def plot_routing_entropy_curves(
         ) from exc
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    if not any(run_logs for run_logs in logs_by_run.values()):
+        raise ValueError("plot_routing_entropy_curves received no logs.")
 
     plt.figure(figsize=(10.0, 4.0))
-    max_step = max(rec["step"] for run_logs in logs_by_run.values() for rec in run_logs)
-    cut_step = 0.5 * max_step
-    remaining_entropies: List[float] = []
-    all_entropies: List[float] = []
+    max_step, cut_step, y_values = _collect_plot_window_values(
+        logs_by_run=logs_by_run,
+        key="val_routing_entropy",
+        require_positive=False,
+    )
     for run_name, run_logs in logs_by_run.items():
         if not run_logs:
             continue
         steps = [rec["step"] for rec in run_logs]
         val_entropy = [rec.get("val_routing_entropy", float("nan")) for rec in run_logs]
-        label = {
-            "mh_lmoe_lucid_off": "MH-LatentMoE (no LUCID-Routers)",
-            "mh_lmoe_lucid_on": "MH-LatentMoE (with LUCID-Routers)",
-        }.get(run_name, run_name.replace("_", " "))
-        for rec in run_logs:
-            ve = float(rec.get("val_routing_entropy", float("nan")))
-            if math.isfinite(ve):
-                all_entropies.append(ve)
-                if rec["step"] >= cut_step:
-                    remaining_entropies.append(ve)
+        plt.plot(steps, val_entropy, linestyle="-", linewidth=2.2, label=_run_label(run_name))
 
-        plt.plot(steps, val_entropy, linestyle="-", linewidth=2.2, label=label)
-
-    y_values = remaining_entropies if remaining_entropies else all_entropies
-    if y_values:
-        y_min = min(y_values)
-        y_max = max(y_values)
-        if math.isfinite(y_min) and math.isfinite(y_max):
-            if y_max > y_min:
-                y_span = y_max - y_min
-                y_low = max(0.0, y_min - 0.05 * y_span)
-                plt.ylim(bottom=y_low, top=y_max)
-            else:
-                wiggle = 0.05 * max(1.0, abs(y_max))
-                y_low = max(0.0, y_min - wiggle)
-                plt.ylim(bottom=y_low, top=y_max + wiggle)
+    _apply_plot_y_limits(plt_mod=plt, y_values=y_values, clamp_zero_min=True)
     if max_step > cut_step:
         plt.xlim(left=cut_step, right=max_step)
 
@@ -1453,43 +1461,23 @@ def plot_max_load_violation_curves(
         ) from exc
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    if not any(run_logs for run_logs in logs_by_run.values()):
+        raise ValueError("plot_max_load_violation_curves received no logs.")
 
     plt.figure(figsize=(10.0, 4.0))
-    max_step = max(rec["step"] for run_logs in logs_by_run.values() for rec in run_logs)
-    cut_step = 0.5 * max_step
-    remaining_violations: List[float] = []
-    all_violations: List[float] = []
+    max_step, cut_step, y_values = _collect_plot_window_values(
+        logs_by_run=logs_by_run,
+        key="val_max_load_violation",
+        require_positive=False,
+    )
     for run_name, run_logs in logs_by_run.items():
         if not run_logs:
             continue
         steps = [rec["step"] for rec in run_logs]
         val_violations = [rec.get("val_max_load_violation", float("nan")) for rec in run_logs]
-        label = {
-            "mh_lmoe_lucid_off": "MH-LatentMoE (no LUCID-Routers)",
-            "mh_lmoe_lucid_on": "MH-LatentMoE (with LUCID-Routers)",
-        }.get(run_name, run_name.replace("_", " "))
-        for rec in run_logs:
-            vv = float(rec.get("val_max_load_violation", float("nan")))
-            if math.isfinite(vv):
-                all_violations.append(vv)
-                if rec["step"] >= cut_step:
-                    remaining_violations.append(vv)
+        plt.plot(steps, val_violations, linestyle="-", linewidth=2.2, label=_run_label(run_name))
 
-        plt.plot(steps, val_violations, linestyle="-", linewidth=2.2, label=label)
-
-    y_values = remaining_violations if remaining_violations else all_violations
-    if y_values:
-        y_min = min(y_values)
-        y_max = max(y_values)
-        if math.isfinite(y_min) and math.isfinite(y_max):
-            if y_max > y_min:
-                y_span = y_max - y_min
-                y_low = max(0.0, y_min - 0.05 * y_span)
-                plt.ylim(bottom=y_low, top=y_max)
-            else:
-                wiggle = 0.05 * max(1.0, abs(y_max))
-                y_low = max(0.0, y_min - wiggle)
-                plt.ylim(bottom=y_low, top=y_max + wiggle)
+    _apply_plot_y_limits(plt_mod=plt, y_values=y_values, clamp_zero_min=True)
     if max_step > cut_step:
         plt.xlim(left=cut_step, right=max_step)
 
@@ -1535,6 +1523,7 @@ def build_model(
     n_layers: int,
     attn_heads: int,
     moe_heads: int,
+    d_moe_latent: int,
     num_experts: int,
     top_k: int,
     expert_hidden: int,
@@ -1552,6 +1541,7 @@ def build_model(
     moe_cfg = MoEConfig(
         d_model=d_model,
         moe_heads=moe_heads,
+        d_moe_latent=d_moe_latent,
         num_experts=num_experts,
         top_k=top_k,
         expert_hidden=expert_hidden,
@@ -1726,6 +1716,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n_layers", type=int, default=8)
     parser.add_argument("--attn_heads", type=int, default=None)
     parser.add_argument("--moe_heads", type=int, default=4)
+    parser.add_argument("--d_moe_latent", type=int, default=None)
     parser.add_argument("--num_experts", type=int, default=8)
     parser.add_argument("--top_k", type=int, default=2)
     parser.add_argument("--expert_hidden", type=int, default=512)
@@ -1754,6 +1745,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--muon_ns_steps", type=int, default=8)
 
     parser.add_argument("--plot_losses", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--live_plot", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--plot_out", type=Path, default=None)
     parser.add_argument("--json_out", type=Path, default=None)
     return parser.parse_args()
@@ -1762,12 +1754,41 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
+    if args.steps <= 0:
+        raise ValueError("--steps must be > 0.")
+    if args.eval_interval <= 0:
+        raise ValueError("--eval_interval must be > 0.")
+    if args.eval_batches <= 0:
+        raise ValueError("--eval_batches must be > 0.")
+    if args.batch_size <= 0:
+        raise ValueError("--batch_size must be > 0.")
+    if args.block_size <= 0:
+        raise ValueError("--block_size must be > 0.")
+    if args.d_model <= 0:
+        raise ValueError("--d_model must be > 0.")
+    if args.n_layers <= 0:
+        raise ValueError("--n_layers must be > 0.")
+    if args.moe_heads <= 0:
+        raise ValueError("--moe_heads must be > 0.")
+    if args.num_experts <= 0:
+        raise ValueError("--num_experts must be > 0.")
+    if args.top_k <= 0:
+        raise ValueError("--top_k must be > 0.")
+    if args.expert_hidden <= 0:
+        raise ValueError("--expert_hidden must be > 0.")
+    if args.kv_block_size <= 0:
+        raise ValueError("--kv_block_size must be > 0.")
+
     if not (0.0 < args.min_lr_ratio <= 1.0):
         raise ValueError("--min_lr_ratio must be in (0, 1].")
     if args.auxfree_bias_lr < 0.0:
         raise ValueError("--auxfree_bias_lr must be >= 0.")
     if args.auxfree_bias_clip < 0.0:
         raise ValueError("--auxfree_bias_clip must be >= 0.")
+    if args.d_moe_latent is None:
+        raise ValueError("--d_moe_latent must be set explicitly.")
+    if args.d_moe_latent <= 0:
+        raise ValueError("--d_moe_latent must be > 0.")
 
     configure_determinism(args.deterministic)
 
@@ -1806,13 +1827,19 @@ def main() -> None:
     lr_linear = args.lr if args.lr_linear is None else args.lr_linear
     lr_lm_head = args.lr if args.lr_lm_head is None else args.lr_lm_head
     attn_heads = args.moe_heads if args.attn_heads is None else args.attn_heads
+    if attn_heads <= 0:
+        raise ValueError("--attn_heads must be > 0.")
+    if args.d_model % attn_heads != 0:
+        raise ValueError("--d_model must be divisible by --attn_heads.")
+    if args.top_k > args.num_experts:
+        raise ValueError("--top_k must be <= --num_experts.")
     print(
         f"LR schedule (constant then decay in last 20%): "
         f"token_embed {lr_embedding:.3e}->{lr_embedding * args.min_lr_ratio:.3e}, "
         f"router_embed {lr_router_embedding:.3e}->{lr_router_embedding * args.min_lr_ratio:.3e}, "
         f"linear {lr_linear:.3e}->{lr_linear * args.min_lr_ratio:.3e}, "
         f"lm_head {lr_lm_head:.3e}->{lr_lm_head * args.min_lr_ratio:.3e} | "
-        f"Heads(attn/moe)={attn_heads}/{args.moe_heads} | "
+        f"Heads(attn/moe)={attn_heads}/{args.moe_heads}, d_moe_latent={args.d_moe_latent} | "
         f"LUCID_ROUTER={'both (off,on)' if args.run_both_lucid_router else ('on' if args.enable_lucid_router else 'off')} | "
         f"GATING={'sigmoid' if args.enable_sigmoid_gating else 'softmax'} | "
         f"QE_NORM={'on' if args.enable_qe_norm else 'off'} | "
@@ -1828,6 +1855,34 @@ def main() -> None:
     else:
         run_specs = [("mh_lmoe_lucid_off", False)] if not args.enable_lucid_router else [("mh_lmoe_lucid_on", True)]
     logs_by_run: Dict[str, List[Dict[str, float]]] = {}
+    plot_path: Optional[Path] = None
+    entropy_plot_path: Optional[Path] = None
+    load_violation_plot_path: Optional[Path] = None
+    if args.plot_losses:
+        plot_path = resolve_plot_out_path(plot_out=args.plot_out, json_out=args.json_out)
+        entropy_plot_path = resolve_entropy_plot_out_path(plot_out=args.plot_out, json_out=args.json_out)
+        load_violation_plot_path = resolve_load_violation_plot_out_path(
+            plot_out=args.plot_out,
+            json_out=args.json_out,
+        )
+        print(
+            "Plotting enabled: "
+            f"live_updates={'on' if args.live_plot else 'off'} | "
+            f"loss={plot_path} | entropy={entropy_plot_path} | load={load_violation_plot_path}"
+        )
+
+    def refresh_plots_live() -> None:
+        if not args.plot_losses or not args.live_plot:
+            return
+        if plot_path is None or entropy_plot_path is None or load_violation_plot_path is None:
+            return
+        non_empty_logs = {name: run_logs for name, run_logs in logs_by_run.items() if run_logs}
+        if not non_empty_logs:
+            return
+        plot_loss_curves(logs_by_run=non_empty_logs, out_path=plot_path)
+        plot_routing_entropy_curves(logs_by_run=non_empty_logs, out_path=entropy_plot_path)
+        plot_max_load_violation_curves(logs_by_run=non_empty_logs, out_path=load_violation_plot_path)
+
     for run_name, run_enable_lucid_router in run_specs:
         set_seed(args.seed)
         init_rng = make_torch_generator(args.seed, torch.device("cpu"))
@@ -1838,6 +1893,7 @@ def main() -> None:
             n_layers=args.n_layers,
             attn_heads=attn_heads,
             moe_heads=args.moe_heads,
+            d_moe_latent=args.d_moe_latent,
             num_experts=args.num_experts,
             top_k=args.top_k,
             expert_hidden=args.expert_hidden,
@@ -1876,7 +1932,9 @@ def main() -> None:
         print(f"[{run_name}] Muon linear params: {', '.join(split_names['linear_muon'])}")
         print(f"[{run_name}] Muon lm_head params: {', '.join(split_names['lm_head_muon'])}")
 
-        logs_by_run[run_name] = train_one_run(
+        run_logs: List[Dict[str, float]] = []
+        logs_by_run[run_name] = run_logs
+        train_one_run(
             run_name=run_name,
             model=model,
             optimizer=optimizer,
@@ -1887,6 +1945,8 @@ def main() -> None:
             min_lr_ratio=args.min_lr_ratio,
             enable_lucid_router=run_enable_lucid_router,
             enable_sigmoid_gating=args.enable_sigmoid_gating,
+            logs=run_logs,
+            on_eval=refresh_plots_live,
         )
 
     summary = {run_name: logs[-1]["val_loss"] for run_name, logs in logs_by_run.items()}
@@ -1895,16 +1955,7 @@ def main() -> None:
     for run_name, final_val in summary.items():
         print(f"{run_name}: {final_val:.4f}")
 
-    plot_path: Optional[Path] = None
-    entropy_plot_path: Optional[Path] = None
-    load_violation_plot_path: Optional[Path] = None
     if args.plot_losses:
-        plot_path = resolve_plot_out_path(plot_out=args.plot_out, json_out=args.json_out)
-        entropy_plot_path = resolve_entropy_plot_out_path(plot_out=args.plot_out, json_out=args.json_out)
-        load_violation_plot_path = resolve_load_violation_plot_out_path(
-            plot_out=args.plot_out,
-            json_out=args.json_out,
-        )
         plot_loss_curves(logs_by_run=logs_by_run, out_path=plot_path)
         plot_routing_entropy_curves(logs_by_run=logs_by_run, out_path=entropy_plot_path)
         plot_max_load_violation_curves(logs_by_run=logs_by_run, out_path=load_violation_plot_path)
