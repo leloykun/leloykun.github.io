@@ -33,10 +33,13 @@ from typing import Dict, Iterable, List, Literal, Optional, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import Tensor
 
 
 ScaleMode = Literal["none", "tensor", "row"]
 
+# E4M3
+FP8_STORAGE_DTYPE = torch.float8_e4m3fn
 FP8_E4M3_MAX = 448.0
 FP8_E4M3_MIN_NORMAL = 2.0 ** -6
 FP8_E4M3_MIN_SUBNORMAL = 2.0 ** -9
@@ -45,39 +48,24 @@ RMS_NORM_EPS = 1e-5
 # Newton-Schulz coefficients for matrix inverse roots.
 NTH_ROOT_COEFS: List[Optional[List[Tuple[float, float, float]]]] = [
     None,  # r = 0
-    [  # r = 1
-        (14.2975, -31.2203, 18.9214),
-        (7.12258, -7.78207, 2.35989),
-        (6.9396, -7.61544, 2.3195),
-        (5.98456, -6.77016, 2.12571),
-        (3.79109, -4.18664, 1.39555),
-        (3, -3, 1),
-    ],
+    None,  # r = 1
     [  # r = 2
-        (7.42487, -18.3958, 12.8967),
-        (3.48773, -2.33004, 0.440469),
-        (2.77661, -2.07064, 0.463023),
-        (1.99131, -1.37394, 0.387593),
-        (15.0 / 8.0, -5.0 / 4.0, 3.0 / 8.0),
+        (7.424865680309214, -18.39581635618996, 12.896720413604342),
+        (3.4877256051546017, -2.3300436563986993, 0.4404692168431095),
+        (2.7766085124882527, -2.070643152532662, 0.46302261050004967),
+        (1.9913142104341506, -1.373936700681269, 0.3875934979568538),
+        (1.8754637749479246, -1.2505152090010534, 0.37505152463617264),
+        (1.875, -1.25, 0.375),
     ],
     None,  # r = 3
     [  # r = 4
-        (3.85003, -10.8539, 8.61893),
-        (1.80992, -0.587778, 0.0647852),
-        (1.50394, -0.594516, 0.121161),
-        (45.0 / 32.0, -9.0 / 16.0, 5.0 / 32.0),
+        (3.85003181724939, -10.853860241993278, 8.618933773002455),
+        (1.8099210622771318, -0.5877777285425438, 0.06478521007149429),
+        (1.5039396714850155, -0.594515590829229, 0.12116149581658857),
+        (1.4086233134294281, -0.5637769238099195, 0.1551787660660711),
+        (1.4062500496446348, -0.562500027067629, 0.15624997742300542),
+        (1.40625, -0.5625, 0.15625),
     ],
-]
-
-# Muon ECO square-root coefficients (trace-normalized iteration).
-MUON_SQRT_COEFS: List[Tuple[float, float, float]] = [
-    (8.287212018145622, -23.59588651909882, 17.300387312530923),
-    (4.107059111542197, -2.9478499167379084, 0.54484310829266),
-    (3.9486908534822938, -2.908902115962947, 0.5518191394370131),
-    (3.3184196573706055, -2.488488024314878, 0.5100489401237208),
-    (2.3006520199548186, -1.6689039845747518, 0.4188073119525678),
-    (1.8913014077874002, -1.2679958271945908, 0.37680408948524996),
-    (1.875, -1.25, 0.375),
 ]
 
 # Muon orthogonalization coefficients.
@@ -113,7 +101,7 @@ def make_torch_generator(seed: int, device: torch.device) -> torch.Generator:
     return gen
 
 
-def _orthogonalize(M: torch.Tensor, niter: int = len(MUON_NS_COEFFS)) -> torch.Tensor:
+def _orthogonalize(M: Tensor, niter: int = len(MUON_NS_COEFFS)) -> Tensor:
     # Computes msign(M) = M (M^T M)^{-1/2}
     transpose = M.shape[0] > M.shape[1]
     if transpose:
@@ -153,19 +141,66 @@ def abc(
         yield a / scale, b / (scale ** (r + 1)), c / (scale ** (2 * r + 1))
 
 
-def _sym(M: torch.Tensor) -> torch.Tensor:
+def _sym(M: Tensor) -> Tensor:
     return 0.5 * (M + M.mT)
 
 
+def matrix_root(
+    P: Tensor,
+    *,
+    r: int,
+    s: int = 1,
+    steps: int = 8,
+    eps: float = 1e-6,
+    scale: float = 1.01,
+) -> Tensor:
+    # Computes P^{s/r}
+    assert P.ndim == 2 and P.shape[0] == P.shape[1], "P must be square"
+    norm = torch.linalg.norm(P, dim=(-2, -1), keepdim=True)
+    if norm <= eps:
+        return torch.zeros_like(P)
+    Y = YZ = P / norm
+    I_n = torch.eye(P.shape[0], device=P.device, dtype=P.dtype)
+    for a, b, c in abc(r=r, steps=steps, scale=scale):
+        W = a * I_n + b * YZ + c * (YZ @ YZ)
+        W1 = torch.linalg.matrix_power(W, s)
+        W2 = torch.linalg.matrix_power(W, r)
+        Y, YZ = W1 @ Y, W2 @ YZ
+    return Y * norm**(float(s) / float(r))
+
+
+def double_sided_matmul_root(
+    Q: Tensor,
+    G: Tensor,
+    P: Tensor,
+    *,
+    r: int,
+    s: int = 1,
+    steps: int = 8,
+    eps: float = 1e-6,
+    scale: float = 1.01,
+) -> Tensor:
+    """
+    Computes Q^(s/r) @ G @ P^(s/r) using matrix roots on each side.
+    """
+    assert Q.ndim == 2 and Q.shape[0] == Q.shape[1], "Q must be square"
+    assert P.ndim == 2 and P.shape[0] == P.shape[1], "P must be square"
+    assert G.ndim == 2 and G.shape[0] == Q.shape[0] and G.shape[1] == P.shape[0], "shape mismatch"
+
+    left_root = matrix_root(Q, r=r, s=s, steps=steps, eps=eps, scale=scale)
+    right_root = matrix_root(P, r=r, s=s, steps=steps, eps=eps, scale=scale)
+    return left_root @ G @ right_root
+
+
 def matrix_invroot(
-    P: torch.Tensor,
+    P: Tensor,
     *,
     r: int,
     s: int = 1,
     steps: Optional[int] = None,
     eps: float = 1e-5,
     scale: float = 1.001,
-) -> torch.Tensor:
+) -> Tensor:
     """
     Computes P^(-s/r) using Newton-Schulz iterations.
     """
@@ -189,16 +224,16 @@ def matrix_invroot(
 
 
 def double_sided_matmul_invroot(
-    Q: torch.Tensor,
-    G: torch.Tensor,
-    P: torch.Tensor,
+    Q: Tensor,
+    G: Tensor,
+    P: Tensor,
     *,
     r: int,
     s: int = 1,
     steps: Optional[int] = None,
     eps: float = 1e-5,
     scale: float = 1.001,
-) -> torch.Tensor:
+) -> Tensor:
     """
     Computes Q^(-s/r) @ G @ P^(-s/r) using coupled Newton-Schulz iterations.
     """
@@ -236,7 +271,7 @@ def double_sided_matmul_invroot(
     return out * q_scale * p_scale
 
 
-def _matrix_update_scale(p: torch.Tensor) -> float:
+def _matrix_update_scale(p: Tensor) -> float:
     if p.ndim != 2:
         return 1.0
     fan_out, fan_in = p.shape
@@ -244,10 +279,10 @@ def _matrix_update_scale(p: torch.Tensor) -> float:
 
 
 def _stochastic_round_nonnegative(
-    x: torch.Tensor,
+    x: Tensor,
     *,
     generator: Optional[torch.Generator] = None,
-) -> torch.Tensor:
+) -> Tensor:
     x_floor = torch.floor(x)
     frac = torch.clamp(x - x_floor, min=0.0, max=1.0)
     if generator is None:
@@ -258,69 +293,63 @@ def _stochastic_round_nonnegative(
 
 
 def _quantize_fp8_e4m3_no_scale(
-    x: torch.Tensor,
+    x: Tensor,
     *,
     stochastic_rounding: bool,
     generator: Optional[torch.Generator] = None,
-) -> torch.Tensor:
+) -> Tensor:
     """
     FP8-E4M3 quantization for values already in-scale.
     Returns dequantized float tensor (same dtype as input).
     """
     x32 = x.float()
-    out = torch.zeros_like(x32)
+    x_sat = torch.nan_to_num(x32, nan=0.0, posinf=FP8_E4M3_MAX, neginf=-FP8_E4M3_MAX)
+    x_sat = torch.clamp(x_sat, min=-FP8_E4M3_MAX, max=FP8_E4M3_MAX)
+    if not stochastic_rounding:
+        # Fast RNE path: use native FP8 cast and dequantize back.
+        return x_sat.to(dtype=FP8_STORAGE_DTYPE).to(dtype=x.dtype)
 
-    finite_mask = torch.isfinite(x32)
-    if finite_mask.any():
-        xf = x32[finite_mask]
-        sign = torch.sign(xf)
-        ax = torch.clamp(xf.abs(), max=FP8_E4M3_MAX)
-        q = torch.zeros_like(ax)
+    # Deterministic SR path (given generator): vectorized, avoids gather/scatter masks.
+    sign = torch.sign(x_sat)
+    ax = x_sat.abs()
+    zero_mask = ax == 0
+    normal_mask = ax >= FP8_E4M3_MIN_NORMAL
+    # Use separate clamps for normal and subnormal computations.
+    # Subnormal path must use raw ax (not clamped to min subnormal) so tiny
+    # values can still stochastically round to zero.
+    ax_for_normal = torch.clamp(ax, min=FP8_E4M3_MIN_NORMAL)
 
-        normal_mask = ax >= FP8_E4M3_MIN_NORMAL
-        if normal_mask.any():
-            an = ax[normal_mask]
-            exp = torch.clamp(torch.floor(torch.log2(an)), min=-6.0, max=7.0)
-            base = torch.pow(2.0, exp)
-            mant_scaled = (an / base - 1.0) * 8.0
-            if stochastic_rounding:
-                mant_i = _stochastic_round_nonnegative(mant_scaled, generator=generator)
-            else:
-                mant_i = torch.round(mant_scaled)
-            mant_i = torch.clamp(mant_i, min=0.0, max=8.0)
+    if generator is None:
+        rand = torch.rand_like(ax)
+    else:
+        rand = torch.rand(ax.shape, device=ax.device, dtype=ax.dtype, generator=generator)
 
-            carry = mant_i >= 8.0
-            if carry.any():
-                exp = torch.clamp(exp + carry.to(exp.dtype), min=-6.0, max=7.0)
-                mant_i = torch.where(carry, torch.zeros_like(mant_i), mant_i)
+    exp = torch.clamp(torch.floor(torch.log2(ax_for_normal)), min=-6.0, max=7.0)
+    base = torch.exp2(exp)
+    mant_scaled = (ax_for_normal / base - 1.0) * 8.0
+    mant_i = torch.floor(mant_scaled + rand)
+    mant_i = torch.clamp(mant_i, min=0.0, max=8.0)
+    carry = mant_i >= 8.0
+    exp = torch.clamp(exp + carry.to(dtype=exp.dtype), min=-6.0, max=7.0)
+    mant_i = torch.where(carry, torch.zeros_like(mant_i), mant_i)
+    q_normal = (1.0 + torch.clamp(mant_i, min=0.0, max=7.0) / 8.0) * torch.exp2(exp)
 
-            q[normal_mask] = (1.0 + mant_i / 8.0) * torch.pow(2.0, exp)
+    sub_scaled = ax / FP8_E4M3_MIN_SUBNORMAL
+    sub_i = torch.floor(sub_scaled + rand)
+    q_sub = torch.clamp(sub_i, min=0.0, max=7.0) * FP8_E4M3_MIN_SUBNORMAL
 
-        sub_mask = (ax > 0.0) & (ax < FP8_E4M3_MIN_NORMAL)
-        if sub_mask.any():
-            sub_scaled = ax[sub_mask] / FP8_E4M3_MIN_SUBNORMAL
-            if stochastic_rounding:
-                sub_i = _stochastic_round_nonnegative(sub_scaled, generator=generator)
-            else:
-                sub_i = torch.round(sub_scaled)
-            q[sub_mask] = torch.clamp(sub_i, min=0.0, max=7.0) * FP8_E4M3_MIN_SUBNORMAL
-
-        out[finite_mask] = sign * q
-
-    inf_mask = torch.isinf(x32)
-    if inf_mask.any():
-        out[inf_mask] = torch.sign(x32[inf_mask]) * FP8_E4M3_MAX
-
-    return out.to(dtype=x.dtype)
+    q_abs = torch.where(normal_mask, q_normal, q_sub)
+    q_abs = torch.where(zero_mask, torch.zeros_like(q_abs), q_abs)
+    return (sign * q_abs).to(dtype=x.dtype)
 
 
 def _quantize_fp8_with_scale(
-    x: torch.Tensor,
+    x: Tensor,
     *,
     stochastic_rounding: bool,
     scale_mode: ScaleMode,
     generator: Optional[torch.Generator] = None,
-) -> torch.Tensor:
+) -> Tensor:
     x32 = x.float()
     scale = compute_fp8_scale(x32, scale_mode=scale_mode)
     return quantize_fp8_e4m3_with_scale(
@@ -332,10 +361,10 @@ def _quantize_fp8_with_scale(
 
 
 def compute_fp8_scale(
-    x: torch.Tensor,
+    x: Tensor,
     *,
     scale_mode: ScaleMode,
-) -> torch.Tensor:
+) -> Tensor:
     x32 = x.float()
     if scale_mode == "tensor" or x32.ndim < 2:
         amax = x32.abs().amax()
@@ -348,12 +377,12 @@ def compute_fp8_scale(
 
 
 def quantize_fp8_e4m3_with_scale(
-    x: torch.Tensor,
+    x: Tensor,
     *,
-    scale: torch.Tensor,
+    scale: Tensor,
     stochastic_rounding: bool,
     generator: Optional[torch.Generator] = None,
-) -> torch.Tensor:
+) -> Tensor:
     x32 = x.float()
     q_unit = _quantize_fp8_e4m3_no_scale(
         x32 / scale,
@@ -364,12 +393,12 @@ def quantize_fp8_e4m3_with_scale(
 
 
 def quantize_fp8_e4m3(
-    x: torch.Tensor,
+    x: Tensor,
     *,
     stochastic_rounding: bool,
     scale_mode: ScaleMode = "row",
     generator: Optional[torch.Generator] = None,
-) -> torch.Tensor:
+) -> Tensor:
     if scale_mode == "none":
         return _quantize_fp8_e4m3_no_scale(
             x,
@@ -385,12 +414,12 @@ def quantize_fp8_e4m3(
 
 
 def quantize_ste(
-    x: torch.Tensor,
+    x: Tensor,
     *,
     stochastic_rounding: bool,
     scale_mode: ScaleMode,
     generator: Optional[torch.Generator] = None,
-) -> torch.Tensor:
+) -> Tensor:
     """
     Straight-through quantization: forward uses quantized value, backward uses identity.
     """
@@ -412,7 +441,7 @@ class QuantForwardConfig:
     sr_generator: Optional[torch.Generator] = None
 
 
-def quantize_weight_ste(x: torch.Tensor, qcfg: QuantForwardConfig) -> torch.Tensor:
+def quantize_weight_ste(x: Tensor, qcfg: QuantForwardConfig) -> Tensor:
     return quantize_ste(
         x,
         stochastic_rounding=qcfg.weight_stochastic_rounding,
@@ -421,7 +450,7 @@ def quantize_weight_ste(x: torch.Tensor, qcfg: QuantForwardConfig) -> torch.Tens
     )
 
 
-def quantize_activation_ste(x: torch.Tensor, qcfg: QuantForwardConfig) -> torch.Tensor:
+def quantize_activation_ste(x: Tensor, qcfg: QuantForwardConfig) -> Tensor:
     return quantize_ste(
         x,
         stochastic_rounding=qcfg.activation_stochastic_rounding,
@@ -430,7 +459,7 @@ def quantize_activation_ste(x: torch.Tensor, qcfg: QuantForwardConfig) -> torch.
     )
 
 
-def norm(x: torch.Tensor) -> torch.Tensor:
+def norm(x: Tensor) -> Tensor:
     return x * torch.rsqrt(torch.mean(x * x, dim=-1, keepdim=True) + RMS_NORM_EPS)
 
 
@@ -454,7 +483,7 @@ class QuantizedLinear(nn.Module):
         with torch.no_grad():
             self.weight.copy_(_orthogonalize(self.weight.data, niter=8))
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         x_q = quantize_activation_ste(x, self.qcfg)
         w = quantize_weight_ste(self.weight, self.qcfg)
         out = F.linear(x_q, w, None)
@@ -469,7 +498,7 @@ class ResidualMLPBlock(nn.Module):
         self.fc1 = QuantizedLinear(d_model, mlp_hidden, qcfg=qcfg)
         self.fc2 = QuantizedLinear(mlp_hidden, d_model, qcfg=qcfg)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         h = self.fc2(F.gelu(self.fc1(norm(x))))
         return (1. - self.alpha) * x + self.alpha * h
 
@@ -506,9 +535,9 @@ class ResidualMLPLM(nn.Module):
 
     def forward(
         self,
-        idx: torch.Tensor,
-        targets: Optional[torch.Tensor] = None,
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        idx: Tensor,
+        targets: Optional[Tensor] = None,
+    ) -> Tuple[Tensor, Optional[Tensor]]:
         bsz, seqlen = idx.shape
         if seqlen > self.block_size:
             raise ValueError(f"Sequence length {seqlen} exceeds block size {self.block_size}.")
@@ -1019,19 +1048,19 @@ class FP8ShampooNoMasterECO(torch.optim.Optimizer):
                 matrix_scale = _matrix_update_scale(p)
                 left_t = precond_beta * left + (1.0 - precond_beta) * (g @ g.mT)
                 right_t = precond_beta * right + (1.0 - precond_beta) * (g.mT @ g)
-                # update = matrix_scale * double_sided_matmul_invroot(
-                #     left_t,
-                #     m_tilde,
-                #     right_t,
-                #     r=root,
-                #     s=1,
-                #     steps=ns_steps,
-                #     eps=ns_eps,
-                #     scale=ns_scale,
-                # )
-                left_inv = matrix_invroot(left_t, r=root, steps=ns_steps, eps=ns_eps, scale=ns_scale)
-                right_inv = matrix_invroot(right_t, r=root, steps=ns_steps, eps=ns_eps, scale=ns_scale)
-                update = matrix_scale * left_inv @ m_tilde @ right_inv
+                update = matrix_scale * double_sided_matmul_invroot(
+                    left_t,
+                    m_tilde,
+                    right_t,
+                    r=root,
+                    s=1,
+                    steps=ns_steps,
+                    eps=ns_eps,
+                    scale=ns_scale,
+                )
+                # left_inv = matrix_invroot(left_t, r=root, steps=ns_steps, eps=ns_eps, scale=ns_scale)
+                # right_inv = matrix_invroot(right_t, r=root, steps=ns_steps, eps=ns_eps, scale=ns_scale)
+                # update = matrix_scale * left_inv @ m_tilde @ right_inv
 
                 w_q = p.detach().to(torch.float32)
                 w_tilde = (1.0 - lr * wd) * w_q - lr * update
@@ -1059,9 +1088,16 @@ class FP8ShampooNoMasterECO(torch.optim.Optimizer):
 
                 e = w_tilde - w_q_next
                 if eco_comp:
-                    left_pos  = matrix_invroot(left_inv,  r=1, steps=ns_steps, eps=ns_eps, scale=ns_scale)
-                    right_pos = matrix_invroot(right_inv, r=1, steps=ns_steps, eps=ns_eps, scale=ns_scale)
-                    comp = left_pos @ e @ right_pos
+                    comp = double_sided_matmul_root(
+                        left_t,
+                        e,
+                        right_t,
+                        r=root,
+                        s=1,
+                        steps=ns_steps,
+                        eps=ns_eps,
+                        scale=ns_scale,
+                    )
                     m_next = m_tilde + (eco_coef / matrix_scale) * comp
                 else:
                     m_next = m_tilde
@@ -1230,7 +1266,7 @@ class FP8MuonNoMasterECO(torch.optim.Optimizer):
 
                 e = w_tilde - w_q_next
                 if eco_comp:
-                    comp = e @ matrix_invroot(gram, r=2, steps=ns_steps, eps=ns_eps, scale=ns_scale)
+                    comp = e @ matrix_root(gram, r=2, steps=ns_steps, eps=ns_eps, scale=ns_scale)
                     m_next = m_tilde + (eco_coef / matrix_scale) * comp
                 else:
                     m_next = m_tilde
@@ -1298,7 +1334,7 @@ class TinyShakespeareData:
         block_size: int,
         device: torch.device,
         generator: torch.Generator,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> Tuple[Tensor, Tensor]:
         data = self.train_data if split == "train" else self.val_data
         max_start = data.size(0) - block_size - 1
         if max_start <= 0:
