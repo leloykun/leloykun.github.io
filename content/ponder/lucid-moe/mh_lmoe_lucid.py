@@ -13,6 +13,7 @@ from typing import Callable, Dict, Iterable, List, Literal, Optional, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import Tensor
 
 RMS_NORM_EPS = 1e-5
 TINY_SHAKESPEARE_URL = (
@@ -93,7 +94,7 @@ MUON_NS_COEFFS: List[Tuple[float, float, float]] = [
 ]
 
 
-def _orthogonalize(M: torch.Tensor, niter: int = len(MUON_NS_COEFFS)) -> torch.Tensor:
+def _orthogonalize(M: Tensor, niter: int = len(MUON_NS_COEFFS)) -> Tensor:
     transpose = M.shape[0] > M.shape[1]
     if transpose:
         M = M.mT
@@ -106,7 +107,7 @@ def _orthogonalize(M: torch.Tensor, niter: int = len(MUON_NS_COEFFS)) -> torch.T
     return M
 
 
-def _matrix_update_scale(p: torch.Tensor) -> float:
+def _matrix_update_scale(p: Tensor) -> float:
     assert p.ndim >= 2, "Expected weight matrix of rank 2 or higher, got shape {}".format(p.shape)
     fan_out, fan_in = p.shape[-2], p.shape[-1]
     return math.sqrt(float(fan_out) / float(fan_in))
@@ -194,7 +195,7 @@ class CompositeOptimizer:
         return loss
 
 
-def _extract_lse(aux: object) -> torch.Tensor:
+def _extract_lse(aux: object) -> Tensor:
     if hasattr(aux, "lse"):
         return aux.lse
     if isinstance(aux, dict) and "lse" in aux:
@@ -208,7 +209,7 @@ def _score_mod_gelu(score, batch, head, q_idx, k_idx):
 
 
 @torch.no_grad()
-def _batched_bincount(in_tensor: torch.Tensor, minlength: int) -> torch.Tensor:
+def _batched_bincount(in_tensor: Tensor, minlength: int) -> Tensor:
     """
     Batched bincount over rank-2 int64 tensor.
     """
@@ -228,7 +229,7 @@ def _batched_bincount(in_tensor: torch.Tensor, minlength: int) -> torch.Tensor:
 
 @torch.no_grad()
 def _get_block_mask(
-    block_level_expert_assign: torch.Tensor,
+    block_level_expert_assign: Tensor,
     *,
     num_expert: int,
     expert_size: int,
@@ -305,10 +306,10 @@ def _get_block_mask(
 
 @torch.no_grad()
 def _prepare_packing(
-    expert_assign: torch.Tensor,
-    expert_bincount: torch.Tensor,
+    expert_assign: Tensor,
+    expert_bincount: Tensor,
     block_size: int,
-) -> Tuple[torch.Tensor, torch.Tensor, int, torch.Tensor, torch.Tensor]:
+) -> Tuple[Tensor, Tensor, int, Tensor, Tensor]:
     """
     Prepare deterministic packing metadata.
     """
@@ -356,7 +357,7 @@ def _prepare_packing(
     return mapping, mapping_inv, padding_size, block_level_expert_assign, expert_assign
 
 
-def _packing(input_tensor: torch.Tensor, padding_size: int, mapping: torch.Tensor) -> torch.Tensor:
+def _packing(input_tensor: Tensor, padding_size: int, mapping: Tensor) -> Tensor:
     """
     Apply packing permutation after zero-padding tail rows per head.
     """
@@ -380,7 +381,7 @@ def _packing(input_tensor: torch.Tensor, padding_size: int, mapping: torch.Tenso
     return flat.view(num_head, pool_size + padding_size, emb_size)
 
 
-def _unpacking(input_tensor: torch.Tensor, padding_size: int, mapping_inv: torch.Tensor) -> torch.Tensor:
+def _unpacking(input_tensor: Tensor, padding_size: int, mapping_inv: Tensor) -> Tensor:
     """
     Inverse of _packing.
     """
@@ -405,14 +406,14 @@ def _unpacking(input_tensor: torch.Tensor, padding_size: int, mapping_inv: torch
 
 
 def flex_expert_ffn_assignments_directmask_multihead(
-    q_by_head: torch.Tensor,
-    expert_ids_by_head: torch.Tensor,
-    W1: torch.Tensor,
-    W2: torch.Tensor,
+    q_by_head: Tensor,
+    expert_ids_by_head: Tensor,
+    W1: Tensor,
+    W2: Tensor,
     *,
     kv_block: int = 128,
     q_block: int = 1,
-) -> torch.Tensor:
+) -> Tensor:
     """
     Multi-head FlexAttention path implementing exact expert FFN for assignment rows:
       y[h, i] = GELU(q[h, i] @ W1[h, e]) @ W2[h, e]
@@ -523,8 +524,29 @@ def flex_expert_ffn_assignments_directmask_multihead(
     return y.to(dtype=dtype)
 
 
-def norm(x: torch.Tensor) -> torch.Tensor:
+def norm(x: Tensor) -> Tensor:
     return x * torch.rsqrt(torch.mean(x * x, dim=-1, keepdim=True) + RMS_NORM_EPS)
+
+
+def _quantile_kthvalue(
+    x: Tensor,
+    *,
+    q: float,
+    dim: int,
+    keepdim: bool,
+) -> Tensor:
+    """
+    Fast quantile approximation via order statistic (kthvalue).
+    """
+    if not (0.0 <= q <= 1.0):
+        raise ValueError("q must be in [0, 1].")
+    n = x.size(dim)
+    if n <= 0:
+        raise ValueError("Cannot take kthvalue over empty dimension.")
+    kth = int(math.floor(q * n)) + 1
+    kth = max(1, min(n, kth))
+    values, _ = torch.kthvalue(x, k=kth, dim=dim, keepdim=keepdim)
+    return values
 
 
 @dataclass
@@ -539,7 +561,8 @@ class MoEConfig:
     enable_lucid_router_default: bool = False
     enable_sigmoid_gating_default: bool = False
     enable_qe_norm_default: bool = False
-    enable_auxfree_bias_default: bool = True
+    expert_bias_mode: Literal["none", "auxfree", "quantile"] = "auxfree"
+    expert_bias_quantile_iters: int = 1
     auxfree_bias_lr: float = 1e-2
     auxfree_bias_clip: float = 10.0
     kv_block_size: int = 128
@@ -549,6 +572,7 @@ class MultiHeadLatentMoE(nn.Module):
     """
     Multi-head Latent MoE FFN layer with optional LUCID correction.
     """
+    expert_load_bias: Tensor
 
     def __init__(
         self,
@@ -563,6 +587,10 @@ class MultiHeadLatentMoE(nn.Module):
             raise ValueError("top_k must satisfy 1 <= top_k <= num_experts.")
         if cfg.kv_block_size <= 0:
             raise ValueError("kv_block_size must be > 0.")
+        if cfg.expert_bias_mode not in {"none", "auxfree", "quantile"}:
+            raise ValueError("expert_bias_mode must be one of: none, auxfree, quantile.")
+        if cfg.expert_bias_quantile_iters <= 0:
+            raise ValueError("expert_bias_quantile_iters must be > 0.")
 
         self.cfg = cfg
         self.d_moe_latent = cfg.d_moe_latent
@@ -576,7 +604,7 @@ class MultiHeadLatentMoE(nn.Module):
         self.in_proj = nn.Parameter(torch.empty(H, d, cfg.d_model))
         self.out_proj = nn.Linear(H * d, cfg.d_model, bias=False)
         self.router_embedding = nn.Parameter(torch.empty(H, E, d))
-        self.register_buffer("auxfree_bias", torch.zeros(H, E, dtype=torch.float32), persistent=True)
+        self.register_buffer("expert_load_bias", torch.zeros(H, E, dtype=torch.float32), persistent=True)
 
         # Store expert FFN weights as (fan_out, fan_in)-style per expert:
         # W1: (H, E, m, d), W2: (H, E, d, m)
@@ -599,13 +627,13 @@ class MultiHeadLatentMoE(nn.Module):
             self.W2.data = _matrix_update_scale(self.W2.data) * _orthogonalize(self.W2.data)
             if self.cfg.enable_qe_norm_default:
                 self.router_embedding.data = norm(self.router_embedding.data)
-            self.auxfree_bias.zero_()
+            self.expert_load_bias.zero_()
 
     def _expert_ffn_assignments(
         self,
-        q_assign_stacked: torch.Tensor,
-        expert_ids_stacked: torch.Tensor,
-    ) -> torch.Tensor:
+        q_assign_stacked: Tensor,
+        expert_ids_stacked: Tensor,
+    ) -> Tensor:
         if q_assign_stacked.ndim != 3 or expert_ids_stacked.ndim != 2:
             raise ValueError("q_assign_stacked must be (H, Nassign, d) and expert_ids_stacked must be (H, Nassign).")
         if q_assign_stacked.shape[:2] != expert_ids_stacked.shape:
@@ -620,68 +648,137 @@ class MultiHeadLatentMoE(nn.Module):
             q_block=1,
         )
 
-    def _remove_auxfree_bias(
+    def _remove_expert_load_bias(
         self,
-        top_logit: torch.Tensor,
-        top_idx: torch.Tensor,
-    ) -> torch.Tensor:
+        top_logit: Tensor,
+        top_idx: Tensor,
+    ) -> Tensor:
         if top_logit.ndim != 3 or top_idx.ndim != 3:
             raise ValueError("top_logit/top_idx must be rank-3 (H, Ntok, K).")
         if top_logit.shape != top_idx.shape:
             raise ValueError("top_logit and top_idx shapes must match.")
         H, Ntok, k = top_logit.shape
         selected_bias = torch.gather(
-            self.auxfree_bias.to(dtype=top_logit.dtype),
+            self.expert_load_bias.to(dtype=top_logit.dtype),
             dim=1,
             index=top_idx.reshape(H, Ntok * k),
         ).reshape(H, Ntok, k)
         return top_logit - selected_bias
 
-    def _update_auxfree_bias(self, topk_idx: torch.Tensor) -> None:
-        if not self.cfg.enable_auxfree_bias_default or not self.training or not torch.is_grad_enabled():
-            return
-        if topk_idx.ndim != 3:
-            raise ValueError("topk_idx must be rank-3 (H, Ntok, K).")
+    def _expert_bias_mode(self) -> Literal["none", "auxfree", "quantile"]:
+        return self.cfg.expert_bias_mode
 
+    @staticmethod
+    def _compute_quantile_expert_bias(
+        scores: Tensor,
+        *,
+        prev_bias: Tensor,
+        top_k: int,
+        num_iters: int = 1,
+    ) -> Tensor:
+        """
+        One-pass quantile-bias update using previous-step bias.
+
+        Returns -beta so the routing path can use logits + bias.
+        """
+        if scores.ndim != 3:
+            raise ValueError("scores must be rank-3 (H, Ntok, E).")
+        H, Ntok, E = scores.shape
+        if E <= 0:
+            raise ValueError("scores must have E > 0.")
+        if Ntok <= 0:
+            return prev_bias.to(dtype=torch.float32)
+        if prev_bias.shape != (H, E):
+            raise ValueError("prev_bias must be (H, E).")
+        if not (1 <= top_k <= E):
+            raise ValueError("top_k must satisfy 1 <= top_k <= E.")
+        if num_iters <= 0:
+            raise ValueError("num_iters must be > 0.")
+
+        q = 1.0 - (float(top_k) / float(E))
+        s = scores.to(torch.float32)
+        beta_prev = (-prev_bias.to(torch.float32)).unsqueeze(1)  # (H, 1, E)
+        beta = beta_prev
+        for _ in range(num_iters):
+            alpha = _quantile_kthvalue(s - beta, q=q, dim=2, keepdim=True)
+            beta = _quantile_kthvalue(s - alpha, q=q, dim=1, keepdim=True)
+        return -beta.squeeze(1)
+
+    def _update_expert_load_bias(
+        self,
+        *,
+        logits: Optional[Tensor] = None,
+        topk_idx: Optional[Tensor] = None,
+    ) -> None:
+        if self._expert_bias_mode() == "none" or not self.training or not torch.is_grad_enabled():
+            return
+
+        mode = self._expert_bias_mode()
         with torch.no_grad():
-            H, Ntok, k = topk_idx.shape
-            E = self.cfg.num_experts
-            if Ntok == 0 or k == 0:
+            if mode == "auxfree":
+                if topk_idx is None:
+                    return
+                if topk_idx.ndim != 3:
+                    raise ValueError("topk_idx must be rank-3 (H, Ntok, K).")
+
+                H, Ntok, k = topk_idx.shape
+                E = self.cfg.num_experts
+                if Ntok == 0 or k == 0:
+                    return
+
+                expert_assign = topk_idx.reshape(H, Ntok * k).to(torch.int64)
+                expert_bincount = _batched_bincount(expert_assign, minlength=E)
+                load = expert_bincount.to(torch.float32) / float(Ntok * k)
+
+                target = 1.0 / float(E)
+                self.expert_load_bias.add_(self.cfg.auxfree_bias_lr * torch.sign(target - load))
+                # Keep only per-expert relative offsets for each head.
+                self.expert_load_bias.sub_(self.expert_load_bias.mean(dim=1, keepdim=True))
+
+                clip = float(self.cfg.auxfree_bias_clip)
+                if clip > 0.0:
+                    self.expert_load_bias.clamp_(min=-clip, max=clip)
                 return
 
-            expert_assign = topk_idx.reshape(H, Ntok * k).to(torch.int64)
-            expert_bincount = _batched_bincount(expert_assign, minlength=E)
-            load = expert_bincount.to(torch.float32) / float(Ntok * k)
+            if mode == "quantile":
+                if logits is None:
+                    return
+                new_bias = self._compute_quantile_expert_bias(
+                    logits.detach(),
+                    prev_bias=self.expert_load_bias,
+                    top_k=self.cfg.top_k,
+                    num_iters=self.cfg.expert_bias_quantile_iters,
+                )
+                self.expert_load_bias.copy_(new_bias)
 
-            target = 1.0 / float(E)
-            self.auxfree_bias.add_(self.cfg.auxfree_bias_lr * torch.sign(target - load))
-            # Keep only per-expert relative offsets for each head.
-            self.auxfree_bias.sub_(self.auxfree_bias.mean(dim=1, keepdim=True))
+                clip = float(self.cfg.auxfree_bias_clip)
+                if clip > 0.0:
+                    self.expert_load_bias.clamp_(min=-clip, max=clip)
+                return
 
-            clip = float(self.cfg.auxfree_bias_clip)
-            if clip > 0.0:
-                self.auxfree_bias.clamp_(min=-clip, max=clip)
+            raise RuntimeError(f"Unsupported expert bias mode: {mode}")
 
-    def _compute_block_expert_load(self, topk_idx: torch.Tensor) -> torch.Tensor:
+    def _compute_block_expert_load(self, topk_idx: Tensor) -> Tensor:
         if topk_idx.ndim != 3:
             raise ValueError("topk_idx must be rank-3 (H, Ntok, K).")
         H, Ntok, k = topk_idx.shape
         E = self.cfg.num_experts
         if Ntok == 0 or k == 0:
-            return torch.zeros((E,), dtype=torch.float32, device=topk_idx.device)
+            return torch.zeros((H, E), dtype=torch.float32, device=topk_idx.device)
 
-        expert_assign = topk_idx.reshape(H * Ntok * k).to(torch.int64)
-        expert_bincount = torch.bincount(expert_assign, minlength=E)
-        return expert_bincount.to(torch.float32) / float(H * Ntok * k)
+        # Per-head load because each head has separate expert weights.
+        expert_assign = topk_idx.reshape(H, Ntok * k).to(torch.int64)
+        expert_bincount = _batched_bincount(expert_assign, minlength=E)
+        return expert_bincount.to(torch.float32) / float(Ntok * k)
 
     def _forward_impl(
         self,
-        x: torch.Tensor,
+        x: Tensor,
         *,
         enable_lucid_router: Optional[bool],
         enable_sigmoid_gating: Optional[bool],
         enable_qe_norm: Optional[bool],
-    ) -> torch.Tensor:
+    ) -> Tensor:
         if x.ndim != 3:
             raise ValueError("x must be rank-3 (B, T, d_model).")
 
@@ -709,10 +806,12 @@ class MultiHeadLatentMoE(nn.Module):
 
         # Router logits: (H, Ntok, E)
         logits = logits_factor * torch.einsum("hnd,hed->hne", q_router, router_embedding)
-        if self.cfg.enable_auxfree_bias_default:
-            dirty_logits = logits + self.auxfree_bias.to(dtype=logits.dtype).unsqueeze(1)
+        expert_bias_mode = self._expert_bias_mode()
+
+        if expert_bias_mode != "none":
+            dirty_logits = logits + self.expert_load_bias.to(dtype=logits.dtype).unsqueeze(1)
             topk_dirty_values, topk_idx = torch.topk(dirty_logits, k=k, dim=-1)
-            topk_values = self._remove_auxfree_bias(topk_dirty_values, topk_idx)
+            topk_values = self._remove_expert_load_bias(topk_dirty_values, topk_idx)
         else:
             topk_values, topk_idx = torch.topk(logits, k=k, dim=-1)
         if enable_sigmoid_gating:
@@ -720,12 +819,16 @@ class MultiHeadLatentMoE(nn.Module):
             alpha = gate / gate.sum(dim=-1, keepdim=True).clamp_min(1e-12)
         else:
             alpha = torch.softmax(topk_values, dim=-1)  # (H, Ntok, k)
-        self._update_auxfree_bias(topk_idx)
+        if expert_bias_mode == "auxfree":
+            self._update_expert_load_bias(topk_idx=topk_idx)
+        elif expert_bias_mode == "quantile":
+            # Like aux-free bias, use old bias this step and refresh from current logits for next step.
+            self._update_expert_load_bias(logits=logits)
         block_expert_load = self._compute_block_expert_load(topk_idx)
-        mean_load = block_expert_load.mean()
-        max_load = block_expert_load.max()
-        load_violation = (max_load - mean_load) / mean_load.clamp_min(1e-12)
-        self.last_max_load_violation = float(load_violation.item())
+        mean_load_by_head = block_expert_load.mean(dim=-1)
+        max_load_by_head = block_expert_load.max(dim=-1).values
+        load_violation_by_head = (max_load_by_head - mean_load_by_head) / mean_load_by_head.clamp_min(1e-12)
+        self.last_max_load_violation = float(load_violation_by_head.max().item())
 
         # Expand assignments without repeat_interleave.
         q_assign_stacked = norm(q_router).unsqueeze(2).expand(H, Ntok, k, d).reshape(H, Ntok * k, d)
@@ -751,7 +854,7 @@ class MultiHeadLatentMoE(nn.Module):
             eye = torch.eye(k, device=P.device, dtype=P.dtype).view(1, 1, k, k)
             P = P + self.cfg.lucid_router_eps * eye
 
-            beta_for_entropy = torch.linalg.solve(P, alpha.to(torch.float32).unsqueeze(-1)).squeeze(-1)
+            beta_for_entropy = torch.linalg.solve(P, alpha.to(torch.float32))
             y_assign_corr = torch.linalg.solve(P, y_assign_stacked.to(torch.float32))
             mixed_by_head = (alpha.to(torch.float32).unsqueeze(-1) * y_assign_corr).sum(dim=2)
             mixed_by_head = mixed_by_head.to(dtype=y_assign_stacked.dtype)
@@ -766,12 +869,12 @@ class MultiHeadLatentMoE(nn.Module):
 
     def forward(
         self,
-        x: torch.Tensor,
+        x: Tensor,
         *,
         enable_lucid_router: Optional[bool] = None,
         enable_sigmoid_gating: Optional[bool] = None,
         enable_qe_norm: Optional[bool] = None,
-    ) -> torch.Tensor:
+    ) -> Tensor:
         return self._forward_impl(
             x,
             enable_lucid_router=enable_lucid_router,
@@ -787,7 +890,7 @@ class RoPE(nn.Module):
             raise ValueError("RoPE requires an even head dimension.")
         self.head_dim = head_dim
         self.base = base
-        self._cache: Dict[Tuple[torch.device, int], Tuple[torch.Tensor, torch.Tensor]] = {}
+        self._cache: Dict[Tuple[torch.device, int], Tuple[Tensor, Tensor]] = {}
         inv_freq = 1.0 / (self.base ** (torch.arange(0, head_dim, 2, dtype=torch.float32) / head_dim))
         self.register_buffer("inv_freq", inv_freq, persistent=False)
 
@@ -796,7 +899,7 @@ class RoPE(nn.Module):
         *,
         device: torch.device,
         seqlen: int,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> Tuple[Tensor, Tensor]:
         key = (device, seqlen)
         if key in self._cache:
             return self._cache[key]
@@ -810,7 +913,7 @@ class RoPE(nn.Module):
         return cos, sin
 
     @staticmethod
-    def _apply_rope(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
+    def _apply_rope(x: Tensor, cos: Tensor, sin: Tensor) -> Tensor:
         x_dtype = x.dtype
         x_fp32 = x.to(torch.float32)
         x_even = x_fp32[..., ::2]
@@ -822,7 +925,7 @@ class RoPE(nn.Module):
         out[..., 1::2] = out_odd
         return out.to(dtype=x_dtype)
 
-    def forward(self, q: torch.Tensor, k: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, q: Tensor, k: Tensor) -> Tuple[Tensor, Tensor]:
         if q.shape[-1] != self.head_dim or k.shape[-1] != self.head_dim:
             raise ValueError("RoPE input last dim must equal head_dim.")
         if q.shape[-2] != k.shape[-2]:
@@ -892,7 +995,7 @@ class CausalSelfAttention(nn.Module):
         self._block_mask_cache[key] = block_mask
         return block_mask
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         B, T, _ = x.shape
         qkv = torch.einsum("ahdm,btm->abhtd", self.qkv_proj, x)
         q, k, v = qkv[0], qkv[1], qkv[2]
@@ -940,11 +1043,11 @@ class ResidualBlock(nn.Module):
 
     def forward(
         self,
-        x: torch.Tensor,
+        x: Tensor,
         *,
         enable_lucid_router: Optional[bool],
         enable_sigmoid_gating: Optional[bool],
-    ) -> torch.Tensor:
+    ) -> Tensor:
         x = (1. - self.alpha) * x + self.alpha * self.self_attn(norm(x))
         x = (1. - self.alpha) * x + self.alpha * self.moe(
             norm(x),
@@ -997,12 +1100,12 @@ class LatentMoEShakespeareLM(nn.Module):
 
     def forward(
         self,
-        idx: torch.Tensor,
-        targets: Optional[torch.Tensor] = None,
+        idx: Tensor,
+        targets: Optional[Tensor] = None,
         *,
         enable_lucid_router: Optional[bool] = None,
         enable_sigmoid_gating: Optional[bool] = None,
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    ) -> Tuple[Tensor, Optional[Tensor]]:
         bsz, seqlen = idx.shape
         if seqlen > self.block_size:
             raise ValueError(f"Sequence length {seqlen} exceeds block size {self.block_size}.")
@@ -1033,7 +1136,7 @@ class LatentMoEShakespeareLM(nn.Module):
 
         logits = self.lm_head(norm(x)).float()
 
-        loss: Optional[torch.Tensor] = None
+        loss: Optional[Tensor] = None
         if targets is not None:
             loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)), targets.reshape(-1))
         return logits, loss
@@ -1073,7 +1176,7 @@ class TinyShakespeareData:
         block_size: int,
         device: torch.device,
         generator: torch.Generator,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> Tuple[Tensor, Tensor]:
         data = self.train_data if split == "train" else self.val_data
         max_start = data.size(0) - block_size - 1
         if max_start <= 0:
@@ -1531,7 +1634,8 @@ def build_model(
     enable_lucid_router_default: bool,
     enable_sigmoid_gating_default: bool,
     enable_qe_norm_default: bool,
-    enable_auxfree_bias_default: bool,
+    expert_bias_mode: Literal["none", "auxfree", "quantile"],
+    expert_bias_quantile_iters: int,
     auxfree_bias_lr: float,
     auxfree_bias_clip: float,
     kv_block_size: int,
@@ -1549,7 +1653,8 @@ def build_model(
         enable_lucid_router_default=enable_lucid_router_default,
         enable_sigmoid_gating_default=enable_sigmoid_gating_default,
         enable_qe_norm_default=enable_qe_norm_default,
-        enable_auxfree_bias_default=enable_auxfree_bias_default,
+        expert_bias_mode=expert_bias_mode,
+        expert_bias_quantile_iters=expert_bias_quantile_iters,
         auxfree_bias_lr=auxfree_bias_lr,
         auxfree_bias_clip=auxfree_bias_clip,
         kv_block_size=kv_block_size,
@@ -1727,7 +1832,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lucid_router_eps", type=float, default=1e-4)
     parser.add_argument("--enable_sigmoid_gating", action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("--enable_qe_norm", action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument("--enable_auxfree_bias", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument(
+        "--expert_bias_mode",
+        type=str,
+        default="auxfree",
+        choices=["none", "auxfree", "quantile"],
+        help="Expert-bias mode for routing logits.",
+    )
+    parser.add_argument("--expert_bias_quantile_iters", type=int, default=1)
     parser.add_argument("--auxfree_bias_lr", type=float, default=1e-2)
     parser.add_argument("--auxfree_bias_clip", type=float, default=10.0)
     parser.add_argument("--deterministic", action=argparse.BooleanOptionalAction, default=True)
@@ -1785,6 +1897,8 @@ def main() -> None:
         raise ValueError("--auxfree_bias_lr must be >= 0.")
     if args.auxfree_bias_clip < 0.0:
         raise ValueError("--auxfree_bias_clip must be >= 0.")
+    if args.expert_bias_quantile_iters <= 0:
+        raise ValueError("--expert_bias_quantile_iters must be > 0.")
     if args.d_moe_latent is None:
         raise ValueError("--d_moe_latent must be set explicitly.")
     if args.d_moe_latent <= 0:
@@ -1826,6 +1940,7 @@ def main() -> None:
     lr_router_embedding = lr_embedding if args.lr_router_embedding is None else args.lr_router_embedding
     lr_linear = args.lr if args.lr_linear is None else args.lr_linear
     lr_lm_head = args.lr if args.lr_lm_head is None else args.lr_lm_head
+    expert_bias_mode: Literal["none", "auxfree", "quantile"] = args.expert_bias_mode
     attn_heads = args.moe_heads if args.attn_heads is None else args.attn_heads
     if attn_heads <= 0:
         raise ValueError("--attn_heads must be > 0.")
@@ -1843,8 +1958,9 @@ def main() -> None:
         f"LUCID_ROUTER={'both (off,on)' if args.run_both_lucid_router else ('on' if args.enable_lucid_router else 'off')} | "
         f"GATING={'sigmoid' if args.enable_sigmoid_gating else 'softmax'} | "
         f"QE_NORM={'on' if args.enable_qe_norm else 'off'} | "
-        f"AUXFREE_BIAS={'on' if args.enable_auxfree_bias else 'off'} "
-        f"(lr={args.auxfree_bias_lr:.2e}, clip={args.auxfree_bias_clip:.2f}) | "
+        f"EXPERT_BIAS_MODE={expert_bias_mode} "
+        f"(lr={args.auxfree_bias_lr:.2e}, clip={args.auxfree_bias_clip:.2f}, "
+        f"quantile_iters={args.expert_bias_quantile_iters}) | "
         f"FlexAttention=on | "
         f"Deterministic={'on' if args.deterministic else 'off'}"
     )
@@ -1901,7 +2017,8 @@ def main() -> None:
             enable_lucid_router_default=run_enable_lucid_router,
             enable_sigmoid_gating_default=args.enable_sigmoid_gating,
             enable_qe_norm_default=args.enable_qe_norm,
-            enable_auxfree_bias_default=args.enable_auxfree_bias,
+            expert_bias_mode=expert_bias_mode,
+            expert_bias_quantile_iters=args.expert_bias_quantile_iters,
             auxfree_bias_lr=args.auxfree_bias_lr,
             auxfree_bias_clip=args.auxfree_bias_clip,
             kv_block_size=args.kv_block_size,

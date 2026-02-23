@@ -15,7 +15,7 @@ set -euo pipefail
 #   DETERMINISTIC=on|off
 #   QE_NORM=off|on
 #   SIGMOID_GATING=off|on
-#   AUXFREE_BIAS=off|on
+#   EXPERT_BIAS_MODE=none|auxfree|quantile
 #
 # RTX 2060 (6GB) friendly defaults are intentionally conservative.
 
@@ -30,8 +30,8 @@ PLOT_LOSS="${PLOT_LOSS:-on}"      # on | off
 LIVE_PLOT="${LIVE_PLOT:-on}"      # on | off (only used when PLOT_LOSS=on)
 DETERMINISTIC="${DETERMINISTIC:-on}"  # on | off
 QE_NORM="${QE_NORM:-off}"         # off | on
-SIGMOID_GATING="${SIGMOID_GATING:-off}" # off | on
-AUXFREE_BIAS="${AUXFREE_BIAS:-on}" # off | on
+SIGMOID_GATING="${SIGMOID_GATING:-on}" # off | on
+EXPERT_BIAS_MODE="${EXPERT_BIAS_MODE:-auxfree}" # none | auxfree | quantile
 DEVICE="${DEVICE:-cuda}"          # auto | cuda | cpu
 
 # Longer run defaults.
@@ -44,12 +44,12 @@ BATCH_SIZE="${BATCH_SIZE:-32}"
 BLOCK_SIZE="${BLOCK_SIZE:-128}"
 D_MODEL="${D_MODEL:-64}"
 N_LAYERS="${N_LAYERS:-2}"
+ATTN_HEADS="${ATTN_HEADS:-1}"
 MOE_HEADS="${MOE_HEADS:-1}"
 D_MOE_LATENT="${D_MOE_LATENT:-$((D_MODEL / MOE_HEADS))}"
-ATTN_HEADS="${ATTN_HEADS:-$MOE_HEADS}"
 NUM_EXPERTS="${NUM_EXPERTS:-32}"
-TOP_K="${TOP_K:-4}"
-EXPERT_HIDDEN="${EXPERT_HIDDEN:-128}"
+TOP_K="${TOP_K:-8}"
+EXPERT_HIDDEN="${EXPERT_HIDDEN:-$((D_MOE_LATENT * 4))}"
 KV_BLOCK_SIZE="${KV_BLOCK_SIZE:-64}"
 
 LR="${LR:-5e-3}"
@@ -64,6 +64,7 @@ EPS="${EPS:-1e-8}"
 WEIGHT_DECAY="${WEIGHT_DECAY:-0.1}"
 AUXFREE_BIAS_LR="${AUXFREE_BIAS_LR:-1e-2}"
 AUXFREE_BIAS_CLIP="${AUXFREE_BIAS_CLIP:-10.0}"
+EXPERT_BIAS_QUANTILE_ITERS="${EXPERT_BIAS_QUANTILE_ITERS:-1}"
 SEED="${SEED:-1337}"
 DATA_SEED="${DATA_SEED:-2026}"
 
@@ -94,7 +95,7 @@ run_one() {
   local deterministic_arg
   local qe_norm_arg
   local sigmoid_gating_arg
-  local auxfree_bias_arg
+  local expert_bias_mode_arg
   local live_plot_arg
 
   local d_moe_latent=$D_MOE_LATENT
@@ -150,12 +151,10 @@ run_one() {
     echo "Invalid SIGMOID_GATING=${SIGMOID_GATING}. Use on|off." >&2
     exit 1
   fi
-  if [[ "${AUXFREE_BIAS}" == "on" ]]; then
-    auxfree_bias_arg="--enable_auxfree_bias"
-  elif [[ "${AUXFREE_BIAS}" == "off" ]]; then
-    auxfree_bias_arg="--no-enable_auxfree_bias"
+  if [[ "${EXPERT_BIAS_MODE}" == "none" || "${EXPERT_BIAS_MODE}" == "auxfree" || "${EXPERT_BIAS_MODE}" == "quantile" ]]; then
+    expert_bias_mode_arg="--expert_bias_mode ${EXPERT_BIAS_MODE}"
   else
-    echo "Invalid AUXFREE_BIAS=${AUXFREE_BIAS}. Use on|off." >&2
+    echo "Invalid EXPERT_BIAS_MODE=${EXPERT_BIAS_MODE}. Use none|auxfree|quantile." >&2
     exit 1
   fi
   if [[ "${LIVE_PLOT}" == "on" ]]; then
@@ -176,7 +175,6 @@ run_one() {
     "${deterministic_arg}"
     "${qe_norm_arg}"
     "${sigmoid_gating_arg}"
-    "${auxfree_bias_arg}"
     "${lucid_router_arg}"
     --steps "${STEPS}"
     --eval_interval "${EVAL_INTERVAL}"
@@ -204,10 +202,16 @@ run_one() {
     --weight_decay "${WEIGHT_DECAY}"
     --auxfree_bias_lr "${AUXFREE_BIAS_LR}"
     --auxfree_bias_clip "${AUXFREE_BIAS_CLIP}"
+    --expert_bias_quantile_iters "${EXPERT_BIAS_QUANTILE_ITERS}"
     --seed "${SEED}"
     --data_seed "${DATA_SEED}"
     --json_out "${json_out}"
   )
+  if [[ -n "${expert_bias_mode_arg}" ]]; then
+    # shellcheck disable=SC2206
+    local expert_bias_mode_tokens=( ${expert_bias_mode_arg} )
+    cmd+=( "${expert_bias_mode_tokens[@]}" )
+  fi
 
   if [[ "${PLOT_LOSS}" == "on" ]]; then
     cmd+=(--plot_losses "${live_plot_arg}" --plot_out "${plot_out}")
@@ -226,7 +230,7 @@ run_both() {
   local deterministic_arg
   local qe_norm_arg
   local sigmoid_gating_arg
-  local auxfree_bias_arg
+  local expert_bias_mode_arg
   local live_plot_arg
 
   local d_moe_latent=$D_MOE_LATENT
@@ -282,12 +286,10 @@ run_both() {
     echo "Invalid SIGMOID_GATING=${SIGMOID_GATING}. Use on|off." >&2
     exit 1
   fi
-  if [[ "${AUXFREE_BIAS}" == "on" ]]; then
-    auxfree_bias_arg="--enable_auxfree_bias"
-  elif [[ "${AUXFREE_BIAS}" == "off" ]]; then
-    auxfree_bias_arg="--no-enable_auxfree_bias"
+  if [[ "${EXPERT_BIAS_MODE}" == "none" || "${EXPERT_BIAS_MODE}" == "auxfree" || "${EXPERT_BIAS_MODE}" == "quantile" ]]; then
+    expert_bias_mode_arg="--expert_bias_mode ${EXPERT_BIAS_MODE}"
   else
-    echo "Invalid AUXFREE_BIAS=${AUXFREE_BIAS}. Use on|off." >&2
+    echo "Invalid EXPERT_BIAS_MODE=${EXPERT_BIAS_MODE}. Use none|auxfree|quantile." >&2
     exit 1
   fi
   if [[ "${LIVE_PLOT}" == "on" ]]; then
@@ -312,7 +314,6 @@ run_both() {
     "${deterministic_arg}"
     "${qe_norm_arg}"
     "${sigmoid_gating_arg}"
-    "${auxfree_bias_arg}"
     --run_both_lucid_router
     --steps "${STEPS}"
     --eval_interval "${EVAL_INTERVAL}"
@@ -340,10 +341,16 @@ run_both() {
     --weight_decay "${WEIGHT_DECAY}"
     --auxfree_bias_lr "${AUXFREE_BIAS_LR}"
     --auxfree_bias_clip "${AUXFREE_BIAS_CLIP}"
+    --expert_bias_quantile_iters "${EXPERT_BIAS_QUANTILE_ITERS}"
     --seed "${SEED}"
     --data_seed "${DATA_SEED}"
     --json_out "${json_out}"
   )
+  if [[ -n "${expert_bias_mode_arg}" ]]; then
+    # shellcheck disable=SC2206
+    local expert_bias_mode_tokens=( ${expert_bias_mode_arg} )
+    cmd+=( "${expert_bias_mode_tokens[@]}" )
+  fi
 
   if [[ "${PLOT_LOSS}" == "on" ]]; then
     cmd+=(--plot_losses "${live_plot_arg}" --plot_out "${plot_out}")

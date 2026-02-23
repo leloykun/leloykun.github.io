@@ -32,6 +32,35 @@ HAS_FLEX = (
 HAS_CUDA = torch.cuda.is_available()
 
 
+def _max_min_avg_vio(scores: torch.Tensor, k: int) -> tuple[float, float, float]:
+    if scores.ndim != 2:
+        raise ValueError("scores must be rank-2 (m, n).")
+    m, n = scores.shape
+    if not (1 <= k <= n):
+        raise ValueError("k must satisfy 1 <= k <= n.")
+    topk = torch.topk(scores, k=k, dim=1).indices
+    freq = torch.bincount(topk.reshape(-1), minlength=n).to(torch.float32)
+    freq = freq / freq.sum() * float(n) - 1.0
+    return float(freq.max().item()), float(freq.min().item()), float(freq.abs().mean().item())
+
+
+def test_quantile_bias_helper_improves_balance() -> None:
+    torch.manual_seed(3)
+    m, n, k = 6000, 64, 8
+    scores = torch.rand((m, n), dtype=torch.float32) + torch.rand((n,), dtype=torch.float32)
+
+    bias = mh_lmoe_lucid.MultiHeadLatentMoE._compute_quantile_expert_bias(
+        scores.unsqueeze(0),
+        prev_bias=torch.zeros((1, n), dtype=torch.float32),
+        top_k=k,
+    )[0]
+    assert bias.shape == (n,)
+
+    _, _, before_avg = _max_min_avg_vio(scores, k)
+    _, _, after_avg = _max_min_avg_vio(scores + bias.unsqueeze(0), k)
+    assert after_avg < before_avg
+
+
 def _reference_expert_ffn(
     q_assign: torch.Tensor,
     expert_ids: torch.Tensor,
@@ -71,11 +100,11 @@ def _reference_mh_lmoe_forward(
         logits_factor = 1.0
 
     logits = logits_factor * torch.einsum("hnd,hed->hne", q_router, router_embedding)
-    if cfg.enable_auxfree_bias_default:
-        dirty_logits = logits + model.auxfree_bias.to(dtype=logits.dtype).unsqueeze(1)
+    if model._expert_bias_mode() != "none":
+        dirty_logits = logits + model.expert_load_bias.to(dtype=logits.dtype).unsqueeze(1)
         topk_dirty_values, topk_idx = torch.topk(dirty_logits, k=k, dim=-1)
         selected_bias = torch.gather(
-            model.auxfree_bias.to(dtype=topk_dirty_values.dtype),
+            model.expert_load_bias.to(dtype=topk_dirty_values.dtype),
             dim=1,
             index=topk_idx.reshape(H, Ntok * k),
         ).reshape(H, Ntok, k)
