@@ -421,11 +421,11 @@ def quantize_ste(
 
 @dataclass
 class QuantForwardConfig:
-    scale_mode: ScaleMode = "row"
+    weight_scale_mode: ScaleMode = "row"
     enable_weight_quantization: bool = True
     weight_stochastic_rounding: bool = True
     activation_stochastic_rounding: bool = False
-    activation_scale_mode: ScaleMode = "tensor"
+    activation_scale_mode: ScaleMode = "row"
     sr_generator: Optional[torch.Generator] = None
 
 
@@ -435,7 +435,7 @@ def quantize_weight_ste(x: Tensor, qcfg: QuantForwardConfig) -> Tensor:
     return quantize_ste(
         x,
         stochastic_rounding=qcfg.weight_stochastic_rounding,
-        scale_mode=qcfg.scale_mode,
+        scale_mode=qcfg.weight_scale_mode,
         generator=qcfg.sr_generator,
     )
 
@@ -1524,18 +1524,18 @@ def build_model(
     d_model: int,
     n_layers: int,
     mlp_hidden: int,
-    scale_mode: ScaleMode,
+    weight_scale_mode: ScaleMode,
     enable_weight_quantization: bool,
     lm_head_quantized: bool,
     device: torch.device,
     sr_generator: Optional[torch.Generator],
 ) -> ResidualMLPLM:
     qcfg = QuantForwardConfig(
-        scale_mode=scale_mode,
+        weight_scale_mode=weight_scale_mode,
         enable_weight_quantization=enable_weight_quantization,
         weight_stochastic_rounding=True,
         activation_stochastic_rounding=False,
-        activation_scale_mode="tensor",
+        activation_scale_mode="row",
         sr_generator=sr_generator,
     )
     model = ResidualMLPLM(
@@ -1683,7 +1683,7 @@ def main() -> None:
         d_model=args.d_model,
         n_layers=args.n_layers,
         mlp_hidden=args.mlp_hidden,
-        scale_mode=args.fp8_scale_mode,
+        weight_scale_mode=args.fp8_scale_mode,
         enable_weight_quantization=True,
         lm_head_quantized=True,
         device=torch.device("cpu"),
@@ -1715,7 +1715,7 @@ def main() -> None:
             d_model=args.d_model,
             n_layers=args.n_layers,
             mlp_hidden=args.mlp_hidden,
-            scale_mode=args.fp8_scale_mode,
+            weight_scale_mode=args.fp8_scale_mode,
             enable_weight_quantization=enable_weight_quantization,
             lm_head_quantized=True,
             device=device,

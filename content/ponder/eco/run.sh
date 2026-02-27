@@ -3,7 +3,7 @@ set -euo pipefail
 
 OPTIMIZER="${OPTIMIZER:-adamw}" # set OPTIMIZER=muon for Muon experiments
 RUN="${RUN:-all}"
-STEPS="${STEPS:-512}"
+STEPS="${STEPS:-1024}"
 LR="${LR:-1e-2}"
 NS_STEPS="${NS_STEPS:-10}"
 NS_EPS="${NS_EPS:-1e-20}"
@@ -22,8 +22,8 @@ echo "${OPTIMIZER}" "${RUN}" "${STEPS}" "${LR}"
   --d_model 256 \
   --n_layers 2 \
   --mlp_hidden 1024 \
-  --json_out "content/ponder/eco/train_data_${OPTIMIZER}.json" \
-  --plot_out "content/ponder/eco/loss_plot_${OPTIMIZER}.png" \
+  --json_out "content/ponder/eco/train_data_${OPTIMIZER}_${STEPS}steps.json" \
+  --plot_out "content/ponder/eco/loss_plot_${OPTIMIZER}_${STEPS}steps.png" \
   --steps "${STEPS}" \
   --lr "${LR}" \
   --ns_steps "${NS_STEPS}" \
