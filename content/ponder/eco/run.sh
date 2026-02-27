@@ -12,7 +12,7 @@ SCALE_EMA_DECAY="${SCALE_EMA_DECAY:-0.99}"
 
 echo "${OPTIMIZER}" "${RUN}" "${STEPS}" "${LR}"
 
-~/anaconda3/bin/conda run -n nanogpt python content/ponder/eco/train_residual_mlp_shakespeare_eco.py \
+~/anaconda3/bin/conda run -n nanogpt python content/ponder/eco/train_eco.py \
   --run "${RUN}" \
   --optimizer "${OPTIMIZER}" \
   --eval_interval 32 \

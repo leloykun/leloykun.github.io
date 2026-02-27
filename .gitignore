@@ -13,3 +13,4 @@ resources/
 *.ipynb
 data/
 **.pt
+**/__pycache__/

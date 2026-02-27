@@ -185,6 +185,39 @@ $$\begin{align}
         &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{\sqrt{\frac{n}{m}} L_{t}^{1/r}}} E_{t+1} {\color{red}{R_{t}^{1/r}}}.
 \end{align}$$
 
+#### 2.2.3. ECO-PSGD
+
+Muon computes its preconditioner instantaneously while Shampoo accumulates its left and right preconditioners over time. PSGD, on the other hand, "learns" its preconditioner(s) over time while constraining them to satisfy some criteria ([Pooladzandi and Li, 2024](https://arxiv.org/abs/2402.04553)). We focus on Muon-style PSGD which computes the update as:
+$$\begin{align}
+    U_t
+        &= \sqrt{\frac{m}{n}} \widetilde{M}_t P_t,
+\end{align}$$
+where $P_t := Q_t^T Q_t$ and $Q_t \in \mathbb{R}^{n \times n}$ is some learned upper-triangular factor which we update, occasionally, with the following rule:
+$$\begin{align}
+    A_t
+        &= \widetilde{M}_t Q_t^T \nonumber \\
+    Q_{t+1}
+        &= Q_t - \eta_{\text{inner}} \cdot \texttt{triu}\left(A_t^T A_t - Q_t^{-T} Q_t^{-1}\right) Q_t. \label{eq:psgd_preconditioner_update}
+\end{align}$$
+
+Setting $g(X) = \sqrt{\frac{m}{n}} I_m$ and $h(X) = P_t$ then gives us the error-compensating momentum update rule for Muon-style PSGD:
+$$\begin{align}
+    M_{t+1}
+        &\approx \widetilde{M}_{t+1}
+        + \frac{\color{red}{1 - \eta \lambda}}{\eta}
+          \left(1-\frac{1}{\beta}\right)
+          {\color{red}{\sqrt{\frac{n}{m}}}}
+          E_{t+1}
+          {\color{red}{P_t^{-1}}} \\
+        &= \widetilde{M}_{t+1}
+        + \frac{\color{red}{1 - \eta \lambda}}{\eta}
+          \left(1-\frac{1}{\beta}\right)
+          {\color{red}{\sqrt{\frac{n}{m}}}}
+          E_{t+1}
+          {\color{red}{Q_t^{-1} Q_t^{-T}}}.
+\end{align}$$
+We already compute $Q_t^{-1}$ in the preconditioner update step (Equation $\eqref{eq:psgd_preconditioner_update}$), so we can reuse it here to compute $P_t^{-1}$ efficiently.
+
 ### 2.3. ECO for steepest descent with LMOs of the form $\texttt{LMO}(X) = X \odot h(X)$
 
 Suppose we instead have LMOs of the form $\texttt{LMO}(X) = X \odot h(X)$, where $\odot$ is the element-wise product, and $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ is some matrix function such that there exists $h^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ satisfying $h(X) \odot h^{-1}(X) = \mathbf{1}_{m \times n}$ for all $X$. Then, following the same steps as before, we have the error-compensating momentum update rule,
@@ -211,7 +244,7 @@ where the blue-colored term is the difference from Algorithm 3 in the ECO paper.
 
 ## 3. Experiments [WIP]
 
-Here we train 4-layer Residual MLPs on the Tiny Shakespeare dataset with FP8 ECO-AdamW, ECO-Muon, and ECO-Shampoo, and compare with their (still FP8) non-ECO counterparts and reference full-precision implementions. For the FP8 training runs, we quantize both the weights and activations with a straight-through estimator in the forward pass of the linear layers. Language model heads are kept in full-precision for all runs since it is the most sensitive to quantization. And Embedding layers are always optimized either by ECO-AdamW or its non-ECO counterpart since Muon is only designed for linear layers. And lastly, we also match the spectral norms of the updates for Muon and Shampoo to that of AdamW for a more direct comparison.
+Here we train 4-layer Residual MLPs on the Tiny Shakespeare dataset with FP8 ECO-AdamW, ECO-Muon, ECO-Shampoo, and ECO-PSGD, and compare with their (still FP8) non-ECO counterparts and reference full-precision implementions. For the FP8 training runs, we quantize both the weights and activations with a straight-through estimator in the forward pass of the linear layers. Language model heads are kept in full-precision for all runs since it is the most sensitive to quantization. And Embedding layers are always optimized either by ECO-AdamW or its non-ECO counterpart since Muon/Shampoo/PSGD are only designed for linear layers. And lastly, we also match the spectral norms of the updates for Muon, Shampoo, and PSGD to that of AdamW for a more direct comparison.
 
 > Important note: these are preliminary results, and I haven't fully tuned the hyperparameters for these runs yet.
 
@@ -227,9 +260,13 @@ Here we train 4-layer Residual MLPs on the Tiny Shakespeare dataset with FP8 ECO
 
 ![](loss_plot_shampoo.png)
 
-### 3.4. Discussion
+### 3.4. ECO-PSGD
 
-Our results show that ECO-AdamW, ECO-Muon, and ECO-Shampoo closely track their full-precision counterparts, while the non-ECO versions noticeably diverge, demonstrating the effectiveness of ECO in FP8-native training without master weights. When FP8 training is enabled for all components (including the language model head), we see even more significant divergence for the non-ECO versions, while the ECO versions see only a slight increase in loss, matching the results by [Nikdan et al., 2026](https://arxiv.org/abs/2601.22101).
+![](loss_plot_psgd_1024steps.png)
+
+### 3.5. Discussion
+
+Our results show that ECO-AdamW, ECO-Muon, ECO-Shampoo, and ECO-PSGD closely track their full-precision counterparts, while the non-ECO versions noticeably diverge, demonstrating the effectiveness of ECO in FP8-native training without master weights. When FP8 training is enabled for all components (including the language model head), we see even more significant divergence for the non-ECO versions, while the ECO versions see only a slight increase in loss, matching the results by [Nikdan et al., 2026](https://arxiv.org/abs/2601.22101).
 
 ## How to cite
 
@@ -252,6 +289,7 @@ Our results show that ECO-AdamW, ECO-Muon, and ECO-Shampoo closely track their f
 3. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
 4. Rohan Anil, Vineet Gupta, Tomer Koren, Kevin Regan, Yoram Singer (2020). Scalable second order optimization for deep learning. URL https://arxiv.org/abs/2002.09018
 5. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
+6. Omead Pooladzandi, Xi-Lin Li (2024). Curvature-Informed SGD via General Purpose Lie-Group Preconditioners. URL https://arxiv.org/abs/2402.04553
 
 ## Appendix A1. Sample implementation of ECO-Muon
 

@@ -3,17 +3,17 @@
 Minimal ECO training test on Tiny Shakespeare with a residual MLP language model.
 
 This script compares:
-1) `reference`: FP32 master weights + AdamW/Muon, but forward/backward always use
-   FP8-quantized weights via STE.
+1) `reference`: FP32 master weights with `adamw`/`muon`/`shampoo`/`psgd`, but forward/backward
+   always use FP8-quantized weights via STE for quantized linear layers.
 2) `eco_fp8_nomaster`: FP8 materialized weights only (no master weights),
-   AdamW/Muon + ECO compensation + stochastic rounding on weight re-quantization.
+   optimizer family + ECO compensation + stochastic rounding on weight re-quantization.
 3) `fp8_nomaster_noeco`: FP8 materialized weights only (no master weights),
-   AdamW/Muon without ECO compensation.
+   optimizer family without ECO compensation.
 
 Both runs use FP8-quantized weights in forward and gradient computation.
 
 Example (from repo root, in nanogpt env):
-  conda run -n nanogpt python content/ponder/eco/train_residual_mlp_shakespeare_eco.py \
+  conda run -n nanogpt python content/ponder/eco/train_eco.py \
       --steps 200 --eval_interval 50 --batch_size 64 --block_size 128 --device cuda
 """
 
@@ -157,8 +157,9 @@ def matrix_root(
 ) -> Tensor:
     # Computes P^{s/r}
     assert P.ndim == 2 and P.shape[0] == P.shape[1], "P must be square"
-    norm = torch.linalg.norm(P, dim=(-2, -1), keepdim=True)
-    if norm <= eps:
+    norm = torch.linalg.norm(P)
+    norm_value = float(norm.item())
+    if norm_value <= eps:
         return torch.zeros_like(P)
     Y = YZ = P / norm
     I_n = torch.eye(P.shape[0], device=P.device, dtype=P.dtype)
@@ -213,7 +214,8 @@ def matrix_invroot(
     I_n = torch.eye(P.shape[0], device=P.device, dtype=P.dtype)
     t = torch.linalg.norm(P)
     t_value = float(t.item())
-    Pn = P / t + eps * I_n
+    t_safe = t if t_value > eps else torch.tensor(1.0, device=P.device, dtype=P.dtype)
+    Pn = P / t_safe + eps * I_n
     out = I_n
     for a, b, c in abc(r=r, steps=steps, scale=scale):
         W = a * I_n + b * Pn + c * (Pn @ Pn)
@@ -277,6 +279,82 @@ def _matrix_update_scale(p: Tensor) -> float:
         return 1.0
     fan_out, fan_in = p.shape
     return math.sqrt(float(fan_out) / float(fan_in))
+
+
+def norm_lower_bound(A: Tensor) -> Tensor:
+    """
+    Cheap lower bound for spectral norm used by Muon-style PSGD preconditioner updates.
+    """
+    max_abs = torch.max(torch.abs(A))
+    if float(max_abs.item()) <= 0.0:
+        return max_abs
+
+    A = A / max_abs
+    aa = torch.real(A * A.conj())
+    value0, i = torch.max(torch.sum(aa, dim=0), dim=0)
+    value1, j = torch.max(torch.sum(aa, dim=1), dim=0)
+    A_h = A.transpose(-2, -1).conj()
+    eps = 1.2e-38
+
+    if value0 > value1:
+        x = A[:, int(i.item())].conj() @ A
+        x = x / (torch.linalg.vector_norm(x) + eps)
+        return max_abs * torch.linalg.vector_norm(x @ A_h)
+
+    x = A @ A[int(j.item())].conj()
+    x = x / (torch.linalg.vector_norm(x) + eps)
+    return max_abs * torch.linalg.vector_norm(A_h @ x)
+
+
+def _psgd_apply(
+    M: Tensor,
+    Q: Tensor,
+    invQ: Tensor,
+    *,
+    lr_preconditioner: float,
+    preconditioner_update_probability: float,
+    generator: Optional[torch.Generator],
+) -> Tuple[Tensor, Tensor, Tensor]:
+    """
+    Muon-style PSGD by Xilin Li, generalized to both tall and short matrices.
+    """
+    m, n = M.shape
+    k = min(m, n)
+    assert Q.shape == (k, k), f"Q shape {tuple(Q.shape)} incompatible with M shape {tuple(M.shape)}"
+    assert invQ.shape == (k, k), f"invQ shape {tuple(invQ.shape)} incompatible with M shape {tuple(M.shape)}"
+
+    if m >= n:
+        A = M @ Q.mT
+        precond_M = A @ Q
+    else:
+        M_t = M.mT
+        A = M_t @ Q.mT
+        precond_M = (A @ Q).mT
+
+    rand = torch.rand((), device=M.device, generator=generator)
+    update_precond = bool(rand < preconditioner_update_probability)
+
+    if update_precond:
+        inv_q_h_inv_q = invQ.mT @ invQ
+        ah_a = A.mT @ A
+        lr_den = norm_lower_bound(ah_a + inv_q_h_inv_q) + 1.2e-38
+        lr = lr_preconditioner / float(lr_den.item())
+        Q = Q - lr * (torch.triu(ah_a - inv_q_h_inv_q) @ Q)
+        I_k = torch.eye(k, device=M.device, dtype=M.dtype)
+        invQ = torch.linalg.solve_triangular(Q, I_k, upper=True)
+
+    return precond_M, Q, invQ
+
+
+def _psgd_inverse_apply(E: Tensor, invQ: Tensor) -> Tensor:
+    """
+    Applies the inverse of Muon-style PSGD linear map used in ECO pullback.
+    """
+    m, n = E.shape
+    inv_s = invQ @ invQ.mT
+    if m >= n:
+        return E @ inv_s
+    return inv_s @ E
 
 
 def _quantize_fp8_e4m3_no_scale(
@@ -550,7 +628,69 @@ class ResidualMLPLM(nn.Module):
         return logits, loss
 
 
-class FP8AdamWNoMasterECO(torch.optim.Optimizer):
+class FP8QuantizedParamMixin:
+    sr_generator: Optional[torch.Generator]
+
+    def _ensure_fp8_scale_state(
+        self,
+        p: Tensor,
+        state: Dict[str, Tensor],
+        *,
+        scale_mode: ScaleMode,
+    ) -> None:
+        if "fp8_scale" not in state:
+            state["fp8_scale"] = compute_fp8_scale(p.data, scale_mode=scale_mode).to(torch.float32)
+
+    def _quantize_with_group_config(
+        self,
+        p: Tensor,
+        x: Tensor,
+        *,
+        group: Dict[str, object],
+        state: Dict[str, Tensor],
+    ) -> Tensor:
+        scale_mode = group["fp8_scale_mode"]
+        sr = group["fp8_stochastic_rounding"]
+        use_ema_scales = group["use_ema_scales"]
+        scale_ema_decay = group["scale_ema_decay"]
+
+        if use_ema_scales:
+            scale_now = compute_fp8_scale(x, scale_mode=scale_mode).to(torch.float32)
+            scale_ema = state.get("fp8_scale")
+            if scale_ema is None:
+                scale_ema = scale_now.detach().clone()
+            else:
+                scale_ema = scale_ema * scale_ema_decay + scale_now * (1.0 - scale_ema_decay)
+            state["fp8_scale"] = scale_ema
+            return quantize_fp8_e4m3_with_scale(
+                x,
+                scale=scale_ema,
+                stochastic_rounding=sr,
+                generator=self.sr_generator,
+            )
+
+        return quantize_fp8_e4m3(
+            x,
+            stochastic_rounding=sr,
+            scale_mode=scale_mode,
+            generator=self.sr_generator,
+        )
+
+    @torch.no_grad()
+    def _quantize_all_params(self) -> None:
+        for group in self.param_groups:
+            for p in group["params"]:
+                state = self.state[p]
+                q = self._quantize_with_group_config(
+                    p,
+                    p.data,
+                    group=group,
+                    state=state,
+                )
+                p.copy_(q.to(dtype=p.dtype))
+
+
+class FP8AdamWNoMasterECO(FP8QuantizedParamMixin, torch.optim.Optimizer):
     """
     FP8 AdamW without master weights, optionally with ECO momentum compensation.
 
@@ -605,35 +745,6 @@ class FP8AdamWNoMasterECO(torch.optim.Optimizer):
         self._quantize_all_params()
 
     @torch.no_grad()
-    def _quantize_all_params(self) -> None:
-        for group in self.param_groups:
-            scale_mode = group["fp8_scale_mode"]
-            sr = group["fp8_stochastic_rounding"]
-            use_ema_scales = group["use_ema_scales"]
-            for p in group["params"]:
-                if use_ema_scales:
-                    state = self.state[p]
-                    scale = compute_fp8_scale(p.data, scale_mode=scale_mode)
-                    state["fp8_scale"] = scale.detach().to(torch.float32).clone()
-                    p.copy_(
-                        quantize_fp8_e4m3_with_scale(
-                            p.data,
-                            scale=state["fp8_scale"],
-                            stochastic_rounding=sr,
-                            generator=self.sr_generator,
-                        ).to(dtype=p.dtype)
-                    )
-                else:
-                    p.copy_(
-                        quantize_fp8_e4m3(
-                            p,
-                            stochastic_rounding=sr,
-                            scale_mode=scale_mode,
-                            generator=self.sr_generator,
-                        ).to(dtype=p.dtype)
-                    )
-
-    @torch.no_grad()
     def step(self, closure=None):
         loss = None
         if closure is not None:
@@ -646,11 +757,8 @@ class FP8AdamWNoMasterECO(torch.optim.Optimizer):
             beta2 = group["beta2"]
             eps = group["eps"]
             wd = group["weight_decay"]
-            scale_mode = group["fp8_scale_mode"]
-            sr = group["fp8_stochastic_rounding"]
             eco_comp = group["eco_compensation"]
             use_ema_scales = group["use_ema_scales"]
-            scale_ema_decay = group["scale_ema_decay"]
 
             for p in group["params"]:
                 if p.grad is None:
@@ -663,8 +771,12 @@ class FP8AdamWNoMasterECO(torch.optim.Optimizer):
                     state["step"] = 0
                     state["exp_avg"] = torch.zeros_like(p, dtype=torch.float32)
                     state["exp_avg_sq"] = torch.zeros_like(p, dtype=torch.float32)
-                    if use_ema_scales and "fp8_scale" not in state:
-                        state["fp8_scale"] = compute_fp8_scale(p.data, scale_mode=scale_mode).to(torch.float32)
+                    if use_ema_scales:
+                        self._ensure_fp8_scale_state(
+                            p,
+                            state,
+                            scale_mode=group["fp8_scale_mode"],
+                        )
 
                 state["step"] += 1
                 t = state["step"]
@@ -682,27 +794,12 @@ class FP8AdamWNoMasterECO(torch.optim.Optimizer):
 
                 w_q = p.detach().to(torch.float32)
                 w_tilde = (1.0 - lr * wd) * w_q - lr * adam_update
-                if use_ema_scales:
-                    scale_now = compute_fp8_scale(w_tilde, scale_mode=scale_mode).to(torch.float32)
-                    scale_ema = state.get("fp8_scale")
-                    if scale_ema is None:
-                        scale_ema = scale_now.detach().clone()
-                    else:
-                        scale_ema = scale_ema * scale_ema_decay + scale_now * (1.0 - scale_ema_decay)
-                    state["fp8_scale"] = scale_ema
-                    w_q_next = quantize_fp8_e4m3_with_scale(
-                        w_tilde,
-                        scale=scale_ema,
-                        stochastic_rounding=sr,
-                        generator=self.sr_generator,
-                    )
-                else:
-                    w_q_next = quantize_fp8_e4m3(
-                        w_tilde,
-                        stochastic_rounding=sr,
-                        scale_mode=scale_mode,
-                        generator=self.sr_generator,
-                    )
+                w_q_next = self._quantize_with_group_config(
+                    p,
+                    w_tilde,
+                    group=group,
+                    state=state,
+                )
                 e = w_tilde - w_q_next
 
                 if eco_comp:
@@ -784,6 +881,227 @@ class MuonOptimizer(torch.optim.Optimizer):
                 w_next = (1.0 - lr * wd) * p.detach().to(torch.float32) - lr * update
                 p.copy_(w_next.to(dtype=p.dtype))
                 m.copy_(m_tilde)
+
+        return loss
+
+
+class PSGDOptimizer(torch.optim.Optimizer):
+    """
+    Reference Muon-style PSGD with FP32 states and decoupled weight decay.
+    """
+
+    def __init__(
+        self,
+        params: Iterable[nn.Parameter],
+        *,
+        lr: float = 3e-4,
+        beta: float = 0.9,
+        weight_decay: float = 0.1,
+        lr_preconditioner: float = 1.0,
+        preconditioner_update_probability: float = 1.0,
+        precond_generator: Optional[torch.Generator] = None,
+    ):
+        if lr <= 0:
+            raise ValueError("lr must be > 0")
+        if not (0.0 < beta < 1.0):
+            raise ValueError("beta must be in (0, 1)")
+        if lr_preconditioner <= 0:
+            raise ValueError("lr_preconditioner must be > 0")
+        if not (0.0 <= preconditioner_update_probability <= 1.0):
+            raise ValueError("preconditioner_update_probability must be in [0, 1]")
+
+        defaults = dict(
+            lr=lr,
+            beta=beta,
+            weight_decay=weight_decay,
+            lr_preconditioner=lr_preconditioner,
+            preconditioner_update_probability=preconditioner_update_probability,
+        )
+        super().__init__(params, defaults)
+        self.precond_generator = precond_generator
+
+    @torch.no_grad()
+    def step(self, closure=None):
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
+        for group in self.param_groups:
+            lr = group["lr"]
+            beta = group["beta"]
+            wd = group["weight_decay"]
+            lr_precond = group["lr_preconditioner"]
+            precond_prob = group["preconditioner_update_probability"]
+
+            for p in group["params"]:
+                if p.grad is None:
+                    continue
+                if p.grad.is_sparse:
+                    raise RuntimeError("Sparse gradients are not supported.")
+                assert p.ndim == 2, (
+                    f"PSGDOptimizer expects only 2D weight parameters, got shape {tuple(p.shape)}"
+                )
+
+                state = self.state[p]
+                if "momentum" not in state:
+                    state["momentum"] = torch.zeros_like(p, dtype=torch.float32)
+                    k = min(p.shape)
+                    state["q_factor"] = torch.eye(k, device=p.device, dtype=torch.float32)
+                    state["inv_q_factor"] = torch.eye(k, device=p.device, dtype=torch.float32)
+
+                m = state["momentum"]
+                q_factor = state["q_factor"]
+                inv_q_factor = state["inv_q_factor"]
+
+                g = p.grad.detach().to(torch.float32)
+                m_tilde = beta * m + (1.0 - beta) * g
+                precond_m, q_next, inv_q_next = _psgd_apply(
+                    m_tilde,
+                    q_factor,
+                    inv_q_factor,
+                    lr_preconditioner=lr_precond,
+                    preconditioner_update_probability=precond_prob,
+                    generator=self.precond_generator,
+                )
+                update = _matrix_update_scale(p) * precond_m
+
+                w_next = (1.0 - lr * wd) * p.detach().to(torch.float32) - lr * update
+                p.copy_(w_next.to(dtype=p.dtype))
+                m.copy_(m_tilde)
+                q_factor.copy_(q_next.to(dtype=q_factor.dtype))
+                inv_q_factor.copy_(inv_q_next.to(dtype=inv_q_factor.dtype))
+
+        return loss
+
+
+class FP8PSGDNoMasterECO(FP8QuantizedParamMixin, torch.optim.Optimizer):
+    """
+    FP8 Muon-style PSGD without master weights, with optional ECO compensation.
+    """
+
+    def __init__(
+        self,
+        params: Iterable[nn.Parameter],
+        *,
+        lr: float = 3e-4,
+        beta: float = 0.9,
+        weight_decay: float = 0.1,
+        lr_preconditioner: float = 1.0,
+        preconditioner_update_probability: float = 1.0,
+        fp8_scale_mode: ScaleMode = "row",
+        fp8_stochastic_rounding: bool = True,
+        eco_compensation: bool = True,
+        use_ema_scales: bool = True,
+        scale_ema_decay: float = DEFAULT_SCALE_EMA_DECAY,
+        sr_generator: Optional[torch.Generator] = None,
+        precond_generator: Optional[torch.Generator] = None,
+    ):
+        if lr <= 0:
+            raise ValueError("lr must be > 0")
+        if not (0.0 < beta < 1.0):
+            raise ValueError("beta must be in (0, 1)")
+        if lr_preconditioner <= 0:
+            raise ValueError("lr_preconditioner must be > 0")
+        if not (0.0 <= preconditioner_update_probability <= 1.0):
+            raise ValueError("preconditioner_update_probability must be in [0, 1]")
+        if not (0.0 <= scale_ema_decay < 1.0):
+            raise ValueError("scale_ema_decay must be in [0, 1)")
+
+        defaults = dict(
+            lr=lr,
+            beta=beta,
+            weight_decay=weight_decay,
+            lr_preconditioner=lr_preconditioner,
+            preconditioner_update_probability=preconditioner_update_probability,
+            fp8_scale_mode=fp8_scale_mode,
+            fp8_stochastic_rounding=fp8_stochastic_rounding,
+            eco_compensation=eco_compensation,
+            use_ema_scales=use_ema_scales,
+            scale_ema_decay=scale_ema_decay,
+        )
+        super().__init__(params, defaults)
+        self.sr_generator = sr_generator
+        self.precond_generator = precond_generator
+        self._quantize_all_params()
+
+    @torch.no_grad()
+    def step(self, closure=None):
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
+        for group in self.param_groups:
+            lr = group["lr"]
+            beta = group["beta"]
+            wd = group["weight_decay"]
+            lr_precond = group["lr_preconditioner"]
+            precond_prob = group["preconditioner_update_probability"]
+            eco_comp = group["eco_compensation"]
+            use_ema_scales = group["use_ema_scales"]
+
+            eco_coef = ((1.0 - lr * wd) / lr) * (1.0 - 1.0 / beta)
+
+            for p in group["params"]:
+                if p.grad is None:
+                    continue
+                if p.grad.is_sparse:
+                    raise RuntimeError("Sparse gradients are not supported.")
+                assert p.ndim == 2, (
+                    f"FP8PSGDNoMasterECO expects only 2D weight parameters, got shape {tuple(p.shape)}"
+                )
+
+                state = self.state[p]
+                if "momentum" not in state:
+                    state["momentum"] = torch.zeros_like(p, dtype=torch.float32)
+                    k = min(p.shape)
+                    state["q_factor"] = torch.eye(k, device=p.device, dtype=torch.float32)
+                    state["inv_q_factor"] = torch.eye(k, device=p.device, dtype=torch.float32)
+                    if use_ema_scales:
+                        self._ensure_fp8_scale_state(
+                            p,
+                            state,
+                            scale_mode=group["fp8_scale_mode"],
+                        )
+
+                m = state["momentum"]
+                q_factor = state["q_factor"]
+                inv_q_factor = state["inv_q_factor"]
+
+                g = p.grad.detach().to(torch.float32)
+                m_tilde = beta * m + (1.0 - beta) * g
+                precond_m, q_next, inv_q_next = _psgd_apply(
+                    m_tilde,
+                    q_factor,
+                    inv_q_factor,
+                    lr_preconditioner=lr_precond,
+                    preconditioner_update_probability=precond_prob,
+                    generator=self.precond_generator,
+                )
+                matrix_scale = _matrix_update_scale(p)
+                u = matrix_scale * precond_m
+
+                w_q = p.detach().to(torch.float32)
+                w_tilde = (1.0 - lr * wd) * w_q - lr * u
+                w_q_next = self._quantize_with_group_config(
+                    p,
+                    w_tilde,
+                    group=group,
+                    state=state,
+                )
+
+                e = w_tilde - w_q_next
+                if eco_comp:
+                    comp = _psgd_inverse_apply(e, inv_q_next)
+                    m_next = m_tilde + (eco_coef / matrix_scale) * comp
+                else:
+                    m_next = m_tilde
+
+                p.copy_(w_q_next.to(dtype=p.dtype))
+                m.copy_(m_next)
+                q_factor.copy_(q_next.to(dtype=q_factor.dtype))
+                inv_q_factor.copy_(inv_q_next.to(dtype=inv_q_factor.dtype))
 
         return loss
 
@@ -895,7 +1213,7 @@ class ShampooOptimizer(torch.optim.Optimizer):
         return loss
 
 
-class FP8ShampooNoMasterECO(torch.optim.Optimizer):
+class FP8ShampooNoMasterECO(FP8QuantizedParamMixin, torch.optim.Optimizer):
     """
     FP8 Shampoo without master weights, with optional ECO compensation.
 
@@ -960,35 +1278,6 @@ class FP8ShampooNoMasterECO(torch.optim.Optimizer):
         self._quantize_all_params()
 
     @torch.no_grad()
-    def _quantize_all_params(self) -> None:
-        for group in self.param_groups:
-            scale_mode = group["fp8_scale_mode"]
-            sr = group["fp8_stochastic_rounding"]
-            use_ema_scales = group["use_ema_scales"]
-            for p in group["params"]:
-                if use_ema_scales:
-                    state = self.state[p]
-                    scale = compute_fp8_scale(p.data, scale_mode=scale_mode)
-                    state["fp8_scale"] = scale.detach().to(torch.float32).clone()
-                    p.copy_(
-                        quantize_fp8_e4m3_with_scale(
-                            p.data,
-                            scale=state["fp8_scale"],
-                            stochastic_rounding=sr,
-                            generator=self.sr_generator,
-                        ).to(dtype=p.dtype)
-                    )
-                else:
-                    p.copy_(
-                        quantize_fp8_e4m3(
-                            p,
-                            stochastic_rounding=sr,
-                            scale_mode=scale_mode,
-                            generator=self.sr_generator,
-                        ).to(dtype=p.dtype)
-                    )
-
-    @torch.no_grad()
     def step(self, closure=None):
         loss = None
         if closure is not None:
@@ -1004,11 +1293,8 @@ class FP8ShampooNoMasterECO(torch.optim.Optimizer):
             ns_steps = group["ns_steps"]
             ns_eps = group["ns_eps"]
             ns_scale = group["ns_scale"]
-            scale_mode = group["fp8_scale_mode"]
-            sr = group["fp8_stochastic_rounding"]
             eco_comp = group["eco_compensation"]
             use_ema_scales = group["use_ema_scales"]
-            scale_ema_decay = group["scale_ema_decay"]
 
             eco_coef = ((1.0 - lr * wd) / lr) * (1.0 - 1.0 / beta)
 
@@ -1027,8 +1313,12 @@ class FP8ShampooNoMasterECO(torch.optim.Optimizer):
                     m_dim, n_dim = p.shape
                     state["left_precond"] = torch.zeros((m_dim, m_dim), device=p.device, dtype=torch.float32)
                     state["right_precond"] = torch.zeros((n_dim, n_dim), device=p.device, dtype=torch.float32)
-                    if use_ema_scales and "fp8_scale" not in state:
-                        state["fp8_scale"] = compute_fp8_scale(p.data, scale_mode=scale_mode).to(torch.float32)
+                    if use_ema_scales:
+                        self._ensure_fp8_scale_state(
+                            p,
+                            state,
+                            scale_mode=group["fp8_scale_mode"],
+                        )
                 m = state["momentum"]
 
                 g = p.grad.detach().to(torch.float32)
@@ -1051,27 +1341,12 @@ class FP8ShampooNoMasterECO(torch.optim.Optimizer):
 
                 w_q = p.detach().to(torch.float32)
                 w_tilde = (1.0 - lr * wd) * w_q - lr * update
-                if use_ema_scales:
-                    scale_now = compute_fp8_scale(w_tilde, scale_mode=scale_mode).to(torch.float32)
-                    scale_ema = state.get("fp8_scale")
-                    if scale_ema is None:
-                        scale_ema = scale_now.detach().clone()
-                    else:
-                        scale_ema = scale_ema * scale_ema_decay + scale_now * (1.0 - scale_ema_decay)
-                    state["fp8_scale"] = scale_ema
-                    w_q_next = quantize_fp8_e4m3_with_scale(
-                        w_tilde,
-                        scale=scale_ema,
-                        stochastic_rounding=sr,
-                        generator=self.sr_generator,
-                    )
-                else:
-                    w_q_next = quantize_fp8_e4m3(
-                        w_tilde,
-                        stochastic_rounding=sr,
-                        scale_mode=scale_mode,
-                        generator=self.sr_generator,
-                    )
+                w_q_next = self._quantize_with_group_config(
+                    p,
+                    w_tilde,
+                    group=group,
+                    state=state,
+                )
 
                 e = w_tilde - w_q_next
                 if eco_comp:
@@ -1097,7 +1372,7 @@ class FP8ShampooNoMasterECO(torch.optim.Optimizer):
         return loss
 
 
-class FP8MuonNoMasterECO(torch.optim.Optimizer):
+class FP8MuonNoMasterECO(FP8QuantizedParamMixin, torch.optim.Optimizer):
     """
     FP8 Muon without master weights, with optional ECO compensation.
 
@@ -1155,35 +1430,6 @@ class FP8MuonNoMasterECO(torch.optim.Optimizer):
         self._quantize_all_params()
 
     @torch.no_grad()
-    def _quantize_all_params(self) -> None:
-        for group in self.param_groups:
-            scale_mode = group["fp8_scale_mode"]
-            sr = group["fp8_stochastic_rounding"]
-            use_ema_scales = group["use_ema_scales"]
-            for p in group["params"]:
-                if use_ema_scales:
-                    state = self.state[p]
-                    scale = compute_fp8_scale(p.data, scale_mode=scale_mode)
-                    state["fp8_scale"] = scale.detach().to(torch.float32).clone()
-                    p.copy_(
-                        quantize_fp8_e4m3_with_scale(
-                            p.data,
-                            scale=state["fp8_scale"],
-                            stochastic_rounding=sr,
-                            generator=self.sr_generator,
-                        ).to(dtype=p.dtype)
-                    )
-                else:
-                    p.copy_(
-                        quantize_fp8_e4m3(
-                            p,
-                            stochastic_rounding=sr,
-                            scale_mode=scale_mode,
-                            generator=self.sr_generator,
-                        ).to(dtype=p.dtype)
-                    )
-
-    @torch.no_grad()
     def step(self, closure=None):
         loss = None
         if closure is not None:
@@ -1197,11 +1443,8 @@ class FP8MuonNoMasterECO(torch.optim.Optimizer):
             ns_steps = group["ns_steps"]
             ns_eps = group["ns_eps"]
             ns_scale = group["ns_scale"]
-            scale_mode = group["fp8_scale_mode"]
-            sr = group["fp8_stochastic_rounding"]
             eco_comp = group["eco_compensation"]
             use_ema_scales = group["use_ema_scales"]
-            scale_ema_decay = group["scale_ema_decay"]
 
             eco_coef = ((1.0 - lr * wd) / lr) * (1.0 - 1.0 / beta)
 
@@ -1217,42 +1460,31 @@ class FP8MuonNoMasterECO(torch.optim.Optimizer):
                 state = self.state[p]
                 if "momentum" not in state:
                     state["momentum"] = torch.zeros_like(p, dtype=torch.float32)
-                    if use_ema_scales and "fp8_scale" not in state:
-                        state["fp8_scale"] = compute_fp8_scale(p.data, scale_mode=scale_mode).to(torch.float32)
+                    if use_ema_scales:
+                        self._ensure_fp8_scale_state(
+                            p,
+                            state,
+                            scale_mode=group["fp8_scale_mode"],
+                        )
                 m = state["momentum"]
 
                 g = p.grad.detach().to(torch.float32)
                 m_tilde = beta * m + (1.0 - beta) * g
                 matrix_scale = _matrix_update_scale(p)
                 u = matrix_scale * _orthogonalize(m_tilde, niter=ns_steps)
-                gram = m_tilde.mT @ m_tilde
 
                 w_q = p.detach().to(torch.float32)
                 w_tilde = (1.0 - lr * wd) * w_q - lr * u
-                if use_ema_scales:
-                    scale_now = compute_fp8_scale(w_tilde, scale_mode=scale_mode).to(torch.float32)
-                    scale_ema = state.get("fp8_scale")
-                    if scale_ema is None:
-                        scale_ema = scale_now.detach().clone()
-                    else:
-                        scale_ema = scale_ema * scale_ema_decay + scale_now * (1.0 - scale_ema_decay)
-                    state["fp8_scale"] = scale_ema
-                    w_q_next = quantize_fp8_e4m3_with_scale(
-                        w_tilde,
-                        scale=scale_ema,
-                        stochastic_rounding=sr,
-                        generator=self.sr_generator,
-                    )
-                else:
-                    w_q_next = quantize_fp8_e4m3(
-                        w_tilde,
-                        stochastic_rounding=sr,
-                        scale_mode=scale_mode,
-                        generator=self.sr_generator,
-                    )
+                w_q_next = self._quantize_with_group_config(
+                    p,
+                    w_tilde,
+                    group=group,
+                    state=state,
+                )
 
                 e = w_tilde - w_q_next
                 if eco_comp:
+                    gram = m_tilde.mT @ m_tilde
                     comp = e @ matrix_root(gram, r=2, steps=ns_steps, eps=ns_eps, scale=ns_scale)
                     m_next = m_tilde + (eco_coef / matrix_scale) * comp
                 else:
@@ -1507,6 +1739,7 @@ def plot_loss_curves(
         "adamw": "AdamW",
         "muon": "Muon",
         "shampoo": "Shampoo",
+        "psgd": "PSGD",
     }[optimizer_name]
     plt.yscale("log")
     plt.title(f"{optimizer_name_stylized} on Tiny Shakespeare Residual MLP: Loss vs Training Steps")
@@ -1602,7 +1835,7 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--min_lr_ratio", type=float, default=0.1)
-    parser.add_argument("--optimizer", type=str, default="adamw", choices=["adamw", "muon", "shampoo"])
+    parser.add_argument("--optimizer", type=str, default="adamw", choices=["adamw", "muon", "shampoo", "psgd"])
     parser.add_argument("--beta1", type=float, default=0.9)
     parser.add_argument("--beta2", type=float, default=0.9)
     parser.add_argument("--eps", type=float, default=1e-8)
@@ -1611,9 +1844,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ns_eps", type=float, default=1e-6)
     parser.add_argument("--ns_scale", type=float, default=1.001)
     parser.add_argument("--shampoo_root", type=float, default=4.0)
+    parser.add_argument("--psgd_lr_preconditioner", type=float, default=1.0)
+    parser.add_argument("--psgd_update_probability", type=float, default=1.0)
 
     parser.add_argument("--fp8_scale_mode", type=str, default="row", choices=["none", "tensor", "row"])
-    parser.add_argument("--eco_update_sr", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument(
+        "--weight_stochastic_rounding",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Enable stochastic rounding for weight quantization in FP8 runs.",
+    )
+    # Deprecated alias kept for backward compatibility.
+    parser.add_argument(
+        "--eco_update_sr",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help=argparse.SUPPRESS,
+    )
     parser.add_argument("--scale_ema_decay", type=float, default=DEFAULT_SCALE_EMA_DECAY)
 
     parser.add_argument("--json_out", type=Path, default=None)
@@ -1625,10 +1872,18 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
+    if args.eco_update_sr is not None:
+        args.weight_stochastic_rounding = args.eco_update_sr
+        print("Deprecated flag --eco_update_sr used; prefer --weight_stochastic_rounding.")
+
     if not (0.0 < args.min_lr_ratio <= 1.0):
         raise ValueError("--min_lr_ratio must be in (0, 1].")
     if not (0.0 <= args.scale_ema_decay < 1.0):
         raise ValueError("--scale_ema_decay must be in [0, 1).")
+    if args.psgd_lr_preconditioner <= 0:
+        raise ValueError("--psgd_lr_preconditioner must be > 0.")
+    if not (0.0 <= args.psgd_update_probability <= 1.0):
+        raise ValueError("--psgd_update_probability must be in [0, 1].")
 
     if args.device == "auto":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -1675,6 +1930,13 @@ def main() -> None:
             f"ns_eps={args.ns_eps:.1e}, ns_scale={args.ns_scale:.3f} (matrix preconditioners)"
         )
         print(f"Shampoo lr scale: {matrix_lr_scale:.3f}")
+    elif args.optimizer == "psgd":
+        print(
+            f"PSGD config: beta={args.beta1:.3f}, "
+            f"lr_preconditioner={args.psgd_lr_preconditioner:.3f}, "
+            f"update_probability={args.psgd_update_probability:.3f}"
+        )
+        print(f"PSGD lr scale: {matrix_lr_scale:.3f}")
 
     # Build one canonical initialization and reuse it for all runs.
     base_model = build_model(
@@ -1776,6 +2038,28 @@ def main() -> None:
                 for group in shampoo_optimizer.param_groups:
                     group["lr_scale"] = matrix_lr_scale
                 optimizer = CompositeOptimizer([adamw_optimizer, shampoo_optimizer])
+            elif args.optimizer == "psgd":
+                named_params = list(model.named_parameters())
+                psgd_params, _, _, _, adamw_params = split_named_params(named_params)
+                psgd_optimizer = PSGDOptimizer(
+                    psgd_params,
+                    lr=args.lr,
+                    beta=args.beta1,
+                    weight_decay=args.weight_decay,
+                    lr_preconditioner=args.psgd_lr_preconditioner,
+                    preconditioner_update_probability=args.psgd_update_probability,
+                    precond_generator=make_torch_generator(sr_seed_base + run_seed_offset + 4, device),
+                )
+                adamw_optimizer = torch.optim.AdamW(
+                    adamw_params,
+                    lr=args.lr,
+                    betas=(args.beta1, args.beta2),
+                    eps=args.eps,
+                    weight_decay=args.weight_decay,
+                )
+                for group in psgd_optimizer.param_groups:
+                    group["lr_scale"] = matrix_lr_scale
+                optimizer = CompositeOptimizer([adamw_optimizer, psgd_optimizer])
             else:
                 raise ValueError(f"Unknown optimizer: {args.optimizer}")
         elif run_name in ("eco_fp8_nomaster", "fp8_nomaster_noeco"):
@@ -1791,7 +2075,7 @@ def main() -> None:
                     eps=args.eps,
                     weight_decay=args.weight_decay,
                     fp8_scale_mode=args.fp8_scale_mode,
-                    fp8_stochastic_rounding=args.eco_update_sr,
+                    fp8_stochastic_rounding=args.weight_stochastic_rounding,
                     eco_compensation=eco_comp,
                     use_ema_scales=True,
                     scale_ema_decay=args.scale_ema_decay,
@@ -1817,7 +2101,7 @@ def main() -> None:
                     ns_eps=args.ns_eps,
                     ns_scale=args.ns_scale,
                     fp8_scale_mode=args.fp8_scale_mode,
-                    fp8_stochastic_rounding=args.eco_update_sr,
+                    fp8_stochastic_rounding=args.weight_stochastic_rounding,
                     eco_compensation=eco_comp,
                     use_ema_scales=True,
                     scale_ema_decay=args.scale_ema_decay,
@@ -1832,7 +2116,7 @@ def main() -> None:
                     eps=args.eps,
                     weight_decay=args.weight_decay,
                     fp8_scale_mode=args.fp8_scale_mode,
-                    fp8_stochastic_rounding=args.eco_update_sr,
+                    fp8_stochastic_rounding=args.weight_stochastic_rounding,
                     eco_compensation=eco_comp,
                     use_ema_scales=True,
                     scale_ema_decay=args.scale_ema_decay,
@@ -1860,7 +2144,7 @@ def main() -> None:
                     ns_eps=args.ns_eps,
                     ns_scale=args.ns_scale,
                     fp8_scale_mode=args.fp8_scale_mode,
-                    fp8_stochastic_rounding=args.eco_update_sr,
+                    fp8_stochastic_rounding=args.weight_stochastic_rounding,
                     eco_compensation=eco_comp,
                     use_ema_scales=True,
                     scale_ema_decay=args.scale_ema_decay,
@@ -1875,7 +2159,48 @@ def main() -> None:
                     eps=args.eps,
                     weight_decay=args.weight_decay,
                     fp8_scale_mode=args.fp8_scale_mode,
-                    fp8_stochastic_rounding=args.eco_update_sr,
+                    fp8_stochastic_rounding=args.weight_stochastic_rounding,
+                    eco_compensation=eco_comp,
+                    use_ema_scales=True,
+                    scale_ema_decay=args.scale_ema_decay,
+                    sr_generator=make_torch_generator(sr_seed_base + run_seed_offset + 3, device),
+                )
+                adamw_fp32_optimizer = torch.optim.AdamW(
+                    lm_head_params,
+                    lr=args.lr,
+                    betas=(args.beta1, args.beta2),
+                    eps=args.eps,
+                    weight_decay=args.weight_decay,
+                )
+                optimizer = CompositeOptimizer([fp8_optimizer, adamw_fp8_optimizer, adamw_fp32_optimizer])
+            elif args.optimizer == "psgd":
+                named_params = list(model.named_parameters())
+                fp8_params, embedding_params, lm_head_params, _, _ = split_named_params(named_params)
+                fp8_optimizer = FP8PSGDNoMasterECO(
+                    fp8_params,
+                    lr=args.lr,
+                    beta=args.beta1,
+                    weight_decay=args.weight_decay,
+                    lr_preconditioner=args.psgd_lr_preconditioner,
+                    preconditioner_update_probability=args.psgd_update_probability,
+                    fp8_scale_mode=args.fp8_scale_mode,
+                    fp8_stochastic_rounding=args.weight_stochastic_rounding,
+                    eco_compensation=eco_comp,
+                    use_ema_scales=True,
+                    scale_ema_decay=args.scale_ema_decay,
+                    sr_generator=make_torch_generator(sr_seed_base + run_seed_offset + 2, device),
+                    precond_generator=make_torch_generator(sr_seed_base + run_seed_offset + 4, device),
+                )
+                for group in fp8_optimizer.param_groups:
+                    group["lr_scale"] = matrix_lr_scale
+                adamw_fp8_optimizer = FP8AdamWNoMasterECO(
+                    embedding_params,
+                    lr=args.lr,
+                    betas=(args.beta1, args.beta2),
+                    eps=args.eps,
+                    weight_decay=args.weight_decay,
+                    fp8_scale_mode=args.fp8_scale_mode,
+                    fp8_stochastic_rounding=args.weight_stochastic_rounding,
                     eco_compensation=eco_comp,
                     use_ema_scales=True,
                     scale_ema_decay=args.scale_ema_decay,
@@ -1928,23 +2253,35 @@ def main() -> None:
         print(f"delta(eco - noeco): {delta:+.4f}")
 
     script_dir = Path(__file__).resolve().parent
-    plot_out = args.plot_out if args.plot_out is not None else script_dir / "loss_vs_training_steps_shakespeare_eco.png"
+    runs_dir = script_dir / "runs"
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    run_tag = time.strftime("%Y%m%d_%H%M%S")
+
+    plot_out = (
+        args.plot_out
+        if args.plot_out is not None
+        else runs_dir / f"loss_plot_{args.optimizer}_{run_tag}.png"
+    )
     plot_loss_curves(all_logs, plot_out, args.optimizer)
     print(f"Saved plot to {plot_out}")
 
-    if args.json_out is not None:
-        args.json_out.parent.mkdir(parents=True, exist_ok=True)
-        config = {}
-        for key, value in vars(args).items():
-            config[key] = str(value) if isinstance(value, Path) else value
-        payload = {
-            "config": {**config, "device": str(device)},
-            "train_config": asdict(train_cfg),
-            "summary": summary,
-            "logs": all_logs,
-        }
-        args.json_out.write_text(json.dumps(payload, indent=2))
-        print(f"Wrote logs to {args.json_out}")
+    json_out = (
+        args.json_out
+        if args.json_out is not None
+        else runs_dir / f"train_data_{args.optimizer}_{run_tag}.json"
+    )
+    json_out.parent.mkdir(parents=True, exist_ok=True)
+    config = {}
+    for key, value in vars(args).items():
+        config[key] = str(value) if isinstance(value, Path) else value
+    payload = {
+        "config": {**config, "device": str(device)},
+        "train_config": asdict(train_cfg),
+        "summary": summary,
+        "logs": all_logs,
+    }
+    json_out.write_text(json.dumps(payload, indent=2))
+    print(f"Wrote logs to {json_out}")
 
 
 if __name__ == "__main__":
