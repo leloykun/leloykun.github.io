@@ -1391,6 +1391,7 @@ def train_one_run(
             raise RuntimeError("Loss should not be None in training.")
         loss.backward()
         optimizer.step()
+        print(f"[{step}/{cfg.steps}] loss={float(loss.item()):.4f}")
 
     return logs
 

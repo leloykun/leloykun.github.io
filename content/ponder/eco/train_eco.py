@@ -760,6 +760,8 @@ class FP8AdamWNoMasterECO(FP8QuantizedParamMixin, torch.optim.Optimizer):
             eco_comp = group["eco_compensation"]
             use_ema_scales = group["use_ema_scales"]
 
+            eco_coef = ((1.0 - lr * wd) / lr) * (1.0 - 1.0 / beta1)
+
             for p in group["params"]:
                 if p.grad is None:
                     continue
@@ -803,8 +805,8 @@ class FP8AdamWNoMasterECO(FP8QuantizedParamMixin, torch.optim.Optimizer):
                 e = w_tilde - w_q_next
 
                 if eco_comp:
-                    eco_coef = ((1.0 - lr * wd) * bias_c1 * denom / lr) * (1.0 - 1.0 / beta1)
-                    m_next = m_tilde + eco_coef * e
+                    comp = bias_c1 * denom * e
+                    m_next = m_tilde + eco_coef * comp
                 else:
                     m_next = m_tilde
 

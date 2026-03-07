@@ -29,9 +29,9 @@ RUN_BOTH_LUCID_ROUTER="${RUN_BOTH_LUCID_ROUTER:-on}"  # off | on
 PLOT_LOSS="${PLOT_LOSS:-on}"      # on | off
 LIVE_PLOT="${LIVE_PLOT:-on}"      # on | off (only used when PLOT_LOSS=on)
 DETERMINISTIC="${DETERMINISTIC:-on}"  # on | off
-QE_NORM="${QE_NORM:-off}"         # off | on
+QE_NORM="${QE_NORM:-on}"         # off | on
 SIGMOID_GATING="${SIGMOID_GATING:-on}" # off | on
-EXPERT_BIAS_MODE="${EXPERT_BIAS_MODE:-auxfree}" # none | auxfree | quantile
+EXPERT_BIAS_MODE="${EXPERT_BIAS_MODE:-quantile}" # none | auxfree | quantile
 DEVICE="${DEVICE:-cuda}"          # auto | cuda | cpu
 
 # Longer run defaults.
@@ -42,10 +42,10 @@ EVAL_BATCHES="${EVAL_BATCHES:-8}"
 # 6GB VRAM-safe model/data defaults.
 BATCH_SIZE="${BATCH_SIZE:-32}"
 BLOCK_SIZE="${BLOCK_SIZE:-128}"
-D_MODEL="${D_MODEL:-64}"
 N_LAYERS="${N_LAYERS:-2}"
 ATTN_HEADS="${ATTN_HEADS:-1}"
 MOE_HEADS="${MOE_HEADS:-1}"
+D_MODEL="${D_MODEL:-64}"
 D_MOE_LATENT="${D_MOE_LATENT:-$((D_MODEL / MOE_HEADS))}"
 NUM_EXPERTS="${NUM_EXPERTS:-32}"
 TOP_K="${TOP_K:-8}"
