@@ -10,15 +10,17 @@ editPost:
     Text: "Github Repository"
 ---
 
-## 1. Frequency Domain Muon
+## 1. FreqMuon: Muon in the frequency domain
 
-The Muon optimizer only makes sense when applied to linear operators (e.g. MLP weights) ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)). Convolutions in Convolutional Neural Networks (CNNs) are not linear operators in the pixel space, but they become one after a 'coordinate change' to the frequency domain via the Fast Fourier Transform (FFT). As such, it is there where we should apply Muon's orthogonalization logic. This builds on top of [Ji-Ha Kim's recent work on FreqMuon](https://jiha-kim.github.io/posts/frequency-domain-muon-for-conv-filters/).
+The Muon optimizer only makes sense when applied to linear operator matrices, e.g. MLP weights ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)). But the convolution kernels in Convolutional Neural Networks (CNNs) are *not* the operator matrices; they are merely representations of the transform in pixel space. As such, it does not make sense to apply Muon directly to these kernels. To get the actual operator matrices, we need to perform a 'coordinate change' to the frequency domain via the Fast Fourier Transform (FFT). There, convolution becomes (blockwise) matrix multiplication. And it is there where we should apply Muon's orthogonalization logic.
+
+> This builds on top of [Ji-Ha Kim's recent work on FreqMuon](https://jiha-kim.github.io/posts/frequency-domain-muon-for-conv-filters/).
 
 The core algorithm goes as follows:
 1. Compute $G := \nabla f(W_{\text{CNN}})$ in pixel space via backpropagation.
-2. FFT to the frequency domain: $\widehat{G} := \text{FFT}(G)$.
+2. FFT to the frequency domain: $\widehat{G} := \texttt{FFT}(G)$.
 3. Apply Muon's orthogonalization to $\widehat{G}$, treating each frequency bin as a separate linear operator: $\widehat{U} := \texttt{msign}(\widehat{G})$.
-4. Inverse FFT back to the spatial domain: $U := \text{FFT}^{-1}(\widehat{U})$.
+4. Inverse FFT back to the spatial domain: $U := \texttt{FFT}^{-1}(\widehat{U})$.
 5. Update CNN weights with $U$: $W_{\text{CNN}} \leftarrow W_{\text{CNN}} - \eta U$.
 
 ### 1.1. Sample implementation
@@ -109,3 +111,4 @@ We evaluate FreqMuon on the CIFAR-10 Airbench benchmark, training a highly-optim
 
 1. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
 2. Ji-Ha Kim (2026). Frequency-Domain Muon for Conv Filters - Orthogonalizing the Operator. URL https://jiha-kim.github.io/posts/frequency-domain-muon-for-conv-filters/
+3. Keller Jordan (2024). cifar10-airbench. URL https://github.com/KellerJordan/cifar10-airbench
