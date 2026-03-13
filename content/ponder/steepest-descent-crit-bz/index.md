@@ -760,7 +760,7 @@ $$\begin{align}
         &= \mathcal{O} \left( \frac{1 - \beta}{\lambda^2} \frac{\sigma^2}{\epsilon'} \right) \quad\text{(with decoupled weight decay)}
 \end{align}$$
 
-## 5. Learning rate scaling with batch size
+## 5. Learning rate scaling with batch size and training horizon
 
 In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto \sqrt{b}$ when increasing the batch size $b$, regardless of the optimizer used. Here we provide a mathematical justification *why*. The crux is that increasing the batch size reduces the gradient noise variance, which in turn means that we can make larger weight updates without destabilizing training.
 
@@ -794,14 +794,27 @@ $$\begin{align}
         &\propto \frac{\eta^2}{b} \quad\blacksquare \nonumber
 \end{align}$$
 
-Now, if we already know that training is fast and stable for some gradient noise variance level $\mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]$, then it is natural to preserve it as we scale the batch size $b$. Thus, we have,
+> **Lemma 19 (Learning rate scaling law w.r.t. batch size and training horizon).** Let $\eta$ be the learning rate, $b$ be the batch size, and $T$ be the training horizon. Then, under Assumptions 1-4, and 17, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$ to descend under, we have the following learning rate scaling law:
 $$\begin{align}
-    \frac{\eta_{\text{new}}^2}{b_{\text{new}}}
-        &= \frac{\eta_{\text{old}}^2}{b_{\text{old}}} = \text{constant} \nonumber \\
     \eta_{\text{new}}
-        &= \eta_{\text{old}}\sqrt{\frac{b_{\text{new}}}{b_{\text{old}}}}. \label{eq:lr-bz-scaling}
+        &= \eta_{\text{old}} \sqrt{\frac{b_{\text{new}} / b_{\text{old}}}{T_{\text{new}} / T_{\text{old}}}}
 \end{align}$$
-This means that, e.g., if we $4\times$ the batch size, then increasing the learning rate by a factor of $2$ preserves training stability. This is consistent with prior work ([McCandlish et al., 2018](https://arxiv.org/abs/1812.06162); [Malladi et al., 2024](https://arxiv.org/abs/2205.10287); [Ryu (2025)](https://x.com/cloneofsimo/status/1907731069878825400)).
+
+**Proof.** From Assumption 1, the noise variance in Proposition 18 must be additive over $T$ steps, and we have,
+$$\begin{align}
+    \mathbb{E} \left[ \left\| \sum_{t=0}^{T-1} \Delta W_t^{\text{noise}} \right\|^2 \right]
+        &= \sum_{t=0}^{T-1} \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] \nonumber \\
+        &\propto \frac{T \eta^2}{b}
+\end{align}$$
+Thus, to have comparable total noise variance budgets as we scale the batch size and training horizon, we need to have,
+$$\begin{align}
+    \frac{T_{\text{new}} \eta_{\text{new}}^2}{b_{\text{new}}}
+        &= \frac{T_{\text{old}} \eta_{\text{old}}^2}{b_{\text{old}}} = \text{constant} \nonumber \\
+    \eta_{\text{new}}
+        &= \eta_{\text{old}} \sqrt{\frac{b_{\text{new}} / b_{\text{old}}}{T_{\text{new}} / T_{\text{old}}}} \qquad\blacksquare \nonumber
+\end{align}$$
+
+This means that, e.g., if we $4\times$ the batch size while maintaining $T$, then the new optimal learning rate must be $2\times$ the original optimal learning rate; likewise, if we $4\times$ the training horizon while maintaining the batch size, then the new optimal learning rate must be $1/2\times$ the original optimal learning rate. This is consistent with prior work ([McCandlish et al., 2018](https://arxiv.org/abs/1812.06162); [Malladi et al., 2024](https://arxiv.org/abs/2205.10287); [Ryu (2025)](https://x.com/cloneofsimo/status/1907731069878825400); [Mlodozeniec et al., 2025](https://arxiv.org/abs/2512.22382)).
 
 ## 6. Experiments
 
@@ -868,6 +881,7 @@ Big thanks to the [Marin Community](https://marin.community/) and especially Kai
 8. Essential AI: Ishaan Shah, Anthony M. Polloreno, Karl Stratos, Philip Monk, Adarsh Chaluvaraju, Andrew Hojel, Andrew Ma, Anil Thomas, Ashish Tanwer, Darsh J Shah, Khoi Nguyen, Kurt Smith, Michael Callahan, Michael Pust, Mohit Parmar, Peter Rushton, Platon Mazarakis, Ritvik Kapila, Saurabh Srivastava, Somanshu Singla, Tim Romanski, Yash Vanjani, Ashish Vaswani (2025). Practical Efficiency of Muon for Pretraining. URL https://arxiv.org/abs/2505.02222
 9. Kwangjun Ahn, Byron Xu, Natalie Abreu, Ying Fan, Gagik Magakyan, Pratyusha Sharma, Zheng Zhan, John Langford (2025). Dion: Distributed Orthonormalized Updates. URL https://arxiv.org/abs/2504.05295
 10. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
+11. Bruno Mlodozeniec, Pierre Ablin, Louis Béthune, Dan Busbridge, Michal Klein, Jason Ramapuram, Marco Cuturi (2025). Completed Hyperparameter Transfer across Modules, Width, Depth, Batch and Duration. URL https://arxiv.org/abs/2512.22382
 
 ## Appendix
 
