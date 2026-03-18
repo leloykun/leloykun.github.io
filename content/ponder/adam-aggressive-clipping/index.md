@@ -3,8 +3,8 @@ title: "Adam with Aggressive Gradient Clipping ≈ Smoothed SignSGD/NormSGD"
 date: 2025-07-03
 tags: ["Machine Learning", "Optimizers"]
 author: "Franz Louis Cesista"
-description: "Why does Adam with aggressive gradient value/norm clipping have sparse updates and do well with higher learning rates? Here we show that it is essentially equivalent to a smoothed version of SignSGD/NormSGD."
-summary: "Why does Adam with aggressive gradient value/norm clipping have sparse updates and do well with higher learning rates? Here we show that it is essentially equivalent to a smoothed version of SignSGD/NormSGD."
+description: "Why does Adam with aggressive gradient value/norm clipping have sparse updates and do well with higher learning rates? Here we show that it asymptotically matches Smoothed SignSGD in the value-clipping limit and tracks a rescaled Smoothed NormSGD direction in the norm-clipping limit."
+summary: "Why does Adam with aggressive gradient value/norm clipping have sparse updates and do well with higher learning rates? Here we show that it asymptotically matches Smoothed SignSGD in the value-clipping limit and tracks a rescaled Smoothed NormSGD direction in the norm-clipping limit."
 editPost:
     URL: "https://x.com/leloykun/status/1941067659157913625"
     Text: "Crossposted on X (formerly Twitter)"
@@ -15,7 +15,7 @@ editPost:
 [sponsor-badge]: https://img.shields.io/badge/🤝-Sponsor%20me-1da1f2?logo=github&style=flat-square
 [sponsor-link]: https://github.com/sponsors/leloykun
 
-[@kalomaze recently shared an interesting observation](https://x.com/kalomaze/status/1940424032119316813) that Adam with aggressive gradient clipping induces update sparsity while maintaining good performance (and at higher learning rates). Here we will show that Adam with aggressive gradient value/norm clipping is essentially equivalent to a smoothed version of SignSGD/NormSGD. We will also explain why the commulative updates are sparse and why it does well with higher learning rates.
+[@kalomaze recently shared an interesting observation](https://x.com/kalomaze/status/1940424032119316813) that Adam with aggressive gradient clipping induces update sparsity while maintaining good performance (and at higher learning rates). Here we will show that Adam with aggressive gradient value clipping asymptotically matches Smoothed SignSGD, while aggressive gradient norm clipping tracks a rescaled Smoothed NormSGD direction under additional assumptions. We will also explain why the cumulative updates are sparse and why it does well with higher learning rates.
 
 ## Smoothed SignSGD and Smoothed NormSGD
 
@@ -45,7 +45,7 @@ $$\begin{equation}
     M_{t}^{\text{snsgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\frac{G_{t-k}}{\|G_{t-k}\|} \label{eq:smoothednormsgdunfold}
 \end{equation}$$
 
-## Adam with aggressive gradient *value* clipping is equivalent to Smoothed SignSGD
+## Adam with aggressive gradient *value* clipping asymptotically matches Smoothed SignSGD
 
 Here we apply gradient clipping element-wise with threshold $\alpha > 0$:
 $$G_{t,i,j}^{\text{clipped}} = \text{clip}_{[-\alpha, \alpha]}(G_{t,i,j})
@@ -54,7 +54,7 @@ $$G_{t,i,j}^{\text{clipped}} = \text{clip}_{[-\alpha, \alpha]}(G_{t,i,j})
     G_{t,i,j} & \text{if } |G_{t,i,j}| < \alpha
 \end{cases}
 $$
-With *aggressive gradient value clipping* (i.e., $\alpha \to 0$), we can make the simplifying assumtion that $|G_{t,i,j}| \geq \alpha$ for all $t, i, j$. Thus we have,
+With *aggressive gradient value clipping* (i.e., $\alpha \to 0$), we can make the simplifying assumption that $|G_{t,i,j}| \geq \alpha$ for all $t, i, j$. Thus we have,
 $$G_{t}^{\text{clipped}} = \alpha\cdot\text{sign}(G_{t})$$
 
 Passing this through Adam's update rule, we get:
@@ -88,7 +88,7 @@ U_t &= \frac{1}{(1 - \beta_1^t)} M_t^{\text{sssgd}}
 Note that the $\alpha$ terms cancel out. And as $t \to \infty$, we have $\beta_1^t \to 0$. Thus,
 $$U_t \to M_t^{\text{sssgd}}\qquad\text{as}\qquad t \to \infty$$
 
-Hence Adam with aggressive gradient value clipping is just Smoothed SignSGD!
+Hence, in the aggressive-clipping limit and after bias correction, Adam's update direction asymptotically matches Smoothed SignSGD.
 
 ### Why are Smoothed SignSGD updates sparse?
 
@@ -96,21 +96,21 @@ Let's go back to Equation $\eqref{eq:smoothedsignsgdunfold}$:
 $$M_{t}^{\text{sssgd}} = (1 - \beta)\sum_{k=0}^{t-1}\beta^k\text{sign}(G_{t-k})$$
 and let's pick an arbitrary entry $G_{t,i,j}$. Notice that if the signs of the recent $G_{t,i,j}$s flip too much, then the $\beta^0$, $\beta^1$, $\beta^2$, ... terms effectively cancel each other out. Thus that entry will not contribute to the update. On the other hand, if the signs of the recent $G_{t,i,j}$s are aligned, then $M_{t,i,j}^{\text{sssgd}} \to \pm 1$. What this means is that for a given entry, the weights only get updated if the signs of the recent gradients are aligned.
 
-## Adam with aggressive gradient *norm* clipping is essentially equivalent to Smoothed NormSGD
+## Adam with aggressive gradient *norm* clipping tracks a rescaled Smoothed NormSGD direction
 
 Unlike the previous case, here we apply the clipping on the norm of the gradient. That is, for a given threshold $\alpha > 0$, we have:
 $$G_{t}^{\text{clipped}} = \begin{cases}
-    \frac{\alpha}{\|G_{t}\|}G_{t} & \text{if } \|G_{t,i,j}\| \geq \alpha \\
-    G_{t,i,j} & \text{if } \|G_{t,i,j}\| < \alpha
+    \frac{\alpha}{\|G_{t}\|}G_{t} & \text{if } \|G_{t}\| \geq \alpha \\
+    G_{t} & \text{if } \|G_{t}\| < \alpha
 \end{cases}$$
 And with *aggressive gradient norm clipping*, we can assume that $\|G_{t}\| \geq \alpha$ for all $t$.
 
 And like before, passing this through Adam's update rule, we get:
 $$\begin{align*}
 M_{t}^{\text{adam}}
-    &= \beta_1 M_{t-1}^{\text{adam}} + (1 - \beta_1)G_{t}^{\text{clipped}} \\\
+    &= \beta_1 M_{t-1}^{\text{adam}} + (1 - \beta_1)G_{t}^{\text{clipped}} \\
     &= \beta_1 M_{t-1}^{\text{adam}} + (1 - \beta_1)\frac{\alpha}{\|G_{t}\|}G_{t} \\
-    &= \alpha(1 - \beta_1)\sum_{k=0}^{t-1}\beta_1^k \frac{G_{t-k}}{\|G_{t}\|} \\
+    &= \alpha(1 - \beta_1)\sum_{k=0}^{t-1}\beta_1^k \frac{G_{t-k}}{\|G_{t-k}\|} \\
 M_{t}^{\text{adam}} &= \alpha M_{t}^{\text{snsgd}}
 \end{align*}$$
 and,
@@ -134,9 +134,7 @@ U_t &= \frac{M_t^{\text{adam}} / (1 - \beta_1^t)}{\sqrt{V_t^{\text{adam}} / (1 -
     &= \frac{\alpha M_t^{\text{snsgd}} / (1 - \beta_1^t)}{\sqrt{\alpha^2(1 - \beta_2^t) S_t / (1 - \beta_2^t)}} \\
 U_t &= \frac{1}{(1 - \beta_1^t)\sqrt{S_t}} M_t^{\text{snsgd}}
 \end{align*}$$
-Note that the $\alpha$ terms also cancel out. And if we make the further assumption that the gradients are isotopic, or more intuitively speaking, the gradients statistically do not 'change' over time, then we can treat $S_t$ as a constant. Thus,
-$$U_t \to \text{constant}\cdot M_t^{\text{snsgd}}\qquad\text{as}\qquad t \to \infty$$
-Hence Adam with aggressive gradient norm clipping is essentially just Smoothed NormSGD.
+Note that the $\alpha$ terms also cancel out. If we further assume that the entrywise factor $S_t$ varies slowly over time, then Adam tracks an entrywise-rescaled Smoothed NormSGD direction. This is the sense in which aggressive gradient norm clipping behaves like Smoothed NormSGD, rather than being exactly identical to it.
 
 ### Why are Smoothed NormSGD updates sparse?
 

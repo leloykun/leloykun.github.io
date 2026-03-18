@@ -37,7 +37,7 @@ This work expands on and generalizes prior work by [Bernstein (2025)](https://do
 
 Weight decay already (implicitly) constraints weights to some bounded set. We discussed this in more detail in Appendix A2 of [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/).
 
-The crux is that, the "backtracking" weight decay does grows linearly with the weight norm, but the update sizes from our optimizers remain roughly constant. For example, with Muon, the update sizes are guaranteed to have spectral norm at most $\eta$, the learning rate; with Adam and variants such as SignSGD, it is the elementwise max-norm that is bounded by $\eta$. And so, if the weight is "too large", backtracking dominates the update, and the weight norm shrinks; if the weight is "too small", the update dominates backtracking, and the weight norm grows. At equilibrium, the backtracking and update sizes balance out, and the weight norm stabilizes. Thus, weight decay already helps enforce Lipschitz constraints to some extent.
+The crux is that the "backtracking" weight decay grows linearly with the weight norm, but the update sizes from our optimizers remain roughly constant. For example, with Muon, the update sizes are guaranteed to have spectral norm at most $\eta$, the learning rate; with Adam and variants such as SignSGD, it is the elementwise max-norm that is bounded by $\eta$. And so, if the weight is "too large", backtracking dominates the update, and the weight norm shrinks; if the weight is "too small", the update dominates backtracking, and the weight norm grows. At equilibrium, the backtracking and update sizes balance out, and the weight norm stabilizes. Thus, weight decay already helps enforce Lipschitz constraints to some extent.
 
 But weight decay also often "interferes" with the updates. For example, when the gradients are aligned with the weights. And as we will show in [Section 4](#4-experiments), this interference results in smaller effective update sizes and slows down generalization. Hence why, in this blog post, we replace weight decay with proper manifold optimization in the weight space.
 
@@ -116,14 +116,14 @@ $$\begin{align}
         &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y))
 \end{align}$$
 
-Substituting $A^*(Y)$ back into the Lagrangian then yields the dual problem,
+Substituting $A^*(Y)$ back into the Lagrangian then yields the pointwise dual objective,
 $$\begin{align}
     h(Y)
-        &= \max_{Y \in K^\dagger} \mathcal{L}(A^*(Y), Y) \nonumber \\
-        &= \max_{Y \in K^\dagger} \langle G_t + L^\dagger(Y), \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)) \rangle + \langle Y, b \rangle \nonumber \\
+        &= \mathcal{L}(A^*(Y), Y) \nonumber \\
+        &= \langle G_t + L^\dagger(Y), \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)) \rangle + \langle Y, b \rangle \nonumber \\
         &= -\eta \| G_t + L^\dagger(Y) \|^\dagger + \langle Y, b \rangle
 \end{align}$$
-where $\| \cdot \|^\dagger$ is the dual norm of $\| \cdot \|$. And by chain rule, the dual problem above has *a* supergradient,
+The dual problem is therefore $\max_{Y \in K^\dagger} h(Y)$, where $\| \cdot \|^\dagger$ is the dual norm of $\| \cdot \|$. By the chain rule, the dual objective above has *a* supergradient,
 $$\begin{align}
     \nabla_{Y} h(Y)
         &\ni \eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y))\right) + b \nonumber \\

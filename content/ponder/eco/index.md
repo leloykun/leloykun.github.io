@@ -26,7 +26,7 @@ $$\begin{align}
     M_{t+1}^* &= \beta M_t^* + (1-\beta) G_t \label{eq:sgdm_m_update} \\
     W_{t+1}^* &= (1 - \eta \lambda) W_t^* - \eta M_{t+1}^*, \label{eq:sgdm_w_update}
 \end{align}$$
-where $0 \leq \beta < 1, \eta > 0, \lambda \geq 0$ are the momentum, learning rate, and weight decay hyperparameters, respectively.
+where $0 < \beta < 1, \eta > 0, \lambda \geq 0$ are the momentum, learning rate, and weight decay hyperparameters, respectively.
 
 However, we do not want to materialize the master weights $W_t^*$, but only the quantized weights $\widehat{W}_t$, hence the ECO-style update of the form,
 $$\begin{align}
@@ -133,7 +133,7 @@ $$\begin{align}
         &= U_{t+1} + \frac{1 - \eta \lambda}{\eta} E_t. \label{eq:u_star_from_u}
 \end{align}$$
 
-Now suppose we have LMOs of the form $\texttt{LMO}(X) = g(X) X h(X)$ with matrix functions $g: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ such that there exist $g^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ satisfying $g^{-1}(X) g(X) = I_m$ and $h(X) h^{-1}(X) = I_n$ for all $X$. Then, we can make the following approximation by freezing $g$ and $h$ (valid for small perturbations $\Delta X$ or small learning rates $\eta$ which are common in practice):
+Now suppose we have LMOs of the form $\texttt{LMO}(X) = g(X) X h(X)$ with matrix functions $g: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ such that there exist $g^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ satisfying $g^{-1}(X) g(X) = I_m$ and $h(X) h^{-1}(X) = I_n$ whenever these inverses are well-defined. Then, we can make the following approximation by freezing $g$ and $h$ (valid for small perturbations $\Delta X$ or small learning rates $\eta$ which are common in practice):
 $$\begin{align}
     \texttt{LMO}(X + \Delta X)
         &\approx \texttt{LMO}(X) + g(X) \Delta X h(X). \label{eq:lmo_approx}
@@ -159,7 +159,7 @@ $$\begin{align}
 
 #### 2.2.1. ECO-Muon
 
-Steepest descent under the RMS-to-RMS norm as in the Muon optimizer ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)) have the following LMO:
+Steepest descent under the RMS-to-RMS norm as in the Muon optimizer ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)) has the following LMO in the full-column-rank case:
 $$\begin{align}
     \texttt{LMO}(X)
         &= \texttt{msign}(X) = \sqrt{\frac{m}{n}} X (X^T X)^{-1/2}

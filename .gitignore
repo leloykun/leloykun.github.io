@@ -11,6 +11,7 @@ resources/
 
 *.ipynb_checkpoints
 *.ipynb
+*.pdf
 data/
 **.pt
 **/__pycache__/

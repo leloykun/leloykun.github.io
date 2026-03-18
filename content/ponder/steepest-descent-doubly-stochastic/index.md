@@ -21,7 +21,7 @@ $$\begin{equation}
 \end{equation}$$
 where $L$ and $l$ are indices for a deeper and a shallower layer, respectively. If $\| A_l \|_{2 \to 2} > 1$, then the product $\| \prod_{i=1}^{L-l} A_{L-i} \|_{2 \to 2}$ explodes.
 
-The obvious fix is to simply constrain $A_l$ such that $\| A_l \|_{2 \to 2} \leq 1$. Any subset of the spectral ball of radius 1 works so long as we can form at least a semigroup under matrix multiplication. We could, for example, constrain $A_l$ to be orthogonal, or cap the eigenvalues by 1 as in Section 2 of [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](rethinking-mup-spectral-ball/#2-eigenvalue-clipping). Deepseek chose to constrain $A_l$ to be a doubly stochastic matrix, which guarantees $\| A_l \|_{2 \to 2} \leq 1$ by the [Perron-Frobenius theorem](https://en.wikipedia.org/wiki/Perron%E2%80%93Frobenius_theorem) (but some direction(s) may be contractive).
+The obvious fix is to simply constrain $A_l$ such that $\| A_l \|_{2 \to 2} \leq 1$. Any subset of the spectral ball of radius 1 works so long as we can form at least a semigroup under matrix multiplication. We could, for example, constrain $A_l$ to be orthogonal, or cap the eigenvalues by 1 as in Section 2 of [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](rethinking-mup-spectral-ball/#2-eigenvalue-clipping). Deepseek chose to constrain $A_l$ to be a doubly stochastic matrix, which guarantees $\| A_l \|_{2 \to 2} \leq 1$ because every doubly stochastic matrix is a convex combination of permutation matrices, and permutation matrices have spectral norm $1$ (though some direction(s) may still be contractive).
 
 Oddly enough, despite having "manifold" in the title, they do not actually perform optimization on the Birkhoff polytope nor is it even a manifold (in the classical sense). This polytope has "boundaries" and "corners" where we no longer have tangent spaces, but rather tangent *cones*. They do prevent $A_l$ from landing on the boundaries by exponentiating the entries before projecting onto the Birkhoff polytope using the [Sinkhorn-Knopp operator](https://en.wikipedia.org/wiki/Sinkhorn%27s_theorem#Sinkhorn%E2%80%93Knopp_algorithm)--and the interior of the Birkhoff polytope is indeed a manifold. But even then, they do not use any properties of this manifold!
 
@@ -90,7 +90,7 @@ $$\begin{align}
 The dual of the negative orthant cone is itself, and so,
 $$\begin{align}
     K^{\dagger}
-        &:= \mathbf{0} \times \mathbf{0} \times \mathbb{R}_{-}^{|\{(i,j) \mid W_{ij} = 0\}|} \nonumber \\
+        &:= \mathbb{R}^{n} \times \mathbb{R}^{n} \times \mathbb{R}_{-}^{|\{(i,j) \mid W_{ij} = 0\}|} \nonumber \\
 \end{align}$$
 The projection onto $K^{\dagger}$ and the adjoint operator $L^{\dagger}$ are then given by,
 $$\begin{align}

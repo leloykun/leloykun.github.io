@@ -23,7 +23,7 @@ We call this Steepest Descent on the Spectral Ball, and we shall discuss how to 
 
 ## 2. Eigenvalue Clipping
 
-In [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/), we discussed a novel method for clipping singular values of a matrix requiring only matrix multiplications. Following the same technique, we can also clip the *eigenvalues* of a (symmetric) matrix efficiently. This can be used to efficiently project matrices onto the positive semidefinite cone, and for capping the eigenvalues to a comfortable range during training.
+In [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/), we discussed a novel method for clipping singular values of a matrix requiring only matrix multiplications. We later adapted the same toolkit to symmetric matrices in [Ponder: Factorization-free Eigenvalue Clipping and Steepest Descent on the Positive Semidefinite Cone, Convex Spectrahedron, and Spectral Ball](../eigenvalue-clipping/). Following the same technique, we can also clip the *eigenvalues* of a (symmetric) matrix efficiently. This can be used to efficiently project matrices onto the positive semidefinite cone, and for capping the eigenvalues to a comfortable range during training.
 
 > I have previously communicated this technique to the authors of [Ponder: Factorization-free Orthogonal Projection onto the Positive Semidefinite Cone with Composite Polynomial Filtering](https://arxiv.org/abs/2507.09165) as I mistakenly thought their method for projecting onto the positive semidefinite cone was a special case of [my prior work](../spectral-clipping/). This work, however, *does* generalize their technique. I recommend reading their paper!
 
@@ -695,18 +695,19 @@ Also notice that the 1-step Alternating Projections heuristic (projecting the "r
 4. Shucheng Kang, Haoyu Han, Antoine Groudiev, Heng Yang (2025). Factorization-free Orthogonal Projection onto the Positive Semidefinite Cone with Composite Polynomial Filtering. URL https://arxiv.org/abs/2507.09165
 5. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
 6. You Jiacheng (2025). X post on Stepfun. URL https://x.com/YouJiacheng/status/1930988035195478303
-7. Franz Cesista (2025). Heuristic Solutions for Steepest Descent on the Stiefel Manifold. URL https://leloykun.github.io/ponder/steepest-descent-stiefel/
-8. Franz Cesista (2025). Steepest Descent on Finsler-Structured (Matrix) Manifolds. URL https://leloykun.github.io/ponder/steepest-descent-finsler/
-9. R. Tyrrell Rockafellar, Roger J-B Wets (2009). Variational Analysis. URL https://sites.math.washington.edu/~rtr/papers/rtr169-VarAnalysis-RockWets.pdf
-10. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
-11. Jeremy Bernstein (2025). The Modula Docs. URL https://docs.modula.systems/
-12. Lizhang Chen, Jonathan Li, Qiang Liu (2025). Muon Optimizes Under Spectral Norm Constraints. URL https://arxiv.org/abs/2506.15054
-13. Jingyuan Liu, Jianlin Su, Xingcheng Yao, Zhejun Jiang, Guokun Lai, Yulun Du, Yidao Qin, Weixin Xu, Enzhe Lu, Junjie Yan, Yanru Chen, Huabin Zheng, Yibo Liu, Shaowei Liu, Bohong Yin, Weiran He, Han Zhu, Yuzhi Wang, Jianzhou Wang, Mengnan Dong, Zheng Zhang, Yongsheng Kang, Hao Zhang, Xinran Xu, Yutao Zhang, Yuxin Wu, Xinyu Zhou, Zhilin Yang (2025). Muon is Scalable for LLM Training. URL https://arxiv.org/abs/2502.16982
-14. Ben Keigwin, Dhruv Pai, Nathan Chen (2025). Gram-Space Manifold Muon. URL https://www.tilderesearch.com/vignettes/gram-space
-15. Jeremy Bernstein, Yu-Xiang Wang, Kamyar Azizzadenesheli, Anima Anandkumar (2018). signSGD: Compressed Optimisation for Non-Convex Problems. URL https://arxiv.org/abs/1802.04434
-16. Fabian Schaipp (2024). How to jointly tune learning rate and weight decay for AdamW. URL https://fabian-sp.github.io/posts/2024/02/decoupling/
-17. Atli Kosson, Jeremy Welborn, Yang Liu, Martin Jaggi, Xi Chen (2025). Weight Decay may matter more than muP for Learning Rate Transfer in Practice. URL https://arxiv.org/abs/2510.19093
-18. Yuandong Tian (2025). Provable Scaling Laws of Feature Emergence from Learning Dynamics of Grokking. URL https://arxiv.org/abs/2509.21519
+7. Franz Cesista (2025). Factorization-free Eigenvalue Clipping and Steepest Descent on the Positive Semidefinite Cone, Convex Spectrahedron, and Spectral Ball. URL https://leloykun.github.io/ponder/eigenvalue-clipping/
+8. Franz Cesista (2025). Heuristic Solutions for Steepest Descent on the Stiefel Manifold. URL https://leloykun.github.io/ponder/steepest-descent-stiefel/
+9. Franz Cesista (2025). Steepest Descent on Finsler-Structured (Matrix) Manifolds. URL https://leloykun.github.io/ponder/steepest-descent-finsler/
+10. R. Tyrrell Rockafellar, Roger J-B Wets (2009). Variational Analysis. URL https://sites.math.washington.edu/~rtr/papers/rtr169-VarAnalysis-RockWets.pdf
+11. Thomas Pethick, Wanyun Xie, Kimon Antonakopoulos, Zhenyu Zhu, Antonio Silveti-Falls, Volkan Cevher (2025). Training Deep Learning Models with Norm-Constrained LMOs. URL https://arxiv.org/abs/2502.07529
+12. Jeremy Bernstein (2025). The Modula Docs. URL https://docs.modula.systems/
+13. Lizhang Chen, Jonathan Li, Qiang Liu (2025). Muon Optimizes Under Spectral Norm Constraints. URL https://arxiv.org/abs/2506.15054
+14. Jingyuan Liu, Jianlin Su, Xingcheng Yao, Zhejun Jiang, Guokun Lai, Yulun Du, Yidao Qin, Weixin Xu, Enzhe Lu, Junjie Yan, Yanru Chen, Huabin Zheng, Yibo Liu, Shaowei Liu, Bohong Yin, Weiran He, Han Zhu, Yuzhi Wang, Jianzhou Wang, Mengnan Dong, Zheng Zhang, Yongsheng Kang, Hao Zhang, Xinran Xu, Yutao Zhang, Yuxin Wu, Xinyu Zhou, Zhilin Yang (2025). Muon is Scalable for LLM Training. URL https://arxiv.org/abs/2502.16982
+15. Ben Keigwin, Dhruv Pai, Nathan Chen (2025). Gram-Space Manifold Muon. URL https://www.tilderesearch.com/vignettes/gram-space
+16. Jeremy Bernstein, Yu-Xiang Wang, Kamyar Azizzadenesheli, Anima Anandkumar (2018). signSGD: Compressed Optimisation for Non-Convex Problems. URL https://arxiv.org/abs/1802.04434
+17. Fabian Schaipp (2024). How to jointly tune learning rate and weight decay for AdamW. URL https://fabian-sp.github.io/posts/2024/02/decoupling/
+18. Atli Kosson, Jeremy Welborn, Yang Liu, Martin Jaggi, Xi Chen (2025). Weight Decay may matter more than muP for Learning Rate Transfer in Practice. URL https://arxiv.org/abs/2510.19093
+19. Yuandong Tian (2025). Provable Scaling Laws of Feature Emergence from Learning Dynamics of Grokking. URL https://arxiv.org/abs/2509.21519
 
 ---
 

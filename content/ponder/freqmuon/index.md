@@ -12,7 +12,7 @@ editPost:
 
 ## 1. FreqMuon: Muon in the frequency domain
 
-The Muon optimizer only makes sense when applied to linear operator matrices, e.g. MLP weights ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)). But the convolution kernels in Convolutional Neural Networks (CNNs) are *not* the operator matrices; they are merely representations of the transform in pixel space. As such, it does not make sense to apply Muon directly to these kernels. To get the actual operator matrices, we need to perform a 'coordinate change' to the frequency domain via the Fast Fourier Transform (FFT). There, convolution becomes (blockwise) matrix multiplication. And it is there where we should apply Muon's orthogonalization logic.
+As discussed in [Ponder: Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds](../steepest-descent-non-riemannian/), the Muon optimizer only makes sense when applied to linear operator matrices, e.g. MLP weights ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)). But the convolution kernels in Convolutional Neural Networks (CNNs) are *not* the operator matrices; they are merely representations of the transform in pixel space. As such, it does not make sense to apply Muon directly to these kernels. To get a frequency-domain surrogate of the operator matrices, we perform a 'coordinate change' to a fixed FFT grid. There, circular convolution becomes (blockwise) matrix multiplication. For the cropped finite-support operator implemented below, this should be read as a useful surrogate rather than an exact operator identity. It is in that surrogate geometry where we apply Muon's orthogonalization logic.
 
 > This builds on top of [Ji-Ha Kim's recent work on FreqMuon](https://jiha-kim.github.io/posts/frequency-domain-muon-for-conv-filters/).
 
@@ -112,3 +112,4 @@ We evaluate FreqMuon on the CIFAR-10 Airbench benchmark, training a highly-optim
 1. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/
 2. Ji-Ha Kim (2026). Frequency-Domain Muon for Conv Filters - Orthogonalizing the Operator. URL https://jiha-kim.github.io/posts/frequency-domain-muon-for-conv-filters/
 3. Keller Jordan (2024). cifar10-airbench. URL https://github.com/KellerJordan/cifar10-airbench
+4. Franz Louis Cesista (2025). Muon and a Selective Survey on Steepest Descent in Riemannian and Non-Riemannian Manifolds. URL https://leloykun.github.io/ponder/steepest-descent-non-riemannian/

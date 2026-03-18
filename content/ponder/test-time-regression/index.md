@@ -67,7 +67,7 @@ The latter, on the other hand, is *much* more efficient at the cost of expressiv
 
 For the rest of the thread, I'll focus on linear attention... I'll make another thread for the former case (stay tuned!).
 
-### Heirarchical optimization process with (linear) attention mechanisms
+### Hierarchical optimization process with (linear) attention mechanisms
 
 Now, another design decision we need to make is how to map the input context into key-value pairs.
 
@@ -83,7 +83,7 @@ And with more modern optimizers, such as Shampoo/PSGD, you can actually think of
 
 3. The optimizer is also trying to learn the geometry of the loss landscape by adjusting the gradient preconditioners.
 
-## Deriving linear attention Mechanisms from first principles
+## Deriving linear attention mechanisms from first principles
 
 If the "inner model" is optimizing something, then what is it optimizing? Again, we need to make another design decision here on which loss function to use. But which one is the most appropriate?
 
@@ -95,7 +95,7 @@ Thus, we need to define a distance metric between the model's prediction and the
 
 $$\text{loss}_M(\text{key}, \text{value}) = \text{distance}(M(\text{key}), \text{value})$$
 
-Question is, how do we define this "distance"?
+The question is, how do we define this "distance"?
 
 ![](linear-attn-loss-functions.png#center)
 
@@ -112,7 +112,7 @@ From here, we can add the tricks we've learned so far from designing optimizers 
 
 - If we pick the negative dot product loss and do online gradient descent, we'll get Vanilla Linear Attention.
   - If we add a data-independent weight decay, we'll get Lightning Attention 2 that's used in the MiniMax-O1 paper.
-  - If we make the weight decay data dependent instead, we'll get Mamba 2 that was all the rave last year.
+  - If we make the weight decay data dependent instead, we'll get Mamba 2 that was all the rage last year.
 - Now, if we pick the Euclidean loss instead, we'll get the Vanilla DeltaNet.
   - If we add a data-dependent weight decay, we'll get Gated DeltaNet.
   - Then we fork from here:
@@ -135,9 +135,9 @@ As a rule of thumb, if you can recast your update rule as an associative operati
     <img src="linear-attn-parallel-training.png" style="width:75%; height:75%;" />
 </div>
 
-Note that there are faster ways to implement DeltaNet's update rule (e.g. WY representations, etc.). We'll discuss that next time!
+Note that there are faster ways to implement DeltaNet's update rule (e.g. WY representations, etc.). We discuss that in the follow-up post [Block Matrix Formulation of Linear Attention Mechanisms](../blockmat-linear-attn/).
 
-### Computational forms of paralleled training
+### Computational forms of parallel training
 
 In practice, how do we actually calculate the running "sums" efficiently? Remember those leetcode job interview data structure questions you hate? Well... this is when they become relevant...
 
@@ -185,8 +185,9 @@ Stay tuned!
 3. Wang, K., Shi, J., Fox., E. (2025). Test-time regression: a unifying framework for designing sequence models with associative memory. URL https://arxiv.org/abs/2501.12352
 4. Yang, S. (2025). What’s Next for Mamba? Towards More Expressive Recurrent Update Rules. URL https://sustcsonglin.github.io/assets/pdf/talk_250117.pdf
 5. Angelos Katharopoulos, Apoorv Vyas, Nikolaos Pappas, and François Fleuret. Transformers are rnns: Fast autoregressive transformers with linear attention. In Proceedings of the 37th International Conference on Machine Learning, ICML 2020, 13-18 July 2020, Virtual Event, volume 119 of Proceedings of Machine Learning Research, pp. 5156–5165. PMLR, 2020b. URL https://proceedings.mlr.press/v119/katharopoulos20a.html.
-4. Tri Dao and Albert Gu. Transformers are SSMs: Generalized models and efficient algorithms through structured state space duality. In Proceedings of the 41st International Conference on MachineLearning, volume 235 of Proceedings of Machine Learning Research, pp. 10041–10071. PMLR, 2024b. URL https://proceedings.mlr.press/v235/dao24a.html.
-5. Songlin Yang, Bailin Wang, Yu Zhang, Yikang Shen, and Yoon Kim (2025). Parallelizing Linear Transformers with the Delta Rule over Sequence Length. URL https://arxiv.org/abs/2406.06484
-6. Songlin Yang, Jan Kautz, Ali Hatamizadeh (2025). Gated Delta Networks: Improving Mamba2 with Delta Rule. URL https://arxiv.org/abs/2412.06464
-7. Weizhe Hua, Zihang Dai, Hanxiao Liu, and Quoc V. Le. Transformer quality in linear time. In Kamalika Chaudhuri, Stefanie Jegelka, Le Song, Csaba Szepesvári, Gang Niu, and Sivan Sabato (eds.), International Conference on Machine Learning, ICML 2022, 17-23 July 2022, Baltimore, Maryland, USA, volume 162 of Proceedings of Machine Learning Research, pp. 9099–9117. PMLR, 2022b. URL https://proceedings.mlr.press/v162/hua22a.html.
-8. Yutao Sun, Li Dong, Shaohan Huang, Shuming Ma, Yuqing Xia, Jilong Xue, Jianyong Wang, and Furu Wei. Retentive network: A successor to transformer for large language models. ArXiv preprint, abs/2307.08621, 2023. URL https://arxiv.org/abs/2307.08621.
+6. Tri Dao and Albert Gu. Transformers are SSMs: Generalized models and efficient algorithms through structured state space duality. In Proceedings of the 41st International Conference on MachineLearning, volume 235 of Proceedings of Machine Learning Research, pp. 10041–10071. PMLR, 2024b. URL https://proceedings.mlr.press/v235/dao24a.html.
+7. Songlin Yang, Bailin Wang, Yu Zhang, Yikang Shen, and Yoon Kim (2025). Parallelizing Linear Transformers with the Delta Rule over Sequence Length. URL https://arxiv.org/abs/2406.06484
+8. Songlin Yang, Jan Kautz, Ali Hatamizadeh (2025). Gated Delta Networks: Improving Mamba2 with Delta Rule. URL https://arxiv.org/abs/2412.06464
+9. Weizhe Hua, Zihang Dai, Hanxiao Liu, and Quoc V. Le. Transformer quality in linear time. In Kamalika Chaudhuri, Stefanie Jegelka, Le Song, Csaba Szepesvári, Gang Niu, and Sivan Sabato (eds.), International Conference on Machine Learning, ICML 2022, 17-23 July 2022, Baltimore, Maryland, USA, volume 162 of Proceedings of Machine Learning Research, pp. 9099–9117. PMLR, 2022b. URL https://proceedings.mlr.press/v162/hua22a.html.
+10. Yutao Sun, Li Dong, Shaohan Huang, Shuming Ma, Yuqing Xia, Jilong Xue, Jianyong Wang, and Furu Wei. Retentive network: A successor to transformer for large language models. ArXiv preprint, abs/2307.08621, 2023. URL https://arxiv.org/abs/2307.08621.
+11. Franz Louis Cesista (2025). Block Matrix Formulation of Linear Attention Mechanisms. URL https://leloykun.github.io/ponder/blockmat-linear-attn/

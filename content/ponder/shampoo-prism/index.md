@@ -38,7 +38,7 @@ $$\begin{align}
         &= (1 - \eta\lambda) W_t - \eta \texttt{LMO}_{\| \cdot \|}(M_t). \label{eq:lmo_solution}
 \end{align}$$
 
-Specializing to the spectral norm $\| \cdot \|_{2 \to 2}$ then yields the Muon optimizer ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)),
+Specializing to the spectral norm $\| \cdot \|_{2 \to 2}$ then yields the Muon optimizer ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)), as discussed in [Ponder: Steepest Descent Under Schatten-p Norms](../steepest-descent-schatten-p/),
 $$\begin{align}
     W_{t+1}
         &= (1 - \eta\lambda) W_t - \eta \cdot \texttt{msign}(M_t) \label{eq:muon_update} \\
@@ -235,6 +235,7 @@ def shampoo_prism(M: jax.Array, D: jax.Array, *, gamma_L=0.0, gamma_R=0.0, eps_g
 5. Vineet Gupta, Tomer Koren, Yoram Singer (2018). Shampoo: Preconditioned Stochastic Tensor Optimization. URL https://arxiv.org/abs/1802.09568
 6. Jianlin Su (2025). Efficient Calculation of Matrix Square Root and Inverse Square Root. URL https://kexue.fm/archives/11158
 7. Jianlin Su (2025). Efficient Calculation of Matrix r-th Roots and Inverse r-th Roots. URL https://rohin-garg.github.io/kexue-en/translations/translation_11175.html
+8. Franz Louis Cesista (2025). Steepest Descent Under Schatten-p Norms. URL https://leloykun.github.io/ponder/steepest-descent-schatten-p/
 
 ## Appendix
 

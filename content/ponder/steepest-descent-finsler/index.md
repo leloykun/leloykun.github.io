@@ -23,7 +23,7 @@ editPost:
 
 In this blog post, we shall consider the problem of steepest descent on [Finsler-structured (matrix) manifolds](https://en.wikipedia.org/wiki/Finsler_manifold). This problem naturally arises in deep learning optimization because we want model training to be *fast* and *robust*. That is, we want our weight updates to maximally change activations (or outputs) while keeping both activations and weights stable.
 
-As discussed in [prior](../steepest-descent-opt/) [blog](../steepest-descent-non-riemannian/) [posts](../steepest-descent-finsler/) and our [latest paper](https://arxiv.org/abs/2507.13338), we can achieve this by properly considering the geometry in which to 'place' our weights in. This then begs the questions,
+As discussed in [prior work on optimizer geometry](../steepest-descent-opt/) and [a previous survey](../steepest-descent-non-riemannian/), as well as our [latest paper](https://arxiv.org/abs/2507.13338), we can achieve this by properly considering the geometry in which to 'place' our weights in. This then begs the questions,
 
 1. *Which* geometry should we 'place' our weights in? And,
 2. *How* do we perform optimization in this geometry?
@@ -49,7 +49,7 @@ Following [Bernstein & Newhouse (2024)](https://arxiv.org/abs/2409.20325), here 
 
 But why choose the Spectral norm in the first place? Why not the simpler Frobenius norm?
 
-As we discussed in previous [blog](../steepest-descent-non-riemannian/) [posts](../steepest-descent-finsler/),
+As we discussed in a [previous post](../steepest-descent-non-riemannian/),
 > If we want the "natural" norm of our features and feature updates to be stable regardless of the model size,
 > then the "natural" norm of our weights and weight updates must also be stable regardless of the model size.
 
@@ -75,7 +75,7 @@ The problem Jeremy, Jianlin, and I have been trying to solve then is this:
     A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \| A \|_{2 \to 2} \leq 1,\quad A \in T_{W}\texttt{St}(m, n)
 \end{equation}$$
 
-Inspired by a partial solution by Jianlin (which did not yet work at the time), I proposed [heuristic solutions here](../steepest-descent-stiefel/). Jianlin then [solved the problem](https://kexue.fm/archives/11221) via a fixed-point iteration method. Finally, Jeremy proposed a [more general solution](https://docs.modula.systems/algorithms/manifold/stiefel/) via the dual ascent algorithm. [Cédric Simal](https://scholar.google.com/citations?user=Vo3M-WIAAAAJ&hl) also independently proposed studying the dual problem to me and Jeremy.
+Inspired by a partial solution by Jianlin (which did not yet work at the time), I proposed [heuristic solutions here](../steepest-descent-stiefel/). Jianlin then [solved the problem](https://kexue.fm/archives/11221) via a fixed-point iteration method. Finally, Jeremy proposed a [more general solution](https://docs.modula.systems/algorithms/manifold/stiefel/) via the dual ascent algorithm. For a later internal follow-up on this broader dual-ascent viewpoint, see [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent](../steepest-descent-finsler-dual-ascent/). [Cédric Simal](https://scholar.google.com/citations?user=Vo3M-WIAAAAJ&hl) also independently proposed studying the dual problem to me and Jeremy.
 
 ## 3. General solution via block-wise Primal-Dual Hybrid Gradient (PDHG) algorithm
 
@@ -460,3 +460,5 @@ Big thanks to Jeremy Bernstein, Cédric Simal, and Antonio Silveti-Falls for pro
 6. Greg Yang, James B. Simon, Jeremy Bernstein (2024). A Spectral Condition for Feature Learning. URL https://arxiv.org/abs/2310.17813
 7. ODL (2020). Primal-Dual Hybrid Gradient Algorithm (PDHG). URL https://odlgroup.github.io/odl/math/solvers/nonsmooth/pdhg.html
 8. Jeremy Bernstein (2025). The Modula Docs. URL https://docs.modula.systems/
+9. Franz Cesista (2025). Heuristic Solutions for Steepest Descent on the Stiefel Manifold. URL https://leloykun.github.io/ponder/steepest-descent-stiefel/
+10. Franz Cesista (2025). Rethinking Maximal Update Parametrization: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent. URL https://leloykun.github.io/ponder/steepest-descent-finsler-dual-ascent/

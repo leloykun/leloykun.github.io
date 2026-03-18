@@ -3,13 +3,13 @@ title: "Critical Batch Size for Steepest Descent Under Arbitrary Norms"
 date: 2025-11-22
 tags: ["Machine Learning", "Optimizers"]
 author: ["Franz Louis Cesista", "Kaiyue Wen"]
-description: "First-order optimization under arbitrary norms with Nesterov momentum (and decoupled weight decay) yields a universal critical batch size formula. The square root learning rate scaling rule with batch size also holds universally across all norms."
-summary: "First-order optimization under arbitrary norms with Nesterov momentum (and decoupled weight decay) yields a universal critical batch size formula. The square root learning rate scaling rule with batch size also holds universally across all norms."
+description: "First-order optimization under arbitrary norms with Nesterov momentum (and decoupled weight decay) yields universal critical batch size scaling laws. Under an additional local-LMO assumption, the same analysis also heuristically supports square-root learning-rate scaling with batch size."
+summary: "First-order optimization under arbitrary norms with Nesterov momentum (and decoupled weight decay) yields universal critical batch size scaling laws. Under an additional local-LMO assumption, the same analysis also heuristically supports square-root learning-rate scaling with batch size."
 ---
 
 ## 0. Abstract
 
-This work generalizes prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598) on the critical batch size for the Muon optimizer [(Jordan et al., 2025)](https://kellerjordan.github.io/posts/muon/) to steepest descent under arbitrary norms with Nesterov momentum and weight decay. We show that (1) the same critical batch size formula, and (2) the square root learning rate scaling rule with batch size, holds universally across all norms. These results are useful for large-scale LLM training because they reduce the need for expensive hyperparameter tuning when switching between different optimizers and when scaling up batch sizes.
+This work generalizes prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598) on the critical batch size for the Muon optimizer [(Jordan et al., 2025)](https://kellerjordan.github.io/posts/muon/) to steepest descent under arbitrary norms with Nesterov momentum and weight decay. We show that (1) the same critical batch size scaling law extends across arbitrary norms, and (2) under an additional local-LMO assumption, the same analysis heuristically supports the square root learning rate scaling rule with batch size. These results are useful for large-scale LLM training because they reduce the need for expensive hyperparameter tuning when switching between different optimizers and when scaling up batch sizes.
 
 ## 1. Introduction and preliminaries
 
@@ -438,7 +438,7 @@ $$\begin{align}
 > **Corollary 11 (Expected Nesterov momentum error bounds w/ weight decay).** Under the same assumptions as Corollary 7, for arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, and any $t \geq 0$,
 $$\begin{align}
     &\mathbb{E}\left[\| \nabla f(W_t) - C_t \|^{\dagger} \right] \nonumber \\
-        &\qquad\leq \beta^{t+1} \frac{1}{T} \| \nabla f(W_0) \|^{\dagger}
+        &\qquad\leq \beta^{t+1} \| \nabla f(W_0) \|^{\dagger}
             + \frac{2 \beta^2}{1 - \beta} L \eta
             + \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}}
 \end{align}$$
@@ -503,7 +503,7 @@ $$\begin{align}
 
 ---
 
-> **Theorem 14 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4), star-convexity of $f$ at $W_*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have constants $X, Y, Z > 0$ such that,
+> **Theorem 14 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4), star-convexity of $f$ at $W_*$, the bounded-weight conditions $\| W_0 \| \leq \frac{1}{\lambda}$ and $\| W_* \| \leq \frac{1}{\lambda}$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have constants $X, Y, Z > 0$ such that,
 $$\begin{align}
     \mathbb{E}\left[ f(W_T) - f(W_*) \right]
         &\leq (1 - \lambda\eta)^T X + \frac{Y}{\sqrt{b}} + Z
@@ -616,7 +616,7 @@ $$\begin{align}
 
 ### 4.1. Critical batch size for steepest descent without weight decay
 
-> **Theorem 15 (Critical batch size for steepest descent under arbitrary norms with Nesterov momentum without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach $\epsilon$-convergence in terms of generalized expected stationarity is given by,
+> **Theorem 15 (Critical batch size scaling for steepest descent under arbitrary norms with Nesterov momentum without weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach $\epsilon$-convergence in terms of generalized expected stationarity scales as,
 $$\begin{align}
     b_{crit}
         &= \mathcal{O}\left( (1 - \beta) \frac{D\sigma^2}{\epsilon'} \right)
@@ -636,21 +636,19 @@ $$\begin{align}
     \frac{X\sqrt{b}}{\sqrt{\epsilon' b} - Y} &\leq T \nonumber \\
     \frac{X\sqrt{b}}{\sqrt{\epsilon' b} - Y} &=: T(b)
 \end{align}$$
-Note that we also have to constrain $b > \frac{Y^2}{\epsilon'}$ to ensure that $T(b) > 0$. Taking the first and second derivatives then yields,
+Note that we also have to constrain $b > \frac{Y^2}{\epsilon'}$ to ensure that $T(b) > 0$. Taking the first derivative then yields,
 $$\begin{align}
-    T'(b) &= -\frac{XY}{2 \sqrt{b} (\sqrt{\epsilon' b} - Y)^2} \leq 0 \nonumber \\
-    T''(b) &= \frac{XY(3\sqrt{\epsilon' b} - Y)}{4b^{3/2}(\sqrt{\epsilon' b} - Y)^3} \geq 0 \nonumber
+    T'(b) &= -\frac{XY}{2 \sqrt{b} (\sqrt{\epsilon' b} - Y)^2} < 0 \nonumber
 \end{align}$$
-Thus, $T(b)$ is a monotonically decreasing and convex function for $b > \frac{Y^2}{\epsilon'}$.
+Thus, $T(b)$ is a monotonically decreasing function for $b > \frac{Y^2}{\epsilon'}$.
 
 Now, the number of tokens we need to process to reach $\epsilon$-convergence is roughly proportional to,
 $$\text{SFO}(b) := b \cdot T(b) = \frac{Xb^{3/2}}{\sqrt{\epsilon' b} - Y}$$
-Taking the first and second derivatives again yields,
+Taking the first derivative again yields,
 $$\begin{align}
-    \text{SFO}'(b) &= \frac{X\sqrt{b}(2\sqrt{\epsilon' b} - 3Y)}{2(\sqrt{\epsilon' b} - Y)^2} \nonumber \\
-    \text{SFO}''(b) &= \frac{XY (3Y - \sqrt{\epsilon' b})}{4\sqrt{b}(\sqrt{\epsilon' b} - Y)^3} \geq 0 \nonumber
+    \text{SFO}'(b) &= \frac{X\sqrt{b}(2\sqrt{\epsilon' b} - 3Y)}{2(\sqrt{\epsilon' b} - Y)^2} \nonumber
 \end{align}$$
-Thus, $b \cdot T(b)$ is a convex function for $b > \frac{Y^2}{\epsilon'}$, with a minimizer $b^* = \frac{9Y^2}{4\epsilon'}$. This gives us the critical batch size,
+For $b > \frac{Y^2}{\epsilon'}$, the denominator is positive, so $\text{SFO}'(b)$ changes sign exactly once, at $b^* = \frac{9Y^2}{4\epsilon'}$. This gives us the critical batch size,
 $$\begin{align}
     b_{crit}
         &= 9 \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right)^2 \frac{D \sigma^2}{\epsilon'} \nonumber \\
@@ -659,7 +657,7 @@ $$\begin{align}
 
 ### 4.2. Critical batch size for steepest descent with decoupled weight decay
 
-> **Theorem 16 (Critical batch size for steepest descent under arbitrary norms with Nesterov momentum and decoupled weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, the critical batch size $b_{crit}$ that minimizes the total number of tokens processed to reach $\epsilon$-convergence in terms expected suboptimality is given by,
+> **Theorem 16 (Critical batch size scaling for steepest descent under arbitrary norms with Nesterov momentum and decoupled weight decay).** Let $W_t$ be the weight at time step $t$ updated according to Equation $\eqref{eq:updateweightdecay}$ with weight decay parameter $\lambda$ and step size $\eta > 0$ such that $\lambda \eta \leq 1$, $\| W_0 \| \leq \frac{1}{\lambda}$, and $M_0 = 0$. Then for an arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, any interior critical batch size $b_{crit}$ of the total-token objective associated with expected suboptimality obeys the scaling law,
 $$\begin{align}
     b_{crit}
         &= \mathcal{O}\left( \frac{1 - \beta}{\lambda^2} \frac{D\sigma^2}{\epsilon'} \right)
@@ -709,27 +707,20 @@ Now, the number of tokens we need to process to reach $\epsilon$-convergence is 
 $$\text{SFO}(b) := b \cdot T(b) = \frac{b}{\lambda\eta} \ln \left( \frac{X}{\sqrt{\epsilon'} - \frac{Y}{\sqrt{b}}} \right)$$
 Minimizing this is equivalent to minimizing,
 $$\phi(s) = s^2 \ln \left( \frac{X}{\sqrt{\epsilon'} - \frac{Y}{s}} \right)$$
-Taking the first and second derivatives yields,
+Taking the first derivative yields,
 $$\begin{align}
     \phi'(s)
-        &= 2s \ln \left( \frac{Xs}{\sqrt{\epsilon'}s - Y} \right) - \frac{Y s}{\sqrt{\epsilon'} s - Y} \nonumber \\
-    \phi''(s)
-        &= 2 \ln \left( \frac{Xs}{\sqrt{\epsilon'}s - Y} \right) + \frac{Y (3Y - 2\sqrt{\epsilon'}s)}{(\sqrt{\epsilon'} s - Y)^2} > 0 \nonumber
+        &= 2s \ln \left( \frac{Xs}{\sqrt{\epsilon'}s - Y} \right) - \frac{Y s}{\sqrt{\epsilon'} s - Y} \nonumber
 \end{align}$$
-Thus, $\phi(s)$ is a convex function for $s > \frac{Y}{\sqrt{\epsilon'}}$ (and thus so is $\text{SFO}(b)$ for $b > \frac{Y^2}{\epsilon'}$). To get the minimizer, we set $\phi'(s) = 0$ and rearrange to get,
+Any interior critical point therefore must satisfy,
 $$\begin{equation}
     2 \ln \left( \frac{Xs}{\sqrt{\epsilon'}s - Y} \right) = \frac{Y}{\sqrt{\epsilon'} s - Y} \label{eq:wd-crit-bz-deriv-eq}
 \end{equation}$$
-Now, let $u = \frac{Y}{\sqrt{\epsilon'}s - Y}$. Then, rearranging Equation $\eqref{eq:wd-crit-bz-deriv-eq}$ gives,
+Now, let $u = \frac{Y}{\sqrt{\epsilon'}s - Y}$. Then Equation $\eqref{eq:wd-crit-bz-deriv-eq}$ becomes,
 $$\begin{equation}
     u = 2 \ln\left( \frac{X}{\sqrt{\epsilon'}} (u+1) \right)
 \end{equation}$$
-which has a solution via the Lambert $W$ function,
-$$\begin{equation}
-    u^* = -2 W_{-1} \left( -\frac{\sqrt{\epsilon'}}{2X}e^{-1/2} \right) - 1 > 1
-\end{equation}$$
-
-From the definition of $u$, solving for $s$ then yields,
+Let $u^* > 1$ denote the positive solution corresponding to such an interior critical point. From the definition of $u$, solving for $s$ then yields,
 $$\begin{align}
     u^*
         &= \frac{Y}{\sqrt{\epsilon'}s - Y} \nonumber \\
@@ -752,7 +743,7 @@ Optimizers we use in practice can be viewed as performing steepest descent under
 | SignSGD/AdamW | $\| \cdot \|_{\infty}$  | $\| \cdot \|_{1}$          | $\approx 1$ |
 | Muon/SOAP     | $\| \cdot \|_{2 \to 2}$ | $\| \cdot \|_{\text{nuc}}$ | $\approx 1$ |
 
-See [Appendix A1](#a1-jax-code-to-estimate-d-smoothness) for the JAX code to estimate $D$-smoothness for steepest descent under various norms. We also take into account the fact that gradients in large-scale LLM training naturally have low stable rank structure. Empirically, $D \approx 1$ for SignSGD/AdamW and Muon/SOAP even for high-dimensional weight matrices, indicating that the critical batch size do not depend on the width and chosen norm. Thus, we can further reduce the critical batch size formulas to,
+See [Appendix A1](#a1-jax-code-to-estimate-d-smoothness) for the JAX code to estimate $D$-smoothness for steepest descent under various norms. We also take into account the fact that gradients in large-scale LLM training naturally have low stable rank structure. Empirically, $D \approx 1$ for SignSGD/AdamW and Muon/SOAP even for high-dimensional weight matrices, suggesting that the critical batch size depends only weakly on the width and chosen norm. Under this empirical simplification, the scaling laws reduce to,
 $$\begin{align}
     b_{crit}
         &= \mathcal{O} \left( (1 - \beta) \frac{\sigma^2}{\epsilon'} \right) \quad\text{(without weight decay)} \\
@@ -762,7 +753,7 @@ $$\begin{align}
 
 ## 5. Learning rate scaling with batch size and training horizon
 
-In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto \sqrt{b}$ when increasing the batch size $b$, regardless of the optimizer used. Here we provide a mathematical justification *why*. The crux is that increasing the batch size reduces the gradient noise variance, which in turn means that we can make larger weight updates without destabilizing training.
+In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto \sqrt{b}$ when increasing the batch size $b$, regardless of the optimizer used. Here we provide a heuristic justification *why*. The crux is that increasing the batch size reduces the gradient noise variance, which in turn means that we can make larger weight updates without destabilizing training.
 
 To see this, we first make the following assumption.
 
@@ -773,9 +764,9 @@ $$\begin{equation}
 
 Then, we have the following result.
 
-> **Proposition 18 (Weight update noise variance is proportional to $\eta^2/b$).** Let $\eta > 0$ be the learning rate and $b \geq 1$ be the batch size. Under Assumptions 1-4 and Assumption (17) and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
+> **Proposition 18 (Heuristic weight update noise scaling).** Let $\eta > 0$ be the learning rate and $b \geq 1$ be the batch size. Under Assumptions 1-4 and Assumption (17) and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we heuristically expect,
 $$\begin{equation}
-    \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] \propto \frac{\eta^2}{b}
+    \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] = \mathcal{O}\left(\frac{\eta^2}{b}\right)
 \end{equation}$$
 
 **Proof.** We can decompose our weight update rule in Equation $\eqref{eq:updateweightdecay}$ into deterministic and stochastic components as follows,
@@ -784,23 +775,23 @@ $$\begin{equation}
 \end{equation}$$
 where $A_t^* = A_t^{\text{det}} + A_t^{\text{noise}}$ is the decomposition of the steepest descent direction into its deterministic and stochastic components.
 
-Taking norms and expectations, and using Corollary 11 then yields,
+Heuristically, if the first-moment control from Corollary 11 extends to the corresponding second moment, then taking norms and expectations yields,
 $$\begin{align}
     \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right]
         &= \eta^2 \mathbb{E} \left[ \| A_t^{\text{noise}} \|^2 \right] \nonumber \\
         &= \eta^2 \mathbb{E} \left[ \| A_t^* - A_t^{\text{det}} \|^2 \right] \nonumber \\
         &\lesssim \eta^2 L_{\text{LMO}}^2 \mathbb{E} \left[ \| C_t - \nabla f(W_t) \|^{\dagger 2} \right] \nonumber \\
         &\lesssim \eta^2 L_{\text{LMO}}^2 \frac{(3 \beta + 1) (1 - \beta)}{1 + \beta} \frac{D \sigma^2}{b} + O\left(\frac{1}{T} + 1 \right) \nonumber \\
-        &\propto \frac{\eta^2}{b} \quad\blacksquare \nonumber
+        &= \mathcal{O}\left(\frac{\eta^2}{b}\right) \qquad\blacksquare \nonumber
 \end{align}$$
 
-> **Lemma 19 (Learning rate scaling law w.r.t. batch size and training horizon).** Let $\eta$ be the learning rate, $b$ be the batch size, and $T$ be the training horizon. Then, under Assumptions 1-4, and 17, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$ to descend under, we have the following learning rate scaling law:
+> **Lemma 19 (Heuristic learning rate scaling law w.r.t. batch size and training horizon).** Let $\eta$ be the learning rate, $b$ be the batch size, and $T$ be the training horizon. Then, under Assumptions 1-4, and 17, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$ to descend under, the heuristic noise-budget argument above suggests the following learning rate scaling law:
 $$\begin{align}
     \eta_{\text{new}}
         &= \eta_{\text{old}} \sqrt{\frac{b_{\text{new}} / b_{\text{old}}}{T_{\text{new}} / T_{\text{old}}}}
 \end{align}$$
 
-**Proof.** From Assumption 1, the noise variance in Proposition 18 must be additive over $T$ steps, and we have,
+**Proof.** Following the heuristic noise-budget argument in Proposition 18, and assuming the noise variance is additive over $T$ steps, we have,
 $$\begin{align}
     \mathbb{E} \left[ \left\| \sum_{t=0}^{T-1} \Delta W_t^{\text{noise}} \right\|^2 \right]
         &= \sum_{t=0}^{T-1} \mathbb{E} \left[ \| \Delta W_t^{\text{noise}} \|^2 \right] \nonumber \\
@@ -818,19 +809,19 @@ This means that, e.g., if we $4\times$ the batch size while maintaining $T$, the
 
 ## 6. Experiments
 
-### 6.1. AdamW and Muon have the same critical batch size
+### 6.1. AdamW and Muon appear to have the same critical batch size
 
 ![](crit-bz-muon-vs-adamw.jpg#center)
 
 Here we train a 130M parameter Llama-based Transformer model using both AdamW and Muon optimizers for 1 Chinchilla. We sweep over batch sizes from $2^{18}$ to $2^{22}$ tokens, and for each batch size, we scale the learning rate $\eta$ as $\eta = \eta_0 \sqrt{b / b_0}$ (Equation $\eqref{eq:lr-bz-scaling}$), where $b_0 \approx 2^{19}$ and $\eta_0$ is the optimal learning rate found for $b_0$ for each optimizer ([Wen et al., 2025](https://arxiv.org/abs/2509.02046v1)). We then plot the validation loss against the batch size in the figure above.
 
-We see that both AdamW and Muon reach the same loss for batch sizes up to $2^{19}$ tokens, after which both optimizers start to degrade in performance. This provides empirical evidence that AdamW and Muon have the same critical batch size, consistent with our theoretical results. Interestingly, we also see that Muon is more stable at larger batch sizes, which is consistent with prior work ([Essential AI Team, 2025](https://arxiv.org/abs/2505.02222); [Ahn et al., 2025](https://arxiv.org/abs/2504.05295); [Pethick et al., 2025](https://arxiv.org/abs/2502.07529)). This will be an interesting direction for future work.
+We see that both AdamW and Muon reach the same loss for batch sizes up to $2^{19}$ tokens, after which both optimizers start to degrade in performance. This provides empirical evidence that AdamW and Muon have similar critical batch sizes, consistent with the scaling laws above. Interestingly, we also see that Muon is more stable at larger batch sizes, which is consistent with prior work ([Essential AI Team, 2025](https://arxiv.org/abs/2505.02222); [Ahn et al., 2025](https://arxiv.org/abs/2504.05295); [Pethick et al., 2025](https://arxiv.org/abs/2502.07529)). This will be an interesting direction for future work.
 
 ### 6.2. Square Root Learning Rate Scaling is Effective
 
 ![](lr-bz-scaling.png#center)
 
-Here we show that the square root learning rate scaling rule as in Equation $\eqref{eq:lr-bz-scaling}$ is effective for both AdamW and Muon optimizers. We train a 130M parameter Llama-based Transformer model using both optimizers for 8 Chinchilla, sweeping over learning rates and batch sizes. We then plot the validation loss against the learning rate & batch size in the figure above. Notice that the optimal $(\eta, \sqrt{b})$ pair remains roughly constant for both optimizers, confirming the effectiveness of the square root learning rate scaling rule.
+Here we show that the heuristic square root learning rate scaling rule in Equation $\eqref{eq:lr-bz-scaling}$ is effective for both AdamW and Muon optimizers. We train a 130M parameter Llama-based Transformer model using both optimizers for 8 Chinchilla, sweeping over learning rates and batch sizes. We then plot the validation loss against the learning rate & batch size in the figure above. Notice that the optimal $(\eta, \sqrt{b})$ pair remains roughly constant for both optimizers, supporting the effectiveness of the square root learning rate scaling rule.
 
 ## 7. Discussion
 
@@ -843,12 +834,12 @@ $$\begin{align}
 \end{align}$$
 are universal across all norms used for steepest descent. In fact, for preconditioned steepest descent or steepest descent under norms induced by inner products, $D = 1$ and thus the bounds are exactly the same. And for non-inner-product norms like $\| \cdot \|_{\infty}$ and $\| \cdot \|_{2 \to 2}$, $D \approx 1$ empirically makes the bounds approximately the same as well.
 
-As a consequence, the critical batch size formulas for with and without weight decay:
+As a consequence, the critical batch size scaling laws with and without weight decay:
 $$\begin{align}
     b_{crit} &= \mathcal{O}\left( (1 - \beta) \frac{\sigma^2}{\epsilon'} \right) \quad \text{w/o weight decay} \\
     b_{crit} &= \mathcal{O}\left( \frac{1 - \beta}{\lambda^2} \frac{\sigma^2}{\epsilon'} \right) \quad \text{w/ decoupled weight decay}
 \end{align}$$
-also hold universally across all norms. We have also provided empirical evidence that AdamW and Muon have the same critical batch size in practice, consistent with our theoretical results. This matches prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598) that the critical batch size formula transfers between AdamW and Muon, but now we have shown that it potentially transfers to *all* first-order optimizers that can be interpreted as performing steepest descent under some norm.
+extend across all norms under the assumptions above. We have also provided empirical evidence that AdamW and Muon have similar critical batch sizes in practice, consistent with these scaling laws. This matches prior results by [Sato et al. (2025)](https://arxiv.org/abs/2507.01598) that the critical batch size scaling transfers between AdamW and Muon, and suggests that it may transfer more broadly to first-order optimizers that can be interpreted as performing steepest descent under some norm.
 
 Also notice that $b_{crit} \to 0$ as $\beta \to 1$, which is expected since high momentum increases the effective batch size (or the "lifetime" of gradient estimates). Lastly, there is also a "phase transition" when adding weight decay. And with weight decay, the critical batch size scales with the square of the 'effective constraint radius' ($\frac{1}{\lambda}$) of the weights.
 

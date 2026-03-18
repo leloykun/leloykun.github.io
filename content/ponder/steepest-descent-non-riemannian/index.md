@@ -28,10 +28,10 @@ This work is a selective survey of latest advancements in deep learning optimiza
 1. In Sections 1 and 3, we formalize Steepest Descent in Riemannian and non-Riemannian manifolds, and how different choices of norms lead to different classes of deep learning optimization algorithms.
 2. We also formalize the connection between preconditioners in optimizers and the metric tensor in Riemannian steepest descent, and how we can use this to develop more robust intuitions on optimizer design such as when to update the preconditioner.
 3. We also discuss the connection between preconditioners and dualizers in optimizers, and when to use one over the other.
-4. We also show that the optimizer CASPR (Surya et al., 2024) reduces to Muon when accumulation on the (left and right) preconditioners is disabled.
+4. We also show that the optimizer CASPR (Surya et al., 2024) reduces to Muon when accumulation on the (left and right) preconditioners is disabled, as discussed in more detail in [Ponder: CASPR Without Accumulation is Muon](../caspr-wo-accum-is-muon/).
 5. In Sections 2 and 4, we motivate the Muon optimizer from first principles, and show how it can be viewed as a steepest descent under the spectral norm. We also discuss many possible reasons why it works so well in practice, despite not fitting in with more established intuitions in the field.
-6. In Section 6, we dicuss how to further improve Muon by optimizing the coefficients of the Newton-Schulz iteration. We also discuss how to use Muon to improve itself. And finally,
-7. In Section 7, we discuss convergence guarantees for Muon.
+6. In Section 6, we discuss how to further improve Muon by optimizing the coefficients of the Newton-Schulz iteration; see also [Ponder: Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients](../muon-opt-coeffs/). We also discuss how to use Muon to improve itself. And finally,
+7. In Section 7, we discuss convergence guarantees for Muon; see also [Ponder: Napkin Math on Non-Euclidean Trust Region Optimization](../napkin-math-trust-region-opt/), [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), and [Ponder: Convergence Bounds for Steepest Descent Under Arbitrary Norms](../steepest-descent-convergence/).
 
 ## 1. Preliminaries
 
@@ -295,7 +295,7 @@ $$
 where $\nabla\mathcal{L}(W)$ is the gradient of $\mathcal{L}$ at $W$, and $\langle \cdot, \cdot \rangle$ is the inner product that induces the norm $\|\cdot\|$.
 Using standard arguments, we can show that,
 $$\mathcal{L}(W + \Delta W) \leq \mathcal{U}(\Delta W; W),\quad\quad\Delta W \in T_W\mathcal{W}$$
-as long as $\lambda \leq L$ (Hunter et al., 2004), where $L$ is the Lipschitz constant from Assumption 2.
+as long as $\lambda \geq L$ (Hunter et al., 2004), where $L$ is the Lipschitz constant from Assumption 2.
 
 A natural strategy to (iteratively) minimize $\mathcal{L}$ from point $W \in \mathcal{W}$ then is to (iteratively) minimize the majorant $\mathcal{U}(\cdot; W)$. And as discussed by Carlson et al. (2015), the spectral norm gives us a very tight upper bound and is thus a good choice. In fact, the spectral norm gives the tightest bound among all the Schatten-$p$ norms (the Frobenius norm included). And just as importantly, Equation (5) above has a simple, closed-form solution for the spectral norm as we will discuss in Section 4.
 
@@ -616,7 +616,7 @@ which is Muon's update rule. $\blacksquare$
 
 **4.2.4. PSGD Family. [Under Review]** This family of optimizers (Li, 2015 & 2018; Pooladzandi, 2024) explicitly tries to learn the preconditioner $\mathcal{P}(\cdot; W)$ according to some criterion to ensure training stability and, potentially, faster convergence.  This criterion is involved with the noise suppression gain which is defined as,
 $$
-\text{noise\_suppresion\_gain}_{\|\cdot\|_F}(P)
+\text{noise\_suppression\_gain}_{\|\cdot\|_F}(P)
     = \frac{\mathbb{E}[\|H_0^{-1}\epsilon'\|_F^2]}{\mathbb{E}[\|P\epsilon'\|_F^2]}
     = \frac{\mathbb{E}[(\epsilon')^T H_0^{-2} \epsilon']}{\mathbb{E}[(\epsilon')^T P^2 \epsilon']},
 $$
@@ -626,10 +626,12 @@ We get different update rules depending on which Lie group we restrict the preco
 
 For future work, it would also be interesting to see what kind of update rules we get if we measure the noise suppression gain with respect to the spectral norm instead of the Frobenius norm. That is,
 $$
-\text{noise\_suppresion\_gain}_{\|\cdot\|_{2\to 2}}(P) = \frac{\mathbb{E}[\|H_0^{-1}\epsilon'\|_{2\to 2}]}{\mathbb{E}[\|P\epsilon'\|_{2\to 2}]}
+\text{noise\_suppression\_gain}_{\|\cdot\|_{2\to 2}}(P) = \frac{\mathbb{E}[\|H_0^{-1}\epsilon'\|_{2\to 2}]}{\mathbb{E}[\|P\epsilon'\|_{2\to 2}]}
 $$
 
 ## 5. Steepest Descent under Elementwise $p$-Norms and Schatten-$p$ Norms
+
+For a standalone treatment of this section, see [Ponder: Steepest Descent Under Schatten-p Norms](../steepest-descent-schatten-p/).
 
 > **Definition 2 (Vector $p$-Norms).** Given $p \in [1, \infty]$, the vector $p$-norm of a finite-dimensional, real-valued vector $x \in \mathbb{R}^n$ is defined as,
 > $$
@@ -691,14 +693,15 @@ $$
 
 ### 5.1. Dualizers for Elementwise $p$-Norms and Schatten-$p$ Norms
 
-> **Proposition 7.** Given $p = [1, \infty]$, the dualizer for the Schatten-$p$ norm is:
+> **Proposition 7.** Let $X = U \Sigma V^T$ be the singular value decomposition of $X$, let $\sigma_1(X)$ have multiplicity $r$, and let $U_{\max} \in \mathbb{R}^{m \times r}$ and $V_{\max} \in \mathbb{R}^{n \times r}$ be orthonormal bases for the top singular subspaces of $X$. Then a dualizer for the Schatten-$p$ norm can be chosen as:
 $$
-\text{dualizer}_{\|\cdot\|_{S_p}}(X) = \begin{cases}
-    U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T & \text{if } 1 \leq p < \infty\newline
+\text{dualizer}_{\|\cdot\|_{S_p}}(X) \in \begin{cases}
+    U_{\max} H V_{\max}^T,\quad H \succeq 0,\ \text{tr}(H) = 1 & \text{if } p = 1\newline
+    U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T & \text{if } 1 < p < \infty\newline
     UV^T & \text{if } p = \infty
 \end{cases}
 $$
-where $\frac{1}{p} + \frac{1}{q} = 1$, and $X = U\Sigma V^T$ is the singular value decomposition of $X \in \mathbb{R}^{m \times n}$.
+where $\frac{1}{p} + \frac{1}{q} = 1$ in the middle case.
 > 
 > **Proof:** For a given $X \in T_W\mathcal{W}$ at $W \in \mathcal{W}$, let $T^* \in T_W\mathcal{W}$ be,
 $$
@@ -708,19 +711,32 @@ $$
     T^* &= \arg\max_{\substack{T \in T_W\mathcal{W}\newline \|T\|_{S_p} = 1}} \text{tr}(X^T T)
 \end{align*}
 $$
-Then from von Neumann's Trace Inequality, we know that $T^*$ must share singular vectors with $X$ and that,
+Then from von Neumann's Trace Inequality, we know that some maximizer must share singular vectors with $X$ and that,
 $$
 \begin{align*}
     T^* &= \arg\max_{\substack{T \in T_W\mathcal{W}\newline \|T\|_{S_p} = 1}} \sum_{i=1}^{\min(m,n)} \sigma_i(X) \sigma_i(T)\newline
     T^* &= \arg\max_{\substack{T \in T_W\mathcal{W}\newline \|\sigma(T)\|_{p} = 1}} \langle \sigma(X), \sigma(T) \rangle_F
 \end{align*}
 $$
-Thus, our optimization problem reduces to,
-$$\arg\max_{\sigma(T)} \sum_{i=1}^{\min(m,n)} \sigma_i(X) \sigma_i(T) \quad\text{s.t.}\quad \sum_{i=1}^{\min(m,n)} \sigma_{i}(T)^p = 1$$
-And solving via Lagrange multipliers, we have,
-$$\sigma_i(T) = \frac{\sigma_i(X)^{q-1}}{\|X\|_{S_q}^{q-1}}$$
-where $\frac{1}{p} + \frac{1}{q} = 1$. Note that this is indepdent of $W$. Hence,
-$$T^* = \text{dualizer}_{\|\cdot\|_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T\quad\blacksquare$$
+Thus, our optimization problem reduces to
+$$\max_{\{t_i \geq 0\}} \sum_{i=1}^{\min(m,n)} \sigma_i(X) t_i \quad\text{s.t.}\quad \|t\|_p = 1,$$
+where $t_i = \sigma_i(T)$.
+
+We now split by cases.
+
+If $1 < p < \infty$, then Lagrange multipliers give
+$$t_i = \frac{\sigma_i(X)^{q-1}}{\|X\|_{S_q}^{q-1}},$$
+where $\frac{1}{p} + \frac{1}{q} = 1$. Hence,
+$$T^* = \text{dualizer}_{\|\cdot\|_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T.$$
+
+If $p = \infty$, then the constraint is $0 \leq t_i \leq 1$, so the maximizer is $t_i = 1$ for all $i$, yielding
+$$\text{dualizer}_{\|\cdot\|_{S_\infty}}(X) = UV^T.$$
+
+If $p = 1$, then the constraint is $\sum_i t_i = 1$, and thus
+$$\sum_i \sigma_i(X) t_i \leq \sigma_1(X)\sum_i t_i = \sigma_1(X),$$
+with equality if and only if $t_i = 0$ whenever $\sigma_i(X) < \sigma_1(X)$. Therefore every maximizer is supported on the top singular subspace. Equivalently, the full maximizing set is
+$$\left\{ U_{\max} H V_{\max}^T : H \succeq 0,\ \text{tr}(H) = 1 \right\}.$$
+Taking the limit $p \to 1^+$ selects the canonical choice $H = I_r / r$. Note that this is also independent of $W$. $\quad\blacksquare$
 
 ### 5.2. Stochastic Gradient Descent and Muon as Special Cases of Steepest Descent under Schatten-$p$ Norms
 
@@ -728,7 +744,7 @@ $$T^* = \text{dualizer}_{\|\cdot\|_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1
 $$
 \begin{align*}
     \Delta W
-        &= \text{dualizer}_{\|\cdot\|_{S_\infty}}(\partial\mathcal{L}(W; \xi); W)\newline
+        &= \text{dualizer}_{\|\cdot\|_{S_2}}(\partial\mathcal{L}(W; \xi); W)\newline
         &= U \frac{\text{diag}\left(\sigma_1(\partial\mathcal{L}(W; \xi))^{2-1}, \ldots, \sigma_{\min(m,n)}(\partial\mathcal{L}(W; \xi))^{2-1}\right)}{\|\partial\mathcal{L}(W; \xi)\|_{S_2}^{2-1}} V^T\newline
     \Delta W &= \frac{\partial\mathcal{L}(W; \xi)}{\|\partial\mathcal{L}(W; \xi)\|_F}
 \end{align*}
@@ -798,7 +814,11 @@ A side-effect of this is that it allows the model parameters to "escape" the sma
 
 ## 6. Optimizing Muon's Newton-Schulz Coefficients [Under Construction]
 
+For a dedicated follow-up, see [Ponder: Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients](../muon-opt-coeffs/).
+
 ## 7. Convergence Guarantees [Under Construction]
+
+For later follow-ups on this thread, see [Ponder: Napkin Math on Non-Euclidean Trust Region Optimization](../napkin-math-trust-region-opt/), [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), and [Ponder: Convergence Bounds for Steepest Descent Under Arbitrary Norms](../steepest-descent-convergence/).
 
 ## Acknowledgements
 
@@ -852,3 +872,8 @@ Many thanks to Jeremy Bernstein, Omead Pooladzandi, Simo Ryu, and Antonio Silvet
 31. Cornelius V. Braun, Robert T. Lange, Marc Toussaint (2024). Stein Variational Evolution Strategies. URL https://arxiv.org/abs/2410.10390
 32. James Martens, Roger Grosse (2020). Optimizing Neural Networks with Kronecker-factored Approximate Curvature. URL https://arxiv.org/abs/1503.05671
 33. Jordan, P. ; Neumann, J. V. (1935). On Inner Products in Linear, Metric Spaces
+34. Franz Louis Cesista (2025). Steepest Descent Under Schatten-p Norms. URL https://leloykun.github.io/ponder/steepest-descent-schatten-p/
+35. Franz Louis Cesista (2025). Squeezing 1-2% Efficiency Gains Out of Muon by Optimizing the Newton-Schulz Coefficients. URL https://leloykun.github.io/ponder/muon-opt-coeffs/
+36. Franz Louis Cesista (2025). Napkin Math on Non-Euclidean Trust Region Optimization. URL https://leloykun.github.io/ponder/napkin-math-trust-region-opt/
+37. Franz Louis Cesista (2025). Critical Batch Size for Steepest Descent Under Arbitrary Norms. URL https://leloykun.github.io/ponder/steepest-descent-crit-bz/
+38. Franz Louis Cesista (2025). Convergence Bounds for Steepest Descent Under Arbitrary Norms. URL https://leloykun.github.io/ponder/steepest-descent-convergence/

@@ -24,7 +24,7 @@ Muon is an optimizer for 2D parameters that approximately semi-orthogonalizes th
 
 ## Why semi-orthogonalize the gradients first?
 
-1. Because this is the update rule you get if you turn off the preconditioner accumulation of 2nd order algorithms like Shampoo or its variants like CASPR. In theory, you can do this if you assume that your batch size is large enough for you to have enough information to have a proper estimate of the Hessian.
+1. Because this is the update rule you get if you turn off the preconditioner accumulation of 2nd order algorithms like Shampoo or its variants like CASPR, as discussed in [Ponder: CASPR Without Accumulation is Muon](../caspr-wo-accum-is-muon/). In theory, you can do this if you assume that your batch size is large enough for you to have enough information to have a proper estimate of the Hessian.
 
 2. You can think of Muon as doing steepest descent under the spectral norm. Why the spectral norm? Because it's the operator norm you induce on the parameters if your inputs and outputs are Euclidean/RMS-normed--which is a very reasonable assumption. And
 
@@ -38,7 +38,7 @@ For more details, I'd recommend reading [Keller's writeup on Muon](https://kelle
 
 ## Why does Muon still work well despite only approximately semi-orthogonalizing the gradients?
 
-The reason we don't need to perfectly semi-orthogonalize the gradients is that we can recast Muon as steepest descent under Schatten-p norm.
+The reason we don't need to perfectly semi-orthogonalize the gradients is that we can recast Muon as steepest descent under Schatten-p norm, as discussed in [Ponder: Steepest Descent Under Schatten-p Norms](../steepest-descent-schatten-p/).
 
 - The Schatten-2 norm is just the Frobenius norm. Thus, steepest descent under that normed space is equivalent to the usual stochastic gradient descent. And
 - The Schatten-$\infty$ norm is just the Spectral norm. Thus, steepest descent under that normed space is equivalent to spectral gradient descent or... Muon with perfect semi-orthogonalization.
@@ -312,3 +312,4 @@ if __name__ == "__main__":
 6. Jeremy Bernstein, Laker Newhouse (2024). Old Optimizer, New Norm: An Anthology. URL https://arxiv.org/abs/2409.20325
 7. Jeremy Bernstein (2024). "Weight erasure." Available at: https://docs.modula.systems/examples/weight-erasure/
 8. Franz Louis Cesista (2025). CASPR Without Accumulation is Muon. URL https://leloykun.github.io/ponder/caspr-wo-accum-is-muon/
+9. Franz Louis Cesista (2025). Steepest Descent Under Schatten-p Norms. URL https://leloykun.github.io/ponder/steepest-descent-schatten-p/

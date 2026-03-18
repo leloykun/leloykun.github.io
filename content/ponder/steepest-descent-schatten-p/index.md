@@ -19,13 +19,13 @@ $$\langle A, B\rangle_F = \text{tr}(A^T B) = \sum_{i,j} A_{ij}B_{ij}.$$
 Our goal at each iteration then is to find $\Delta W_l$ that minimizes $L(W_l + \Delta W_l)$. I.e.:
 $$\Delta W_l^* = \arg\min_{\Delta W_l} L(W_l + \Delta W_l)$$
 
-And from here, we have three choies on how to approximate $L$ (and consequently $\Delta W_l^*$):
+And from here, we have three choices on how to approximate $L$ (and consequently $\Delta W_l^*$):
 
 1. **Second-order methods.** Drop the third-order and subsequent terms in the Taylor expansion:
 $$\Delta W_l^* = \arg\min_{\Delta W_l} \{\langle\nabla L(W_l), \Delta W_l\rangle_F + \frac{1}{2} \langle\Delta W_l, H(W_l) \Delta W_l\rangle_F\}$$
 Then, using Newton's method, we get:
 $$\Delta W_l^* = -H(W_l)^{-1} \nabla L(W_l)$$
-However, computing the Hessian, let alone inverting it, is computationally expensive. Thus, second-order optimizers like Shampoo and CASPR resort to adding more assumptions to the structure of the Hessian to get the job done. We will discuss more on this in a future post.
+However, computing the Hessian, let alone inverting it, is computationally expensive. Thus, second-order optimizers like Shampoo and CASPR resort to adding more assumptions to the structure of the Hessian to get the job done. We discuss this more in [Ponder: CASPR Without Accumulation is Muon](../caspr-wo-accum-is-muon/) and [Ponder: Bidirectional-PRISM](../shampoo-prism/).
 
 2. **First-order with a soft norm penalty.** Here, we approximate the second-order and subsequent terms in the Taylor expansion with a (squared-) norm penalty:
 $$\Delta W_l^* = \arg\min_{\Delta W_l} \{\langle\nabla L(W_l), \Delta W_l\rangle_F + \frac{\lambda}{2} \|\Delta W_l\|^2\},$$
@@ -120,9 +120,15 @@ where $\sigma_i(A)$ are the singular values of $A$. And equality holds if and on
 
 Here, we derive the dualizer for an arbitrary Schatten-$p$ norm.
 
-> **Proposition 2.** The dualizer for the Schatten-$p$ norm is:
-$$\text{dualizer}_{\|\cdot\|_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T$$
-where $X = U\Sigma V^T$ is the singular value decomposition of $X$ and $\frac{1}{p} + \frac{1}{q} = 1$.
+> **Proposition 2.** Let $X = U \Sigma V^T$ be the singular value decomposition of $X$, let $\sigma_1(X)$ have multiplicity $r$, and let $U_{\max} \in \mathbb{R}^{m \times r}$ and $V_{\max} \in \mathbb{R}^{n \times r}$ be orthonormal bases for the top singular subspaces of $X$. Then a dualizer for the Schatten-$p$ norm can be chosen as
+$$
+\text{dualizer}_{\|\cdot\|_{S_p}}(X) \in \begin{cases}
+    \left\{ U_{\max} H V_{\max}^T : H \succeq 0,\ \text{tr}(H) = 1 \right\} & \text{if } p = 1 \\
+    U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T & \text{if } 1 < p < \infty \\
+    UV^T & \text{if } p = \infty
+\end{cases}
+$$
+where $\frac{1}{p} + \frac{1}{q} = 1$ in the middle case.
 
 > **Proof:** For a given $X$, let $T^*$ be:
 $$
@@ -132,43 +138,68 @@ $$
     T^* &= \arg\max_{\|T\|_{S_p} = 1} \text{tr}(X^T T)
 \end{align*}
 $$
-Then, from von Neumann's Trace Inequality, we know that $T^*$ must share singular vectors with $X$ and that:
-$$T^* = \arg\max_{\|T\|_{S_p} = 1} \sum_{i=1} \sigma_i(X) \sigma_i(T)$$
-Thus, our optimization problem reduces to
-$$\max_{\{\sigma_i(T)\}} \sum_i \sigma_i(X) \sigma_i(T) \quad\text{s.t.}\quad \sum \sigma_i(T)^p = 1$$
-which we can solve via Lagrange multipliers. See appendix for the full proof. For now, the solution is:
-$$\sigma_i(T) = \frac{\sigma_i(X)^{q-1}}{\|X\|_{S_q}^{q-1}}$$
-Hence,
-$$T^* = \text{dualizer}_{\|\cdot\|_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T\quad\blacksquare$$
+Then, from von Neumann's Trace Inequality, we know that some maximizer must share singular vectors with $X$ and that our optimization reduces to
+$$\max_{\{t_i \geq 0\}} \sum_i \sigma_i(X) t_i \quad\text{s.t.}\quad \|t\|_p = 1,$$
+where $t_i = \sigma_i(T)$.
+
+We now split by cases.
+
+If $1 < p < \infty$, then the constraint is $\sum_i t_i^p = 1$, and Lagrange multipliers give
+$$t_i = \frac{\sigma_i(X)^{q-1}}{\|X\|_{S_q}^{q-1}},$$
+where $\frac{1}{p} + \frac{1}{q} = 1$. Hence,
+$$\text{dualizer}_{\|\cdot\|_{S_p}}(X) = U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T.$$
+
+If $p = \infty$, then the constraint is $0 \leq t_i \leq 1$ for all $i$. Since all $\sigma_i(X) \geq 0$, the maximizer is $t_i = 1$ for all $i$, and therefore
+$$\text{dualizer}_{\|\cdot\|_{S_\infty}}(X) = UV^T.$$
+
+If $p = 1$, then the constraint is $\sum_i t_i = 1$. Therefore,
+$$\sum_i \sigma_i(X) t_i \leq \sigma_1(X) \sum_i t_i = \sigma_1(X),$$
+with equality if and only if $t_i = 0$ whenever $\sigma_i(X) < \sigma_1(X)$. Thus every maximizer puts all of its nuclear-norm mass on the top singular subspace. Equivalently, if $\sigma_1(X)$ has multiplicity $r$, then the full set of maximizers is
+$$\left\{ U_{\max} H V_{\max}^T : H \succeq 0,\ \text{tr}(H) = 1 \right\}.$$
+Taking the limit $p \to 1^+$ in the middle formula selects the canonical choice $H = I_r / r$. $\quad\blacksquare$
 
 The proof that the dual norm of the Schatten-$p$ norm is the Schatten-$q$ norm where $\frac{1}{p} + \frac{1}{q} = 1$ actually follows directly from here:
 
 > **Corollary 3.** The dual norm of the Schatten-$p$ norm is the Schatten-$q$ norm where $\frac{1}{p} + \frac{1}{q} = 1$.
 
-> **Proof:** For a given $X$, we want to show that $$\|X\|_{S_p}^{\dagger} = \|X\|_{S_q}$$
-From the definition of the dual norm, we have:
+> **Proof:** For a given $X$, we want to show that $$\|X\|_{S_p}^{\dagger} = \|X\|_{S_q}.$$
+From the definition of the dual norm,
 $$
-\begin{align*}
-    \|X\|_{S_p}^{\dagger} &= \sup_{\|T\|_{S_p} \leq 1} \langle X, T \rangle_F\\
-    \|X\|_{S_p}^{\dagger} &= \sup_{\|T\|_{S_p} \leq 1} \text{tr}(X^T T)
-\end{align*}
+\|X\|_{S_p}^{\dagger} = \sup_{\|T\|_{S_p} \leq 1} \langle X, T \rangle_F.
 $$
-Following Proposition 2, we know that we can achieve the supremum by choosing $T = \text{dualizer}_{\|\cdot\|_{S_p}}(X)$. Thus,
+If $1 < p < \infty$, then plugging in the optimizer from Proposition 2 gives
 $$
-\begin{align*}
-    \|X\|_{S_p}^{\dagger} &= \text{tr}\left(X^T U \frac{\text{diag}\left(\sigma_1(X)^{q-1}, \ldots, \sigma_{\min(m,n)}(X)^{q-1}\right)}{\|X\|_{S_q}^{q-1}} V^T\right)\\
-    &= \sum_i \sigma_i(X) \frac{\sigma_i(X)^{q-1}}{\|X\|_{S_q}^{q-1}}\\
-    &= \frac{1}{\|X\|_{S_q}^{q-1}} \sum_i \sigma_i(X)^q\\
-    &= \frac{\|X\|_{S_q}^q}{\|X\|_{S_q}^{q-1}}\\
-    \|X\|_{S_p}^{\dagger} &= \|X\|_{S_q}\quad\blacksquare
-\end{align*}
+\|X\|_{S_p}^{\dagger}
+    = \sum_i \sigma_i(X) \frac{\sigma_i(X)^{q-1}}{\|X\|_{S_q}^{q-1}}
+    = \frac{\sum_i \sigma_i(X)^q}{\|X\|_{S_q}^{q-1}}
+    = \|X\|_{S_q}.
 $$
+If $p = \infty$, then choosing $T = UV^T$ gives
+$$
+\|X\|_{S_\infty}^{\dagger}
+    = \langle X, UV^T \rangle_F
+    = \sum_i \sigma_i(X)
+    = \|X\|_{S_1}.
+$$
+If $p = 1$, then Proposition 2 shows that the supremum is attained by any maximizer supported on the top singular subspace, and its value is
+$$
+\|X\|_{S_1}^{\dagger}
+    = \sigma_1(X)
+    = \|X\|_{S_\infty}.
+$$
+Hence, in all cases, the dual norm of the Schatten-$p$ norm is the Schatten-$q$ norm. $\quad\blacksquare$
 
 Finally,
 
-> **Theorem 4.** The update rule for steepest descent under the Schatten-$p$ norm is:
-$$\Delta W_l^* = -\frac{1}{\hat{\lambda}} U \frac{\text{diag}\left(\sigma_1(\nabla L(W_l))^{q-1}, \ldots, \sigma_{\min(m,n)}(\nabla L(W_l))^{q-1}\right)}{\|\nabla L(W_l)\|_{S_q}^{q-1}} V^T$$
-where $\hat{\lambda} = \frac{\lambda}{\|\nabla L(W_l)\|_{S_q}}$, $\nabla L(W_l) = U\Sigma V^T$ is the singular value decomposition of $\nabla L(W_l)$, and $\frac{1}{p} + \frac{1}{q} = 1$.
+> **Theorem 4.** Let $\nabla L(W_l) = U\Sigma V^T$ be the singular value decomposition of $\nabla L(W_l)$, let $\sigma_1(\nabla L(W_l))$ have multiplicity $r$, and let $U_{\max}, V_{\max}$ be orthonormal bases for the corresponding top singular subspaces. Then the steepest-descent update under the Schatten-$p$ norm can be chosen as
+$$
+\Delta W_l^* \in -\frac{1}{\hat{\lambda}} \begin{cases}
+    \left\{ U_{\max} H V_{\max}^T : H \succeq 0,\ \text{tr}(H) = 1 \right\} & \text{if } p = 1 \\
+    U \frac{\text{diag}\left(\sigma_1(\nabla L(W_l))^{q-1}, \ldots, \sigma_{\min(m,n)}(\nabla L(W_l))^{q-1}\right)}{\|\nabla L(W_l)\|_{S_q}^{q-1}} V^T & \text{if } 1 < p < \infty \\
+    UV^T & \text{if } p = \infty
+\end{cases}
+$$
+where $\hat{\lambda} = \frac{\lambda}{\|\nabla L(W_l)\|_{S_q}}$ and $\frac{1}{p} + \frac{1}{q} = 1$. In the $p = 1$ case, the limit $p \to 1^+$ selects the canonical choice $H = I_r / r$.
 
 The proof follows directly from Proposition 2 and Corollary 3.
 
@@ -191,7 +222,7 @@ $$
 \end{align*}
 $$
 
-1. **For $p = \infty$, the Spectral norm:** $q = 1$ and $\|\cdot\|_{S_\infty}^\dagger = \|\cdot\|_{S_1}$. Thus,
+1. **For $p = \infty$, the Spectral norm:** $q = 1$ and $\|\cdot\|_{S_\infty}^\dagger = \|\cdot\|_{S_1}$. Taking the $p \to \infty$ limit, or directly maximizing over the unit spectral-norm ball, yields
 $$
 \begin{align*}
     \text{dualizer}_{\|\cdot\|_{S_\infty}}(X) &= U \frac{\text{diag}\left(\sigma_1(X)^{1-1}, \ldots, \sigma_{\min(m,n)}(X)^{1-1}\right)}{\|X\|_{S_1}^{1-1}} V^T\\
@@ -207,7 +238,7 @@ $$
 $$
 where $\hat{\lambda} = \frac{\lambda}{\|\nabla L(W_l)\|_{S_1}}$.
 
-Both of which matches prior results. And as a fun exercise, try to prove that the dualizer for the Schatten-$1$ norm, or the Nuclear norm, results in a rank-$k$ matrix where $k$ is the multiplicity of the largest singular value.
+Both of which match prior results. For $p = 1$, the dualizer is set-valued on the top singular subspace, and the canonical $p \to 1^+$ limit has rank $r$, where $r$ is the multiplicity of the largest singular value.
 
 ## What Does the Dualizer Actually Do?
 

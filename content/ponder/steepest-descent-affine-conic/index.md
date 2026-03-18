@@ -13,7 +13,7 @@ Consider the optimization problem,
 $$\begin{align}
     W_* = \arg\min_{W \in \mathcal{M}} f(W),
 \end{align}$$
-where $f: \mathcal{M} \to \mathbb{R}$ is a differentiable and bounded-below objective function defined on a normed manifold or [manifold with boundary/corners](https://ncatlab.org/nlab/show/manifold+with+boundary) $\mathcal{M}$. There are practical considerations on whether or not to include the boundary of $\mathcal{M}$: first, we often only have access to retraction maps that map to the boundary from 'outside' the manifold (e.g. the [PSD cone](https://en.wikipedia.org/wiki/Definite_matrix) and the [Spectral Ball](../steepest-descent-finsler-dual-ascent/#33-special-case-1-steepest-descent-on-the-spectral-ball-under-the--norm) of radius $R$); second, our update rules have to differ when we are at the boundaries and failure to account for this may lead to suboptimal solutions or divergence.
+where $f: \mathcal{M} \to \mathbb{R}$ is a differentiable and bounded-below objective function defined on a normed manifold or [manifold with boundary/corners](https://ncatlab.org/nlab/show/manifold+with+boundary) $\mathcal{M}$. There are practical considerations on whether or not to include the boundary of $\mathcal{M}$: first, we often only have access to retraction maps that map to the boundary from 'outside' the manifold (e.g. the [PSD cone](https://en.wikipedia.org/wiki/Definite_matrix) and the [Spectral Ball](../rethinking-mup-spectral-ball/) of radius $R$; for a dual-ascent special case, see [this earlier post](../steepest-descent-finsler-dual-ascent/#33-special-case-1-steepest-descent-on-the-spectral-ball-under-the--norm)); second, our update rules have to differ when we are at the boundaries and failure to account for this may lead to suboptimal solutions or divergence.
 
 In [previous](../steepest-descent-finsler-dual-ascent/) [blog](../steepest-descent-crit-bz/) [posts](../steepest-descent-doubly-stochastic/), we discussed manifolds where the tangent space (at interior points) or tangent cone (at boundary points) $T_{W}\mathcal{M}$ at any point $W \in \mathcal{M}$ can be represented in the affine-conic form,
 $$\begin{align}
@@ -176,6 +176,13 @@ of our dual ascent optimizer after varying number of dual ascent steps relative 
   url = {https://leloykun.github.io/ponder/steepest-descent-affine-conic/},
 }
 ```
+
+## References
+
+1. Franz Louis Cesista (2025). Rethinking Maximal Update Parametrization: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent. URL https://leloykun.github.io/ponder/steepest-descent-finsler-dual-ascent/
+2. Franz Louis Cesista (2025). Critical Batch Size for Steepest Descent Under Arbitrary Norms. URL https://leloykun.github.io/ponder/steepest-descent-crit-bz/
+3. Franz Louis Cesista (2026). Steepest Descent on the Birkhoff Polytope Equipped with the Spectral Norm. URL https://leloykun.github.io/ponder/steepest-descent-doubly-stochastic/
+4. Franz Louis Cesista (2025). Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball. URL https://leloykun.github.io/ponder/rethinking-mup-spectral-ball/
 
 ## Appendix
 

@@ -129,41 +129,41 @@ $$\begin{align}
 
 From Theorem 14 in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), we have the following bound on the expected suboptimality when using steepest descent under an arbitrary norm $\| \cdot \|$ with Nesterov momentum and decoupled weight decay.
 
-> **Theorem 3 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), star-convexity of $f$ at $W_*$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
+> **Theorem 3 (Expected suboptimality for steepest descent with Nesterov momentum and decoupled weight decay).** Let $\eta > 0$ be the learning rate, weight decay parameter $\lambda > 0$ (such that $\lambda\eta \leq 1$), Nesterov momentum parameter $\beta \in [0, 1)$, and initial momentum $M_0 = 0$. Then, under Assumptions (1)-(4) in [Ponder: Critical Batch Size for Steepest Descent Under Arbitrary Norms](../steepest-descent-crit-bz/), star-convexity of $f$ at $W_*$, the bounded-weight conditions $\| W_0 \| \leq \frac{1}{\lambda}$ and $\| W_* \| \leq \frac{1}{\lambda}$, and arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, we have,
 $$\begin{align}
     \mathbb{E}\left[ f(W_T) - f(W_*) \right]
         &\leq (1 - \lambda\eta)^T \Delta_0 \nonumber \\
         &\quad+ \frac{2}{\lambda} \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right) \frac{\sqrt{D} \sigma}{\sqrt{b}} \nonumber \\
         &\quad+ \left[
             \frac{4 L}{\lambda} \left(1 + \frac{\beta^2}{1 - \beta} \right)
-            + \frac{2 \beta}{1 - \beta} \| G_0 \|^{\dagger}
+            + \frac{2 \beta}{1 - \beta} G_0
         \right] \eta \label{eq:theorem2-bound}
 \end{align}$$
 where $\Delta_0 = f(W_0) - f(W_*)$ and $G_0 = \| \nabla f(W_0) \|^{\dagger}$.
 
 We can then use this theorem to derive convergence bounds as follows.
 
-> **Corollary 4.** For some expected suboptimality tolerance $\epsilon > 0$, to ensure that, $\mathbb{E}\left[ f(W_T) - f(W_*) \right] \leq \epsilon$, via steepest descent under arbitrary norms with Nesterov momentum *with* decoupled weight decay, it suffices to set,
+> **Corollary 4.** For some expected suboptimality tolerance $0 < \epsilon < \Delta_0$, to ensure that, $\mathbb{E}\left[ f(W_T) - f(W_*) \right] \leq \epsilon$, via steepest descent under arbitrary norms with Nesterov momentum *with* decoupled weight decay, it suffices to set,
 $$\begin{align}
     \theta &= 1 - \beta = \mathcal{O}\left(\min{\left\{1, \frac{\lambda^2 b \epsilon^2}{D \sigma^2}\right\}}\right) \\
-    \eta &= \mathcal{O}\left(\min{\left\{\frac{\lambda\epsilon}{L}, \frac{\epsilon}{\| G_0 \|^{\dagger}},
+    \eta &= \mathcal{O}\left(\min{\left\{\frac{\lambda\epsilon}{L}, \frac{\epsilon}{G_0},
         \frac{\lambda^3 b \epsilon^3}{D \sigma^2 L},
-        \frac{\lambda^2 b \epsilon^3}{D \sigma^2 \| G_0 \|^{\dagger}}
+        \frac{\lambda^2 b \epsilon^3}{D \sigma^2 G_0}
     \right\}}\right) \\
     T &= \Omega\left(\max{\left\{
         \frac{L}{\lambda^2 \epsilon},
-        \frac{\| G_0 \|^{\dagger}}{\lambda \epsilon},
-        \frac{D \sigma^2 L}{\lambda^3 b \epsilon^3},
-        \frac{D \sigma^2 \| G_0 \|^{\dagger}}{\lambda^2 b \epsilon^3}
-    \right\}}\right)
+        \frac{G_0}{\lambda \epsilon},
+        \frac{D \sigma^2 L}{\lambda^4 b \epsilon^3},
+        \frac{D \sigma^2 G_0}{\lambda^3 b \epsilon^3}
+    \right\}} \log\left(\frac{\Delta_0}{\epsilon}\right)\right)
 \end{align}$$
 
-**Proof.** As in the previous section, reparametrizing $\theta = 1 - \beta$ and using $\beta < 1$, we can simplify the bound in Theorem 5 as follows,
+**Proof.** As in the previous section, reparametrizing $\theta = 1 - \beta$ and using $\beta < 1$, we can simplify the bound in Theorem 3 as follows,
 $$\begin{align}
     \mathbb{E}\left[ f(W_T) - f(W_*) \right]
         &\leq (1 - \lambda\eta)^T (f(W_0) - f(W_*))
             + \frac{8}{\lambda\theta} L \eta
-            + \frac{2\eta}{\theta} \| G_0 \|^{\dagger}
+            + \frac{2\eta}{\theta} G_0
             + \frac{2\sqrt{2}}{\lambda} \sqrt{\theta} \frac{\sqrt{D} \sigma}{\sqrt{b}}
 \end{align}$$
 
@@ -185,22 +185,22 @@ For small constants $c_2, c_3 \leq 1/4$, we then bound the terms involving $\eta
 $$\begin{align}
     \frac{8}{\lambda\theta} L \eta \leq c_2 \epsilon
         &\implies \eta \leq \frac{c_2}{8} \frac{\lambda\theta\epsilon}{L} \nonumber \\
-    \frac{2\eta}{\theta} \| G_0 \|^{\dagger} \leq c_3 \epsilon
-        &\implies \eta \leq \frac{c_3}{2} \frac{\theta\epsilon}{\| G_0 \|^{\dagger}} \nonumber
+    \frac{2\eta}{\theta} G_0 \leq c_3 \epsilon
+        &\implies \eta \leq \frac{c_3}{2} \frac{\theta\epsilon}{G_0} \nonumber
 \end{align}$$
 
 Combining these with the constraints $\lambda \eta \leq 1$ and $\| W_* \| \leq \frac{1}{\lambda}$, we set,
 $$\begin{equation}
-    \eta = \mathcal{O}\left( \min{\left\{ \| W_* \|, \frac{\lambda\theta\epsilon}{L}, \frac{\theta\epsilon}{\| G_0 \|^{\dagger}} \right\}} \right) \nonumber
+    \eta = \mathcal{O}\left( \min{\left\{ \| W_* \|, \frac{\lambda\theta\epsilon}{L}, \frac{\theta\epsilon}{G_0} \right\}} \right) \nonumber
 \end{equation}$$
 Substituting the bound on $\theta$ from above, we have,
 $$\begin{equation}
     \eta = \mathcal{O}\left(\min{\left\{
         \| W_* \|,
         \frac{\lambda\epsilon}{L},
-        \frac{\epsilon}{\| G_0 \|^{\dagger}},
+        \frac{\epsilon}{G_0},
         \frac{\lambda^3 b \epsilon^3}{D \sigma^2 L},
-        \frac{\lambda^2 b \epsilon^3}{D \sigma^2 \| G_0 \|^{\dagger}}
+        \frac{\lambda^2 b \epsilon^3}{D \sigma^2 G_0}
     \right\}}\right) \label{eq:eta-bound-wd}
 \end{equation}$$
 
@@ -209,27 +209,27 @@ $$\begin{equation}
 For some small constant $c_4 < 1/4$, we then bound the term involving $T$ by $\epsilon$ as follows,
 
 $$\begin{align}
-    (1 - \lambda\eta)^T \leq e^{- \lambda\eta T} \leq c_4 \epsilon
-        &\implies T \geq \frac{1}{\lambda\eta} \log{\left(\frac{1}{c_4 \epsilon}\right)} \nonumber
+    (1 - \lambda\eta)^T \Delta_0 \leq e^{- \lambda\eta T} \Delta_0 \leq c_4 \epsilon
+        &\implies T \geq \frac{1}{\lambda\eta} \log{\left(\frac{\Delta_0}{c_4 \epsilon}\right)} \nonumber
 \end{align}$$
 
 Substituting the bound on $\eta$ from above, we have,
 $$\begin{align}
     T &= \Omega\left(\max{\left\{
         \frac{L}{\lambda^2 \epsilon},
-        \frac{\| G_0 \|^{\dagger}}{\lambda \epsilon},
+        \frac{G_0}{\lambda \epsilon},
         \frac{D \sigma^2 L}{\lambda^4 b \epsilon^3},
-        \frac{D \sigma^2 \| G_0 \|^{\dagger}}{\lambda^3 b \epsilon^3}
-    \right\}}\right) \label{eq:T-bound-final-wd}
+        \frac{D \sigma^2 G_0}{\lambda^3 b \epsilon^3}
+    \right\}} \log\left(\frac{\Delta_0}{\epsilon}\right)\right) \label{eq:T-bound-final-wd}
 \end{align}$$
 
 ## 4. Discussion
 
 Here we have proven that steepest descent under arbitrary norms with Nesterov momentum with or without decoupled weight decay converges, with a universal convergence bound that holds for any norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$. We have also derived (universal) iteration complexity bounds for both cases, in terms of generalized expected stationarity and expected suboptimality, respectively.
 
-For generalized expected stationarity, in the case without weight decay, the iteration complexity in Equation \eqref{eq:T-bound-final} is proportional to $1/\epsilon^4$ in the worst case, which is consistent with prior state-of-the-art results ([Ghadimi and Lan, 2013](https://doi.org/10.1137/120880811); [Cutkosky and Mehta, 2020](https://proceedings.mlr.press/v119/cutkosky20b.html); [Sun et al., 2023](https://proceedings.mlr.press/v202/sun23l.html); [Kovalev, 2025](https://arxiv.org/abs/2503.12645)) and cannot be improved further without additional assumptions ([Arjevani et al., 2022](https://doi.org/10.1007/s10107-022-01822-7)). For the expected suboptimality, in the case with decoupled weight decay, the iteration complexity is proportional to $1/\epsilon^3$ in the worst case, which matches [Kovalev's (2025)](https://arxiv.org/abs/2503.12645) prior result.
+For generalized expected stationarity, in the case without weight decay, the iteration complexity in Equation \eqref{eq:T-bound-final} is proportional to $1/\epsilon^4$ in the worst case, which is consistent with prior state-of-the-art results ([Ghadimi and Lan, 2013](https://doi.org/10.1137/120880811); [Cutkosky and Mehta, 2020](https://proceedings.mlr.press/v119/cutkosky20b.html); [Sun et al., 2023](https://proceedings.mlr.press/v202/sun23l.html); [Kovalev, 2025](https://arxiv.org/abs/2503.12645)) and cannot be improved further without additional assumptions ([Arjevani et al., 2022](https://doi.org/10.1007/s10107-022-01822-7)). For the expected suboptimality, in the case with decoupled weight decay, the iteration complexity is $\widetilde{\mathcal{O}}(1/\epsilon^3)$ in the worst case, where the logarithmic factor comes from $\log(\Delta_0 / \epsilon)$.
 
-Interestingly, from the bounds in Equations \eqref{eq:eta-bound} and \eqref{eq:eta-bound-wd}, there seems to be a batch size threshold $b^*$ such that, up to which, increasing the batch size allows us to increase the learning rate, thereby reducing the number of iterations required to reach the desired stationary tolerance $\epsilon$. But beyond $b^*$, increasing the batch size no longer helps reduce the iteration complexity, as the bounds on $\eta$ and $\theta$ become independent of $b$, and $T$ starts to scale as $\Omega(1/\epsilon^2)$ (without weight decay) or $\Omega(1/\epsilon)$ (with decoupled weight decay).
+Interestingly, from the bounds in Equations \eqref{eq:eta-bound} and \eqref{eq:eta-bound-wd}, there seems to be a batch size threshold $b^*$ such that, up to which, increasing the batch size allows us to increase the learning rate, thereby reducing the number of iterations required to reach the desired stationary tolerance $\epsilon$. But beyond $b^*$, increasing the batch size no longer helps reduce the iteration complexity, as the bounds on $\eta$ and $\theta$ become independent of $b$, and $T$ starts to scale as $\Omega(1/\epsilon^2)$ (without weight decay) or $\widetilde{\Omega}(1/\epsilon)$ (with decoupled weight decay).
 
 ## How to cite
 

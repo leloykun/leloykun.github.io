@@ -35,7 +35,7 @@ $$\begin{aligned}
              &= (1/4) \cdot [U(\Sigma(\Sigma^2 + \epsilon I)^{-1/2})V^T + U(2\Sigma(\Sigma^2 + \epsilon I)^{-1/2})V^T + U(\Sigma(\Sigma^2 + \epsilon I)^{-1/2})V^T]\\
              &= (1/4) \cdot [U(1+2+1)(\Sigma(\Sigma^2 + \epsilon I)^{-1/2})V^T]\\
              &= U\left(\frac{\Sigma}{\sqrt{\Sigma^2 + \epsilon I}} \right)V^T \\
-    \Delta W &\approx UV^T \qquad \text{ for } \qquad \epsilon \ll \sigma_{\text{min}}^2
+    \Delta W &\approx UV^T \qquad \text{ for full-rank } G \text{ and } \qquad \epsilon \ll \sigma_{\text{min}}^2
 \end{aligned}$$
 which is just the update rule for Muon.
 
