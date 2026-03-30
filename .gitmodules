@@ -1,3 +1,12 @@
 [submodule "content/ponder/lora-muon/lora-muon"]
 	path = content/ponder/lora-muon/lora-muon
 	url = https://github.com/leloykun/lora-muon.git
+[submodule "content/ponder/parameter-golf/content/ponder/parameter-golf"]
+	path = content/ponder/parameter-golf/content/ponder/parameter-golf
+	url = https://github.com/leloykun/parameter-golf.git
+[submodule "content/ponder/parameter-golf/parameter-golf"]
+	path = content/ponder/parameter-golf/parameter-golf
+	url = https://github.com/leloykun/parameter-golf.git
+[submodule "content/ponder/steepest-descent-crit-bz/steepest-descent-lean"]
+	path = content/ponder/steepest-descent-crit-bz/steepest-descent-lean
+	url = https://github.com/leloykun/steepest-descent-lean.git

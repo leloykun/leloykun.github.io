@@ -128,3 +128,4 @@ ignoreFiles:
   - '/content/ponder/.*\.py'
   - '/content/ponder/.*\.ipynb'
   - '/content/ponder/lora-muon/lora-muon/.*'
+  - '/content/ponder/steepest-descent-crit-bz/steepest-descent-lean/.*'

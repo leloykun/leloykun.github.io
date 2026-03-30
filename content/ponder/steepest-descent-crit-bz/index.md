@@ -30,14 +30,14 @@ $$\begin{align}
 \end{align}$$
 for some vector norm $h$ and its dual $h^{\dagger}$ on $\mathbb{R}^L$. Our results still hold under this more general setting.
 
-Now, at iteration $t$, we sample an i.i.d. minibatch $S_t = \{ i_1, i_2, \ldots, i_b \}$ of size $b$ from the training dataset. For each data point $i$, we write the per-example stochastic gradient as,
+Now, at iteration $t$, we sample an i.i.d. minibatch $S_t = \{ i_0, i_2, \ldots, i_{b-1} \}$ of size $b$ from the training dataset. For each data point $i$, we write the per-example stochastic gradient as,
 $$\begin{equation}
     G_{\xi_{t, i}}(W_t) := \nabla f(W_t) - \xi_{t, i},
 \end{equation}$$
 where $\xi_{t,i}$ is the (additive) gradient noise at $(t, i)$. We then write the minibatch stochastic gradient and noise as,
 $$\begin{align}
     \nabla f_{S_t}(W_t)
-        &:= \frac{1}{b}\sum_{i=1}^{b} G_{\xi_{t,i}}(W_t) \label{eq:def_minibatch_gradient} \\
+        &:= \frac{1}{b}\sum_{i=0}^{b} G_{\xi_{t,i}}(W_t) \label{eq:def_minibatch_gradient} \\
     \xi_{S_t}
         &:= \nabla f(W_t) - \nabla f_{S_t}(W_t)
 \end{align}$$
@@ -111,11 +111,11 @@ For this work, we will focus on the constrained steepest descent with Nesterov m
 
 ### 1.2. Assumptions
 
-> **Assumption 1 (Unbiased gradient noise, per sample).** At each time step $t$ and for each data point $i \in S_t$, the gradient noise satisfies,
-$$\begin{equation} \mathbb{E}\left[ \xi_{t, i} | W_t \right] = 0, \end{equation}$$
-and the samples $(\xi_{t,i})_{i=1}^b$ are conditionally independent given $W_t$. To simplify notation, we will often omit the conditioning on $W_t$ when it is clear from context.
+> **Assumption 1 (Unbiased gradient noise, per sample).** At each time step $t \geq 0$ and minibatch slot $0 \leq i < b$, the gradient noise satisfies,
+$$\begin{equation} \mathbb{E}\left[ \xi_{t, i} | W_t \right] = 0. \end{equation}$$
+The samples are independent within each minibatch, and minibatches are also independent across time steps. We also require $\xi_{t, i}$ to be strongly measurable and integrable for all $t, i$, which is a detail required for Lemma 5, but not so important for understanding this blog post.
 
-> **Assumption 2 (Bounded gradient noise variance).** There exists $\sigma > 0$ such that for all $t, i$,
+> **Assumption 2 (Bounded gradient noise variance).** There exists $\sigma \geq 0$ such that for all $t \geq 0$ and $0 \leq i < b$,
 $$\begin{equation}
     \mathbb{E}\left[\| \xi_{t,i} \|^{\dagger 2} \right] \leq \sigma^2
 \end{equation}$$
@@ -124,13 +124,13 @@ $$\begin{equation}
 $$\begin{equation}
     \| \nabla f(Y) - \nabla f(X) \|^{\dagger} \leq L \| Y - X \|
 \end{equation}$$
+> In the case with decoupled weight decay (see [Section 3](#3-convergence-bound-for-steepest-descent-under-arbitrary-norms-with-weight-decay)), local lipschitness on the norm ball of radius $1 / \lambda$ around the origin is sufficient.
 
-> **Assumption 4 (Local D-smoothness of $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$ in the noise region).** There exists a large enough $R > 0$ such that $\mathbb{P}(\| \xi_{t,i} \|^{\dagger} \leq R) = 1$ for all $t, i$. Let,
+> **Assumption 4 (Local D-smoothness of $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$ on the noise region).** There exists $R > 0$ such that, $\mathbb{P}(\| \xi_{t,i} \|^{\dagger} \leq R) = 1$ for all $t, i$. Let,
 $$\begin{align}
-    K &:= \{ X^{\dagger} \in \mathcal{W}^{\dagger} : \| X^{\dagger} \|^{\dagger} \leq R \} \\
-    g(X^{\dagger}) &:= \frac{1}{2} \| X^{\dagger} \|^{\dagger 2} \quad \forall X^{\dagger} \in K
+    K &:= \{ X^{\dagger} \in \mathcal{W}^{\dagger} : \| X^{\dagger} \|^{\dagger} \leq R \}.
 \end{align}$$
-Intuitively, $K$ is the region where the gradient noise (and interpolations thereof) lie almost surely. Then there exists $D > 0$ such that for all $X^{\dagger}, Y^{\dagger} \in K$,
+> Then $g(X^{\dagger}) := \frac{1}{2} \| X^{\dagger} \|^{\dagger 2}$ is differentiable on $K$, and there exists $D > 0$ such that for all $X^{\dagger}, Y^{\dagger} \in K$,
 $$\begin{equation}
     \| \nabla g(Y^{\dagger}) - \nabla g(X^{\dagger}) \| \leq D \| Y^{\dagger} - X^{\dagger} \|^{\dagger}
 \end{equation}$$
@@ -142,7 +142,7 @@ $$\begin{equation}
 
 We first control the variance of the mini-batch noise.
 
-> **Lemma 5 (Minibatch gradient noise bounds).** Under Assumptions (1), (2), and (4), for arbitrary norm pair $(\| \cdot \|, \| \cdot \|^{\dagger})$, and sequence of coefficients $(\alpha_i)_{i=1}^k$ with $\alpha_i \geq 0$ and $\sum_{i=0}^k \alpha_i \leq 1$, we have,
+> **Lemma 5 (Minibatch gradient noise bounds).** Under Assumptions 1, 2, and 4, for any sequence of coefficients $(\alpha_i)_{i=0}^k$ with $\alpha_i \geq 0$ and $\sum_{i=0}^k \alpha_i \leq 1$, we have,
 $$\begin{align}
     \mathbb{E}\left[ \left\| \sum_{i=0}^k \alpha_{i} \xi_{i} \right\|^{\dagger 2} \right]
         &\leq D \sigma^2 \sum_{i=0}^k \alpha_{i}^2
@@ -153,7 +153,7 @@ $$\begin{align}
         &\leq \frac{D\sigma^2}{b} \label{eq:minibatchvariance}
 \end{align}$$
 
-**Proof.** Let $S_{k} = \sum_{i=1}^{k} \alpha_{i} \xi_{i}$ be the partial (weighted) sum of the first $k$ noise terms. Since $\sum_{i=1}^k \alpha_i \leq 1$, we know that $S_k \in K$ almost surely by Assumption (4). Applying the descent lemma on $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$, taking expectations, and using Assumption (1) then gives,
+**Proof.** Let $S_{k} = \sum_{i=0}^{k} \alpha_{i} \xi_{i}$ be the partial (weighted) sum of the first $k$ noise terms. Since $\sum_{i=0}^k \alpha_i \leq 1$, we know that $S_k \in K$ almost surely by Assumption 4. Applying the descent lemma on $g(\cdot) = \frac{1}{2}\| \cdot \|^{\dagger 2}$, taking expectations, and using the mean-zero and independence parts of Assumption 1, the cross term cancels, and we get,
 $$\begin{align}
     g(S_{k})
         &\leq g(S_{k-1})
@@ -173,8 +173,8 @@ $$\begin{align}
 Unrolling the recurrence, and using Assumption (2) then gives,
 $$\begin{align}
     \mathbb{E}[ \| S_{k} \|^{\dagger 2} ]
-        &\leq D \sum_{i=1}^k \alpha_{i}^2 \mathbb{E}[ \| \xi_{i} \|^{\dagger 2} ]
-        \leq D \sigma^2 \sum_{i=1}^k \alpha_{i}^2 \nonumber
+        &\leq D \sum_{i=0}^k \alpha_{i}^2 \mathbb{E}[ \| \xi_{i} \|^{\dagger 2} ]
+        \leq D \sigma^2 \sum_{i=0}^k \alpha_{i}^2 \nonumber
 \end{align}$$
 Finally, setting $\alpha_{i} = \frac{1}{b}$ for all $i$ then gives Equation $\eqref{eq:minibatchvariance}. \quad\blacksquare$
 
@@ -233,8 +233,8 @@ $$\begin{align}
 And for the noise term, we have from Lemma 5 (viewing the double sum over time and batch as a single sum over $t \times b$ independent noise terms),
 $$\begin{align}
     \mathbb{E} \left[ \| E_t^{\text{noise}} \|^{\dagger 2} \right]
-        &= \mathbb{E} \left[ \left\| \sum_{k=1}^t \sum_{i=1}^b \beta^{t-k}(1 - \beta)\frac{1}{b} \xi_{k,i} \right\|^{\dagger 2} \right] \nonumber \\
-        &\leq D \sigma^2 \sum_{k=1}^t \sum_{i=1}^b \left( \frac{(1 - \beta) \beta^{t-k}}{b} \right)^2 \nonumber \\
+        &= \mathbb{E} \left[ \left\| \sum_{k=1}^t \sum_{i=0}^b \beta^{t-k}(1 - \beta)\frac{1}{b} \xi_{k,i} \right\|^{\dagger 2} \right] \nonumber \\
+        &\leq D \sigma^2 \sum_{k=1}^t \sum_{i=0}^b \left( \frac{(1 - \beta) \beta^{t-k}}{b} \right)^2 \nonumber \\
         &\leq \frac{(1 - \beta)^2}{1 - \beta^2} \frac{D \sigma^2}{b} \nonumber \\
         &= \frac{1 - \beta}{1 + \beta} \frac{D \sigma^2}{b} \nonumber \\
     \mathbb{E} \left[ \| E_t^{\text{noise}} \|^{\dagger} \right]
