@@ -5,6 +5,9 @@ tags: ["Machine Learning", "Optimizers"]
 author: ["Franz Louis Cesista"]
 description: "First-order optimization under arbitrary norms with Nesterov momentum (and decoupled weight decay) yields a universal convergence bound. Our results generalize to norms not induced by inner products, and also considers batch size."
 summary: "First-order optimization under arbitrary norms with Nesterov momentum (and decoupled weight decay) yields a universal convergence bound. Our results generalize to norms not induced by inner products, and also considers batch size."
+editPost:
+    URL: "https://github.com/leloykun/steepest-descent-lean"
+    Text: "Lean Formalization"
 ---
 
 ## 1. Introduction

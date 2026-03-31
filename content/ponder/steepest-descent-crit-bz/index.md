@@ -5,6 +5,9 @@ tags: ["Machine Learning", "Optimizers"]
 author: ["Franz Louis Cesista", "Kaiyue Wen"]
 description: "First-order optimization under arbitrary norms with Nesterov momentum (and decoupled weight decay) yields universal critical batch size scaling laws. Under an additional local-LMO assumption, the same analysis also heuristically supports square-root learning-rate scaling with batch size."
 summary: "First-order optimization under arbitrary norms with Nesterov momentum (and decoupled weight decay) yields universal critical batch size scaling laws. Under an additional local-LMO assumption, the same analysis also heuristically supports square-root learning-rate scaling with batch size."
+editPost:
+    URL: "https://github.com/leloykun/steepest-descent-lean"
+    Text: "Lean Formalization"
 ---
 
 ## 0. Abstract
