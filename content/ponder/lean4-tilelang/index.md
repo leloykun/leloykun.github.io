@@ -1,6 +1,6 @@
 ---
 title: "Lean4-TileLang Tensor Program Superoptimizer [WIP]"
-date: 2026-05-12
+date: 2026-05-11
 tags: ["Machine Learning",]
 author: "Franz Louis Cesista"
 description: "Deriving Flash Attention 2, FlashNorm, and other 'flash' kernels automatically with Lean4, lowered to TileLang."
