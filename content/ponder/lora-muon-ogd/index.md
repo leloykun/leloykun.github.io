@@ -220,7 +220,9 @@ $$\begin{array}{ccc}
         \Delta B
             &= -\frac{\eta}{2} \texttt{msign}((G_W + U \Lambda V^\top)^\top A S_A^{-1/2}) S_A^{-1/2} \\
             &= -\frac{\eta}{2} \texttt{msign}((G_B + V \Lambda^\top (U^\top A)) S_A^{-1/2}) S_A^{-1/2} \quad ({\color{green}{\checkmark}}) \\
-        \Delta \Lambda &= \eta_{\Lambda} U^\top (\underbrace{\Delta A B^\top + A \Delta B^\top}_{\Delta W}) V
+        \Delta \Lambda
+            &= \eta_{\Lambda} U^\top (\underbrace{\Delta A B^\top + A \Delta B^\top}_{\Delta W}) V \\
+            &= \eta_{\Lambda} (U^\top \Delta A) (V^\top B)^\top + (U^\top A) (\Delta B^\top V) \quad ({\color{green}{\checkmark}})
     \end{aligned}
 \end{array}
 \end{array}$$
@@ -245,10 +247,11 @@ $$\begin{array}{ccc}
     \text{LoRA-LMO-OGD:} \\
     \begin{aligned}
         \Delta A
-            &= -\frac{\eta}{2} \texttt{LMO}((G_A + U \Lambda V^\top B) S_B^{-1/2}) S_B^{-1/2} \\
+            &= -\frac{\eta}{2} \texttt{LMO}((G_A + U \Lambda (V^\top B)) S_B^{-1/2}) S_B^{-1/2} \\
         \Delta B
-            &= -\frac{\eta}{2} \texttt{LMO}((G_B + V \Lambda^\top U^\top A) S_A^{-1/2}) S_A^{-1/2} \\
-        \Delta \Lambda &= \eta_{\Lambda} U^\top (\underbrace{\Delta A B^\top + A \Delta B^\top}_{\Delta W}) V
+            &= -\frac{\eta}{2} \texttt{LMO}((G_B + V \Lambda^\top (U^\top A)) S_A^{-1/2}) S_A^{-1/2} \\
+        \Delta \Lambda
+            &= \eta_{\Lambda} (U^\top \Delta A) (V^\top B)^\top + (U^\top A) (\Delta B^\top V)
     \end{aligned}
 \end{array}
 \end{array}$$
