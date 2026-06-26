@@ -7,10 +7,9 @@ description: "Generalizing Orthogonal Gradient Projection to the low-rank case a
 summary: "Generalizing Orthogonal Gradient Projection to the low-rank case and to steepest descent under a larger family of norms."
 ---
 
-
 ## 1. Introduction
 
-The more LLMs are deployed in more diverse, longer-horizon tasks, the more they need to continually learn and acquire skills 'on-the-go', ideally without forgetting past skills. But that is precisely the central challenge in the field at the moment: when finetuned on new tasks, LLMs rapidly "forget" previously learned skills. Imagine a person immediately forgetting how to ride a bike as soon as they learn how to catch fish by the river. This phenomenon is called, "catastrophic forgetting" ([Goodfellow et al., 2013](https://arxiv.org/abs/1312.6211), [Kirkpatrick et al., 2017](https://www.pnas.org/doi/10.1073/pnas.1611835114)).
+As LLMs are deployed in more diverse and longer-horizon settings, they need to continually acquire new skills without forgetting old ones. But that is precisely the central challenge in the field at the moment: when finetuned on new tasks, LLMs rapidly "forget" previously learned skills. Imagine a person immediately forgetting how to ride a bike as soon as they learn how to catch fish. This phenomenon is called, "catastrophic forgetting" ([Goodfellow et al., 2013](https://arxiv.org/abs/1312.6211), [Kirkpatrick et al., 2017](https://www.pnas.org/doi/10.1073/pnas.1611835114)).
 
 One way to mitigate the catastrophic forgetting issue is to project gradients away from past-task directions $\{ C_i \}_{1 \leq i \leq K}$ via Orthogonal Gradient Descent (OGD) ([Farajtabar et al., 2020](https://proceedings.mlr.press/v108/farajtabar20a.html)). That is, we want our weight updates $\Delta W$ to satisfy,
 $$
@@ -24,14 +23,14 @@ In this work, we derive LoRA-Muon-OGD which takes the maximal updates under the 
 
 ## 2. Problem setting
 
-Let $f: \mathcal{W} \mapsto \mathbb{R}$ be a differentiable and bounded below objective function defined on a finite-dimensional manifold $\mathcal{W}$ equipped with a norm $\| \cdot \|$. Let $G_W := \nabla_W f(W)$ be its differential at $W \in \mathcal{W}$. In the LoRA setting where $\mathcal{W} = \mathcal{M}_r$, let $G_A := G_W B$ and $G_B := G_W^\top A$ be the differentials w.r.t. the $A$ and $B$ LoRA factors, respectively. In practice, when doing LoRA finetuning, backpropagation only gives us access to $G_A$ and $G_B$, not $G_W$, and constructing the full dense 'gradient' matrix is often expensive in terms of compute and memory.
+Let $f: \mathcal{W} \to \mathbb{R}$ be a differentiable and bounded below objective function defined on a finite-dimensional manifold $\mathcal{W}$ equipped with a norm $\| \cdot \|$. Let $G_W := \nabla_W f(W)$ be its differential at $W \in \mathcal{W}$. In the LoRA setting where $\mathcal{W} = \mathcal{M}_r$, let $G_A := G_W B$ and $G_B := G_W^\top A$ be the differentials w.r.t. the $A$ and $B$ LoRA factors, respectively. In practice, when doing LoRA finetuning, backpropagation only gives us access to $G_A$ and $G_B$, not $G_W$, and constructing the full dense 'gradient' matrix is often expensive in terms of compute and memory.
 
-Our derivations here are made a lot simpler by the observation that the low-rank constraint and OGD's non-interferance constraint, intuitively speaking, commute as optimizer-producing actions.
+Our derivations here are made a lot simpler by the observation that the low-rank constraint and OGD's non-interference constraint, intuitively speaking, commute as optimizer-producing actions.
 Starting from the Muon optimizer ([Keller et al., 2024](https://kellerjordan.github.io/posts/muon/)) and applying the low-rank constraint first yields LoRA-Muon ([Cesista et al., 2026](https://arxiv.org/abs/2606.12921))
 If we instead apply the non-interference constraint first, we instead get Muon-OGD as in [Lu et al., 2026](https://arxiv.org/abs/2605.08949).
-But, either way, applying the other constraint then yields LoRA-Muon-OGD.
+But either way, applying the remaining constraint then yields LoRA-Muon-OGD.
 
-The following are trust-region problems solving which yield the four optimizers we discuss here.
+The following trust-region problems yield the four optimizers discussed here.
 
 $$\begin{array}{ccc}
 \begin{array}{c}
@@ -183,7 +182,7 @@ $$\begin{aligned}
 
 ## 4. Deriving the update rules
 
-For Muon and LoRA-Muon, their respective trust-region problems in [Section 2](#2-trust-region-problems) is already equivalent to minimizing $\mathcal{L}_{\text{Muon}}$ and $\mathcal{L}_{\text{LoRA-Muon}}$ w.r.t. $\Delta W$ or $(\Delta A, \Delta B)$. Solving these problems then yields their update rules. For Muon-OGD and LoRA-Muon-OGD, one can then check that their respective trust-region problems are equivalent to the saddle point problems we construct by taking their Lagrangian in [Section 3](#3-lagrangian-formulation) and minimizing it w.r.t. the differentials $\Delta W$ or $(\Delta A, \Delta B)$ and maximizing w.r.t. $\Lambda$. From Sion's minimax theorem, we can swap the order of the $\min$ and $\max$ here. That is, we have:
+For Muon and LoRA-Muon, their respective trust-region problems in [Section 2](#2-trust-region-problems) are already equivalent to minimizing $\mathcal{L}_{\text{Muon}}$ and $\mathcal{L}_{\text{LoRA-Muon}}$ w.r.t. $\Delta W$ or $(\Delta A, \Delta B)$. Solving these problems then yields their update rules. For Muon-OGD and LoRA-Muon-OGD, one can then check that their respective trust-region problems are equivalent to the saddle point problems we construct by taking their Lagrangians in [Section 3](#3-lagrangian-formulation) and minimizing it w.r.t. the differentials $\Delta W$ or $(\Delta A, \Delta B)$ and maximizing w.r.t. $\Lambda$. From Sion's minimax theorem, we can swap the order of the $\min$ and $\max$ here. That is, we have:
 $$
 \begin{aligned}
     \min_{\Delta W} \max_{\Lambda} \mathcal{L}_{\text{Muon-OGD}}
@@ -246,11 +245,11 @@ $$\begin{array}{ccc}
     \end{aligned}
 \end{array}
 \end{array}$$
-where $\operatorname{msign}(X) = X (X^\top X)^{-1/2}$ is the matrix sign function which maps non-zero singular values of a matrix $X$ to $1$, $S_A = A^\top A$, and $S_B = B^\top B$.
+where $\operatorname{msign}(X)$ is the matrix sign function which maps non-zero singular values of $X$ to $1$, $S_A = A^\top A$, and $S_B = B^\top B$.
 
 ### 4.1. Generalizing to LMO-OGD and LoRA-LMO-OGD
 
-As we discussed in [LoRA-Muon: Spectral Steepest Descent on the Low-Rank Manifold](https://arxiv.org/abs/2606.12921), the maths behind LoRA-Muon generalizes to steepest descent under unitary-invariant norms. Thus, if we let $\operatorname{LMO}_{\| \cdot \|}$ be the Linear Minimization Oracle (LMO) of an arbitrary unitary-invariant norm $\| \cdot \|$, we'll get the more general OGD update rules:
+As we discussed in [LoRA-Muon: Spectral Steepest Descent on the Low-Rank Manifold](https://arxiv.org/abs/2606.12921), the LoRA-Muon derivation generalizes to steepest descent under unitary-invariant norms. Thus, if we let $\operatorname{LMO}_{\| \cdot \|}$ be the Linear Minimization Oracle (LMO) of any unitary invariant norm $\| \cdot \|$, we'll get the more general OGD update rules:
 
 $$\begin{array}{ccc}
 \begin{array}{c}
