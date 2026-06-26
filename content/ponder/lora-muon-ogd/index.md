@@ -12,13 +12,26 @@ summary: "Generalizing Orthogonal Gradient Projection to the low-rank case and t
 
 The more LLMs are deployed in more diverse, longer-horizon tasks, the more they need to continually learn and acquire skills 'on-the-go', ideally without forgetting past skills. But that is precisely the central challenge in the field at the moment: when finetuned on new tasks, LLMs rapidly "forget" previously learned skills. Imagine a person immediately forgetting how to ride a bike as soon as they learn how to catch fish by the river. This phenomenon is called, "catastrophic forgetting" ([Goodfellow et al., 2013](https://arxiv.org/abs/1312.6211), [Kirkpatrick et al., 2017](https://www.pnas.org/doi/10.1073/pnas.1611835114)).
 
-One way to mitigate the catastrophic forgetting issue is to project gradients away from past-task directions $\{ C_i \}_{1 \leq i \leq K}$ via Orthogonal Gradient Descent (OGD) ([Farajtabar et al., 2020](https://proceedings.mlr.press/v108/farajtabar20a.html)). I would argue this is somewhat hacky as the LLM might need to refine previously learned skills as it chugs through problems, but it is simple and it works. [Lu et al., 2026](https://arxiv.org/abs/2605.08949) recently derived Muon-OGD which takes the maximal updates under the spectral-norm geometry while satisfying the constraint that the directions aligned to past tasks are zeroed-out. They report SOTA results on continual learning tasks, but the algorithm requires materializing the dense gradient $G_W$ matrix which makes it unsuitable for low-rank finetuning.
+One way to mitigate the catastrophic forgetting issue is to project gradients away from past-task directions $\{ C_i \}_{1 \leq i \leq K}$ via Orthogonal Gradient Descent (OGD) ([Farajtabar et al., 2020](https://proceedings.mlr.press/v108/farajtabar20a.html)). That is, we want our weight updates $\Delta W$ to satisfy,
+$$
+\begin{equation}
+    \langle \Delta W, C_i \rangle = 0 \qquad \text{for all } 1 \leq i \leq K. \label{eq:non-interference}
+\end{equation}
+$$
+I would argue this is somewhat hacky as we may want the LLM to *refine* previously learned skills as it chugs through problems, but it works and simple-enough to be bitter-lesson-pilled. [Lu et al., 2026](https://arxiv.org/abs/2605.08949) recently derived Muon-OGD which takes the maximal updates under the spectral-norm geometry in $\mathbb{R}^{m \times n}$ while satisfying the non-interference constraint in $\eqref{eq:non-interference}$. They report SOTA results on continual learning tasks, but the algorithm requires materializing the dense gradient matrix $G_W$ which makes it unsuitable for low-rank finetuning.
 
-In this work, we derive LoRA-Muon-OGD which also takes the maximal updates under the spectral-norm geometry on the low-rank manifold $\mathcal{M}_r = \{ W = A B^T | A \in \mathbb{R}^{m \times r}, B \in \mathbb{R}^{n \times r}, \text{rank}(A) = \text{rank}(B) = r \}$ while still satisfying the constraint that the directions aligned to past tasks are zeroed-out. We also show that the derivation is natural and generalizes to steepest descent under arbitrary unitary-invariant norm.
+In this work, we derive LoRA-Muon-OGD which takes the maximal updates under the spectral-norm, but on the low-rank manifold $\mathcal{M}_r = \{ W = A B^\top | A \in \mathbb{R}^{m \times r}, B \in \mathbb{R}^{n \times r}, \operatorname{rank}(A) = \operatorname{rank}(B) = r \}$ while still satisfying the non-interference constraint in $\eqref{eq:non-interference}$. We also show that the derivation is natural and generalizes to steepest descent under arbitrary unitary-invariant norm.
 
-## 2. Trust-region problems
+## 2. Problem setting
 
-The low-rank constraint and "zero-out directions aligned to previously-learned tasks" constraint commute as optimizer-producing actions because they independently modify the trust-region problem. Starting from the Muon optimizer ([Keller et al., 2024](https://kellerjordan.github.io/posts/muon/)) and applying the former constraint yields LoRA-Muon ([Cesista et al., 2026](https://arxiv.org/abs/2606.12921)): in $\mathcal{M}_r$, we have $\Delta W = \Delta A B^T + A \Delta B^T$; substituting and solving the resulting (modified) trust-region problem then yields LoRA-Muon. If we instead apply the latter constraint, we instead get Muon-OGD as in [Lu et al., 2026](https://arxiv.org/abs/2605.08949). Here, $U$ and $V$ are the left- and right- singular bases of the past-task directions, $C = UV^T$. But, will still get LoRA-Muon-OGD no matter which 'path' we take:
+Let $f: \mathcal{W} \mapsto \mathbb{R}$ be a differentiable and bounded below objective function defined on a finite-dimensional manifold $\mathcal{W}$ equipped with a norm $\| \cdot \|$. Let $G_W := \nabla_W f(W)$ be its differential at $W \in \mathcal{W}$. In the LoRA setting where $\mathcal{W} = \mathcal{M}_r$, let $G_A := G_W B$ and $G_B := G_W^\top A$ be the differentials w.r.t. the $A$ and $B$ LoRA factors, respectively. In practice, when doing LoRA finetuning, backpropagation only gives us access to $G_A$ and $G_B$, not $G_W$, and constructing the full dense 'gradient' matrix is often expensive in terms of compute and memory.
+
+Our derivations here are made a lot simpler by the observation that the low-rank constraint and OGD's non-interferance constraint, intuitively speaking, commute as optimizer-producing actions.
+Starting from the Muon optimizer ([Keller et al., 2024](https://kellerjordan.github.io/posts/muon/)) and applying the low-rank constraint first yields LoRA-Muon ([Cesista et al., 2026](https://arxiv.org/abs/2606.12921))
+If we instead apply the non-interference constraint first, we instead get Muon-OGD as in [Lu et al., 2026](https://arxiv.org/abs/2605.08949).
+But, either way, applying the other constraint then yields LoRA-Muon-OGD.
+
+The following are trust-region problems solving which yield the four optimizers we discuss here.
 
 $$\begin{array}{ccc}
 \begin{array}{c}
@@ -74,10 +87,11 @@ $$\begin{array}{ccc}
     \end{aligned}
 \end{array}
 \end{array}$$
+where $U$ and $V$ are the left- and right- singular basis vectors of the past-task directions, $C_i = C_{\alpha \beta} = U_{\alpha} V_{\beta}^\top$.
 
 ## 3. Lagrangian formulation
 
-We can then solve these problems using the dual-ascent approach via Lagragian duality.
+Converting the trust-region problems in the previous section into Lagrangians then allows us to solve them via dual-ascent.
 
 $$\begin{array}{ccc}
 \begin{array}{c}
@@ -85,7 +99,7 @@ $$\begin{array}{ccc}
     \begin{aligned}
         &\mathcal{L}_{\text{Muon}}(\Delta W; G_W) \\
             &\qquad= \langle G_W, \Delta W \rangle \\
-            &\qquad\quad + \iota_{\mathbb{B}_{\eta}}(\Delta W)
+            &\qquad\quad + \iota_{\mathbb{B}_{\eta}^{m \times n}}(\Delta W)
     \end{aligned}
 \end{array}
 &
@@ -96,7 +110,7 @@ $$\begin{array}{ccc}
     \begin{aligned}
         &\mathcal{L}_{\text{LoRA-Muon}}(\Delta A, \Delta B; G_W) \\
             &\qquad= \langle G_W, \Delta A B^\top + A \Delta B^\top \rangle \\
-            &\qquad\quad + \iota_{\mathbb{B}_{\eta/2}}(\Delta A B^T) + \iota_{\mathbb{B}_{\eta/2}}(A \Delta B^T)
+            &\qquad\quad + \iota_{\mathbb{B}_{\eta/2}^{m \times n}}(\Delta A B^\top) + \iota_{\mathbb{B}_{\eta/2}^{m \times n}}(A \Delta B^\top)
     \end{aligned}
 \end{array}
 \\[1.5em]
@@ -111,7 +125,7 @@ $$\begin{array}{ccc}
         &\mathcal{L}_{\text{Muon-OGD}}(\Delta W, \Lambda; G_W) \\
             &\qquad= \langle G_W, \Delta W \rangle \\
               &\qquad\quad + \langle U^\top (\Delta W) V, \Lambda \rangle \\
-              &\qquad\quad + \iota_{\mathbb{B}_{\eta}}(\Delta W)
+              &\qquad\quad + \iota_{\mathbb{B}_{\eta}^{m \times n}}(\Delta W)
     \end{aligned}
 \end{array}
 &
@@ -123,7 +137,7 @@ $$\begin{array}{ccc}
         &\mathcal{L}_{\text{LoRA-Muon-OGD}}(\Delta A, \Delta B, \Lambda; G_W) \\
             &\qquad= \langle G_W, \Delta A B^\top + A \Delta B^\top \rangle \\
               &\qquad\quad + \langle U^\top (\Delta A B^\top + A \Delta B^\top) V, \Lambda \rangle \\
-              &\qquad\quad + \iota_{\mathbb{B}_{\eta/2}}(\Delta A B^T) + \iota_{\mathbb{B}_{\eta/2}}(A \Delta B^T)
+              &\qquad\quad + \iota_{\mathbb{B}_{\eta/2}^{m \times n}}(\Delta A B^\top) + \iota_{\mathbb{B}_{\eta/2}^{m \times n}}(A \Delta B^\top)
     \end{aligned}
 \end{array}
 \end{array}$$
@@ -132,9 +146,9 @@ $$\iota_S(X) = \begin{cases}
     0 & X \in S \\
     +\infty & X \notin S
 \end{cases},$$
-and $\mathbb{B}_{\eta}$ is the (spectral) norm ball of radius $\eta$ around the origin.
+and $\mathbb{B}_{\rho}^{m \times n} = \{ X \in \mathbb{R}^{m \times n} : \| X \|_{2 \to 2} \leq \rho \}$.
 
-From the cyclic property of the trace, we have the identity,
+Now, from the cyclic property of the trace, we have the identity,
 $$\langle U^\top X V, \Lambda \rangle = \langle U \Lambda V^\top, X \rangle \quad\text{for any} \quad X \in \mathbb{R}^{m \times n}.$$
 Thus we can rewrite the Lagrangian of the Muon-OGD and LoRA-Muon-OGD optimizers as follows:
 $$\begin{array}{ccc}
@@ -143,7 +157,7 @@ $$\begin{array}{ccc}
     \begin{aligned}
         &\mathcal{L}_{\text{Muon-OGD}}(\Delta W, \Lambda; G_W) \\
             &\qquad= \langle G_W + U \Lambda V^\top, \Delta W \rangle \\
-              &\qquad\quad + \iota_{\mathbb{B}_{\eta}}(\Delta W)
+              &\qquad\quad + \iota_{\mathbb{B}_{\eta}^{m \times n}}(\Delta W)
     \end{aligned}
 \end{array}
 &
@@ -154,7 +168,7 @@ $$\begin{array}{ccc}
     \begin{aligned}
         &\mathcal{L}_{\text{LoRA-Muon-OGD}}(\Delta A, \Delta B, \Lambda; G_W) \\
             &\qquad= \langle G_W + U \Lambda V^\top, \Delta A B^\top + A \Delta B^\top \rangle \\
-              &\qquad\quad + \iota_{\mathbb{B}_{\eta/2}}(\Delta A B^T) + \iota_{\mathbb{B}_{\eta/2}}(A \Delta B^T)
+              &\qquad\quad + \iota_{\mathbb{B}_{\eta/2}^{m \times n}}(\Delta A B^\top) + \iota_{\mathbb{B}_{\eta/2}^{m \times n}}(A \Delta B^\top)
     \end{aligned}
 \end{array}
 \end{array}$$
@@ -162,14 +176,14 @@ $$\begin{array}{ccc}
 Thus, the OGD-versions of the Muon and LoRA-Muon optimizers are similar to the originals, but with a shifted gradient $G_W \mapsto G_W + U \Lambda V^\top$:
 $$\begin{aligned}
     \mathcal{L}_{\text{Muon-OGD}}(\Delta W, {\color{darkblue}{\Lambda; G_W}})
-        &\cong \mathcal{L}_{\text{Muon}}(\Delta W; {\color{darkblue}{G_W + U \Lambda V^\top}}) \\
+        &= \mathcal{L}_{\text{Muon}}(\Delta W; {\color{darkblue}{G_W + U \Lambda V^\top}}) \\
     \mathcal{L}_{\text{LoRA-Muon-OGD}}(\Delta A, \Delta B, {\color{darkblue}{\Lambda; G_W}})
-        &\cong \mathcal{L}_{\text{LoRA-Muon}}(\Delta A, \Delta B; {\color{darkblue}{G_W + U \Lambda V^\top}})
+        &= \mathcal{L}_{\text{LoRA-Muon}}(\Delta A, \Delta B; {\color{darkblue}{G_W + U \Lambda V^\top}})
 \end{aligned}$$
 
 ## 4. Deriving the update rules
 
-For Muon and LoRA-Muon, their respective trust-region problems in [Section 2](#2-trust-region-problems) is already equivalent to minimizing $\mathcal{L}_{\text{Muon}}$ and $\mathcal{L}_{\text{LoRA-Muon}}$ w.r.t. $\Delta W$ or $(\Delta A, \Delta B)$. Solving these problems then yields their update rules. For Muon-OGD and LoRA-Muon-OGD, one can then check that their respective trust-region problems are equivalent to the sadle point problems we construct by taking their Lagragian in [Section 3](#3-lagrangian-formulation) and minimizing it w.r.t. the differentials $\Delta W$ or $(\Delta A, \Delta B)$ and maximizing w.r.t. $\Lambda$. From Sion's minimax theorem, we can swap the order of the $\min$ and $\max$ here. That is, we have:
+For Muon and LoRA-Muon, their respective trust-region problems in [Section 2](#2-trust-region-problems) is already equivalent to minimizing $\mathcal{L}_{\text{Muon}}$ and $\mathcal{L}_{\text{LoRA-Muon}}$ w.r.t. $\Delta W$ or $(\Delta A, \Delta B)$. Solving these problems then yields their update rules. For Muon-OGD and LoRA-Muon-OGD, one can then check that their respective trust-region problems are equivalent to the saddle point problems we construct by taking their Lagrangian in [Section 3](#3-lagrangian-formulation) and minimizing it w.r.t. the differentials $\Delta W$ or $(\Delta A, \Delta B)$ and maximizing w.r.t. $\Lambda$. From Sion's minimax theorem, we can swap the order of the $\min$ and $\max$ here. That is, we have:
 $$
 \begin{aligned}
     \min_{\Delta W} \max_{\Lambda} \mathcal{L}_{\text{Muon-OGD}}
@@ -178,12 +192,12 @@ $$
         &= \max_{\Lambda} \min_{\Delta A, \Delta B} \mathcal{L}_{\text{LoRA-Muon-OGD}}
 \end{aligned}
 $$
-Solving these minimization and maximazation subproblems and applying them alternatingly then yields the update rules for Muon-OGD and LoRA-Muon-OGD. I've summarized the results below:
+Solving these minimization and maximization subproblems and alternating these updates then yields the update rules for Muon-OGD and LoRA-Muon-OGD. I've summarized the results below:
 
 $$\begin{array}{ccc}
 \begin{array}{c}
     \text{Muon:} \\
-    \Delta W = -\eta \cdot \texttt{msign}(G_W)
+    \Delta W^* = -\eta \cdot \operatorname{msign}(G_W)
 \end{array}
 &
 \xrightarrow{\quad \text{LoRA split} \quad}
@@ -191,21 +205,23 @@ $$\begin{array}{ccc}
 \begin{array}{c}
     \text{LoRA-Muon:} \\
     \begin{aligned}
-        \Delta A &= -\frac{\eta}{2} \cdot \texttt{msign}(\underbrace{G_W B}_{G_A} S_B^{-1/2}) S_B^{-1/2} \\
-        \Delta B &= -\frac{\eta}{2} \cdot \texttt{msign}(\underbrace{G_W^\top A}_{G_B} S_A^{-1/2}) S_A^{-1/2} 
+        \Delta A^* &= -\frac{\eta}{2} \operatorname{msign}(\underbrace{G_W B}_{G_A} S_B^{-1/2}) S_B^{-1/2} \\
+        \Delta B^* &= -\frac{\eta}{2} \operatorname{msign}(\underbrace{G_W^\top A}_{G_B} S_A^{-1/2}) S_A^{-1/2} 
     \end{aligned}
 \end{array}
 \\[1.5em]
-\Big\downarrow\ {\scriptstyle \text{OGD constraint} }
+\Big\downarrow\ {\scriptstyle \text{OGD dual shift} }
 &
 &
-\Big\downarrow\ {\scriptstyle \text{OGD constraint} }
+\Big\downarrow\ {\scriptstyle \text{OGD dual shift} }
 \\[1.5em]
 \begin{array}{c}
     \text{Muon-OGD:} \\
     \begin{aligned}
-        \Delta W &= -\eta \cdot \texttt{msign}(G_W + U \Lambda V^\top) \\
-        \Delta \Lambda &= \eta_{\Lambda} U^\top (\Delta W) V
+        \Delta W^{(j)}
+            &= -\eta \cdot \operatorname{msign}(G_W + U \Lambda^{(j-1)} V^\top) \\
+        \Delta \Lambda^{(j)}
+            &= \sigma_{\Lambda} U^\top (\Delta W^{(j)}) V
     \end{aligned}
 \end{array}
 &
@@ -214,30 +230,36 @@ $$\begin{array}{ccc}
 \begin{array}{c}
     \text{LoRA-Muon-OGD:} \\
     \begin{aligned}
-        \Delta A
-            &= -\frac{\eta}{2} \texttt{msign}((G_W + U \Lambda V^\top) B S_B^{-1/2}) S_B^{-1/2} \\
-            &= -\frac{\eta}{2} \texttt{msign}((G_A + U \Lambda (V^\top B)) S_B^{-1/2}) S_B^{-1/2} \quad ({\color{green}{\checkmark}}) \\
-        \Delta B
-            &= -\frac{\eta}{2} \texttt{msign}((G_W + U \Lambda V^\top)^\top A S_A^{-1/2}) S_A^{-1/2} \\
-            &= -\frac{\eta}{2} \texttt{msign}((G_B + V \Lambda^\top (U^\top A)) S_A^{-1/2}) S_A^{-1/2} \quad ({\color{green}{\checkmark}}) \\
-        \Delta \Lambda
-            &= \eta_{\Lambda} U^\top (\underbrace{\Delta A B^\top + A \Delta B^\top}_{\Delta W}) V \\
-            &= \eta_{\Lambda} (U^\top \Delta A) (V^\top B)^\top + (U^\top A) (\Delta B^\top V) \quad ({\color{green}{\checkmark}})
+        \Delta A^{(j)}
+            &= -\frac{\eta}{2} \operatorname{msign}((G_W + U \Lambda^{(j-1)} V^\top) B S_B^{-1/2}) S_B^{-1/2} \\
+        \Delta B^{(j)}
+            &= -\frac{\eta}{2} \operatorname{msign}((G_W + U \Lambda^{(j-1)} V^\top)^\top A S_A^{-1/2}) S_A^{-1/2} \\
+        \Delta \Lambda^{(j)}
+            &= \sigma_{\Lambda} U^\top (\underbrace{\Delta A^{(j)} B^\top + A (\Delta B^{(j)})^\top}_{\Delta W^{(j)}}) V \\[0.5em]
+        &\qquad\text{or, equivalently,} \\[0.5em]
+        \Delta A^{(j)}
+            &= -\frac{\eta}{2} \operatorname{msign}((G_A + U \Lambda^{(j-1)} (V^\top B)) S_B^{-1/2}) S_B^{-1/2} \\
+        \Delta B^{(j)}
+            &= -\frac{\eta}{2} \operatorname{msign}((G_B + V (\Lambda^{(j-1)})^\top (U^\top A)) S_A^{-1/2}) S_A^{-1/2} \\
+        \Delta \Lambda^{(j)}
+            &= \sigma_{\Lambda} [(U^\top \Delta A^{(j)}) (V^\top B)^\top + (U^\top A) (V^\top \Delta B^{(j)})^\top]
     \end{aligned}
 \end{array}
 \end{array}$$
-where the ${\color{green}{\checkmark}}$ mark here means that the update rule does not require materializing a full $\mathbb{R}^{m \times n}$ matrix.
+where $\operatorname{msign}(X) = X (X^\top X)^{-1/2}$ is the matrix sign function which maps non-zero singular values of a matrix $X$ to $1$, $S_A = A^\top A$, and $S_B = B^\top B$.
 
 ### 4.1. Generalizing to LMO-OGD and LoRA-LMO-OGD
 
-As we discussed in [LoRA-Muon: Spectral Steepest Descent on the Low-Rank Manifold](https://arxiv.org/abs/2606.12921), the maths behind LoRA-Muon generalizes to steepest descent under unitary-invariant norms. Thus, if we let $\text{LMO}_{\| \cdot \|}$ be the Linear Minimization Oracle (LMO) of an arbitrary unitary-invariant norm $\| \cdot \|$, we'll get the more general OGD update rules:
+As we discussed in [LoRA-Muon: Spectral Steepest Descent on the Low-Rank Manifold](https://arxiv.org/abs/2606.12921), the maths behind LoRA-Muon generalizes to steepest descent under unitary-invariant norms. Thus, if we let $\operatorname{LMO}_{\| \cdot \|}$ be the Linear Minimization Oracle (LMO) of an arbitrary unitary-invariant norm $\| \cdot \|$, we'll get the more general OGD update rules:
 
 $$\begin{array}{ccc}
 \begin{array}{c}
     \text{LMO-OGD:} \\
     \begin{aligned}
-        \Delta W &= -\eta \cdot \texttt{LMO}(G_W + U \Lambda V^\top) \\
-        \Delta \Lambda &= \eta_{\Lambda} U^\top (\Delta W) V
+        \Delta W^{(j)}
+            &= \eta \cdot \operatorname{LMO}(G_W + U \Lambda^{(j-1)} V^\top) \\
+        \Delta \Lambda^{(j)}
+            &= \sigma_{\Lambda} U^\top (\Delta W^{(j)}) V
     \end{aligned}
 \end{array}
 &
@@ -246,12 +268,12 @@ $$\begin{array}{ccc}
 \begin{array}{c}
     \text{LoRA-LMO-OGD:} \\
     \begin{aligned}
-        \Delta A
-            &= -\frac{\eta}{2} \texttt{LMO}((G_A + U \Lambda (V^\top B)) S_B^{-1/2}) S_B^{-1/2} \\
-        \Delta B
-            &= -\frac{\eta}{2} \texttt{LMO}((G_B + V \Lambda^\top (U^\top A)) S_A^{-1/2}) S_A^{-1/2} \\
-        \Delta \Lambda
-            &= \eta_{\Lambda} (U^\top \Delta A) (V^\top B)^\top + (U^\top A) (\Delta B^\top V)
+        \Delta A^{(j)}
+            &= \frac{\eta}{2} \operatorname{LMO}((G_A + U \Lambda^{(j-1)} (V^\top B)) S_B^{-1/2}) S_B^{-1/2} \\
+        \Delta B^{(j)}
+            &= \frac{\eta}{2} \operatorname{LMO}((G_B + V (\Lambda^{(j-1)})^\top (U^\top A)) S_A^{-1/2}) S_A^{-1/2} \\
+        \Delta \Lambda^{(j)}
+            &= \sigma_{\Lambda} [(U^\top \Delta A^{(j)}) (V^\top B)^\top + (U^\top A) (V^\top \Delta B^{(j)})^\top]
     \end{aligned}
 \end{array}
 \end{array}$$
@@ -259,12 +281,13 @@ $$\begin{array}{ccc}
 ## How to Cite
 
 ```bibtex
-@misc{cesista2026loramuonogd,
-  author = {Franz Louis Cesista},
+@article{cesista2026loramuonogd,
   title = {{LoRA-Muon-OGD}: Spectral Orthogonal Gradient Projection on the Low-Rank Manifold for LLM Continual Learning},
+  author = {Franz Louis Cesista},
+  journal = {leloykun.github.io},
   year = {2026},
-  month = {July},
-  day = {26},
+  month = {June},
+  day = {25},
   url = {https://leloykun.github.io/ponder/lora-muon-ogd/},
 }
 ```
