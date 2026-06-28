@@ -211,8 +211,8 @@ $$\begin{array}{ccc}
 \begin{array}{c}
     \text{LoRA-Muon:} \\
     \begin{aligned}
-        \Delta A^* &= -\frac{\eta}{2} \operatorname{msign}(\underbrace{G_W B}_{G_A} S_B^{-1/2}) S_B^{-1/2} \\
-        \Delta B^* &= -\frac{\eta}{2} \operatorname{msign}(\underbrace{G_W^\top A}_{G_B} S_A^{-1/2}) S_A^{-1/2} 
+        \Delta A^* &= -\frac{\eta}{2} \operatorname{msign}(\underbrace{G_A}_{=G_W B} S_B^{-1/2}) S_B^{-1/2} \\
+        \Delta B^* &= -\frac{\eta}{2} \operatorname{msign}(\underbrace{G_B}_{=G_W^\top A} S_A^{-1/2}) S_A^{-1/2} 
     \end{aligned}
 \end{array}
 \\[1.5em]
@@ -225,7 +225,7 @@ $$\begin{array}{ccc}
     \text{Muon-OGD:} \\
     \begin{aligned}
         \Delta W^{(j)}
-            &= -\eta \cdot \operatorname{msign}(G_W + U \Lambda^{(j-1)} V^\top) \\
+            &= -\eta \cdot \operatorname{msign}(G_W {\color{darkblue}{+ U \Lambda^{(j-1)} V^\top}}) \\
         \Delta \Lambda^{(j)}
             &= \sigma_{\Lambda} U^\top (\Delta W^{(j)}) V
     \end{aligned}
@@ -237,16 +237,16 @@ $$\begin{array}{ccc}
     \text{LoRA-Muon-OGD:} \\
     \begin{aligned}
         \Delta A^{(j)}
-            &= -\frac{\eta}{2} \operatorname{msign}((G_W + U \Lambda^{(j-1)} V^\top) B S_B^{-1/2}) S_B^{-1/2} \\
+            &= -\frac{\eta}{2} \operatorname{msign}((G_W{\color{darkblue}{ + U \Lambda^{(j-1)} V^\top}}) B S_B^{-1/2}) S_B^{-1/2} \\
         \Delta B^{(j)}
-            &= -\frac{\eta}{2} \operatorname{msign}((G_W + U \Lambda^{(j-1)} V^\top)^\top A S_A^{-1/2}) S_A^{-1/2} \\
+            &= -\frac{\eta}{2} \operatorname{msign}((G_W{\color{darkblue}{ + U \Lambda^{(j-1)} V^\top}})^\top A S_A^{-1/2}) S_A^{-1/2} \\
         \Delta \Lambda^{(j)}
             &= \sigma_{\Lambda} U^\top (\underbrace{\Delta A^{(j)} B^\top + A (\Delta B^{(j)})^\top}_{\Delta W^{(j)}}) V \\[0.5em]
         &\qquad\text{or, equivalently,} \\[0.5em]
         \Delta A^{(j)}
-            &= -\frac{\eta}{2} \operatorname{msign}((G_A + U \Lambda^{(j-1)} (V^\top B)) S_B^{-1/2}) S_B^{-1/2} \\
+            &= -\frac{\eta}{2} \operatorname{msign}(G_A S_B^{-1/2}{\color{darkblue}{ + (U \Lambda^{(j-1)} (V^\top B)) S_B^{-1/2}}}) S_B^{-1/2} \\
         \Delta B^{(j)}
-            &= -\frac{\eta}{2} \operatorname{msign}((G_B + V (\Lambda^{(j-1)})^\top (U^\top A)) S_A^{-1/2}) S_A^{-1/2} \\
+            &= -\frac{\eta}{2} \operatorname{msign}(G_B S_B^{-1/2}{\color{darkblue}{ + (V (\Lambda^{(j-1)})^\top (U^\top A)) S_A^{-1/2}}}) S_A^{-1/2} \\
         \Delta \Lambda^{(j)}
             &= \sigma_{\Lambda} [(U^\top \Delta A^{(j)}) (V^\top B)^\top + (U^\top A) (V^\top \Delta B^{(j)})^\top]
     \end{aligned}
