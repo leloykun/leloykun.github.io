@@ -12,42 +12,44 @@ summary: "Sharper Mixture-of-Experts routing with LUCID preconditioning."
 Standard Softmax Attention has a long-context problem: the longer the context is, the more it loses 'focus' on relevant information. As argued by the LUCID Attention paper ([Duvvury et al., 2026](https://www.arxiv.org/abs/2602.10410)), this is primarily because it 'diffuses' attention across correlated tokens, even if those tokens are merely "similar but irrelevant". And the longer the context is, the more likely it is to have many correlated tokens, which leads to a more severe loss of focus. To fix this, they propose adjusting the attention scores with a preconditioner $P^{-1}$ that "undoes" the effect of correlation before applying the value aggregation. Think of it as a whitening step, but for attention scores instead of gradients as in Muon.
 
 $$\begin{align}
-    \texttt{Softmax-Attn}(Q, K, V)
-        &= \text{softmax}\left( M \circ \frac{QK^T}{\sqrt{d}} \right) V \\
-        &= \frac{1}{Z} \left( M \circ \exp\left( \frac{QK^T}{\sqrt{d}} \right) \right) V \\
-    \texttt{LUCID-Attn}(Q, K, V)
-        &= \frac{1}{Z} \left( M \circ \exp\left( \frac{QK^T}{\sqrt{d}} \right) \right) P^{-1} V,
+    \operatorname{Softmax-Attn}(Q, K, V)
+        &= \operatorname{softmax}\left( M \circ \frac{QK^\top}{\sqrt{d}} \right) V \\
+        &= \frac{1}{Z} \left( M \circ \exp\left( \frac{QK^\top}{\sqrt{d}} \right) \right) V \\
+    \operatorname{LUCID-Attn}(Q, K, V)
+        &= \frac{1}{Z} \left( M \circ \exp\left( \frac{QK^\top}{\sqrt{d}} \right) \right) P^{-1} V,
 \end{align}$$
 where $Z$ is the normalization term, $M$ is the causal mask,
 $$\begin{align}
     P^{-1}
-        &= \left( M \circ \exp\left(\frac{K_{\text{RN}} K_{\text{RN}}^T}{\sqrt{d}} - \sqrt{d}\mathbf{1}\mathbf{1}^T\right) \right)^{-1}, \label{eq:lucid-preconditioner}
+        &= \left( M \circ \exp\left(\frac{K_{\text{RN}} K_{\text{RN}}^\top}{\sqrt{d}} - \sqrt{d}\mathbf{1}\mathbf{1}^\top\right) \right)^{-1}, \label{eq:lucid-preconditioner}
 \end{align}$$
-and $K_{\text{RN}}$ is the row-RMS-normalized keys, $K_{i, \text{RN}} = \text{rms\_normalize}(K_i)$.
+and $K_{\text{RN}}$ is the row-RMS-normalized keys, $K_{i, \text{RN}} = \operatorname{rms\_normalize}(K_i)$.
 
 More intuitively, think of softmax attention as a retrieval operation where we have a "query" $q$ (the representation of the current token), and we want to use it to "retrieve" the closest "keys" $K$ (representations of context tokens). The operation,
 $$\begin{align}
-    qK^T
+    qK^\top
         &= \begin{bmatrix}
-            qk_1^T & qk_2^T & \cdots & qk_T^T
+            qk_1^\top & qk_2^\top & \cdots & qk_T^\top
         \end{bmatrix} \\
         &= \begin{bmatrix}
-            \text{similarity}(q, k_1) & \text{similarity}(q, k_2) & \cdots & \text{similarity}(q, k_T)
+            \operatorname{similarity}(q, k_1) & \operatorname{similarity}(q, k_2) & \cdots & \operatorname{similarity}(q, k_T)
         \end{bmatrix},
 \end{align}$$
 computes the "similarity" between the query and each key, and the softmax afterwards makes them positive (via exponentiation) and sums to 1 (via normalization), yielding a probability distribution over the keys,
 $$\begin{align}
-    p(k_i \text{ gets picked}) = \text{softmax}(qK^T)_i = \frac{\overbrace{\exp(\text{similarity}(q, k_i))}^{> 0}}{\sum_{j=1}^T \exp(\text{similarity}(q, k_j))}.
+    p(k_i \text{ gets picked})
+        = \operatorname{softmax}(qK^\top)_i
+        = \frac{\overbrace{\exp(\operatorname{similarity}(q, k_i))}^{> 0}}{\sum_{j=1}^\top \exp(\operatorname{similarity}(q, k_j))}.
 \end{align}$$
 
 Ideally, we only want to "pick" the key or keys that are closest (highest similarity) to the query, and ignore the rest. However, if there are $N$ tokens that are similar to the closest key, but (perhaps slightly) farther away from the query, then the softmax will still assign all of them roughly equal attention scores, despite not all of them being relevant. Or they could even be relevant, but redundant. Either way, they are distracting and should be ignored. And the longer the context is, the larger $N$ is, the worse the problem becomes. Hence the attention score whitening step to "undo" the effect of key correlations:
 $$\begin{align}
     \widetilde{P}^{-1}
         &= \begin{bmatrix}
-            \exp(\text{similarity}(k_1, k_1)) & 0 & \cdots & 0 \\
-            \exp(\text{similarity}(k_1, k_2)) & \exp(\text{similarity}(k_2, k_2)) & \cdots & 0 \\
+            \exp(\operatorname{similarity}(k_1, k_1)) & 0 & \cdots & 0 \\
+            \exp(\operatorname{similarity}(k_1, k_2)) & \exp(\operatorname{similarity}(k_2, k_2)) & \cdots & 0 \\
             \vdots & \vdots & \ddots & \vdots \\
-            \exp(\text{similarity}(k_1, k_T)) & \exp(\text{similarity}(k_2, k_T)) & \cdots & \exp(\text{similarity}(k_T, k_T))
+            \exp(\operatorname{similarity}(k_1, k_T)) & \exp(\operatorname{similarity}(k_2, k_T)) & \cdots & \exp(\operatorname{similarity}(k_T, k_T))
         \end{bmatrix}^{-1},
 \end{align}$$
 
@@ -66,30 +68,30 @@ We will focus on the first setting, MoE routing, because the preconditioners $P$
 
 The routers in Mixture-of-Experts are "attention-like" in the sense that, modulo top-K sparsity, they also compute dot-product similarities between token representations $X$ and expert representations $E$, followed by a softmax to get the routing probabilities. Thus, they suffer from having "diffused" routing probabilities across correlated experts, which lead to less-specialized experts, and worse performance when some of the redundant experts do not get picked in the top-K filter. The simple fix then is to apply the same preconditioning step as in LUCID Attention, which "undoes" the effect of expert correlation before applying the expert outputs $O$:
 $$\begin{align}
-    \texttt{Softmax-Routing}(Q, E, O)
-        &= \frac{1}{Z} \exp(Q E^T) O \\
-    \texttt{LUCID-Softmax-Routing}(Q, E, O)
-        &= \frac{1}{Z} \exp(Q E^T) P^{-1} O,
+    \operatorname{Softmax-Routing}(Q, E, O)
+        &= \frac{1}{Z} \exp(Q E^\top) O \\
+    \operatorname{LUCID-Softmax-Routing}(Q, E, O)
+        &= \frac{1}{Z} \exp(Q E^\top) P^{-1} O,
 \end{align}$$
 with,
 $$\begin{align}
     P^{-1}
-        &= \left( \exp\left(\frac{E_{\text{RN}} E_{\text{RN}}^T}{\sqrt{d}} - \sqrt{d}\mathbf{1}\mathbf{1}^T \right) \right)^{-1}.
+        &= \left( \exp\left(\frac{E_{\text{RN}} E_{\text{RN}}^\top}{\sqrt{d}} - \sqrt{d}\mathbf{1}\mathbf{1}^\top \right) \right)^{-1}.
 \end{align}$$
 
 ### 2.2. LUCID-MoE with Sigmoid Gating
 
-With Sigmoid Gating, our kernel becomes $k(\cdot) = \text{sigmoid}(\cdot)$ instead of $k(\cdot) = \text{exp}(\cdot)$, and,
+With Sigmoid Gating, our kernel becomes $k(\cdot) = \operatorname{sigmoid}(\cdot)$ instead of $k(\cdot) = \exp(\cdot)$, and,
 $$\begin{align}
-    \texttt{Sigmoid-Routing}(Q, E, O)
-        &= \frac{1}{Z} \text{sigmoid}\left( Q E^T \right) O \\
-    \texttt{LUCID-Sigmoid-Routing}(Q, E, O)
-        &= \frac{1}{Z} \text{sigmoid}\left( Q E^T \right) P^{-1} O,
+    \operatorname{Sigmoid-Routing}(Q, E, O)
+        &= \frac{1}{Z} \operatorname{sigmoid}\left( Q E^\top \right) O \\
+    \operatorname{LUCID-Sigmoid-Routing}(Q, E, O)
+        &= \frac{1}{Z} \operatorname{sigmoid}\left( Q E^\top \right) P^{-1} O,
 \end{align}$$
 where,
 $$\begin{align}
     P^{-1}
-        &= \left( 2\cdot\text{sigmoid}\left(\frac{E_{\text{RN}} E_{\text{RN}}^T}{\sqrt{d}} - \sqrt{d}\mathbf{1}\mathbf{1}^T \right) \right)^{-1}.
+        &= \left( 2\cdot\operatorname{sigmoid}\left(\frac{E_{\text{RN}} E_{\text{RN}}^\top}{\sqrt{d}} - \sqrt{d}\mathbf{1}\mathbf{1}^\top \right) \right)^{-1}.
 \end{align}$$
 The factor of $2$ is to ensure that $P$ has unit diagonals.
 

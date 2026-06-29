@@ -237,18 +237,18 @@ $$\begin{array}{ccc}
     \text{LoRA-Muon-OGD:} \\
     \begin{aligned}
         \Delta A^{(j)}
-            &= -\frac{\eta}{2} \operatorname{msign}((G_W{\color{darkblue}{ + U \Lambda^{(j-1)} V^\top}}) B S_B^{-1/2}) S_B^{-1/2} \\
+            &= -\frac{\eta}{2} \operatorname{msign} \left( (G_W{\color{darkblue}{ + U \Lambda^{(j-1)} V^\top}}) B S_B^{-1/2} \right) S_B^{-1/2} \\
         \Delta B^{(j)}
-            &= -\frac{\eta}{2} \operatorname{msign}((G_W{\color{darkblue}{ + U \Lambda^{(j-1)} V^\top}})^\top A S_A^{-1/2}) S_A^{-1/2} \\
+            &= -\frac{\eta}{2} \operatorname{msign} \left( (G_W{\color{darkblue}{ + U \Lambda^{(j-1)} V^\top}})^\top A S_A^{-1/2} \right) S_A^{-1/2} \\
         \Delta \Lambda^{(j)}
             &= \sigma_{\Lambda} U^\top (\underbrace{\Delta A^{(j)} B^\top + A (\Delta B^{(j)})^\top}_{\Delta W^{(j)}}) V \\[0.5em]
         &\qquad\text{or, equivalently,} \\[0.5em]
         \Delta A^{(j)}
-            &= -\frac{\eta}{2} \operatorname{msign}(G_A S_B^{-1/2}{\color{darkblue}{ + (U \Lambda^{(j-1)} (V^\top B)) S_B^{-1/2}}}) S_B^{-1/2} \\
+            &= -\frac{\eta}{2} \operatorname{msign} \left( G_A S_B^{-1/2}{\color{darkblue}{ + (U \Lambda^{(j-1)}) (V^\top B) S_B^{-1/2}}} \right) S_B^{-1/2} \\
         \Delta B^{(j)}
-            &= -\frac{\eta}{2} \operatorname{msign}(G_B S_B^{-1/2}{\color{darkblue}{ + (V (\Lambda^{(j-1)})^\top (U^\top A)) S_A^{-1/2}}}) S_A^{-1/2} \\
+            &= -\frac{\eta}{2} \operatorname{msign} \left( G_B S_B^{-1/2}{\color{darkblue}{ + (V (\Lambda^{(j-1)})^\top) (U^\top A) S_A^{-1/2}}} \right) S_A^{-1/2} \\
         \Delta \Lambda^{(j)}
-            &= \sigma_{\Lambda} [(U^\top \Delta A^{(j)}) (V^\top B)^\top + (U^\top A) (V^\top \Delta B^{(j)})^\top]
+            &= \sigma_{\Lambda} \left[ (U^\top \Delta A^{(j)}) (V^\top B)^\top + (U^\top A) (V^\top \Delta B^{(j)})^\top \right]
     \end{aligned}
 \end{array}
 \end{array}$$
@@ -275,11 +275,11 @@ $$\begin{array}{ccc}
     \text{LoRA-LMO-OGD:} \\
     \begin{aligned}
         \Delta A^{(j)}
-            &= \frac{\eta}{2} \operatorname{LMO}_{\| \cdot \|}((G_A + U \Lambda^{(j-1)} (V^\top B)) S_B^{-1/2}) S_B^{-1/2} \\
+            &= \frac{\eta}{2} \operatorname{LMO}_{\| \cdot \|} \left( G_A S_B^{-1/2} + (U \Lambda^{(j-1)}) (V^\top B) S_B^{-1/2} \right) S_B^{-1/2} \\
         \Delta B^{(j)}
-            &= \frac{\eta}{2} \operatorname{LMO}_{\| \cdot \|}((G_B + V (\Lambda^{(j-1)})^\top (U^\top A)) S_A^{-1/2}) S_A^{-1/2} \\
+            &= \frac{\eta}{2} \operatorname{LMO}_{\| \cdot \|} \left( G_B S_A^{-1/2} + (V (\Lambda^{(j-1)})^\top) (U^\top A) S_A^{-1/2} \right) S_A^{-1/2} \\
         \Delta \Lambda^{(j)}
-            &= \sigma_{\Lambda} [(U^\top \Delta A^{(j)}) (V^\top B)^\top + (U^\top A) (V^\top \Delta B^{(j)})^\top]
+            &= \sigma_{\Lambda} \left[ (U^\top \Delta A^{(j)}) (V^\top B)^\top + (U^\top A) (V^\top \Delta B^{(j)})^\top \right]
     \end{aligned}
 \end{array}
 \end{array}$$
@@ -292,9 +292,9 @@ $$
     \phi: \Theta \to \mathcal{W}, \qquad W = \phi(\theta),
 \end{equation}
 $$
-where $\Theta$ is some finite-dimensional vector space and $\theta \in \Theta$. A concrete example is the LoRA parametrization: $\Theta \in \mathbb{R}^{m \times r} \times \mathbb{R}^{n \times r}$, $\theta = (A, B)$, and $\phi(\theta) = \phi(A, B) = AB^\top$.
+where $\Theta$ is some finite-dimensional vector space and $\theta \in \Theta$. E.g., the LoRA parametrization: $\Theta \in \mathbb{R}^{m \times r} \times \mathbb{R}^{n \times r}$, $\theta = (A, B)$, and $\phi(\theta) = \phi(A, B) = AB^\top$.
 
-Let $D_{\phi_{\theta}}: T_{\theta} \Theta \to T_{W} \mathcal{W}$ be the differential of $\phi$ at $\theta$ and $D_{\phi_{\theta}}^*: T_{W}^* \mathcal{W} \to T_{\theta}^* \Theta$ its adjoint such that,
+Let $D_{\phi_{\theta}}: T_{\theta} \Theta \to T_{W} \mathcal{W}$ be the differential of $\phi$ at $\theta$ and $D_{\phi_{\theta}}^*: T_{W}^* \mathcal{W} \to T_{\theta}^* \Theta$ be its adjoint such that,
 $$\begin{align}
     \Delta W
         &= D_{\phi_{\theta}}[\Delta \theta], \\

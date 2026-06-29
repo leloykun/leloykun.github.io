@@ -35,21 +35,21 @@ $$\begin{align}
 which has a solution, via the Linear Minimization Oracle (LMO) of the norm $\| \cdot \|$ (Pethick et al., 2025),
 $$\begin{align}
     W_{t+1}
-        &= (1 - \eta\lambda) W_t - \eta \texttt{LMO}_{\| \cdot \|}(M_t). \label{eq:lmo_solution}
+        &= (1 - \eta\lambda) W_t - \eta \operatorname{LMO}_{\| \cdot \|}(M_t). \label{eq:lmo_solution}
 \end{align}$$
 
 Specializing to the spectral norm $\| \cdot \|_{2 \to 2}$ then yields the Muon optimizer ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)), as discussed in [Ponder: Steepest Descent Under Schatten-p Norms](../steepest-descent-schatten-p/),
 $$\begin{align}
     W_{t+1}
-        &= (1 - \eta\lambda) W_t - \eta \cdot \texttt{msign}(M_t) \label{eq:muon_update} \\
-        &= (1 - \eta\lambda) W_t - \eta M_t \underbrace{(M_t^T M_t)^{-1/2}}_{P_t}, \label{eq:muon_update_2}
+        &= (1 - \eta\lambda) W_t - \eta \cdot \operatorname{msign}(M_t) \label{eq:muon_update} \\
+        &= (1 - \eta\lambda) W_t - \eta M_t \underbrace{(M_t^\top M_t)^{-1/2}}_{P_t}, \label{eq:muon_update_2}
 \end{align}$$
-where $\texttt{msign}$ is the matrix sign operator.
+where $\operatorname{msign}$ is the matrix sign operator.
 
-But as discussed by [Yang (2026)](https://arxiv.org/abs/2602.03096), the preconditioner implicitly used by Muon, $P_t = (M_t^T M_t)^{-1/2} = (\mathbb{E}[G_t]^T \mathbb{E}[G_t])^{-1/2}$, only takes into account the first moment of the gradients, omitting second-order information that may be useful in stabilizing training in high-variance settings. E.g., Muon could take overly-aggressive steps along directions where the gradient variance is high, leading to suboptimal convergence behavior. They propose PRISM, which instead uses a covariance-aware preconditioner,
+But as discussed by [Yang (2026)](https://arxiv.org/abs/2602.03096), the preconditioner implicitly used by Muon, $P_t = (M_t^\top M_t)^{-1/2} = (\mathbb{E}[G_t]^\top \mathbb{E}[G_t])^{-1/2}$, only takes into account the first moment of the gradients, omitting second-order information that may be useful in stabilizing training in high-variance settings. E.g., Muon could take overly-aggressive steps along directions where the gradient variance is high, leading to suboptimal convergence behavior. They propose PRISM, which instead uses a covariance-aware preconditioner,
 $$\begin{align}
     P_t
-        &= (M_t^T M_t + \gamma^2 D_t^T D_t)^{-1/2} \approx (\mathbb{E}[G_t]^T \mathbb{E}[G_t] + \text{Cov}(G_t))^{-1/2}, \label{eq:prism_preconditioner}
+        &= (M_t^\top M_t + \gamma^2 D_t^\top D_t)^{-1/2} \approx (\mathbb{E}[G_t]^\top \mathbb{E}[G_t] + \operatorname{Cov}(G_t))^{-1/2}, \label{eq:prism_preconditioner}
 \end{align}$$
 where $D_t := G_t - M_t$ is called the 'momentum-based prediction', and $\gamma \geq 0$ is a hyperparameter controlling the strength of the covariance correction.
 
@@ -65,9 +65,9 @@ $$\begin{align}
 where the left and right preconditioners $L_t$ and $R_t$ are defined as,
 $$\begin{align}
     L_t
-        &= \widetilde{L}_t^{-1/4} && \widetilde{L}_t = M_t M_t^T + \gamma_L^2 D_t D_t^T, \label{eq:shampoo_prism_left} \\
+        &= \widetilde{L}_t^{-1/4} && \widetilde{L}_t = M_t M_t^\top + \gamma_L^2 D_t D_t^\top, \label{eq:shampoo_prism_left} \\
     R_t
-        &= \widetilde{R}_t^{-1/4} && \widetilde{R}_t = M_t^T M_t + \gamma_R^2 D_t^T D_t, \label{eq:shampoo_prism_right}
+        &= \widetilde{R}_t^{-1/4} && \widetilde{R}_t = M_t^\top M_t + \gamma_R^2 D_t^\top D_t, \label{eq:shampoo_prism_right}
 \end{align}$$
 for some $\gamma_L, \gamma_R \geq 0$.
 
@@ -75,12 +75,12 @@ As to *why* the use of the $-1/4$ roots, firstly so that we recover Muon's updat
 
 ## 2. Anisotropic spectral shaping of Bidirectional-PRISM
 
-Let $M_t = \sum_k \sigma_k u_k v_k^T$ be the singular value decomposition of $M_t$, where $\sigma_k \geq 0$ are the singular values, and $\{u_k\} \subset \mathbb{R}^m$ and $\{v_k\} \subset \mathbb{R}^n$ are the left and right singular vectors, respectively. We want to find coefficients $\rho_k^{\text{bi}} \in \mathbb{R}^{+}$ such that,
+Let $M_t = \sum_k \sigma_k u_k v_k^\top$ be the singular value decomposition of $M_t$, where $\sigma_k \geq 0$ are the singular values, and $\{u_k\} \subset \mathbb{R}^m$ and $\{v_k\} \subset \mathbb{R}^n$ are the left and right singular vectors, respectively. We want to find coefficients $\rho_k^{\text{bi}} \in \mathbb{R}^{+}$ such that,
 $$\begin{align}
     \Delta W_t
-        &\approx \sum_k \rho_k^{\text{bi}} u_k v_k^T, \label{eq:shampoo_prism_svd}
+        &\approx \sum_k \rho_k^{\text{bi}} u_k v_k^\top, \label{eq:shampoo_prism_svd}
 \end{align}$$
-where $\rho_k^{\text{bi}}$ modulates the magnitude along the direction $u_k v_k^T$ based on the signal-to-noise ratio (SNR) of the gradient along that direction. If the SNR is high, then we want $\rho_k^{\text{bi}} = 1$ as in Muon, and if the SNR is low, then we want to attenuate the update along that direction, i.e., $\rho_k^{\text{bi}} \ll 1$.
+where $\rho_k^{\text{bi}}$ modulates the magnitude along the direction $u_k v_k^\top$ based on the signal-to-noise ratio (SNR) of the gradient along that direction. If the SNR is high, then we want $\rho_k^{\text{bi}} = 1$ as in Muon, and if the SNR is low, then we want to attenuate the update along that direction, i.e., $\rho_k^{\text{bi}} \ll 1$.
 
 To ensure that we get a *scalar* $\rho_k^{\text{bi}}$, we assume that the modes $(u_k, v_k)$ are approximately also modes of the gram matrices, $\widetilde{L}_t$ and $\widetilde{R}_t$, i.e.,
 $$\begin{align}
@@ -95,11 +95,11 @@ $$\begin{align}
 We then have,
 $$\begin{align}
     \alpha_k
-        &= u_k^T \widetilde{L}_t u_k \nonumber \\
-        &= u_k^T (M_t M_t^T + \gamma_L^2 D_t D_t^T) u_k, \nonumber \\
-        &= \| M_t^T u_k \|_2^2 + \gamma_L^2 \| D_t^T u_k \|_2^2, \nonumber \\
-        &= \| \sigma_k v_k \|_2^2 + \gamma_L^2 \| D_t^T u_k \|_2^2, \nonumber \\
-        &= \sigma_k^2 + \gamma_L^2 \| D_t^T u_k \|_2^2, \\
+        &= u_k^\top \widetilde{L}_t u_k \nonumber \\
+        &= u_k^\top (M_t M_t^\top + \gamma_L^2 D_t D_t^\top) u_k, \nonumber \\
+        &= \| M_t^\top u_k \|_2^2 + \gamma_L^2 \| D_t^\top u_k \|_2^2, \nonumber \\
+        &= \| \sigma_k v_k \|_2^2 + \gamma_L^2 \| D_t^\top u_k \|_2^2, \nonumber \\
+        &= \sigma_k^2 + \gamma_L^2 \| D_t^\top u_k \|_2^2, \\
 \end{align}$$
 and likewise,
 $$\begin{align}
@@ -110,15 +110,15 @@ $$\begin{align}
 Thus,
 $$\begin{align}
     \rho_k^{\text{bi}}
-        &= u_k^T L_t M_t R_t v_k \nonumber \\
-        &\approx u_k^T (\alpha_k^{-1/4} M_t \beta_k^{-1/4}) v_k \nonumber \\
+        &= u_k^\top L_t M_t R_t v_k \nonumber \\
+        &\approx u_k^\top (\alpha_k^{-1/4} M_t \beta_k^{-1/4}) v_k \nonumber \\
         &= \frac{\sigma_k}{(\alpha_k \beta_k)^{1/4}} \nonumber \\
-        &= \frac{\sigma_k}{\sqrt[4]{(\sigma_k^2 + \gamma_L^2 \| D_t^T u_k \|_2^2)(\sigma_k^2 + \gamma_R^2 \| D_t v_k \|_2^2)}}
+        &= \frac{\sigma_k}{\sqrt[4]{(\sigma_k^2 + \gamma_L^2 \| D_t^\top u_k \|_2^2)(\sigma_k^2 + \gamma_R^2 \| D_t v_k \|_2^2)}}
 \end{align}$$
 and defining the left- and right-sided SNRs as,
 $$\begin{align}
     \text{SNR}_{L,k}
-        &= \frac{\sigma_k}{\gamma_L \| D_t^T u_k \|_2} \qquad &&
+        &= \frac{\sigma_k}{\gamma_L \| D_t^\top u_k \|_2} \qquad &&
     \text{SNR}_{R,k}
         = \frac{\sigma_k}{\gamma_R \| D_t v_k \|_2},
 \end{align}$$
@@ -241,7 +241,7 @@ def shampoo_prism(M: jax.Array, D: jax.Array, *, gamma_L=0.0, gamma_R=0.0, eps_g
 
 ### A1. Optimized PRISM
 
-In the original PRISM paper, we need to construct the $2m \times n$ matrix $\widetilde{M}_t$ and then apply the orthogonalization operator to this larger matrix. This wastes both GPU memory and compute. Instead, we can directly compute $H_R := M_t^T M_t + \gamma^2 D_t^T D_t$ in Equation \eqref{eq:prism_preconditioner}, and then $M_t H_R^{-1/2}$ using the matrix multiply-with-inverse-root function discussed in [Section 3](#3-gputpu-friendly-implementation) above, as shown below.
+In the original PRISM paper, we need to construct the $2m \times n$ matrix $\widetilde{M}_t$ and then apply the orthogonalization operator to this larger matrix. This wastes both GPU memory and compute. Instead, we can directly compute $H_R := M_t^\top M_t + \gamma^2 D_t^\top D_t$ in Equation \eqref{eq:prism_preconditioner}, and then $M_t H_R^{-1/2}$ using the matrix multiply-with-inverse-root function discussed in [Section 3](#3-gputpu-friendly-implementation) above, as shown below.
 
 ```python
 def prism_v2(M: jax.Array, D: jax.Array, *, gamma=0.0, eps_gram=1e-6, inv_steps=8, inv_eps=1e-5, inv_scale=1.001):

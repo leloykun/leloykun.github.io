@@ -22,9 +22,9 @@ $$\begin{align}
 where $L_W: \mathbb{R}^{m \times n} \to \mathcal{Y}$ is a linear map (possibly point-dependent), $b_W \in \mathcal{Y}$ is a constant offset (often $b_W = 0$), and $K \subseteq \mathcal{Y}$ is a closed convex cone. First-order optimization on such manifolds can then be done as,
 $$\begin{align}
 W_{t+1}
-        &= \texttt{retract}_{\mathcal{M}}(W_{t} + A^*_t),
+        &= \operatorname{retract}_{\mathcal{M}}(W_{t} + A^*_t),
 \end{align}$$
-where $\texttt{retract}_{\mathcal{M}}$ is a retraction map that maps points back to the manifold $\mathcal{M}$, and $A_t^*$ is the solution to either a constrained $\eqref{eq:constrained_tangent_update}$ or regularized $\eqref{eq:regularized_tangent_update}$ linearized subproblem,
+where $\operatorname{retract}_{\mathcal{M}}$ is a retraction map that maps points back to the manifold $\mathcal{M}$, and $A_t^*$ is the solution to either a constrained $\eqref{eq:constrained_tangent_update}$ or regularized $\eqref{eq:regularized_tangent_update}$ linearized subproblem,
 $$\begin{align}
     A_t^*
         &= \arg\min_{A \in T_{W_t}\mathcal{M}} f(W_t) + \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta \label{eq:constrained_tangent_update}\tag{C1} \\
@@ -53,11 +53,11 @@ $$\begin{align}
         &= \{ W \in \mathbb{R}^{m \times n} : \| W \|_{2 \to 2} \leq R \} \nonumber \\
         &= \Bigl\{ W \in \mathbb{R}^{m \times n} : \begin{bmatrix}
             RI_m & W \\
-            W^T  & RI_n
+            W^\top  & RI_n
         \end{bmatrix} \succeq \mathbf{0} \Bigr\}, \nonumber \\
         &= \Bigl\{ W \in \mathbb{R}^{m \times n} : \begin{bmatrix}
             \mathbf{0} & W \\
-            W^T        & \mathbf{0}
+            W^\top        & \mathbf{0}
         \end{bmatrix} + \begin{bmatrix}
             RI_m       & \mathbf{0} \\
             \mathbf{0} & RI_n
@@ -66,8 +66,8 @@ $$\begin{align}
 2. The Birkhoff Polytope:
 $$\begin{align}
     \mathcal{M}
-        &= \{ W \in \mathbb{R}^{m \times n} : W \mathbf{1}_n = \mathbf{1}_m, W^T \mathbf{1}_m = \mathbf{1}_n, W_{ij} \geq 0\} \nonumber \\
-        &= \Bigl\{ W \in \mathbb{R}^{m \times n} : (W \mathbf{1}_n, W^T \mathbf{1}_m, W) + (-\mathbf{1}_m, -\mathbf{1}_n, \mathbf{0}) \in -(\{\mathbf{0}\}, \{\mathbf{0}\}, R_{-}^{m \times n}) \Bigr\},
+        &= \{ W \in \mathbb{R}^{m \times n} : W \mathbf{1}_n = \mathbf{1}_m, W^\top \mathbf{1}_m = \mathbf{1}_n, W_{ij} \geq 0\} \nonumber \\
+        &= \Bigl\{ W \in \mathbb{R}^{m \times n} : (W \mathbf{1}_n, W^\top \mathbf{1}_m, W) + (-\mathbf{1}_m, -\mathbf{1}_n, \mathbf{0}) \in -(\{\mathbf{0}\}, \{\mathbf{0}\}, R_{-}^{m \times n}) \Bigr\},
 \end{align}$$
 
 $\blacksquare$ We can then either solve the constrained $\eqref{eq:constrained_update}$ or regularized $\eqref{eq:regularized_update}$ linearized subproblem,
@@ -114,21 +114,21 @@ $$\begin{align}
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y) \nonumber \\
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^\dagger(Y), A \rangle + \cancel{\langle Y, L(W_t) + b \rangle} \nonumber \\
         &= \arg\min_{\| A \| \leq \eta} \langle G_t + L^\dagger(Y), A \rangle \nonumber \\
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)),
+        &= \eta\cdot\operatorname{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)),
 \end{align}$$
-where $\texttt{LMO}_{\| \cdot \|}(Z) = \arg\min_{\| A \| \leq 1} \langle Z, A \rangle$ is the Linear Minimization Oracle under norm $\| \cdot \|$.
+where $\operatorname{LMO}_{\| \cdot \|}(Z) = \arg\min_{\| A \| \leq 1} \langle Z, A \rangle$ is the Linear Minimization Oracle under norm $\| \cdot \|$.
 
 Substituting $A^*(Y)$ back into the Lagrangian then yields the dual problem,
 $$\begin{align}
     h(Y)
         &= \max_{Y \in K^\dagger} \mathcal{L}(A^*(Y), Y) \nonumber \\
-        &= \max_{Y \in K^\dagger} \langle G_t + L^\dagger(Y), \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)) \rangle + \langle Y, L(W_t) + b \rangle \nonumber \\
+        &= \max_{Y \in K^\dagger} \langle G_t + L^\dagger(Y), \eta\cdot\operatorname{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)) \rangle + \langle Y, L(W_t) + b \rangle \nonumber \\
         &= -\eta \| G_t + L^\dagger(Y) \|^\dagger + \langle Y, L(W_t) + b \rangle
 \end{align}$$
 where $\| \cdot \|^\dagger$ is the dual norm of $\| \cdot \|$. And by chain rule, the dual problem above has *a* supergradient,
 $$\begin{align}
     \nabla_{Y} h(Y)
-        &\ni \eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y))\right) + L(W_t) + b \nonumber \\
+        &\ni \eta\cdot L\left(\operatorname{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y))\right) + L(W_t) + b \nonumber \\
         &= L(A^*(Y)) + L(W_t) + b \nonumber \\
         &= L(W_t + A^*(Y)) + b
 \end{align}$$
@@ -137,18 +137,18 @@ which we can use to do gradient ascent on the dual variable $Y$. And finally, to
 $\blacksquare$ Putting everything together, we have the following update rule for the primal and dual variables $A^j_t$ and $Y^{j+1}_t$,
 $$\begin{align}
     A^j_t
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y^{j}_t)) \\
+        &= \eta\cdot\operatorname{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y^{j}_t)) \\
     Y^{j+1}_t
-        &= \texttt{proj}_{K^\dagger} \left(Y^{j}_t + \sigma_j \left( L( W_t + A^j_t ) + b \right)\right)
+        &= \operatorname{proj}_{K^\dagger} \left(Y^{j}_t + \sigma_j \left( L( W_t + A^j_t ) + b \right)\right)
 \end{align}$$
 or equivalently,
 $$\begin{align}
     W^j_{t+1}
-        &= W_t + \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y^{j}_t)) \\
+        &= W_t + \eta\cdot\operatorname{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y^{j}_t)) \\
     Y^{j+1}_t
-        &= \texttt{proj}_{K^\dagger} \left(Y^{j}_t + \sigma_j \left( L( W_{t+1}^j ) + b \right)\right),
+        &= \operatorname{proj}_{K^\dagger} \left(Y^{j}_t + \sigma_j \left( L( W_{t+1}^j ) + b \right)\right),
 \end{align}$$
-where $\sigma_j > 0$ is the dual ascent learning rate, and $\texttt{proj}_{K^\dagger}$ is the orthogonal projection onto the dual cone $K^\dagger$. Literature on dual ascent typically recommend using a learning rate schedule of $\sigma_j = \sigma_{0}/\sqrt{j+1}$. And if $K = \{ 0 \}$, the projection is simply the identity map. At convergence, we have $W^j_{t+1} \to W_{t+1}$.
+where $\sigma_j > 0$ is the dual ascent learning rate, and $\operatorname{proj}_{K^\dagger}$ is the orthogonal projection onto the dual cone $K^\dagger$. Literature on dual ascent typically recommend using a learning rate schedule of $\sigma_j = \sigma_{0}/\sqrt{j+1}$. And if $K = \{ 0 \}$, the projection is simply the identity map. At convergence, we have $W^j_{t+1} \to W_{t+1}$.
 
 See [Appendix A1](#a1-jax-implementation-of-the-dual-ascent-optimizer) for implementation in JAX.
 
@@ -160,7 +160,7 @@ See [Appendix A1](#a1-jax-implementation-of-the-dual-ascent-optimizer) for imple
 
 For a random $W_t \in \mathbb{B}_n$ and $G_t \in \mathbb{R}^{n \times n}$ with $n = 768$, we report the descent magnitude (measured after the retraction step),
 $$\begin{equation}
-    \text{descent\_magnitude} = \langle G_t, \texttt{retract}_{\mathcal{B}_n}(W_t + A_t^*) - W_t \rangle
+    \text{descent\_magnitude} = \langle G_t, \operatorname{retract}_{\mathcal{B}_n}(W_t + A_t^*) - W_t \rangle
 \end{equation}$$
 of our dual ascent optimizer after varying number of dual ascent steps relative to the LMO baseline (i.e., using only the LMO without considering the tangent cone constraints). We see that our optimizer yields larger effective weight updates across dual ascent steps.
 

@@ -70,7 +70,7 @@ In our latest paper titled, [Training Transformers with Enforced Lipschitz Bound
 ### 2.3. Case study #3: Steepest descent on Spectral Finsler-structured Stiefel manifold
 
 The problem Jeremy, Jianlin, and I have been trying to solve then is this:
-> Given the current weight $W \in \texttt{St}(m, n) = \{ W \in \mathbb{R}^{m \times n} : W^T W = I_n \}$ and a "raw gradient" we get via e.g. backpropagation $G \in \mathbb{R}^{m \times n}$, we want to find the optimal update $A^*$ such that,
+> Given the current weight $W \in \texttt{St}(m, n) = \{ W \in \mathbb{R}^{m \times n} : W^\top W = I_n \}$ and a "raw gradient" we get via e.g. backpropagation $G \in \mathbb{R}^{m \times n}$, we want to find the optimal update $A^*$ such that,
 > $$\begin{equation}
     A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G, A \rangle \quad \text{ s.t. } \quad \| A \|_{2 \to 2} \leq 1,\quad A \in T_{W}\texttt{St}(m, n)
 \end{equation}$$
@@ -161,11 +161,11 @@ since $\mathcal{G}^*(Y) = \sup_{Z \in \mathcal{Y}} \{ \langle Y, Z \rangle - \un
 
 Following [ODL's page on PDHG](https://odlgroup.github.io/odl/math/solvers/nonsmooth/pdhg.html), we choose $\tau_A, \tau_B, \sigma > 0$, $\theta \in [0,1]$, and initialize $X_0 \in \mathcal{X}$, $Y_0 \in \mathcal{Y}$, and $\widetilde{X}_0 = X_0$. We then iterate,
 $$\begin{align}
-    Y_{k+1} &= \texttt{prox}_{\sigma \mathcal{G}^*} (Y_{k} + \sigma L \widetilde{X}_{k}) \\
-    X_{k+1} &= \texttt{prox}_{\tau \mathcal{F}_{\eta}} (X_{k} - \tau L^T Y_{k+1}) \\
+    Y_{k+1} &= \operatorname{prox}_{\sigma \mathcal{G}^*} (Y_{k} + \sigma L \widetilde{X}_{k}) \\
+    X_{k+1} &= \operatorname{prox}_{\tau \mathcal{F}_{\eta}} (X_{k} - \tau L^\top Y_{k+1}) \\
     \widetilde{X}_{k+1} &= X_{k+1} + \theta (X_{k+1} - X_{k})
 \end{align}$$
-where $\tau = \text{diag}(\tau_A I_m, \tau_B I_m)$ and $\texttt{prox}$ is the proximal operator.
+where $\tau = \operatorname{diag}(\tau_A I_m, \tau_B I_m)$ and $\operatorname{prox}$ is the proximal operator.
 
 To speed up convergence, we can also re-use the $X^*$ and $Y^*$ from the previous optimization step to initialize $X_0$ and $Y_0$. This is especially useful when e.g. using (nesterov) momentum on $G$, guaranteeing that the 'input gradients' do not vary too much.
 
@@ -174,7 +174,7 @@ To speed up convergence, we can also re-use the $X^*$ and $Y^*$ from the previou
 For the $Y$-variable,
 $$\begin{align*}
     Y_{k+1}
-        &= \texttt{prox}_{\sigma \mathcal{G}^*} (Y_{k} + \sigma L \widetilde{X}_{k}) \\
+        &= \operatorname{prox}_{\sigma \mathcal{G}^*} (Y_{k} + \sigma L \widetilde{X}_{k}) \\
         &= \arg\min_{Y \in \mathcal{Y}} \left\{ \sigma \cancel{\mathcal{G}^*(Y)} + \frac{1}{2} \| Y - (Y_{k} + \sigma L \widetilde{X}_{k}) \|_F^2 \right\} \\
         &= Y_{k} + \sigma L \widetilde{X}_{k} \label{eq:yupdate}
 \end{align*}$$
@@ -182,8 +182,8 @@ $$\begin{align*}
 For the $X$-variable,
 $$\begin{align*}
     X_{k+1}
-        &= \texttt{prox}_{\tau \mathcal{F}_{\eta}} (X_{k} - \tau L^T Y_{k+1}) \\
-        &= \arg\min_{X \in \mathcal{X}} \left\{ \tau \mathcal{F}_{\eta}(X) + \frac{1}{2} \| X - (X_{k} - \tau L^T Y_{k+1}) \|_F^2 \right\} \\
+        &= \operatorname{prox}_{\tau \mathcal{F}_{\eta}} (X_{k} - \tau L^\top Y_{k+1}) \\
+        &= \arg\min_{X \in \mathcal{X}} \left\{ \tau \mathcal{F}_{\eta}(X) + \frac{1}{2} \| X - (X_{k} - \tau L^\top Y_{k+1}) \|_F^2 \right\} \\
         &= \arg\min_{X \in \mathcal{X}} \left\{ \tau_A f_{\eta}(A) + \tau_B g(B) + \frac{1}{2} \left\| \begin{bmatrix}
             A - (A_k - \tau_A Y_{k+1}) \\
             B - (B_k + \tau_B Y_{k+1})
@@ -197,9 +197,9 @@ $$\begin{align*}
     A_{k+1}
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \left\{ \tau_A f_{\eta}(A) + \frac{1}{2} \left\| A - (A_k - \tau_A Y_{k+1}) \right\|_F^2 \right\} \\
         &= \arg\min_{\| A \|_{W} \leq \eta} \left\{ \frac{1}{2} \left\| A - (A_k - \tau_A Y_{k+1}) \right\|_F^2 \right\} \\
-        &= \texttt{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A Y_{k+1}) \\
+        &= \operatorname{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A Y_{k+1}) \\
 \end{align*}$$
-where $\texttt{proj}_{\| \cdot \|_{W} \leq \eta}$ is the projection onto the ${\eta}$-norm ball. Likewise,
+where $\operatorname{proj}_{\| \cdot \|_{W} \leq \eta}$ is the projection onto the ${\eta}$-norm ball. Likewise,
 $$\begin{align*}
     B_{k+1}
         &= \arg\min_{B \in \mathbb{R}^{m \times n}} \left\{ \tau_B g(B) + \frac{1}{2} \left\| B - (B_k + \tau_B Y_{k+1}) \right\|_F^2 \right\} \\
@@ -207,14 +207,14 @@ $$\begin{align*}
         &= \arg\min_{B \in T_W\mathcal{M}} \left\{ \tau_B \langle G, B \rangle + \frac{1}{2} \| B \|_F^2 - \langle B, B_k + \tau_B Y_{k+1} \rangle     + \frac{1}{2} \| B_k + \tau_B Y_{k+1} \|_F^2 \right\} \\
         &= \arg\min_{B \in T_W\mathcal{M}} \left\{ \frac{1}{2} \| B \|_F^2 - \langle B, B_k + \tau_B Y_{k+1} - \tau_B G \rangle + \text{ constant} \right\} \\
         &= \arg\min_{B \in T_W\mathcal{M}} \left\{ \frac{1}{2} \| B - (B_k + \tau_B Y_{k+1} - \tau_B G) \|_F^2 + \text{ constant} \right\} \\
-        &= \texttt{proj}_{T_W\mathcal{M}} (B_k + \tau_B Y_{k+1} - \tau_B G)
+        &= \operatorname{proj}_{T_W\mathcal{M}} (B_k + \tau_B Y_{k+1} - \tau_B G)
 \end{align*}$$
 Thus,
 $$
 \begin{equation}
     X_{k+1} = \begin{bmatrix}
-        \texttt{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A Y_{k+1}) \\
-        \texttt{proj}_{T_W\mathcal{M}} (B_k + \tau_B Y_{k+1} - \tau_B G)
+        \operatorname{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A Y_{k+1}) \\
+        \operatorname{proj}_{T_W\mathcal{M}} (B_k + \tau_B Y_{k+1} - \tau_B G)
     \end{bmatrix} \label{eq:xupdate}
 \end{equation}
 $$
@@ -225,8 +225,8 @@ Taking everything together, our iteration becomes,
 
 $$\begin{align}
     Y_{k+1} &= Y_{k} + \sigma (\widetilde{A}_{k} - \widetilde{B}_{k}) \\
-    A_{k+1} &= \texttt{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A Y_{k+1}) \\
-    B_{k+1} &= \texttt{proj}_{T_W\mathcal{M}} (B_k + \tau_B Y_{k+1} - \tau_B G) \\
+    A_{k+1} &= \operatorname{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A Y_{k+1}) \\
+    B_{k+1} &= \operatorname{proj}_{T_W\mathcal{M}} (B_k + \tau_B Y_{k+1} - \tau_B G) \\
     \widetilde{A}_{k+1} &= A_{k+1} + \theta (A_{k+1} - A_{k}) \\
     \widetilde{B}_{k+1} &= B_{k+1} + \theta (B_{k+1} - B_{k})
 \end{align}$$
@@ -234,8 +234,8 @@ $$\begin{align}
 Note that if we had moved the $\langle G, \cdot \rangle$ to the $f$ term in Equation $\eqref{eq:astarviaindicators}$, then our iteration for $A$ and $B$ would instead be,
 
 $$\begin{align}
-    A_{k+1} &= \texttt{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A Y_{k+1} - \tau_A G) \\
-    B_{k+1} &= \texttt{proj}_{T_W\mathcal{M}} (B_k + \tau_B Y_{k+1}) \\
+    A_{k+1} &= \operatorname{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A Y_{k+1} - \tau_A G) \\
+    B_{k+1} &= \operatorname{proj}_{T_W\mathcal{M}} (B_k + \tau_B Y_{k+1}) \\
 \end{align}$$
 In theory, both iterations should converge to the same solution. But in practice, the former tends to be more numerically stable.
 
@@ -243,33 +243,33 @@ In theory, both iterations should converge to the same solution. But in practice
 
 One way to prevent neural network training from blowing up is to constrain the linear layers of our neural network to be $L$-Lipschitz under the $\texttt{RMS}$ norm (ideally with $L=1$ so that the Lipschitzness of the model is depth-independent). Another thing we would want to do is to control the update sizes. And in this setting, it is natural to upper bound the $\texttt{RMS}\to\texttt{RMS}$ operator norm of the weight updates by $\eta > 0$, the learning rate parameter.
 
-We discussed multiple ways to do this in our paper [Training Transformers with Enforced Lipschitz Bounds](https://arxiv.org/abs/2507.13338). The crux is to upper bound the singular values of the weights by $\sqrt{\frac{m}{n}}$ and to use the Muon optimizer for weight updates. But here, suppose we want the singular values of the weights to be exactly $\sqrt{\frac{m}{n}}$ instead. Then it is natural to "place" the weights on the scaled Stiefel manifold, $\texttt{St}(m, n, s) = \{ W \in \mathbb{R}^{m \times n} : W^T W = s^2 I_n \}$ where $s = \sqrt{\frac{m}{n}}$ and perform steepest descent there. How then would the update rule look like?
+We discussed multiple ways to do this in our paper [Training Transformers with Enforced Lipschitz Bounds](https://arxiv.org/abs/2507.13338). The crux is to upper bound the singular values of the weights by $\sqrt{\frac{m}{n}}$ and to use the Muon optimizer for weight updates. But here, suppose we want the singular values of the weights to be exactly $\sqrt{\frac{m}{n}}$ instead. Then it is natural to "place" the weights on the scaled Stiefel manifold, $\texttt{St}(m, n, s) = \{ W \in \mathbb{R}^{m \times n} : W^\top W = s^2 I_n \}$ where $s = \sqrt{\frac{m}{n}}$ and perform steepest descent there. How then would the update rule look like?
 
 ### 4.1. Required projections
 
 As we discussed above and in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/), we need the following projections:
 
-1. Projection onto the (scaled) Stiefel manifold, $\texttt{proj}_{\widetilde{\texttt{St}}(m, n, \sqrt{m/n})}: \mathbb{R}^{m \times n} \to \widetilde{\texttt{St}}(m, n, \sqrt{m/n})$, as the retraction map.
-2. Projection onto the tangent space at $W \in \widetilde{\texttt{St}}(m, n, \sqrt{m/n})$, $\texttt{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, \sqrt{m/n})}: \mathbb{R}^{m \times n} \to T_W\widetilde{\texttt{St}}(m, n, \sqrt{m/n})$. And;
-3. Projection onto the $\texttt{RMS}\to\texttt{RMS}$ norm ball, $\texttt{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta}: \mathbb{R}^{m \times n} \to \{ A \in \mathbb{R}^{m \times n} : \| A \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta \}$.
+1. Projection onto the (scaled) Stiefel manifold, $\operatorname{proj}_{\widetilde{\texttt{St}}(m, n, \sqrt{m/n})}: \mathbb{R}^{m \times n} \to \widetilde{\texttt{St}}(m, n, \sqrt{m/n})$, as the retraction map.
+2. Projection onto the tangent space at $W \in \widetilde{\texttt{St}}(m, n, \sqrt{m/n})$, $\operatorname{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, \sqrt{m/n})}: \mathbb{R}^{m \times n} \to T_W\widetilde{\texttt{St}}(m, n, \sqrt{m/n})$. And;
+3. Projection onto the $\texttt{RMS}\to\texttt{RMS}$ norm ball, $\operatorname{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta}: \mathbb{R}^{m \times n} \to \{ A \in \mathbb{R}^{m \times n} : \| A \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta \}$.
 
-For (1), we can use the GPU-friendly method to compute the $\texttt{msign}(X)$ function via Newton-Schulz iteration as in the Muon optimizer,
-$$\texttt{proj}_{\widetilde{\texttt{St}}(m, n, \sqrt{m/n})}(X) = \sqrt{\frac{m}{n}} \texttt{msign}(X).$$
+For (1), we can use the GPU-friendly method to compute the $\operatorname{msign}(X)$ function via Newton-Schulz iteration as in the Muon optimizer,
+$$\operatorname{proj}_{\widetilde{\texttt{St}}(m, n, \sqrt{m/n})}(X) = \sqrt{\frac{m}{n}} \operatorname{msign}(X).$$
 
 For (2), we can use the projection map discussed in Theorem 2 in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/),
-$$\texttt{proj}_{T_{W}\texttt{St}(m, n)}(X) = X - {W} \text{sym}({W}^T X).$$
+$$\operatorname{proj}_{T_{W}\texttt{St}(m, n)}(X) = X - {W} \operatorname{sym}({W}^\top X).$$
 More generally, for the scaled Stiefel manifold, we have,
-$$\texttt{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, s)}(V) = V - {W} \text{sym}({W}^T V) / s^2.$$
+$$\operatorname{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, s)}(V) = V - {W} \operatorname{sym}({W}^\top V) / s^2.$$
 
 For (3), note that $\|\cdot \|_{\texttt{RMS}\to\texttt{RMS}} = \sqrt{\frac{n}{m}} \|\cdot \|_{2 \to 2}$. Thus,
 $$
 \begin{aligned}
-    \texttt{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta}
-        &= \texttt{proj}_{\| \cdot \|_{2 \to 2} \leq \sqrt{\frac{m}{n}}\eta} \\
-        &= \texttt{spectral\_hardcap}_{\sqrt{\frac{m}{n}}\eta}
+    \operatorname{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta}
+        &= \operatorname{proj}_{\| \cdot \|_{2 \to 2} \leq \sqrt{\frac{m}{n}}\eta} \\
+        &= \operatorname{spectral\_hardcap}_{\sqrt{\frac{m}{n}}\eta}
 \end{aligned}
 $$
-where $\texttt{spectral\_hardcap}$ is the GPU/TPU-friendly Spectral Hardcap function discussed in [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/) and in [our latest paper](https://arxiv.org/abs/2507.13338),
+where $\operatorname{spectral\_hardcap}$ is the GPU/TPU-friendly Spectral Hardcap function discussed in [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/) and in [our latest paper](https://arxiv.org/abs/2507.13338),
 ```python
 def spectral_hardcap(X: jax.Array, eta: float=1.):
     def _spectral_hardcap_util(X: jax.Array):
@@ -282,8 +282,8 @@ def spectral_hardcap(X: jax.Array, eta: float=1.):
     return eta * _spectral_hardcap_util(X / eta)
 ```
 
-But if $G$ small, we may be able to find larger update directions by scaling the input to $\texttt{spectral\_hardcap}$ by some large constant $\kappa \geq 1$ yielding,
-$$\lim_{\kappa \to \infty} \texttt{spectral\_hardcap}_{\sqrt{\frac{m}{n}}\eta}(\kappa X) = \sqrt{\frac{m}{n}}\eta \cdot \texttt{msign}(X).$$
+But if $G$ small, we may be able to find larger update directions by scaling the input to $\operatorname{spectral\_hardcap}$ by some large constant $\kappa \geq 1$ yielding,
+$$\lim_{\kappa \to \infty} \operatorname{spectral\_hardcap}_{\sqrt{\frac{m}{n}}\eta}(\kappa X) = \sqrt{\frac{m}{n}}\eta \cdot \operatorname{msign}(X).$$
 
 ### 4.2. Full implementation with adaptive step sizes
 
@@ -360,8 +360,8 @@ def pdhg_stiefel_spectral(
 To speed up convergence, we can warm-start the iteration by initializing $A_0$ and $B_0$ with a decent guess. Here are a few options:
 
 1. $A_0 = B_0 = -G$.
-2. $A_0 = B_0 = \left(\texttt{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta} \circ \texttt{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, \sqrt{m/n})} \right)(-G)$, which is already optimal for the square case. And;
-3. $A_0 = B_0 = \left(\texttt{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta} \circ \texttt{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, \sqrt{m/n})} \right)^K (-G)$, the alternating projections method discussed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/).
+2. $A_0 = B_0 = \left(\operatorname{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta} \circ \operatorname{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, \sqrt{m/n})} \right)(-G)$, which is already optimal for the square case. And;
+3. $A_0 = B_0 = \left(\operatorname{proj}_{\| \cdot \|_{\texttt{RMS} \to \texttt{RMS}} \leq \eta} \circ \operatorname{proj}_{T_{W}\widetilde{\texttt{St}}(m, n, \sqrt{m/n})} \right)^K (-G)$, the alternating projections method discussed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/).
 
 In the succeeding training steps, we can then initialize $A_0$ and $B_0$ with the optimal $A^*$ from the previous step.
 
@@ -385,13 +385,13 @@ For the rank-deficient case, we see that the Alternating Projections is now obvi
 
 ![](lr_transfer_pdhg_stiefel_spectral.png#center)
 
-As a minimal example for learning rate transfer, we train a $1$-Lipschitz, $2 \to D \to D \to 2$ MLP on the XOR problem for 32 training steps via the [Modula](https://docs.modula.systems/) library. We constrain the weights of each layer to be in the (scaled) Stiefel manifold. We use $\texttt{msign}_{\sqrt{m/n}}: \mathbb{R}^{m \times n} \to \widetilde{\texttt{St}}\left(m, n, \sqrt{m/n}\right)$ as the projection map onto the scaled Stiefel manifold (with scale $\sqrt{m/n}$) and PDHG, $\texttt{pdhg}\left(\cdot, \cdot, \texttt{msign}_{\eta}, \texttt{proj}_{T_{W_{t}}\widetilde{\texttt{St}}\left(m, n, \sqrt{m/n}\right)}\right): \mathbb{R}^{m \times n} \to T_{W_t} \widetilde{\texttt{St}}\left(m, n, \sqrt{m/n}\right)$, as the dualizer. As can be seen in the Figure above, the optimal learning rates do transfer under our parametrization.
+As a minimal example for learning rate transfer, we train a $1$-Lipschitz, $2 \to D \to D \to 2$ MLP on the XOR problem for 32 training steps via the [Modula](https://docs.modula.systems/) library. We constrain the weights of each layer to be in the (scaled) Stiefel manifold. We use $\operatorname{msign}_{\sqrt{m/n}}: \mathbb{R}^{m \times n} \to \widetilde{\texttt{St}}\left(m, n, \sqrt{m/n}\right)$ as the projection map onto the scaled Stiefel manifold (with scale $\sqrt{m/n}$) and PDHG, $\operatorname{pdhg}\left(\cdot, \cdot, \operatorname{msign}_{\eta}, \operatorname{proj}_{T_{W_{t}}\widetilde{\texttt{St}}\left(m, n, \sqrt{m/n}\right)}\right): \mathbb{R}^{m \times n} \to T_{W_t} \widetilde{\texttt{St}}\left(m, n, \sqrt{m/n}\right)$, as the dualizer. As can be seen in the Figure above, the optimal learning rates do transfer under our parametrization.
 
 ## 5. Generalization to arbitrary number of constraints on the update
 
 Our solution above generalizes to arbitrary number of constraints on $A$ so long as the feasible set for each constraint is convex. We then only need to find the metric projection onto each feasible set.
 
-For example, suppose we add another constraint $A \in S$ in Equation $\eqref{eq:astarproblem}$ above where $S$ is a convex set and $\texttt{proj}_{S}(\cdot)$ is the (metric) projection onto $S$. Then our Equation $\eqref{eq:astarviacopies}$ becomes,
+For example, suppose we add another constraint $A \in S$ in Equation $\eqref{eq:astarproblem}$ above where $S$ is a convex set and $\operatorname{proj}_{S}(\cdot)$ is the (metric) projection onto $S$. Then our Equation $\eqref{eq:astarviacopies}$ becomes,
 $$\begin{equation} A^* = -\left[\arg\min_{A,B,C \in \mathbb{R}^{m \times n}} \{f(A) + g(B) + h(C)\} \quad \text{ s.t. } \quad A - B = A - C = 0\right]_{A} \end{equation}$$
 where,
 $$
@@ -421,9 +421,9 @@ and the rest then follows and Equation $\eqref{eq:xupdate}$ becomes,
 $$
 \begin{equation}
     X_{k+1} = \begin{bmatrix}
-        \texttt{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A [Y_{k+1}]_1 - \tau_A [Y_{k+1}]_2) \\
-        \texttt{proj}_{T_W\mathcal{M}} (B_k + \tau_B [Y_{k+1}]_1 - \tau_B G) \\
-        \texttt{proj}_{S} (C_k + \tau_C [Y_{k+1}]_2)
+        \operatorname{proj}_{\| \cdot \|_{W} \leq \eta} (A_k - \tau_A [Y_{k+1}]_1 - \tau_A [Y_{k+1}]_2) \\
+        \operatorname{proj}_{T_W\mathcal{M}} (B_k + \tau_B [Y_{k+1}]_1 - \tau_B G) \\
+        \operatorname{proj}_{S} (C_k + \tau_C [Y_{k+1}]_2)
     \end{bmatrix}
 \end{equation}
 $$

@@ -29,19 +29,19 @@ In this blog post, we will focus on the latter, however we will consider $n$-sim
 > **Definition 1 (n-Simplicial Attention):** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length, $d$ is the model width, and $n$ is the number of key-value pairs per token. And let $s_1, s_2 \in \mathbb{R}$ be scaling factors. Then we define n-simplicial attention $\texttt{F}$ as follows,
 > $$\begin{aligned}
     \texttt{F}(q, k^{(1:n)}, v^{(1:n)})
-        &= {\color{blue}s_2} \texttt{softmax}\left({\color{blue}s_1} \langle q, k^{(1)}, k^{(2)}, \ldots, k^{(n)} \rangle + \texttt{mask}\right) ( v^{(1)} \circ v^{(2)} \circ \ldots \circ v^{(n)} )\\
-        &= {\color{blue}s_2} \texttt{softmax}\left({\color{blue}s_1} \left\langle q, \left( \prod_{t=1}^n \circ k^{(t)} \right) \right\rangle + \texttt{mask}\right) \left( \prod_{t=1}^n \circ v^{(t)} \right)
+        &= {\color{blue}s_2} \operatorname{softmax}\left({\color{blue}s_1} \langle q, k^{(1)}, k^{(2)}, \ldots, k^{(n)} \rangle + \texttt{mask}\right) ( v^{(1)} \circ v^{(2)} \circ \ldots \circ v^{(n)} )\\
+        &= {\color{blue}s_2} \operatorname{softmax}\left({\color{blue}s_1} \left\langle q, \left( \prod_{t=1}^n \circ k^{(t)} \right) \right\rangle + \texttt{mask}\right) \left( \prod_{t=1}^n \circ v^{(t)} \right)
 \end{aligned}$$
 > where,
-> * $\texttt{softmax}(\cdot): \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n+1}} \to \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n+1}}$ is applied to all indices except the first,
+> * $\operatorname{softmax}(\cdot): \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n+1}} \to \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n+1}}$ is applied to all indices except the first,
 > * $\circ: \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n}\times d} \times \mathbb{R}^{\overbrace{T\times\ldots\times T}^{m}\times d} \to \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n+m}\times d}$ is the Hadamard (elementwise) product over the $d$-dimension, and
 > * $\langle \cdot, \cdot \rangle: \mathbb{R}^{n \times d} \times \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n}\times d} \to \mathbb{R}^{\overbrace{T\times\ldots\times T}^{n+1}}$ is the dot product over the $d$-dimension.
 > 
 > Note that the operation $\left(\prod_{t=1}^n \circ\right)$ above produces an $(n+1)$-dimensional tensor, $n$ from the sequence dimensions of the keys/values and one from the $d$-dimension. That is, we only reduce the last index.
 
 Examples:
-1. Vanilla Attention ([Vaswani et al., 2017](https://arxiv.org/abs/1706.03762)), $$\texttt{F}(q, k, v) = \texttt{softmax}\left(\frac{1}{\sqrt{d}} qk^T + \texttt{mask}\right) v$$
-2. 2-Simplicial Attention ([Roy et al., 2025](https://arxiv.org/abs/2507.02754v1); [Clift et al., 2019](https://arxiv.org/abs/1909.00668)), $$\texttt{F}(q, k^{(1)}, k^{(2)}, v^{(1)}, v^{(2)}) = \texttt{softmax}\left(\frac{1}{\sqrt{d}} \langle q, k^{(1)}, k^{(2)} \rangle + \texttt{mask}\right) ( v^{(1)} \circ v^{(2)} )$$
+1. Vanilla Attention ([Vaswani et al., 2017](https://arxiv.org/abs/1706.03762)), $$\texttt{F}(q, k, v) = \operatorname{softmax}\left(\frac{1}{\sqrt{d}} qk^\top + \texttt{mask}\right) v$$
+2. 2-Simplicial Attention ([Roy et al., 2025](https://arxiv.org/abs/2507.02754v1); [Clift et al., 2019](https://arxiv.org/abs/1909.00668)), $$\texttt{F}(q, k^{(1)}, k^{(2)}, v^{(1)}, v^{(2)}) = \operatorname{softmax}\left(\frac{1}{\sqrt{d}} \langle q, k^{(1)}, k^{(2)} \rangle + \texttt{mask}\right) ( v^{(1)} \circ v^{(2)} )$$
 
 Note that for both of these examples, $s_1 = 1/\sqrt{d}$ and $s_2 = 1$.
 
@@ -65,7 +65,7 @@ In this blog post, we will show that $n$-simplicial attention is unit sensitive 
 
 > **Claim 4 (Sensitivity and sharpness of n-Simplicial Attention):** Let $q, k^{(1:n)}, v^{(1:n)} \in \mathbb{R}^{T \times d}$ be the query, keys, and values, where $T$ is the sequence length, $d$ is the model width, and $n$ is the number of key-value pairs per token. For unit RMS norm inputs, i.e. $\| q \|_{\infty RMS} = \| k^{(t)} \|_{\infty RMS} = \| v^{(t)} \|_{\infty RMS} = 1$ for all $1 \leq t \leq n$, $n$-simplicial attention parameterized as follows,
 $$\begin{equation}
-    \texttt{F}(q, k^{(1:n)}, v^{(1:n)}) = {\color{blue}\frac{1}{d^{(n-1)/2}}} \texttt{softmax}\left({\color{blue}\frac{1}{d^{(n+1)/2}}} \left\langle q, \left( \prod_{t=1}^n \circ k^{(t)} \right) \right\rangle + \texttt{mask}\right) \left( \prod_{t=1}^n \circ v^{(t)} \right)
+    \texttt{F}(q, k^{(1:n)}, v^{(1:n)}) = {\color{blue}\frac{1}{d^{(n-1)/2}}} \operatorname{softmax}\left({\color{blue}\frac{1}{d^{(n+1)/2}}} \left\langle q, \left( \prod_{t=1}^n \circ k^{(t)} \right) \right\rangle + \texttt{mask}\right) \left( \prod_{t=1}^n \circ v^{(t)} \right)
 \end{equation}$$
 > is unit sensitive and $3$-sharp under the $\infty RMS$ operator norm.
 
@@ -99,7 +99,7 @@ Let's rewrite n-Simplicial Attention in Claim 4 above as follows,
 $$\begin{align}
     K &= \prod_{t=1}^n \circ k^{(t)} \\
     S &= s_1 \left\langle q, K \right\rangle \qquad & s_1 &= \frac{1}{d^{(n+1)/2}} \\
-    A &= \texttt{softmax}\left(S + \texttt{mask}\right) \\
+    A &= \operatorname{softmax}\left(S + \texttt{mask}\right) \\
     V &= s_2 \prod_{t=1}^n \circ v^{(t)} \qquad & s_2 &= \frac{1}{d^{(n-1)/2}}\\
     \texttt{F}_{iJ} &= A_{iJ} V_J
 \end{align}$$

@@ -64,7 +64,7 @@ Let $f: \mathcal{M} \to \mathbb{R}$ be a differentiable and bounded-below object
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \|_{W_t} \leq \eta,\quad A \in T_{W_t}\mathcal{M}, \label{eq:optimaldescent}
 \end{align}$$
 where $\eta > 0$ is the learning rate hyperparameter.
-1. Update the weight in the direction of $A^*_t$ and retract the result back to the manifold via a retraction map, $\texttt{retract}_{\mathcal{M}}: \mathbb{R}^{m \times n} \to \mathcal{M}$, $$W_{t+1} \leftarrow \texttt{retract}_{\mathcal{M}}(W_t + A^*_t).$$ 
+1. Update the weight in the direction of $A^*_t$ and retract the result back to the manifold via a retraction map, $\operatorname{retract}_{\mathcal{M}}: \mathbb{R}^{m \times n} \to \mathcal{M}$, $$W_{t+1} \leftarrow \operatorname{retract}_{\mathcal{M}}(W_t + A^*_t).$$ 
 
 Note that both constraints on $A$ in Equation $\eqref{eq:optimaldescent}$ are membership constraints to closed convex sets, and so it is simply a convex optimization problem.
 
@@ -73,7 +73,7 @@ $$\begin{align}
     A^*_t
         &= \arg\min_{\| A \|_{W_t} \leq \eta} \langle G_t, A \rangle \nonumber \\
         &= \eta \cdot \arg\min_{\| A \|_{W_t} \leq 1} \langle G_t, A \rangle \nonumber \\
-        &= \eta \cdot \text{LMO}_{\|\cdot\|_{W_t}}(G_t). \nonumber
+        &= \eta \cdot \operatorname{LMO}_{\|\cdot\|_{W_t}}(G_t). \nonumber
 \end{align}$$
 
 Unfortunately, as we have discussed in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel), LMOs typically do not preserve tangency for general $T_{W_t}\mathcal{M}$, requiring more complicated solutions to solve Equation $\eqref{eq:optimaldescent}$. We will discuss one such solution via dual ascent in the next section.
@@ -113,20 +113,20 @@ $$\begin{align}
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y) \nonumber \\
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^\dagger(Y), A \rangle + \cancel{\langle Y, b \rangle} \nonumber \\
         &= \arg\min_{\| A \| \leq \eta} \langle G_t + L^\dagger(Y), A \rangle \nonumber \\
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y))
+        &= \eta\cdot\operatorname{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y))
 \end{align}$$
 
 Substituting $A^*(Y)$ back into the Lagrangian then yields the pointwise dual objective,
 $$\begin{align}
     h(Y)
         &= \mathcal{L}(A^*(Y), Y) \nonumber \\
-        &= \langle G_t + L^\dagger(Y), \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)) \rangle + \langle Y, b \rangle \nonumber \\
+        &= \langle G_t + L^\dagger(Y), \eta\cdot\operatorname{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)) \rangle + \langle Y, b \rangle \nonumber \\
         &= -\eta \| G_t + L^\dagger(Y) \|^\dagger + \langle Y, b \rangle
 \end{align}$$
 The dual problem is therefore $\max_{Y \in K^\dagger} h(Y)$, where $\| \cdot \|^\dagger$ is the dual norm of $\| \cdot \|$. By the chain rule, the dual objective above has *a* supergradient,
 $$\begin{align}
     \nabla_{Y} h(Y)
-        &\ni \eta\cdot L\left(\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y))\right) + b \nonumber \\
+        &\ni \eta\cdot L\left(\operatorname{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y))\right) + b \nonumber \\
         &= L(A^*(Y)) + b
 \end{align}$$
 which we can use to do gradient ascent on the dual variable $Y$. And finally, to maintain $Y \in K^\dagger$, we project the updated dual variable back to $K^\dagger$ after each ascent step.
@@ -134,11 +134,11 @@ which we can use to do gradient ascent on the dual variable $Y$. And finally, to
 $\blacksquare$ Putting everything together, we have the following update rule for the primal and dual variables $A^j_t$ and $Y^{j+1}_t$,
 $$\begin{align}
     A^j_t
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y^{j}_t)) \\
+        &= \eta\cdot\operatorname{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y^{j}_t)) \\
     Y^{j+1}_t
-        &= \texttt{proj}_{K^\dagger} \left(Y^{j}_t + \sigma_j \left( L( A^j_t ) + b \right)\right)
+        &= \operatorname{proj}_{K^\dagger} \left(Y^{j}_t + \sigma_j \left( L( A^j_t ) + b \right)\right)
 \end{align}$$
-where $\sigma_j > 0$ is the dual ascent learning rate, and $\texttt{proj}_{K^\dagger}$ is the orthogonal projection onto the dual cone $K^\dagger$. Literature on dual ascent typically recommend using a learning rate schedule of $\sigma_j = \sigma_{0}/\sqrt{j+1}$. And if $K = \{ 0 \}$, the projection is simply the identity map. At convergence, we have $A^j_t \to A^*_t$.
+where $\sigma_j > 0$ is the dual ascent learning rate, and $\operatorname{proj}_{K^\dagger}$ is the orthogonal projection onto the dual cone $K^\dagger$. Literature on dual ascent typically recommend using a learning rate schedule of $\sigma_j = \sigma_{0}/\sqrt{j+1}$. And if $K = \{ 0 \}$, the projection is simply the identity map. At convergence, we have $A^j_t \to A^*_t$.
 
 In all, we only need three components to implement the above algorithm:
 1. The Linear Minimization Oracle (LMO) for the chosen norm $\| \cdot \|_{W}$;
@@ -153,16 +153,16 @@ $$L L^\dagger = I.$$
 This is because, under a certain initialization strategy, one step of dual ascent is equivalent to one step of the projection-projection heuristic that we have previously shown in [Ponder: Heuristic Solutions for Steepest Descent on the Stiefel Manifold](../steepest-descent-stiefel/) to be optimal in some cases (and arguably already close-to-optimal in most cases).
 
 To see this, note that if $b = 0$, the orthogonal projection onto the tangent set $T_{W_t}\mathcal{M}$ given by Equation $\eqref{eq:tangentset}$ is as follows,
-$$\begin{equation} \texttt{proj}_{T_{W_t}\mathcal{M}}(X) = X - L^\dagger\texttt{proj}^{L L^\dagger}_{K^\dagger}(LX) \end{equation}$$
-where $\texttt{proj}^{L L^\dagger}_{K^\dagger}$ is the projection onto $K^\dagger$ under the inner product induced by $L L^\dagger$. And if $L L^\dagger = I$, then $\texttt{proj}^{L L^\dagger}_{K^\dagger} = \texttt{proj}_{K^\dagger}$ which is often what we already have. We will discuss the proof in more detail in a future blog post, but in short, it follows from solving the orthogonal projection problem via Lagrangian optimization and the Moreau decomposition.
+$$\begin{equation} \operatorname{proj}_{T_{W_t}\mathcal{M}}(X) = X - L^\dagger\operatorname{proj}^{L L^\dagger}_{K^\dagger}(LX) \end{equation}$$
+where $\operatorname{proj}^{L L^\dagger}_{K^\dagger}$ is the projection onto $K^\dagger$ under the inner product induced by $L L^\dagger$. And if $L L^\dagger = I$, then $\operatorname{proj}^{L L^\dagger}_{K^\dagger} = \operatorname{proj}_{K^\dagger}$ which is often what we already have. We will discuss the proof in more detail in a future blog post, but in short, it follows from solving the orthogonal projection problem via Lagrangian optimization and the Moreau decomposition.
 
 Now, if we initialize $Y^0_t = 0$, $A^0_t = -G_t$, and $\sigma_0 = 1$, then,
 $$\begin{align}
     A^1_t
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^\dagger(\texttt{proj}_{K^\dagger} (Y^{0}_t + \sigma_0 L( A^0_t )))) \nonumber \\
-        &= \eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(G_t + L^\dagger(\texttt{proj}_{K^\dagger} (L( -G_t )))) \nonumber \\
-        &= -\eta\cdot\texttt{LMO}_{\| \cdot \|_{W_t}}(\underbrace{-G_t - L^\dagger(\texttt{proj}_{K^\dagger} (L( -G_t )))}_{\texttt{proj}_{T_{W_t}\mathcal{M}}(-G_t)}) \nonumber \\
-        &= \left(-\eta \cdot \texttt{LMO}_{\| \cdot \|_{W_t}} \circ \texttt{proj}_{T_{W_t}\mathcal{M}} \right)(-G_t) \qquad\qquad\text{(1-step AP)} \nonumber \\
+        &= \eta\cdot\operatorname{LMO}_{\| \cdot \|_{W_t}}(G_t + L^\dagger(\operatorname{proj}_{K^\dagger} (Y^{0}_t + \sigma_0 L( A^0_t )))) \nonumber \\
+        &= \eta\cdot\operatorname{LMO}_{\| \cdot \|_{W_t}}(G_t + L^\dagger(\operatorname{proj}_{K^\dagger} (L( -G_t )))) \nonumber \\
+        &= -\eta\cdot\operatorname{LMO}_{\| \cdot \|_{W_t}}(\underbrace{-G_t - L^\dagger(\operatorname{proj}_{K^\dagger} (L( -G_t )))}_{\operatorname{proj}_{T_{W_t}\mathcal{M}}(-G_t)}) \nonumber \\
+        &= \left(-\eta \cdot \operatorname{LMO}_{\| \cdot \|_{W_t}} \circ \operatorname{proj}_{T_{W_t}\mathcal{M}} \right)(-G_t) \qquad\qquad\text{(1-step AP)} \nonumber \\
 \end{align}$$
 As to why it is reasonable to initialize $A^0_t$ as $-G_t$, note that $-G_t$ is the optimal solution to $\arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle$, or Equation $\eqref{eq:optimaldescent}$ without the norm ball and tangency constraints.
 
@@ -204,45 +204,53 @@ def dual_ascent(
 Suppose that, during training, we want to bound the singular values of our weights to be within some comfortable range $[\sigma_{\min}, \sigma_{\max}]$. This is to prevent features from either exploding or vanishing completely. Additionally, we pick the "natural" weight norm, the $\texttt{RMS}\to\texttt{RMS}$ norm, to maximally update the RMS norm of our features and enable learning rate transfer across model widths as discussed in [Section 2.2](#22-natural-feature-and-weight-norms). And hence, we want to do steepest descent on the spectral band $\mathcal{S}_{[\alpha, \beta]}$ under the $\texttt{RMS}\to\texttt{RMS}$ norm.
 
 For the retraction map, we can use the GPU/TPU-friendly Spectral Clip function discussed in [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
-$$\texttt{retract}_{\mathcal{S}_{[\alpha, \beta]}} := \texttt{spectral\_clip}_{[\alpha, \beta]}.$$
+$$\operatorname{retract}_{\mathcal{S}_{[\alpha, \beta]}} := \operatorname{spectral\_clip}_{[\alpha, \beta]}.$$
 
 We also discussed several ways to compute the optimal update direction $A^*_t$ for the Spectral Band in Appendix A1 of [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/). Here, we show that the dual ascent approach we discussed in that blog post is a special case of the general dual ascent framework we discussed in the previous section. To see this, consider the tangent cone at a point $W$ in the spectral band,
 $$\begin{equation}
-    T_{W_t} \mathcal{S}_{[\alpha, \beta]} = \{ A \in \mathbb{R}^{m \times n} : \underbrace{\texttt{sym}(U_{\alpha}^T A V_{\alpha}) \succeq 0}_{\text{don't go below } \alpha}, \underbrace{\texttt{sym}(U_{\beta}^T A V_{\beta}) \preceq 0}_{\text{don't go above } \beta} \}
+    T_{W_t} \mathcal{S}_{[\alpha, \beta]}
+        = \{
+            A \in \mathbb{R}^{m \times n} : 
+            \underbrace{\operatorname{sym}(U_{\alpha}^\top A V_{\alpha}) \succeq 0}_{\text{don't go below } \alpha},
+            \underbrace{\operatorname{sym}(U_{\beta}^\top A V_{\beta}) \preceq 0}_{\text{don't go above } \beta} 
+        \}
 \end{equation}$$
-where $\texttt{sym}(X) = (X + X^T)/2$ is the symmetrization operator, $U_\alpha$ and $V_\alpha$ are the left and right singular vectors corresponding to the singular value $\alpha$, and likewise for $U_\beta$ and $V_\beta$.
+where $\operatorname{sym}(X) = (X + X^\top)/2$ is the symmetrization operator, $U_\alpha$ and $V_\alpha$ are the left and right singular vectors corresponding to the singular value $\alpha$, and likewise for $U_\beta$ and $V_\beta$.
 
 We will discuss the proof in more detail in a future blog post, but in short, it follows from polarizing the normal cones at the upper $\beta$-level and lower $\alpha$-level boundary sets of the spectral band which turns out to be $\pm$ the subdifferential of the spectral norm at those levels.
 
 $\blacksquare$ We can represent $T_{W_t} \mathcal{S}_{[\alpha, \beta]}$ as in Equation $\eqref{eq:tangentset}$ by setting,
 $$\begin{align}
-    K &= \mathbb{S}^{r_{\alpha}}_{-} \times \mathbb{S}^{r_{\beta}}_{+} \qquad\text{ s.t. }\qquad -K = \mathbb{S}^{r_{\alpha}}_{+} \times \mathbb{S}^{r_{\beta}}_{-}\nonumber \\
-    L(A) &= (\texttt{sym}(U_{\alpha}^T A V_{\alpha}), \texttt{sym}(U_{\beta}^T A V_{\beta})). \nonumber
+    K
+        &= \mathbb{S}^{r_{\alpha}}_{-} \times \mathbb{S}^{r_{\beta}}_{+}
+            \qquad\text{ s.t. }\qquad -K = \mathbb{S}^{r_{\alpha}}_{+} \times \mathbb{S}^{r_{\beta}}_{-}\nonumber \\
+    L(A)
+        &= (\operatorname{sym}(U_{\alpha}^\top A V_{\alpha}), \operatorname{sym}(U_{\beta}^\top A V_{\beta})). \nonumber
 \end{align}$$
 
 The dual of the positive and negative semidefinite cones are themselves, and so,
 $$K^\dagger = \mathbb{S}^{r_{\alpha}}_{-} \times \mathbb{S}^{r_{\beta}}_{+}.$$
-The adjoint of $L$, $L^\dagger: K^\dagger \to \mathbb{R}^{m \times n}$, and the projection onto the dual cone, $\texttt{proj}_{K^\dagger}$, are given by,
+The adjoint of $L$, $L^\dagger: K^\dagger \to \mathbb{R}^{m \times n}$, and the projection onto the dual cone, $\operatorname{proj}_{K^\dagger}$, are given by,
 $$\begin{align}
     L^\dagger(Y_{\alpha}, Y_{\beta})
-        &= U_{\alpha} Y_{\alpha} V_{\alpha}^T + U_{\beta} Y_{\beta} V_{\beta}^T \nonumber \\
-    \texttt{proj}_{K^\dagger}(Y_{\alpha}, Y_{\beta})
-        &= (\texttt{proj\_nsd}(Y_{\alpha}), \texttt{proj\_psd}(Y_{\beta})), \nonumber
+        &= U_{\alpha} Y_{\alpha} V_{\alpha}^\top + U_{\beta} Y_{\beta} V_{\beta}^\top \nonumber \\
+    \operatorname{proj}_{K^\dagger}(Y_{\alpha}, Y_{\beta})
+        &= (\operatorname{proj\_nsd}(Y_{\alpha}), \operatorname{proj\_psd}(Y_{\beta})), \nonumber
 \end{align}$$
-where $\texttt{proj\_nsd}$ and $\texttt{proj\_psd}$ are the accelerator-friendly implementations of the (orthogonal) projectors to the negative and positive semidefinite cones discussed in [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), respectively.
+where $\operatorname{proj\_nsd}$ and $\operatorname{proj\_psd}$ are the accelerator-friendly implementations of the (orthogonal) projectors to the negative and positive semidefinite cones discussed in [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/), respectively.
 
 And finally, the LMO for the $\texttt{RMS}\to\texttt{RMS}$ norm is given by,
-$$\texttt{LMO}_{\texttt{RMS}\to\texttt{RMS}}(G_t) = -\sqrt{\frac{m}{n}} \texttt{msign}(G_t),$$
-where $\texttt{msign}(G_t)$ is the matrix sign function, $\texttt{msign}(G_t) = U V^T$ for the SVD $G_t = U \Sigma V^T$.
+$$\operatorname{LMO}_{\texttt{RMS}\to\texttt{RMS}}(G_t) = -\sqrt{\frac{m}{n}} \operatorname{msign}(G_t),$$
+where $\operatorname{msign}(G_t)$ is the matrix sign function, $\operatorname{msign}(G_t) = U V^\top$ for the SVD $G_t = U \Sigma V^\top$.
 
 $\blacksquare$ Taking everything together, our update rule becomes,
 $$\begin{align}
     A_t^j
-        &= -\eta \sqrt{\frac{m}{n}} \cdot \texttt{msign}\left(G_t + U_{\alpha} Y^j_{t, \alpha} V_{\alpha}^T + U_{\beta} Y^j_{t, \beta} V_{\beta}^T\right) \\
+        &= -\eta \sqrt{\frac{m}{n}} \cdot \operatorname{msign}\left(G_t + U_{\alpha} Y^j_{t, \alpha} V_{\alpha}^\top + U_{\beta} Y^j_{t, \beta} V_{\beta}^\top\right) \\
     Y^{j+1}_{t, \alpha}
-        &= \texttt{proj\_nsd}\left(Y^j_{t, \alpha} + \sigma_j \cdot \texttt{sym}\left(U_{\alpha}^T A^j_t V_{\alpha}\right)\right) \\
+        &= \operatorname{proj\_nsd}\left(Y^j_{t, \alpha} + \sigma_j \cdot \operatorname{sym}\left(U_{\alpha}^\top A^j_t V_{\alpha}\right)\right) \\
     Y^{j+1}_{t, \beta}
-        &= \texttt{proj\_psd}\left(Y^j_{t, \beta} + \sigma_j \cdot \texttt{sym}\left(U_{\beta}^T A^j_t V_{\beta}\right)\right)
+        &= \operatorname{proj\_psd}\left(Y^j_{t, \beta} + \sigma_j \cdot \operatorname{sym}\left(U_{\beta}^\top A^j_t V_{\beta}\right)\right)
 \end{align}$$
 which matches exactly with the update rule we derived in Appendix A1 of [Ponder: Rethinking Maximal Update Parametrization: Steepest Descent on the Spectral Ball](../rethinking-mup-spectral-ball/).
 
@@ -308,13 +316,13 @@ we can re-use the update rule from the previous section with a few simplificatio
 
 $$\begin{align}
     A^j_t
-        &= -\eta \sqrt{\frac{m}{n}} \cdot \texttt{msign}\left(G_t + U_{\beta} Y^j_{t, \beta} V_{\beta}^T\right) \\
+        &= -\eta \sqrt{\frac{m}{n}} \cdot \operatorname{msign}\left(G_t + U_{\beta} Y^j_{t, \beta} V_{\beta}^\top\right) \\
     Y^{j+1}_{j, \beta}
-        &= \texttt{proj\_psd}\left(Y^j_{t, \beta} + \sigma_j \cdot \texttt{sym}\left(U_{\beta}^T A^j_t V_{\beta}\right)\right)
+        &= \operatorname{proj\_psd}\left(Y^j_{t, \beta} + \sigma_j \cdot \operatorname{sym}\left(U_{\beta}^\top A^j_t V_{\beta}\right)\right)
 \end{align}$$
 
-For the retraction map, we can use the accelerator-friendly Spectral Hardcap matrix function, $\texttt{spectral\_hardcap}_{\beta} := \texttt{spectral\_clip}_{[0, \beta]}$, discussed in [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
-$$\texttt{retract}_{\mathbb{B}_{\beta}} := \texttt{spectral\_hardcap}_{\beta}.$$
+For the retraction map, we can use the accelerator-friendly Spectral Hardcap matrix function, $\operatorname{spectral\_hardcap}_{\beta} := \operatorname{spectral\_clip}_{[0, \beta]}$, discussed in [Ponder: Fast, Numerically Stable, and Auto-Differentiable Spectral Clipping via Newton-Schulz Iteration](../spectral-clipping/),
+$$\operatorname{retract}_{\mathbb{B}_{\beta}} := \operatorname{spectral\_hardcap}_{\beta}.$$
 
 #### 3.3.1. JAX implementation
 
@@ -363,31 +371,31 @@ def dual_ascent_spectral_ball(
 
 ### 3.4. Special case #2: steepest descent on the (scaled) Stiefel manifold under the $\texttt{RMS}\to\texttt{RMS}$ norm
 
-Suppose we want to make the constraint tighter and enforce that the singular values be all equal. Then it is natural to "place" our weights in the scaled Stiefel manifold with scale $s$, $\widetilde{\texttt{St}}(m, n, s) = \{ W \in \mathbb{R}^{m \times n} \mid W^T W = s^2 I \}$, and do steepest descent there. And since the scaled Stiefel manifold is also a special case of the Spectral Band where $\alpha = \beta = s$,
+Suppose we want to make the constraint tighter and enforce that the singular values be all equal. Then it is natural to "place" our weights in the scaled Stiefel manifold with scale $s$, $\widetilde{\texttt{St}}(m, n, s) = \{ W \in \mathbb{R}^{m \times n} \mid W^\top W = s^2 I \}$, and do steepest descent there. And since the scaled Stiefel manifold is also a special case of the Spectral Band where $\alpha = \beta = s$,
 $$\widetilde{\texttt{St}}(m, n, s) = \mathcal{S}_{[s, s]},$$
 we can also re-use the update rule in [Section 3.2](#32-steepest-descent-on-the-spectral-band-under-the--norm) with some modifications.
 
 First note that since $\alpha = \beta$, we have,
 $$U_{\alpha} = U_{\beta} =: U \qquad \text{ and } \qquad V_{\alpha} = V_{\beta} =: V$$
-And since $W_t \in \widetilde{\texttt{St}}(m, n, s)$, then, WLOG up to rotations, we can also choose $U = W_t/s$ and $V = I$ such that $W_t = s UV^T$ and $W_t^T W_t = (s UV^T)^T (s UV^T) = s^2 I$. Thus,
+And since $W_t \in \widetilde{\texttt{St}}(m, n, s)$, then, WLOG up to rotations, we can also choose $U = W_t/s$ and $V = I$ such that $W_t = s UV^\top$ and $W_t^\top W_t = (s UV^\top)^\top (s UV^\top) = s^2 I$. Thus,
 
 $$\begin{align}
     A_t^j
-        &= -\eta \sqrt{\frac{m}{n}} \cdot \texttt{msign}\left(G_t + U_{\alpha} Y^j_{t, \alpha} V_{\alpha}^T + U_{\beta} Y^j_{t, \beta} V_{\beta}^T\right) \nonumber \\
-        &= -\eta \sqrt{\frac{m}{n}} \cdot \texttt{msign}\left(G_t + \frac{1}{s}W_t Y^j_{t, \alpha} I^T + \frac{1}{s}W_t Y^j_{t, \beta} I^T \right) \nonumber \\
-        &= -\eta \sqrt{\frac{m}{n}} \cdot \texttt{msign}\left(G_t + \frac{1}{s}W_t \Lambda^j_{t} \right)
+        &= -\eta \sqrt{\frac{m}{n}} \cdot \operatorname{msign}\left(G_t + U_{\alpha} Y^j_{t, \alpha} V_{\alpha}^\top + U_{\beta} Y^j_{t, \beta} V_{\beta}^\top\right) \nonumber \\
+        &= -\eta \sqrt{\frac{m}{n}} \cdot \operatorname{msign}\left(G_t + \frac{1}{s}W_t Y^j_{t, \alpha} I^\top + \frac{1}{s}W_t Y^j_{t, \beta} I^\top \right) \nonumber \\
+        &= -\eta \sqrt{\frac{m}{n}} \cdot \operatorname{msign}\left(G_t + \frac{1}{s}W_t \Lambda^j_{t} \right)
 \end{align}$$
 where $\Lambda^j_t = Y^j_{t, \alpha} + Y^j_{t, \beta} \in \mathbb{S}^n$. And,
 $$\begin{align}
     \Lambda^{j+1}_{t}
         &= Y^{j+1}_{t, \alpha} + Y^{j+1}_{t, \beta} \nonumber \\
-        &= \texttt{proj\_nsd}\left(Y^j_{t, \alpha} + \sigma_t L_{\alpha}( A^j_t )\right) + \texttt{proj\_psd}\left(Y^j_{t, \beta} + \sigma_t L_{\beta}( A^j_t )\right) \nonumber \\
-        &= \texttt{sym}\left(Y^j_{t, \alpha} + Y^j_{t, \beta} + \sigma_t \texttt{sym}\left(U^T A^j_t V \right)\right) \nonumber \\
-        &= \texttt{sym}\left(\Lambda^j_t + \frac{\sigma_t}{s} \texttt{sym}\left(W_t^T A^j_t \right)\right)
+        &= \operatorname{proj\_nsd}\left(Y^j_{t, \alpha} + \sigma_t L_{\alpha}( A^j_t )\right) + \operatorname{proj\_psd}\left(Y^j_{t, \beta} + \sigma_t L_{\beta}( A^j_t )\right) \nonumber \\
+        &= \operatorname{sym}\left(Y^j_{t, \alpha} + Y^j_{t, \beta} + \sigma_t \operatorname{sym}\left(U^\top A^j_t V \right)\right) \nonumber \\
+        &= \operatorname{sym}\left(\Lambda^j_t + \frac{\sigma_t}{s} \operatorname{sym}\left(W_t^\top A^j_t \right)\right)
 \end{align}$$
 Both match the update rules that [Bernstein (2025)](https://thinkingmachines.ai/blog/modular-manifolds/) previously derived, up to scaling factors.
 
-Alternatively, we can also set $L(A) = \texttt{sym}(W_t^T A) / s$ and apply the general strategy from [Section 3.1](#31-general-strategy) directly. This yields the same update rules as above.
+Alternatively, we can also set $L(A) = \operatorname{sym}(W_t^\top A) / s$ and apply the general strategy from [Section 3.1](#31-general-strategy) directly. This yields the same update rules as above.
 
 #### 3.4.1. JAX implementation
 

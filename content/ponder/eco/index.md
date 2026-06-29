@@ -41,11 +41,11 @@ $$\begin{align}
     E_{t+1}
         &= \widetilde{W}_{t+1} - \widehat{W}_{t+1} \label{eq:eco_sgdm_error} \\
     M_{t+1}
-        &= \texttt{pullback}(\widetilde{M}_{t+1}, E_{t+1}),
+        &= \operatorname{pullback}(\widetilde{M}_{t+1}, E_{t+1}),
 \end{align}$$
-where $\widetilde{M}_{t+1}$ and $\widetilde{W}_{t+1}$ are intermediate variables, and $\texttt{pullback}$ is the error-compensation function that 'pulls' the quantization 'error' back into the momentum buffer for use in the next step.
+where $\widetilde{M}_{t+1}$ and $\widetilde{W}_{t+1}$ are intermediate variables, and $\operatorname{pullback}$ is the error-compensation function that 'pulls' the quantization 'error' back into the momentum buffer for use in the next step.
 
-The challenge then is to find $\texttt{pullback}$ such that the intermediate weight variable $\widetilde{W}_t$ evolves the same as the (idealized) master weight $W_t^*$. That is, we want to enfore the invariant,
+The challenge then is to find $\operatorname{pullback}$ such that the intermediate weight variable $\widetilde{W}_t$ evolves the same as the (idealized) master weight $W_t^*$. That is, we want to enfore the invariant,
 $$\begin{align}
     W_t^*
         &= \widetilde{W}_t,
@@ -54,7 +54,7 @@ for all $t \geq 0$.
 
 **Base case**: At $t=0$, we can simply initialize $W_0^* = \widetilde{W}_0 = \widehat{W}_0$ and $M_0^* = M_0 = \mathbf{0}$.
 
-**Inductive case**: Assuming $W_t^* = \widetilde{W}_t$ for some $t \geq 0$, we want to find $\texttt{pullback}$ such that $W_{t+1}^* = \widetilde{W}_{t+1}$ as well. To do this, let us first combine this constraint with Equations $\eqref{eq:sgdm_w_update}$, $\eqref{eq:eco_sgdm_w_update}$, and $\eqref{eq:eco_sgdm_error}$ as follows,
+**Inductive case**: Assuming $W_t^* = \widetilde{W}_t$ for some $t \geq 0$, we want to find $\operatorname{pullback}$ such that $W_{t+1}^* = \widetilde{W}_{t+1}$ as well. To do this, let us first combine this constraint with Equations $\eqref{eq:sgdm_w_update}$, $\eqref{eq:eco_sgdm_w_update}$, and $\eqref{eq:eco_sgdm_error}$ as follows,
 $$\begin{align}
     W_{t+1}^*
         &= \widetilde{W}_{t+1} \nonumber \\
@@ -93,14 +93,14 @@ $$\begin{align}
 \end{align}$$
 where the red-colored term is the difference from Algorithm 2 in the ECO paper.
 
-### 2.2. ECO for steepest descent with LMOs of the form $\texttt{LMO}(X) = g(X) X h(X)$
+### 2.2. ECO for steepest descent with LMOs of the form $\operatorname{LMO}(X) = g(X) X h(X)$
 
-Steepest descent under a norm $\| \cdot \|$ with Linear Minimization Oracle (LMO), $\texttt{LMO}(X)$, has the following master-weight update rule:
+Steepest descent under a norm $\| \cdot \|$ with Linear Minimization Oracle (LMO), $\operatorname{LMO}(X)$, has the following master-weight update rule:
 $$\begin{align}
     \widehat{W}_t &= q(W_t^*) \\
     G_t &= \nabla L(\widehat{W}_t) \\
     M_{t+1}^* &= \beta M_t^* + (1-\beta) G_t \label{eq:sgdm_m_update_2} \\
-    U_{t+1}^* &= \texttt{LMO}(M_{t+1}^*) \\
+    U_{t+1}^* &= \operatorname{LMO}(M_{t+1}^*) \\
     W_{t+1}^* &= (1 - \eta \lambda) W_t^* - \eta U_{t+1}^*, \label{eq:sgdm_w_update_2}
 \end{align}$$
 and as in the previous section, the ECO-style update is given by,
@@ -110,7 +110,7 @@ $$\begin{align}
     \widetilde{M}_{t+1}
         &= \beta M_{t} + (1-\beta) G_t \label{eq:eco_sgdm_m_update_2} \\
     U_{t+1}
-        &= \texttt{LMO}(\widetilde{M}_{t+1}) \label{eq:u_star_from_lmo} \\
+        &= \operatorname{LMO}(\widetilde{M}_{t+1}) \label{eq:u_star_from_lmo} \\
     \widetilde{W}_{t+1}
         &= (1 - \eta \lambda) \widehat{W}_t - \eta U_{t+1} \label{eq:eco_sgdm_w_update_2} \\
     \widehat{W}_{t+1}
@@ -118,7 +118,7 @@ $$\begin{align}
     E_{t+1}
         &= \widetilde{W}_{t+1} - \widehat{W}_{t+1} \label{eq:eco_sgdm_error_2} \\
     M_{t+1}
-        &= \texttt{pullback}(\widetilde{M}_{t+1}, E_{t+1}).
+        &= \operatorname{pullback}(\widetilde{M}_{t+1}, E_{t+1}).
 \end{align}$$
 
 Enforcing $W_t^* = \widetilde{W}_t$ as before, we have,
@@ -133,17 +133,17 @@ $$\begin{align}
         &= U_{t+1} + \frac{1 - \eta \lambda}{\eta} E_t. \label{eq:u_star_from_u}
 \end{align}$$
 
-Now suppose we have LMOs of the form $\texttt{LMO}(X) = g(X) X h(X)$ with matrix functions $g: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ such that there exist $g^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ satisfying $g^{-1}(X) g(X) = I_m$ and $h(X) h^{-1}(X) = I_n$ whenever these inverses are well-defined. Then, we can make the following approximation by freezing $g$ and $h$ (valid for small perturbations $\Delta X$ or small learning rates $\eta$ which are common in practice):
+Now suppose we have LMOs of the form $\operatorname{LMO}(X) = g(X) X h(X)$ with matrix functions $g: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ such that there exist $g^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times m}$ and $h^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{n \times n}$ satisfying $g^{-1}(X) g(X) = I_m$ and $h(X) h^{-1}(X) = I_n$ whenever these inverses are well-defined. Then, we can make the following approximation by freezing $g$ and $h$ (valid for small perturbations $\Delta X$ or small learning rates $\eta$ which are common in practice):
 $$\begin{align}
-    \texttt{LMO}(X + \Delta X)
-        &\approx \texttt{LMO}(X) + g(X) \Delta X h(X). \label{eq:lmo_approx}
+    \operatorname{LMO}(X + \Delta X)
+        &\approx \operatorname{LMO}(X) + g(X) \Delta X h(X). \label{eq:lmo_approx}
 \end{align}$$
 
 Thus, combining Equations $\eqref{eq:u_star_from_lmo}$, $\eqref{eq:u_star_from_u}$, and $\eqref{eq:lmo_approx}$, we have,
 $$\begin{align}
     U_{t+1}^*
-        &= \texttt{LMO}(M_{t+1}^*) \nonumber \\
-        &= \texttt{LMO}(\widetilde{M}_{t+1} + (M_{t+1}^* - \widetilde{M}_{t+1})) \nonumber \\
+        &= \operatorname{LMO}(M_{t+1}^*) \nonumber \\
+        &= \operatorname{LMO}(\widetilde{M}_{t+1} + (M_{t+1}^* - \widetilde{M}_{t+1})) \nonumber \\
         &\approx U_{t+1} + g(\widetilde{M}_{t+1}) (M_{t+1}^* - \widetilde{M}_{t+1}) h(\widetilde{M}_{t+1}) \nonumber \\
     \cancel{U_{t+1}} + \frac{1 - \eta \lambda}{\eta} E_t
         &\approx \cancel{U_{t+1}} + g(\widetilde{M}_{t+1}) (M_{t+1}^* - \widetilde{M}_{t+1}) h(\widetilde{M}_{t+1}) \nonumber \\
@@ -161,14 +161,14 @@ $$\begin{align}
 
 Steepest descent under the RMS-to-RMS norm as in the Muon optimizer ([Jordan et al., 2024](https://kellerjordan.github.io/posts/muon/)) has the following LMO in the full-column-rank case:
 $$\begin{align}
-    \texttt{LMO}(X)
-        &= \texttt{msign}(X) = \sqrt{\frac{m}{n}} X (X^T X)^{-1/2}
+    \operatorname{LMO}(X)
+        &= \operatorname{msign}(X) = \sqrt{\frac{m}{n}} X (X^\top X)^{-1/2}
 \end{align}$$
 
-Thus, setting either $g(X) = \sqrt{\frac{m}{n}} I_m$ and $h(X) = (X^T X)^{-1/2}$ or $g(X) = I_m$ and $h(X) = \sqrt{\frac{m}{n}} (X^T X)^{-1/2}$ then gives us the error-compensating momentum update rule for Muon:
+Thus, setting either $g(X) = \sqrt{\frac{m}{n}} I_m$ and $h(X) = (X^\top X)^{-1/2}$ or $g(X) = I_m$ and $h(X) = \sqrt{\frac{m}{n}} (X^\top X)^{-1/2}$ then gives us the error-compensating momentum update rule for Muon:
 $$\begin{align}
     M_{t+1}
-        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{\sqrt{\frac{n}{m}}}} E_{t+1} {\color{red}{(\widetilde{M}_{t+1}^T \widetilde{M}_{t+1})^{1/2}}},
+        &\approx \widetilde{M}_{t+1} + \frac{\color{red}{1 - \eta \lambda}}{\eta}\left(1 - \frac{1}{\beta}\right) {\color{red}{\sqrt{\frac{n}{m}}}} E_{t+1} {\color{red}{(\widetilde{M}_{t+1}^\top \widetilde{M}_{t+1})^{1/2}}},
 \end{align}$$
 which we can compute as in [Appendix A1](#appendix-a1-sample-implementation-of-eco-muon).
 
@@ -192,12 +192,12 @@ $$\begin{align}
     U_t
         &= \sqrt{\frac{m}{n}} \widetilde{M}_t P_t,
 \end{align}$$
-where $P_t := Q_t^T Q_t$ and $Q_t \in \mathbb{R}^{n \times n}$ is some learned upper-triangular factor which we update, occasionally, with the following rule:
+where $P_t := Q_t^\top Q_t$ and $Q_t \in \mathbb{R}^{n \times n}$ is some learned upper-triangular factor which we update, occasionally, with the following rule:
 $$\begin{align}
     A_t
-        &= \widetilde{M}_t Q_t^T \nonumber \\
+        &= \widetilde{M}_t Q_t^\top \nonumber \\
     Q_{t+1}
-        &= Q_t - \eta_{\text{inner}} \cdot \texttt{triu}\left(A_t^T A_t - Q_t^{-T} Q_t^{-1}\right) Q_t. \label{eq:psgd_preconditioner_update}
+        &= Q_t - \eta_{\text{inner}} \cdot \operatorname{triu}\left(A_t^\top A_t - Q_t^{-\top} Q_t^{-1}\right) Q_t. \label{eq:psgd_preconditioner_update}
 \end{align}$$
 
 Setting $g(X) = \sqrt{\frac{m}{n}} I_m$ and $h(X) = P_t$ then gives us the error-compensating momentum update rule for Muon-style PSGD:
@@ -214,13 +214,13 @@ $$\begin{align}
           \left(1-\frac{1}{\beta}\right)
           {\color{red}{\sqrt{\frac{n}{m}}}}
           E_{t+1}
-          {\color{red}{Q_t^{-1} Q_t^{-T}}}.
+          {\color{red}{Q_t^{-1} Q_t^{-\top}}}.
 \end{align}$$
 We already compute $Q_t^{-1}$ in the preconditioner update step (Equation $\eqref{eq:psgd_preconditioner_update}$), so we can reuse it here to compute $P_t^{-1}$ efficiently.
 
-### 2.3. ECO for steepest descent with LMOs of the form $\texttt{LMO}(X) = X \odot h(X)$
+### 2.3. ECO for steepest descent with LMOs of the form $\operatorname{LMO}(X) = X \odot h(X)$
 
-Suppose we instead have LMOs of the form $\texttt{LMO}(X) = X \odot h(X)$, where $\odot$ is the element-wise product, and $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ is some matrix function such that there exists $h^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ satisfying $h(X) \odot h^{-1}(X) = \mathbf{1}_{m \times n}$ for all $X$. Then, following the same steps as before, we have the error-compensating momentum update rule,
+Suppose we instead have LMOs of the form $\operatorname{LMO}(X) = X \odot h(X)$, where $\odot$ is the element-wise product, and $h: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ is some matrix function such that there exists $h^{-1}: \mathbb{R}^{m \times n} \to \mathbb{R}^{m \times n}$ satisfying $h(X) \odot h^{-1}(X) = \mathbf{1}_{m \times n}$ for all $X$. Then, following the same steps as before, we have the error-compensating momentum update rule,
 $$\begin{align}
     M_{t+1}^*
         &\approx \widetilde{M}_{t+1} + \frac{1 - \eta \lambda}{\eta} \frac{1}{h(\widetilde{M}_{t+1})} \odot E_t \\
@@ -232,7 +232,7 @@ $$\begin{align}
 
 For AdamW (Adam with (decoupled) weight decay), we have the LMO,
 $$\begin{align}
-    \texttt{LMO}(\widetilde{M}_t)
+    \operatorname{LMO}(\widetilde{M}_t)
         &= \widetilde{M}_t \odot \frac{1 / (1 - \beta_1^t)}{\sqrt{\widetilde{V}_t / (1 - \beta_2^t)} + \epsilon},
 \end{align}$$
 where $\widetilde{V}_t$ is the second moment accumulator. Thus,
@@ -323,7 +323,7 @@ def _abc(coefs, step: int, scale: float) -> Tuple[float, float, float]:
     return a / scale, b / (scale**3), c / (scale**5)
 
 def _orthogonalize(M: torch.Tensor, *, steps: int = 8, eps: float = 1e-6, scale: float = 1.) -> torch.Tensor:
-    # Computes msign(M) = M (M^T M)^{-1/2} = UV^T
+    # Computes msign(M) = M (M^\top M)^{-1/2} = UV^\top
     transpose = M.shape[0] > M.shape[1]
     if transpose:
         M = M.mT

@@ -22,11 +22,11 @@ Here are a couple of examples:
 
 | Linear Attention Mechanism |                                                                          **$A_i$** |                     **$B_i$** |
 | -------------------------- | ---------------------------------------------------------------------------------: | ----------------------------: |
-| Vanilla Linear Attention   |                                                                                $I$ |         $v_i k_i^T$ |
-| Mamba 2                    |                                              $\text{diag}\left(\alpha_i I\right)$ |         $v_i k_i^T$ |
-| DeltaNet                   |                                                  $I - \beta_i k_i k_i^T$ | $\beta_i v_i k_i^T$ |
-| Gated DeltaNet             |                                        $\alpha_i(I - \beta_i k_i k_i^T)$ | $\beta_i v_i k_i^T$ |
-| RWKV-7                     | $\text{diag}(w_i) - \hat{\kappa}_i(a_i \odot\hat{\kappa}_i^T)$ |         $v_i k_i^T$ |
+| Vanilla Linear Attention   |                                                                                $I$ |         $v_i k_i^\top$ |
+| Mamba 2                    |                                              $\operatorname{diag}\left(\alpha_i I\right)$ |         $v_i k_i^\top$ |
+| DeltaNet                   |                                                  $I - \beta_i k_i k_i^\top$ | $\beta_i v_i k_i^\top$ |
+| Gated DeltaNet             |                                        $\alpha_i(I - \beta_i k_i k_i^\top)$ | $\beta_i v_i k_i^\top$ |
+| RWKV-7                     | $\operatorname{diag}(w_i) - \hat{\kappa}_i(a_i \odot\hat{\kappa}_i^\top)$ |         $v_i k_i^\top$ |
 
 where $k_i  \in \mathbb{R}^{d_k}$ and $v_i \in \mathbb{R}^{d_v}$ are the corresponding key-value pair for the $i$-th token; $\alpha_i \in [0, 1]$ can be thought of as a data-dependent weight decay that controls how much of the previous state to keep or forget; and $\beta_i \in [0, 1]$ can be thought of as a data-dependent learning rate that controls how much of the new information to add to the state.
 
@@ -186,12 +186,12 @@ Let's derive $S_N$ for each of the linear attention mechanisms in the table abov
 ### Vanilla Linear Attention
 
 {{< collapse summary="Show derivation of $S_N$" openByDefault=true >}}
-$$A_i = I \quad\quad B_i = v_i k_i^T$$
+$$A_i = I \quad\quad B_i = v_i k_i^\top$$
 From Equation $(3)$ above, we get:
 $$
 \begin{align*}
-    S_N &= \sum_{i=1}^{N} \left(v_i k_i^T \prod_{j=i+1}^{N} I\right)\\
-    S_N &= \sum_{i=1}^{N} v_i k_i^T
+    S_N &= \sum_{i=1}^{N} \left(v_i k_i^\top \prod_{j=i+1}^{N} I\right)\\
+    S_N &= \sum_{i=1}^{N} v_i k_i^\top
 \end{align*}
 $$
 {{< /collapse >}}
@@ -199,12 +199,12 @@ $$
 ### Mamba 2
 
 {{< collapse summary="Show derivation of $S_N$" >}}
-$$A_i = \text{diag}\left(\alpha_i I\right) \quad\quad B_i = v_i k_i^T$$
+$$A_i = \operatorname{diag}\left(\alpha_i I\right) \quad\quad B_i = v_i k_i^\top$$
 Thus,
 $$
 \begin{align*}
-    S_N &= \sum_{i=1}^{N} \left(v_i k_i^T \prod_{j=i+1}^{N} \text{diag}\left(\alpha_j I\right)\right)\\
-    S_N &= \sum_{i=1}^{N} \left( \prod_{j=i+1}^{N} \alpha_j \right) v_i k_i^T
+    S_N &= \sum_{i=1}^{N} \left(v_i k_i^\top \prod_{j=i+1}^{N} \operatorname{diag}\left(\alpha_j I\right)\right)\\
+    S_N &= \sum_{i=1}^{N} \left( \prod_{j=i+1}^{N} \alpha_j \right) v_i k_i^\top
 \end{align*}
 $$
 {{< /collapse >}}
@@ -212,20 +212,20 @@ $$
 ### DeltaNet
 
 {{< collapse summary="Show derivation of $S_N$" >}}
-$$A_i = I - \beta_i k_i k_i^T \quad\quad B_i = \beta_i v_i k_i^T$$
+$$A_i = I - \beta_i k_i k_i^\top \quad\quad B_i = \beta_i v_i k_i^\top$$
 Thus,
-$$S_N = \sum_{i=1}^{N} \left(\beta_i v_i k_i^T \prod_{j=i+1}^{N} \left(I - \beta_j k_j k_j^T\right)\right)$$
+$$S_N = \sum_{i=1}^{N} \left(\beta_i v_i k_i^\top \prod_{j=i+1}^{N} \left(I - \beta_j k_j k_j^\top\right)\right)$$
 {{< /collapse >}}
 
 ### Gated DeltaNet
 
 {{< collapse summary="Show derivation of $S_N$" >}}
-$$A_i = \alpha_i(I - \beta_i k_i k_i^T) \quad\quad B_i = \beta_i v_i k_i^T$$
+$$A_i = \alpha_i(I - \beta_i k_i k_i^\top) \quad\quad B_i = \beta_i v_i k_i^\top$$
 Thus,
 $$
 \begin{align*}
-    S_N &= \sum_{i=1}^{N} \left(\beta_i v_i k_i^T \prod_{j=i+1}^{N} \alpha_j \left(I - \beta_j k_j k_j^T\right)\right)\\
-    S_N &= \sum_{i=1}^{N} \left(\left(\beta_i \prod_{j=i+1}^{N} \alpha_j \right) v_i k_i^T \prod_{j=i+1}^{N} \left(I - \beta_j k_j k_j^T\right)\right)
+    S_N &= \sum_{i=1}^{N} \left(\beta_i v_i k_i^\top \prod_{j=i+1}^{N} \alpha_j \left(I - \beta_j k_j k_j^\top\right)\right)\\
+    S_N &= \sum_{i=1}^{N} \left(\left(\beta_i \prod_{j=i+1}^{N} \alpha_j \right) v_i k_i^\top \prod_{j=i+1}^{N} \left(I - \beta_j k_j k_j^\top\right)\right)
 \end{align*}
 $$
 {{< /collapse >}}
@@ -233,9 +233,9 @@ $$
 ### RWKV-7
 
 {{< collapse summary="Show derivation of $S_N$" >}}
-$$A_i = \text{diag}(w_i) - \hat{\kappa}_i(a_i \odot\hat{\kappa}_i^T) \quad\quad B_i = v_i k_i^T$$
+$$A_i = \operatorname{diag}(w_i) - \hat{\kappa}_i(a_i \odot\hat{\kappa}_i^\top) \quad\quad B_i = v_i k_i^\top$$
 Thus,
-$$S_N = \sum_{i=1}^{N} \left(v_i k_i^T \prod_{j=i+1}^{N} \left(\text{diag}(w_j) - \hat{\kappa}_j(a_j \odot\hat{\kappa}_j^T)\right)\right)$$
+$$S_N = \sum_{i=1}^{N} \left(v_i k_i^\top \prod_{j=i+1}^{N} \left(\operatorname{diag}(w_j) - \hat{\kappa}_j(a_j \odot\hat{\kappa}_j^\top)\right)\right)$$
 {{< /collapse >}}
 
 Easy!
@@ -391,13 +391,13 @@ Now, let's derive the $S_N$ for the linear attention mechanisms in the table abo
 ### MambaSum*
 
 {{< collapse summary="Show derivation of $S_N$" openByDefault=true >}}
-$$A_{i,j} = \text{diag}\left(\alpha_{i,j} I\right) \quad\quad B_{i,j} = v_{i,j} k_{i,j}^T$$
+$$A_{i,j} = \operatorname{diag}\left(\alpha_{i,j} I\right) \quad\quad B_{i,j} = v_{i,j} k_{i,j}^\top$$
 Thus, from Equation $(10)$ above,
 $$
 \begin{align*}
-S_N &= \sum_{i=1}^N \sum_{j=1}^{n_h} \left( v_{i,j} k_{i,j}^T \left(\prod_{j'=j+1}^{n_h} \text{diag}\left(\alpha_{i,j'} I\right)\right) \left(\prod_{i'=i+1}^N \prod_{j'=1}^{n_h} \text{diag}\left(\alpha_{i',j'} I\right) \right)\right)\\
-S_N &= \sum_{i=1}^N \sum_{j=1}^{n_h} \left(\underline{\left( \prod_{j'=j+1}^{n_h} \alpha_{i,j'}\right) \left(\prod_{i'=i+1}^N \prod_{j'=1}^{n_h} \alpha_{i',j'} \right)} \right) v_{i,j} k_{i,j}^T\\
-S_N &= \sum_{k=1}^{Nn_h} \left(\prod_{k'=k+1}^{Nn_h} \alpha_{k'}\right) v_k k_k^T
+S_N &= \sum_{i=1}^N \sum_{j=1}^{n_h} \left( v_{i,j} k_{i,j}^\top \left(\prod_{j'=j+1}^{n_h} \operatorname{diag}\left(\alpha_{i,j'} I\right)\right) \left(\prod_{i'=i+1}^N \prod_{j'=1}^{n_h} \operatorname{diag}\left(\alpha_{i',j'} I\right) \right)\right)\\
+S_N &= \sum_{i=1}^N \sum_{j=1}^{n_h} \left(\underline{\left( \prod_{j'=j+1}^{n_h} \alpha_{i,j'}\right) \left(\prod_{i'=i+1}^N \prod_{j'=1}^{n_h} \alpha_{i',j'} \right)} \right) v_{i,j} k_{i,j}^\top\\
+S_N &= \sum_{k=1}^{Nn_h} \left(\prod_{k'=k+1}^{Nn_h} \alpha_{k'}\right) v_k k_k^\top
 \end{align*}
 $$
 {{< /collapse >}}
@@ -407,12 +407,12 @@ $$
 ### DeltaProduct
 
 {{< collapse summary="Show derivation of $S_N$" >}}
-$$A_{i,j} = I - \beta_{i,j} k_{i,j} k_{i,j}^T \quad\quad B_{i,j} = \beta_{i,j} v_{i,j} k_{i,j}^T$$
+$$A_{i,j} = I - \beta_{i,j} k_{i,j} k_{i,j}^\top \quad\quad B_{i,j} = \beta_{i,j} v_{i,j} k_{i,j}^\top$$
 Thus,
 $$
 \begin{align*}
-S_N &= \sum_{i=1}^N \sum_{j=1}^{n_h} \left( \beta_{i,j} v_{i,j} k_{i,j}^T \underline{\left(\prod_{j'=j+1}^{n_h} \left(I - \beta_{i,j'} k_{i,j'} k_{i,j'}^T\right)\right) \left(\prod_{i'=i+1}^N \prod_{j'=1}^{n_h} \left(I - \beta_{i',j'} k_{i',j'} k_{i',j'}^T\right) \right)}\right)\\
-S_N &= \sum_{k=1}^{Nn_h} \left(\beta_k v_k k_k^T \prod_{k'=k+1}^{Nn_h} \left(I - \beta_{k'} k_{k'} k_{k'}^T\right)\right)
+S_N &= \sum_{i=1}^N \sum_{j=1}^{n_h} \left( \beta_{i,j} v_{i,j} k_{i,j}^\top \underline{\left(\prod_{j'=j+1}^{n_h} \left(I - \beta_{i,j'} k_{i,j'} k_{i,j'}^\top\right)\right) \left(\prod_{i'=i+1}^N \prod_{j'=1}^{n_h} \left(I - \beta_{i',j'} k_{i',j'} k_{i',j'}^\top\right) \right)}\right)\\
+S_N &= \sum_{k=1}^{Nn_h} \left(\beta_k v_k k_k^\top \prod_{k'=k+1}^{Nn_h} \left(I - \beta_{k'} k_{k'} k_{k'}^\top\right)\right)
 \end{align*}
 $$
 {{< /collapse >}}
@@ -420,13 +420,13 @@ $$
 ### Gated DeltaProduct
 
 {{< collapse summary="Show derivation of $S_N$" >}}
-$$A_{i,j} = \alpha_{i,j}(I - \beta_{i,j} k_{i,j} k_{i,j}^T) \quad\quad B_{i,j} = \beta_{i,j} v_{i,j} k_{i,j}^T$$
+$$A_{i,j} = \alpha_{i,j}(I - \beta_{i,j} k_{i,j} k_{i,j}^\top) \quad\quad B_{i,j} = \beta_{i,j} v_{i,j} k_{i,j}^\top$$
 Thus,
 $$
 \begin{align*}
-S_N &= \sum_{i=1}^N \sum_{j=1}^{n_h} \left( \beta_{i,j} v_{i,j} k_{i,j}^T \underline{\left(\prod_{j'=j+1}^{n_h} \alpha_{i,j'} \left(I - \beta_{i,j'} k_{i,j'} k_{i,j'}^T\right)\right) \left(\prod_{i'=i+1}^N \prod_{j'=1}^{n_h} \alpha_{i',j'} \left(I - \beta_{i',j'} k_{i',j'} k_{i',j'}^T\right) \right)}\right)\\
-S_N &= \sum_{k=1}^{Nn_h} \left(\beta_k v_k k_k^T \prod_{k'=k+1}^{Nn_h} \alpha_{k'} \left(I - \beta_{k'} k_{k'} k_{k'}^T\right)\right)\\
-S_N &= \sum_{k=1}^{Nn_h} \left(\left( \beta_k \prod_{k'=k+1}^{Nn_h} \alpha_{k'} \right) v_k k_k^T \prod_{k'=k+1}^{Nn_h} \left(I - \beta_{k'} k_{k'} k_{k'}^T\right)\right)
+S_N &= \sum_{i=1}^N \sum_{j=1}^{n_h} \left( \beta_{i,j} v_{i,j} k_{i,j}^\top \underline{\left(\prod_{j'=j+1}^{n_h} \alpha_{i,j'} \left(I - \beta_{i,j'} k_{i,j'} k_{i,j'}^\top\right)\right) \left(\prod_{i'=i+1}^N \prod_{j'=1}^{n_h} \alpha_{i',j'} \left(I - \beta_{i',j'} k_{i',j'} k_{i',j'}^\top\right) \right)}\right)\\
+S_N &= \sum_{k=1}^{Nn_h} \left(\beta_k v_k k_k^\top \prod_{k'=k+1}^{Nn_h} \alpha_{k'} \left(I - \beta_{k'} k_{k'} k_{k'}^\top\right)\right)\\
+S_N &= \sum_{k=1}^{Nn_h} \left(\left( \beta_k \prod_{k'=k+1}^{Nn_h} \alpha_{k'} \right) v_k k_k^\top \prod_{k'=k+1}^{Nn_h} \left(I - \beta_{k'} k_{k'} k_{k'}^\top\right)\right)
 \end{align*}
 $$
 {{< /collapse >}}
@@ -434,12 +434,14 @@ $$
 ### RWKV-7P
 
 {{< collapse summary="Show derivation of $S_N$" >}}
-$$A_{i,j} = \text{diag}(w_{i,j}) - \hat{\kappa}_{i,j}(a_{i,j} \odot\hat{\kappa}_{i,j}^T) \quad\quad B_{i,j} = v_{i,j} k_{i,j}^T$$
+$$A_{i,j} = \operatorname{diag}(w_{i,j}) - \hat{\kappa}_{i,j}(a_{i,j} \odot\hat{\kappa}_{i,j}^\top) \quad\quad B_{i,j} = v_{i,j} k_{i,j}^\top$$
 Thus,
 $$
 \begin{align*}
-S_N &= \sum_{i=1}^N \sum_{j=1}^{n_h} \left( v_{i,j} k_{i,j}^T \underline{\left(\prod_{j'=j+1}^{n_h} \left(\text{diag}(w_{i,j'}) - \hat{\kappa}_{i,j'}(a_{i,j'} \odot\hat{\kappa}_{i,j'}^T)\right)\right) \left(\prod_{i'=i+1}^N \prod_{j'=1}^{n_h} \left(\text{diag}(w_{i',j'}) - \hat{\kappa}_{i',j'}(a_{i',j'} \odot\hat{\kappa}_{i',j'}^T)\right) \right)}\right)\\
-S_N &= \sum_{k=1}^{Nn_h} \left(v_k k_k^T \prod_{k'=k+1}^{Nn_h} \left(\text{diag}(w_k') - \hat{\kappa}_k'(a_k' \odot\hat{\kappa}_k'^T)\right)\right)
+    S_N
+        &= \sum_{i=1}^N \sum_{j=1}^{n_h} \left( v_{i,j} k_{i,j}^\top \underline{\left(\prod_{j'=j+1}^{n_h} \left(\operatorname{diag}(w_{i,j'}) - \hat{\kappa}_{i,j'}(a_{i,j'} \odot\hat{\kappa}_{i,j'}^\top)\right)\right) \left(\prod_{i'=i+1}^N \prod_{j'=1}^{n_h} \left(\operatorname{diag}(w_{i',j'}) - \hat{\kappa}_{i',j'}(a_{i',j'} \odot\hat{\kappa}_{i',j'}^\top)\right) \right)}\right)\\
+    S_N
+        &= \sum_{k=1}^{Nn_h} \left(v_k k_k^\top \prod_{k'=k+1}^{Nn_h} \left(\operatorname{diag}(w_k') - \hat{\kappa}_k'(a_k' \odot\hat{\kappa}_k'^\top)\right)\right)
 \end{align*}
 $$
 {{< /collapse >}}
@@ -608,16 +610,16 @@ Now, let's derive the $S_C$ for the linear attention mechanisms in the table abo
 {{< collapse summary="Show derivation of $S_C$" openByDefault=true >}}
 $$
 \begin{align*}
-    A_{c,i} &= \text{diag}\left(\alpha_{c,i} I\right) & B_{c,i} &= v_{c,i} k_{c,i}^T\\
-    A^*_C &= \prod_{i=1}^{n_c} \text{diag}\left(\alpha_{C,i} I\right) \quad & B^*_C &= \sum_{i=1}^{n_c} \left(v_{C,i} k_{C,i}^T \prod_{i'=i+1}^{n_c} \text{diag}\left(\alpha_{C,i'} I\right)\right)
+    A_{c,i} &= \operatorname{diag}\left(\alpha_{c,i} I\right) & B_{c,i} &= v_{c,i} k_{c,i}^\top\\
+    A^*_C &= \prod_{i=1}^{n_c} \operatorname{diag}\left(\alpha_{C,i} I\right) \quad & B^*_C &= \sum_{i=1}^{n_c} \left(v_{C,i} k_{C,i}^\top \prod_{i'=i+1}^{n_c} \operatorname{diag}\left(\alpha_{C,i'} I\right)\right)
 \end{align*}
 $$
 Thus, from Equation $(13)$ above,
 $$
 \begin{align*}
     S_C &= S_{C-1}A^*_C + B^*_C\\
-    S_C &= S_{C-1} \prod_{i=1}^{n_c} \text{diag}\left(\alpha_{C,i} I\right) + \sum_{i=1}^{n_c} \left(v_{C,i} k_{C,i}^T \prod_{i'=i+1}^{n_c} \text{diag}\left(\alpha_{C,i'} I\right)\right)\\
-    S_C &= S_{C-1} \prod_{i=1}^{n_c} \alpha_{C,i} + \sum_{i=1}^{n_c} \left(\prod_{i'=i+1}^{n_c} \alpha_{C,i'}\right) v_{C,i} k_{C,i}^T
+    S_C &= S_{C-1} \prod_{i=1}^{n_c} \operatorname{diag}\left(\alpha_{C,i} I\right) + \sum_{i=1}^{n_c} \left(v_{C,i} k_{C,i}^\top \prod_{i'=i+1}^{n_c} \operatorname{diag}\left(\alpha_{C,i'} I\right)\right)\\
+    S_C &= S_{C-1} \prod_{i=1}^{n_c} \alpha_{C,i} + \sum_{i=1}^{n_c} \left(\prod_{i'=i+1}^{n_c} \alpha_{C,i'}\right) v_{C,i} k_{C,i}^\top
 \end{align*}
 $$
 {{< /collapse >}}
@@ -627,15 +629,15 @@ $$
 {{< collapse summary="Show derivation of $S_C$" >}}
 $$
 \begin{align*}
-    A_{c,i} &= I - \beta_{c,i} k_{c,i} k_{c,i}^T & B_{c,i} &= \beta_{c,i} v_{c,i} k_{c,i}^T\\
-    A^*_C &= \prod_{i=1}^{n_c} \left(I - \beta_{C,i} k_{C,i} k_{C,i}^T\right) \quad & B^*_C &= \sum_{i=1}^{n_c} \left(\beta_{C,i} v_{C,i} k_{C,i}^T \prod_{i'=i+1}^{n_c} \left(I - \beta_{C,i'} k_{C,i'} k_{C,i'}^T\right)\right)
+    A_{c,i} &= I - \beta_{c,i} k_{c,i} k_{c,i}^\top & B_{c,i} &= \beta_{c,i} v_{c,i} k_{c,i}^\top\\
+    A^*_C &= \prod_{i=1}^{n_c} \left(I - \beta_{C,i} k_{C,i} k_{C,i}^\top\right) \quad & B^*_C &= \sum_{i=1}^{n_c} \left(\beta_{C,i} v_{C,i} k_{C,i}^\top \prod_{i'=i+1}^{n_c} \left(I - \beta_{C,i'} k_{C,i'} k_{C,i'}^\top\right)\right)
 \end{align*}
 $$
 Thus,
 $$
 \begin{align*}
     S_C &= S_{C-1}A^*_C + B^*_C\\
-    S_C &= S_{C-1} \prod_{i=1}^{n_c} \left(I - \beta_{C,i} k_{C,i} k_{C,i}^T\right) + \sum_{i=1}^{n_c} \left(\beta_{C,i} v_{C,i} k_{C,i}^T \prod_{i'=i+1}^{n_c} \left(I - \beta_{C,i'} k_{C,i'} k_{C,i'}^T\right)\right)
+    S_C &= S_{C-1} \prod_{i=1}^{n_c} \left(I - \beta_{C,i} k_{C,i} k_{C,i}^\top\right) + \sum_{i=1}^{n_c} \left(\beta_{C,i} v_{C,i} k_{C,i}^\top \prod_{i'=i+1}^{n_c} \left(I - \beta_{C,i'} k_{C,i'} k_{C,i'}^\top\right)\right)
 \end{align*}
 $$
 {{< /collapse >}}
@@ -645,16 +647,16 @@ $$
 {{< collapse summary="Show derivation of $S_C$" >}}
 $$
 \begin{align*}
-    A_{c,i} &= \alpha_{c,i}(I - \beta_{c,i} k_{c,i} k_{c,i}^T) & B_{c,i} &= \beta_{c,i} v_{c,i} k_{c,i}^T\\
-    A^*_C &= \prod_{i=1}^{n_c} \alpha_{C,i} \left(I - \beta_{C,i} k_{C,i} k_{C,i}^T\right) \quad & B^*_C &= \sum_{i=1}^{n_c} \left(\beta_{C,i} v_{C,i} k_{C,i}^T \prod_{i'=i+1}^{n_c} \alpha_{C,i'} \left(I - \beta_{C,i'} k_{C,i'} k_{C,i'}^T\right)\right)
+    A_{c,i} &= \alpha_{c,i}(I - \beta_{c,i} k_{c,i} k_{c,i}^\top) & B_{c,i} &= \beta_{c,i} v_{c,i} k_{c,i}^\top\\
+    A^*_C &= \prod_{i=1}^{n_c} \alpha_{C,i} \left(I - \beta_{C,i} k_{C,i} k_{C,i}^\top\right) \quad & B^*_C &= \sum_{i=1}^{n_c} \left(\beta_{C,i} v_{C,i} k_{C,i}^\top \prod_{i'=i+1}^{n_c} \alpha_{C,i'} \left(I - \beta_{C,i'} k_{C,i'} k_{C,i'}^\top\right)\right)
 \end{align*}
 $$
 Thus,
 $$
 \begin{align*}
     S_C &= S_{C-1}A^*_C + B^*_C\\
-    S_C &= S_{C-1} \prod_{i=1}^{n_c} \alpha_{C,i} \left(I - \beta_{C,i} k_{C,i} k_{C,i}^T\right) + \sum_{i=1}^{n_c} \left(\beta_{C,i} v_{C,i} k_{C,i}^T \prod_{i'=i+1}^{n_c} \alpha_{C,i'} \left(I - \beta_{C,i'} k_{C,i'} k_{C,i'}^T\right)\right)\\
-    S_C &= S_{C-1} \left(\prod_{i=1}^{n_c} \alpha_{C,i} \right) \left(\prod_{i=1}^{n_c} \left(I - \beta_{C,i} k_{C,i} k_{C,i}^T\right)\right) + \sum_{i=1}^{n_c} \left(\left(\beta_{C,i} \prod_{i'=i+1}^{n_c} \alpha_{C,i'} \right) v_{C,i} k_{C,i}^T  \prod_{i'=i+1}^{n_c} \left(I - \beta_{C,i'} k_{C,i'} k_{C,i'}^T\right)\right)
+    S_C &= S_{C-1} \prod_{i=1}^{n_c} \alpha_{C,i} \left(I - \beta_{C,i} k_{C,i} k_{C,i}^\top\right) + \sum_{i=1}^{n_c} \left(\beta_{C,i} v_{C,i} k_{C,i}^\top \prod_{i'=i+1}^{n_c} \alpha_{C,i'} \left(I - \beta_{C,i'} k_{C,i'} k_{C,i'}^\top\right)\right)\\
+    S_C &= S_{C-1} \left(\prod_{i=1}^{n_c} \alpha_{C,i} \right) \left(\prod_{i=1}^{n_c} \left(I - \beta_{C,i} k_{C,i} k_{C,i}^\top\right)\right) + \sum_{i=1}^{n_c} \left(\left(\beta_{C,i} \prod_{i'=i+1}^{n_c} \alpha_{C,i'} \right) v_{C,i} k_{C,i}^\top  \prod_{i'=i+1}^{n_c} \left(I - \beta_{C,i'} k_{C,i'} k_{C,i'}^\top\right)\right)
 \end{align*}
 $$
 {{< /collapse >}}
@@ -664,15 +666,19 @@ $$
 {{< collapse summary="Show derivation of $S_C$" >}}
 $$
 \begin{align*}
-    A_{c,i} &= \text{diag}\left(w_{c,i}\right) - \hat{\kappa}_{c,i}(a_{c,i} \odot\hat{\kappa}_{c,i}^T) & B_{c,i} &= v_{c,i} k_{c,i}^T\\
-    A^*_C &= \prod_{i=1}^{n_c} \left(\text{diag}\left(w_{C,i}\right) - \hat{\kappa}_{C,i}(a_{C,i} \odot\hat{\kappa}_{C,i}^T)\right) \quad & B^*_C &= \sum_{i=1}^{n_c} \left(v_{C,i} k_{C,i}^T \prod_{i'=i+1}^{n_c} \left(\text{diag}\left(w_{C,i'}\right) - \hat{\kappa}_{C,i'}(a_{C,i'} \odot\hat{\kappa}_{C,i'}^T)\right)\right)
+    A_{c,i}
+        &= \operatorname{diag}\left(w_{c,i}\right) - \hat{\kappa}_{c,i}(a_{c,i} \odot\hat{\kappa}_{c,i}^\top) & B_{c,i}
+        &= v_{c,i} k_{c,i}^\top \\
+    A^*_C
+        &= \prod_{i=1}^{n_c} \left(\operatorname{diag}\left(w_{C,i}\right) - \hat{\kappa}_{C,i}(a_{C,i} \odot\hat{\kappa}_{C,i}^\top)\right) \quad & B^*_C
+        &= \sum_{i=1}^{n_c} \left(v_{C,i} k_{C,i}^\top \prod_{i'=i+1}^{n_c} \left(\operatorname{diag}\left(w_{C,i'}\right) - \hat{\kappa}_{C,i'}(a_{C,i'} \odot\hat{\kappa}_{C,i'}^\top)\right)\right)
 \end{align*}
 $$
 Thus,
 $$
 \begin{align*}
     S_C &= S_{C-1}A^*_C + B^*_C\\
-    S_C &= S_{C-1} \prod_{i=1}^{n_c} \left(\text{diag}\left(w_{C,i}\right) - \hat{\kappa}_{C,i}(a_{C,i} \odot\hat{\kappa}_{C,i}^T)\right) + \sum_{i=1}^{n_c} \left(v_{C,i} k_{C,i}^T \prod_{i'=i+1}^{n_c} \left(\text{diag}\left(w_{C,i'}\right) - \hat{\kappa}_{C,i'}(a_{C,i'} \odot\hat{\kappa}_{C,i'}^T)\right)\right)
+    S_C &= S_{C-1} \prod_{i=1}^{n_c} \left(\operatorname{diag}\left(w_{C,i}\right) - \hat{\kappa}_{C,i}(a_{C,i} \odot\hat{\kappa}_{C,i}^\top)\right) + \sum_{i=1}^{n_c} \left(v_{C,i} k_{C,i}^\top \prod_{i'=i+1}^{n_c} \left(\operatorname{diag}\left(w_{C,i'}\right) - \hat{\kappa}_{C,i'}(a_{C,i'} \odot\hat{\kappa}_{C,i'}^\top)\right)\right)
 \end{align*}
 $$
 {{< /collapse >}}

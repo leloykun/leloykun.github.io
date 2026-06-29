@@ -18,9 +18,9 @@ As discussed in [Ponder: Muon and a Selective Survey on Steepest Descent in Riem
 
 The core algorithm goes as follows:
 1. Compute $G := \nabla f(W_{\text{CNN}})$ in pixel space via backpropagation.
-2. FFT to the frequency domain: $\widehat{G} := \texttt{FFT}(G)$.
-3. Apply Muon's orthogonalization to $\widehat{G}$, treating each frequency bin as a separate linear operator: $\widehat{U} := \texttt{msign}(\widehat{G})$.
-4. Inverse FFT back to the spatial domain: $U := \texttt{FFT}^{-1}(\widehat{U})$.
+2. FFT to the frequency domain: $\widehat{G} := \operatorname{FFT}(G)$.
+3. Apply Muon's orthogonalization to $\widehat{G}$, treating each frequency bin as a separate linear operator: $\widehat{U} := \operatorname{msign}(\widehat{G})$.
+4. Inverse FFT back to the spatial domain: $U := \operatorname{FFT}^{-1}(\widehat{U})$.
 5. Update CNN weights with $U$: $W_{\text{CNN}} \leftarrow W_{\text{CNN}} - \eta U$.
 
 ### 1.1. Sample implementation

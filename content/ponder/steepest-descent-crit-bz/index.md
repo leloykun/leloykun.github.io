@@ -88,15 +88,15 @@ Solving the above problems then yields the following update rules,
 $$\begin{align}
     \text{[CSD]}^{(3)} \quad
     W_{t+1}
-        &= (1 - \lambda\eta) W_t + \eta \texttt{LMO}_{\| \cdot \|}(C_t) \label{eq:updateweightdecay} \\
+        &= (1 - \lambda\eta) W_t + \eta \operatorname{LMO}_{\| \cdot \|}(C_t) \label{eq:updateweightdecay} \\
     \text{[RSD]}^{(3)} \quad
     W_{t+1}
-        &= (1 - \lambda\eta) W_t + \eta \| C_t \|^{\dagger} \texttt{LMO}_{\| \cdot \|}(C_t)
+        &= (1 - \lambda\eta) W_t + \eta \| C_t \|^{\dagger} \operatorname{LMO}_{\| \cdot \|}(C_t)
 \end{align}$$
-where $\texttt{LMO}_{\| \cdot \|}(\cdot)$ is the linear minimization oracle under the norm $\| \cdot \|$ defined as,
+where $\operatorname{LMO}_{\| \cdot \|}(\cdot)$ is the linear minimization oracle under the norm $\| \cdot \|$ defined as,
 $$\begin{equation}
     A_t^*
-        := \texttt{LMO}_{\| \cdot \|}(C_t)
+        := \operatorname{LMO}_{\| \cdot \|}(C_t)
         := \arg\min_{A \in \mathbb{R}^{m \times n}} \langle C_t, A \rangle_F \quad \text{ s.t. } \quad \| A \| \leq 1
 \end{equation}$$
 which has the following useful properties,
@@ -104,7 +104,7 @@ $$\begin{align}
     \| A_t^* \|
         &\leq 1 \label{eq:lmo-norm} \\
     \langle C_t, A_t^* \rangle_F
-        &= \langle C_t, \texttt{LMO}_{\| \cdot \|}(C_t) \rangle_F \nonumber \\
+        &= \langle C_t, \operatorname{LMO}_{\| \cdot \|}(C_t) \rangle_F \nonumber \\
         &= \arg\min_{A \leq 1} \langle C_t, A \rangle_F \nonumber \\
         &= -\arg\max_{A \leq 1} \langle C_t, A \rangle_F \nonumber \\
         &= - \| C_t \|^{\dagger}. \label{eq:lmo-inner-product}
@@ -646,12 +646,12 @@ $$\begin{align}
 Thus, $T(b)$ is a monotonically decreasing function for $b > \frac{Y^2}{\epsilon'}$.
 
 Now, the number of tokens we need to process to reach $\epsilon$-convergence is roughly proportional to,
-$$\text{SFO}(b) := b \cdot T(b) = \frac{Xb^{3/2}}{\sqrt{\epsilon' b} - Y}$$
+$$\operatorname{SFO}(b) := b \cdot T(b) = \frac{Xb^{3/2}}{\sqrt{\epsilon' b} - Y}$$
 Taking the first derivative again yields,
 $$\begin{align}
-    \text{SFO}'(b) &= \frac{X\sqrt{b}(2\sqrt{\epsilon' b} - 3Y)}{2(\sqrt{\epsilon' b} - Y)^2} \nonumber
+    \operatorname{SFO}'(b) &= \frac{X\sqrt{b}(2\sqrt{\epsilon' b} - 3Y)}{2(\sqrt{\epsilon' b} - Y)^2} \nonumber
 \end{align}$$
-For $b > \frac{Y^2}{\epsilon'}$, the denominator is positive, so $\text{SFO}'(b)$ changes sign exactly once, at $b^* = \frac{9Y^2}{4\epsilon'}$. This gives us the critical batch size,
+For $b > \frac{Y^2}{\epsilon'}$, the denominator is positive, so $\operatorname{SFO}'(b)$ changes sign exactly once, at $b^* = \frac{9Y^2}{4\epsilon'}$. This gives us the critical batch size,
 $$\begin{align}
     b_{crit}
         &= 9 \left(\sqrt{\frac{1 - \beta}{1 + \beta}} \beta + (1 - \beta)\right)^2 \frac{D \sigma^2}{\epsilon'} \nonumber \\
@@ -707,7 +707,7 @@ $$\begin{align}
 Thus, $T(b)$ is a monotonically decreasing and convex function for $b > \frac{Y^2}{\epsilon'}$.
 
 Now, the number of tokens we need to process to reach $\epsilon$-convergence is roughly proportional to,
-$$\text{SFO}(b) := b \cdot T(b) = \frac{b}{\lambda\eta} \ln \left( \frac{X}{\sqrt{\epsilon'} - \frac{Y}{\sqrt{b}}} \right)$$
+$$\operatorname{SFO}(b) := b \cdot T(b) = \frac{b}{\lambda\eta} \ln \left( \frac{X}{\sqrt{\epsilon'} - \frac{Y}{\sqrt{b}}} \right)$$
 Minimizing this is equivalent to minimizing,
 $$\phi(s) = s^2 \ln \left( \frac{X}{\sqrt{\epsilon'} - \frac{Y}{s}} \right)$$
 Taking the first derivative yields,
@@ -744,7 +744,7 @@ Optimizers we use in practice can be viewed as performing steepest descent under
 | ------------- | ----------------------- | -------------------------- | ----------- |
 | SGD           | $\| \cdot \|_F$         | $\| \cdot \|_F$            | $1$         |
 | SignSGD/AdamW | $\| \cdot \|_{\infty}$  | $\| \cdot \|_{1}$          | $\approx 1$ |
-| Muon/SOAP     | $\| \cdot \|_{2 \to 2}$ | $\| \cdot \|_{\text{nuc}}$ | $\approx 1$ |
+| Muon/SOAP     | $\| \cdot \|_{2 \to 2}$ | $\| \cdot \|_{\operatorname{nuc}}$ | $\approx 1$ |
 
 See [Appendix A1](#a1-jax-code-to-estimate-d-smoothness) for the JAX code to estimate $D$-smoothness for steepest descent under various norms. We also take into account the fact that gradients in large-scale LLM training naturally have low stable rank structure. Empirically, $D \approx 1$ for SignSGD/AdamW and Muon/SOAP even for high-dimensional weight matrices, suggesting that the critical batch size depends only weakly on the width and chosen norm. Under this empirical simplification, the scaling laws reduce to,
 $$\begin{align}
@@ -760,9 +760,9 @@ In practice, it is often best to scale the learning rate $\eta$ as $\eta \propto
 
 To see this, we first make the following assumption.
 
-> **Assumption 17 (Local Lipschitzness of LMO).** Let $\texttt{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm pair $\| \cdot \|$ (with dual norm $\| \cdot \|^{\dagger}$). Then there exists a constant $L_{\text{LMO}} > 0$ such that for $C_1, C_2 \in \mathcal{W}^\dagger$ denoting Nesterov momentum terms, we have,
+> **Assumption 17 (Local Lipschitzness of LMO).** Let $\operatorname{LMO}_{\| \cdot \|}$ be the linear minimization oracle with respect to an arbitrary norm pair $\| \cdot \|$ (with dual norm $\| \cdot \|^{\dagger}$). Then there exists a constant $L_{\operatorname{LMO}} > 0$ such that for $C_1, C_2 \in \mathcal{W}^\dagger$ denoting Nesterov momentum terms, we have,
 $$\begin{equation}
-    \| \texttt{LMO}_{\| \cdot \|}(C_1) - \texttt{LMO}_{\| \cdot \|}(C_2) \| \leq L_{\text{LMO}} \| C_1 - C_2 \|^{\dagger}
+    \| \operatorname{LMO}_{\| \cdot \|}(C_1) - \operatorname{LMO}_{\| \cdot \|}(C_2) \| \leq L_{\operatorname{LMO}} \| C_1 - C_2 \|^{\dagger}
 \end{equation}$$
 
 Then, we have the following result.

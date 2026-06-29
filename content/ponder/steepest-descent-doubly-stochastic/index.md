@@ -11,13 +11,13 @@ summary: "We derive an optimizer that performs steepest descent on the Birkhoff 
 
 Deepseek recently published a paper titled [mHC: Manifold-Constrained Hyper-Connections](https://arxiv.org/abs/2512.24880) where they fix training instabilities introduced by the [Hyper-Connections](https://arxiv.org/abs/2409.19606) paper by constraining the weight matrices to be doubly stochastic, i.e., elements of the Birkhoff polytope. The crux is that, to prevent the activations and gradients from blowing up, the residual transform $A_l$ in the following residual block for Hyper-Connections has to be non-expansive.
 $$\begin{equation}
-    x_{l+1} = A_l x_l + B_l^T f(C_l x_l, W_l)
+    x_{l+1} = A_l x_l + B_l^\top f(C_l x_l, W_l)
 \end{equation}$$
 The instability problem becomes clearer when we recursively extend hyper-connections to multiple layers,
 $$\begin{equation}
     x_{L}
         = \left(\prod_{i=1}^{L-l} A_{L-i}\right) x_l
-            + \sum_{i=l}^{L-1} \left( \prod_{j=1}^{L-1-i} A_{L-j} \right) B_i^T f(C_i x_i, W_i)
+            + \sum_{i=l}^{L-1} \left( \prod_{j=1}^{L-1-i} A_{L-j} \right) B_i^\top f(C_i x_i, W_i)
 \end{equation}$$
 where $L$ and $l$ are indices for a deeper and a shallower layer, respectively. If $\| A_l \|_{2 \to 2} > 1$, then the product $\| \prod_{i=1}^{L-l} A_{L-i} \|_{2 \to 2}$ explodes.
 
@@ -41,7 +41,7 @@ $$\begin{align}
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \langle G_t, A \rangle \quad \text{ s.t. } \quad \| A \| \leq \eta,\quad A \in T_{W_t}\mathcal{M}, \label{eq:optimaldescent}
 \end{align}$$
 where $\eta > 0$ is the learning rate hyperparameter.
-1. Update the weight in the direction of $A^*_t$ and retract the result back to the manifold via metric projection, $\texttt{retract}_{\mathcal{M}}: \mathbb{R}^{m \times n} \to \mathcal{M}$, $$W_{t+1} \leftarrow \texttt{retract}_{\mathcal{M}}(W_t + A^*_t).$$ 
+1. Update the weight in the direction of $A^*_t$ and retract the result back to the manifold via metric projection, $\operatorname{retract}_{\mathcal{M}}: \mathbb{R}^{m \times n} \to \mathcal{M}$, $$W_{t+1} \leftarrow \operatorname{retract}_{\mathcal{M}}(W_t + A^*_t).$$ 
 
 Note that both constraints on $A$ in Equation $\eqref{eq:optimaldescent}$ are membership constraints to closed convex sets, and so it is simply a convex optimization problem.
 
@@ -62,7 +62,7 @@ $$\begin{align}
 which are simply the matrices with zero row and column sums. More generally, where $W$ may have some zero entries, making it a boundary point of the Birkhoff polytope, we get the tangent cone,
 $$\begin{align}
     T_{W} \mathcal{B}_n
-        &= \{ A \in \mathbb{R}^{n \times n} \mid A \mathbf{1} = \mathbf{0}, A^\top \mathbf{1} = \mathbf{0}, A_{ij} \geq 0 \forall (i,j) \text{ such that } W_{ij} = 0 \}
+        &= \{ A \in \mathbb{R}^{n \times n} \mid A \mathbf{1} = \mathbf{0}, A^\top \mathbf{1} = \mathbf{0}, A_{ij} \geq 0 \; \forall (i,j) \text{ s.t. } W_{ij} = 0 \}
 \end{align}$$
 Intuitively, if $W_{ij}$ is already $0$, then we can only move "inward" into the polytope along that dimension, i.e., $A_{ij} \geq 0$. Otherwise, we can move in either direction.
 
@@ -94,20 +94,20 @@ $$\begin{align}
 \end{align}$$
 The projection onto $K^{\dagger}$ and the adjoint operator $L^{\dagger}$ are then given by,
 $$\begin{align}
-    \text{proj}_{K^{\dagger}}(S_1, S_2, S_3)
+    \operatorname{proj}_{K^{\dagger}}(S_1, S_2, S_3)
         &:= (S_1, S_2, \min(S_3 \odot M, 0)) \nonumber \\
     L^{\dagger}(S_1, S_2, S_3)
         &:= S_1 \mathbf{1}^\top + \mathbf{1} S_2^\top + S_3 \odot M \nonumber
 \end{align}$$
 
 And finally, the LMO for the spectral norm is given by,
-$$\texttt{LMO}_{\| \cdot \|_{2 \to 2}}(G_t) = -\texttt{msign}(G_t),$$
-where $\texttt{msign}(G_t)$ is the matrix sign function, $\texttt{msign}(G_t) = U V^T$ for the SVD $G_t = U \Sigma V^T$.
+$$\operatorname{LMO}_{\| \cdot \|_{2 \to 2}}(G_t) = -\operatorname{msign}(G_t),$$
+where $\operatorname{msign}(G_t)$ is the matrix sign function, $\operatorname{msign}(G_t) = U V^\top$ for the SVD $G_t = U \Sigma V^\top$.
 
 $\blacksquare$ Taking everything together, our dual ascent update rule becomes,
 $$\begin{align}
     A^j
-        &= -\eta \cdot \texttt{msign}\left(G_t + S_1 \mathbf{1}^\top + \mathbf{1} S_2^\top + S_3 \odot M \right) \\
+        &= -\eta \cdot \operatorname{msign}\left(G_t + S_1 \mathbf{1}^\top + \mathbf{1} S_2^\top + S_3 \odot M \right) \\
     S_1^{j+1}
         &= S_1^j + \sigma \cdot A^j \mathbf{1} \\
     S_2^{j+1}
@@ -121,7 +121,7 @@ See [Appendix A1](#appendix-a1-jax-implementation-of-the-dual-ascent-optimizer) 
 
 ### 2.3. Metric projection onto the Birkhoff polytope
 
-Next, we need a retraction map $\texttt{retract}_{\mathcal{B}_n}: \mathbb{R}^{n \times n} \to \mathcal{B}_n$. The Sinkhorn-Knopp operator DeepSeek used is not actually a metric projection, but rather an entropic projection (that minimizes the KL divergence). We instead use Dykstra's algorithm. See [Appendix A2](#appendix-a2-jax-implementation-of-the-metric-projection-onto-the-birkhoff-polytope-via-dykstras-algorithm) for implementation in JAX.
+Next, we need a retraction map $\operatorname{retract}_{\mathcal{B}_n}: \mathbb{R}^{n \times n} \to \mathcal{B}_n$. The Sinkhorn-Knopp operator DeepSeek used is not actually a metric projection, but rather an entropic projection (that minimizes the KL divergence). We instead use Dykstra's algorithm. See [Appendix A2](#appendix-a2-jax-implementation-of-the-metric-projection-onto-the-birkhoff-polytope-via-dykstras-algorithm) for implementation in JAX.
 
 ## 3. Results
 
@@ -131,7 +131,7 @@ Next, we need a retraction map $\texttt{retract}_{\mathcal{B}_n}: \mathbb{R}^{n 
 
 For a random $W_t \in \mathbb{B}_n$ and $G_t \in \mathbb{R}^{n \times n}$ with $n = 768$, we report the descent magnitude (measured after the retraction step),
 $$\begin{equation}
-    \text{descent\_magnitude} = \langle G_t, \texttt{retract}_{\mathcal{B}_n}(W_t + A_t^*) - W_t \rangle
+    \text{descent\_magnitude} = \langle G_t, \operatorname{retract}_{\mathcal{B}_n}(W_t + A_t^*) - W_t \rangle
 \end{equation}$$
 of our dual ascent optimizer after varying number of dual ascent steps relative to the LMO baseline (i.e., using only the LMO without considering the tangent cone constraints). We see that our optimizer yields larger effective weight updates across dual ascent steps.
 

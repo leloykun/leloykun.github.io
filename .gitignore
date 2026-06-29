@@ -15,3 +15,4 @@ resources/
 data/
 **.pt
 **/__pycache__/
+content/ponder/**/runs/
