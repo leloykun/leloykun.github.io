@@ -21,6 +21,8 @@ I would argue this is somewhat hacky as we may want the LLM to *refine* previous
 
 In this work, we derive LoRA-Muon-OGD which takes the maximal updates under the spectral-norm, but on the low-rank manifold $\mathcal{M}_r = \{ W = A B^\top | A \in \mathbb{R}^{m \times r}, B \in \mathbb{R}^{n \times r}, \operatorname{rank}(A) = \operatorname{rank}(B) = r \}$ (with gauge redundancies, $(A, B) \sim (AR, BR^{-1}) \text{ for all } R \in \operatorname{GL}(r)$) while still satisfying the non-interference constraint in $\eqref{eq:non-interference}$. We also show that the derivation is natural and generalizes to steepest descent under arbitrary unitary-invariant norm.
 
+> Note: After publishing this artcile, I've realized that Muon-OGD is a special case of my work in [Ponder: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent](../steepest-descent-finsler-dual-ascent/). We just need to set $L(A) = U^T A V$ and $K = \{ 0 \}$ in [Section 3.1](../steepest-descent-finsler-dual-ascent/#31-general-strategy). What is new in this article is the low-rank versions of these optimizers and generalization to arbitrary smooth parametrizations.
+
 ## 2. Problem setting
 
 Let $f: \mathcal{W} \to \mathbb{R}$ be a differentiable and bounded below objective function defined on a finite-dimensional manifold $\mathcal{W}$ equipped with a norm $\| \cdot \|$.
@@ -375,5 +377,6 @@ The 'commutation' we discussed rather loosely in [Section 2](#2-problem-setting)
 2. Ian J Goodfellow, Mehdi Mirza, Da Xiao, Aaron Courville, and Yoshua Bengio. An empirical investigation of catastrophic forgetting in gradient-based neural networks. arXiv preprint arXiv:1312.6211, 2013.
 3. Mehrdad Farajtabar, Navid Azizan, Alex Mott, and Ang Li. Orthogonal gradient descent for continual learning. In Silvia Chiappa and Roberto Calandra, editors, Proceedings of the Twenty Third International Conference on Artificial Intelligence and Statistics, volume 108 of Proceedings of Machine Learning Research, pages 3762–3773. PMLR, 26–28 Aug 2020. URL https://proceedings.mlr.press/v108/farajtabar20a.html.
 4. Binghang Lu, Zheyuan Deng, Runyu Zhang, Bing Hu, Yunhan Zhao, Yuan Tian, Changhong Mou, Guang Lin, Xiaomin Li (2026). Muon-OGD: Muon-based Spectral Orthogonal Gradient Projection for LLM Continual Learning. URL https://arxiv.org/abs/2605.08949
-5. Franz Louis Cesista, Katherine Crowson, Cédric Simal, Stella Biderman (2026). LoRA-Muon: Spectral Steepest Descent on the Low-Rank Manifold. URL https://arxiv.org/abs/2606.12921
-6. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/.
+5. Franz Louis Cesista (2025). Rethinking Maximal Update Parametrization: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent. URL https://leloykun.github.io/ponder/steepest-descent-finsler-dual-ascent/
+6. Franz Louis Cesista, Katherine Crowson, Cédric Simal, Stella Biderman (2026). LoRA-Muon: Spectral Steepest Descent on the Low-Rank Manifold. URL https://arxiv.org/abs/2606.12921
+7. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/.
