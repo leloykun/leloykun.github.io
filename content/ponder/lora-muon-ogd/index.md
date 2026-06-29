@@ -302,7 +302,7 @@ $$\begin{align}
         &= \langle D_{\phi_{\theta}}^*[H], \Delta \theta \rangle_{\Theta}
         \quad \text{for all} \quad H \in T_{W}^* \mathcal{W}, \Delta \theta \in T_{\theta} \Theta,
 \end{align}$$
-and the $\langle \cdot, \cdot \rangle_W: T_{W}^* \mathcal{W} \times T_{W} \mathcal{W} \to \mathbb{R}$ and $\langle \cdot, \cdot \rangle_\Theta: T_{\theta}^* \Theta \times T_{\theta} \Theta \to \mathbb{R}$ operators here are the canonical pairing of cotangent and tangent vectors of $W$ and $\Theta$ respectively. For LoRA we have, $D_{\phi_{(A, B)}}[\Delta A, \Delta B] = \Delta A B^\top + A \Delta B^\top$ and $D_{\phi_{(A, B)}}^*[H] = (HB, H^\top A)$.
+and the $\langle \cdot, \cdot \rangle_{\mathcal{W}}: T_{W}^* \mathcal{W} \times T_{W} \mathcal{W} \to \mathbb{R}$ and $\langle \cdot, \cdot \rangle_\Theta: T_{\theta}^* \Theta \times T_{\theta} \Theta \to \mathbb{R}$ operators here are the canonical pairing of cotangent and tangent vectors of $W$ and $\Theta$ respectively. For LoRA we have, $D_{\phi_{(A, B)}}[\Delta A, \Delta B] = \Delta A B^\top + A \Delta B^\top$ and $D_{\phi_{(A, B)}}^*[H] = (HB, H^\top A)$.
 
 Now let $\mathcal{P}_W : T_{W} \mathcal{W} \to \mathcal{Y}$ be a linear constraint with adjoint $\mathcal{P}_W^*: \mathcal{Y}^* \to T_{W}^* \mathcal{W}$ such that,
 $$\begin{equation}
@@ -315,7 +315,7 @@ and the $\langle \cdot, \cdot \rangle_{\mathcal{Y}}: \mathcal{Y} \times \mathcal
 The problem we then want to solve is,
 $$\begin{equation}
     \Delta W^*
-        = \arg\min_{\Delta W \in T_W \mathcal{W}} \langle G_W, \Delta W \rangle_W
+        = \arg\min_{\Delta W \in T_W \mathcal{W}} \langle G_W, \Delta W \rangle_{\mathcal{W}}
         \quad \text{s.t.}
             \quad \| \Delta W \|_W \leq \eta,
             \quad \mathcal{P}_W(\Delta W) = 0,
@@ -323,7 +323,7 @@ $$\begin{equation}
 or in terms of $\theta$,
 $$\begin{equation}
     \Delta \theta^*
-        = \arg\min_{\Delta \theta \in T_\theta \Theta} \langle G_W, D_{\phi_{\theta}}[\Delta \theta] \rangle_W
+        = \arg\min_{\Delta \theta \in T_\theta \Theta} \langle G_W, D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
         \quad \text{s.t.}
             \quad \Delta \theta \in \mathcal{K}_{\theta},
             \quad \mathcal{P}_W(D_{\phi_{\theta}}[\Delta \theta]) = 0,
@@ -333,13 +333,13 @@ where $G_W \in T_W^* \mathcal{W}$ and $\mathcal{K}_{\theta} \subseteq \{ \Delta 
 Let $\Lambda \in \mathcal{Y}^*$. The Lagrangian then is,
 $$\begin{align}
     \mathcal{L}(\Delta \theta, \theta; G_W)
-        &= \langle G_W, D_{\phi_{\theta}}[\Delta \theta] \rangle_W
+        &= \langle G_W, D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
             + \langle \mathcal{P}_W(D_{\phi_{\theta}}[\Delta \theta]), \Lambda \rangle_{\mathcal{Y}}
             + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \\
-        &= \langle G_W, D_{\phi_{\theta}}[\Delta \theta] \rangle_W
-            + \langle D_{\phi_{\theta}}[\Delta \theta], \mathcal{P}_W^*(\Lambda) \rangle_W
+        &= \langle G_W, D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
+            + \langle D_{\phi_{\theta}}[\Delta \theta], \mathcal{P}_W^*(\Lambda) \rangle_{\mathcal{W}}
             + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \label{eq:lagragian-p-adjoint} \\
-        &= \langle G_W + \mathcal{P}_W^*(\Lambda), D_{\phi_{\theta}}[\Delta \theta] \rangle_W
+        &= \langle G_W + \mathcal{P}_W^*(\Lambda), D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
             + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \\
         &= \langle D_{\phi_{\theta}}^*[G_W + \mathcal{P}_W^*(\Lambda)], \Delta \theta \rangle_{\Theta}
             + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \label{eq:lagragian-diff-adjoint} \\
