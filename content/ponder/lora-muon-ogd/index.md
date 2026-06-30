@@ -21,7 +21,7 @@ I would argue this is somewhat hacky as we may want the LLM to *refine* previous
 
 In this work, we derive LoRA-Muon-OGD which takes the maximal updates under the spectral-norm, but on the low-rank manifold $\mathcal{M}_r = \{ W = A B^\top | A \in \mathbb{R}^{m \times r}, B \in \mathbb{R}^{n \times r}, \operatorname{rank}(A) = \operatorname{rank}(B) = r \}$ (with gauge redundancies, $(A, B) \sim (AR, BR^{-1}) \text{ for all } R \in \operatorname{GL}(r)$) while still satisfying the non-interference constraint in $\eqref{eq:non-interference}$. We also show that the derivation is natural and generalizes to steepest descent under arbitrary unitary-invariant norm.
 
-> Note: After publishing this artcile, I've realized that Muon-OGD is a special case of my work in [Ponder: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent](../steepest-descent-finsler-dual-ascent/). We just need to set $L(A) = U^T A V$ and $K = \{ 0 \}$ in [Section 3.1](../steepest-descent-finsler-dual-ascent/#31-general-strategy). What is new in this article is the low-rank versions of these optimizers and generalization to arbitrary smooth parametrizations.
+> Note: After publishing this artcile, I've realized that Muon-OGD is a special case of my work in [Ponder: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent](../steepest-descent-finsler-dual-ascent/). We just need to set $L(A) = U^T A V$, $b = 0$, and $K = \{ 0 \}$ in [Section 3.1](../steepest-descent-finsler-dual-ascent/#31-general-strategy). What is new in this article is the low-rank versions of these optimizers and generalization to arbitrary smooth parametrizations.
 
 ## 2. Problem setting
 
@@ -304,7 +304,7 @@ $$\begin{align}
         &= \langle D_{\phi_{\theta}}^*[H], \Delta \theta \rangle_{\Theta}
         \quad \text{for all} \quad H \in T_{W}^* \mathcal{W}, \Delta \theta \in T_{\theta} \Theta,
 \end{align}$$
-and the $\langle \cdot, \cdot \rangle_{\mathcal{W}}: T_{W}^* \mathcal{W} \times T_{W} \mathcal{W} \to \mathbb{R}$ and $\langle \cdot, \cdot \rangle_\Theta: T_{\theta}^* \Theta \times T_{\theta} \Theta \to \mathbb{R}$ operators here are the canonical pairing of cotangent and tangent vectors of $W$ and $\Theta$ respectively. For LoRA we have, $D_{\phi_{(A, B)}}[\Delta A, \Delta B] = \Delta A B^\top + A \Delta B^\top$ and $D_{\phi_{(A, B)}}^*[H] = (HB, H^\top A)$.
+and the $\langle \cdot, \cdot \rangle_{\mathcal{W}}: T_{W}^* \mathcal{W} \times T_{W} \mathcal{W} \to \mathbb{R}$ and $\langle \cdot, \cdot \rangle_\Theta: T_{\theta}^* \Theta \times T_{\theta} \Theta \to \mathbb{R}$ operators here are the canonical pairing of cotangent and tangent vectors of $\mathcal{W}$ and $\Theta$ respectively. Throughout, we will use the Frobenius product for these pairings, $\langle X, Y \rangle_F = \operatorname{tr}(XY^\top)$. For LoRA we have, $D_{\phi_{(A, B)}}[\Delta A, \Delta B] = \Delta A B^\top + A \Delta B^\top$ and $D_{\phi_{(A, B)}}^*[H] = (HB, H^\top A)$.
 
 Now let $\mathcal{P}_W : T_{W} \mathcal{W} \to \mathcal{Y}$ be a linear constraint with adjoint $\mathcal{P}_W^*: \mathcal{Y}^* \to T_{W}^* \mathcal{W}$ such that,
 $$\begin{equation}
@@ -312,7 +312,7 @@ $$\begin{equation}
         = \langle X, \mathcal{P}_W^*(\Lambda) \rangle_{\mathcal{W}}
         \quad \text{for all} \quad X \in T_W \mathcal{W}, \Lambda \in \mathcal{Y}^*,
 \end{equation}$$
-and the $\langle \cdot, \cdot \rangle_{\mathcal{Y}}: \mathcal{Y} \times \mathcal{Y}^* \to \mathbb{R}$ operator here is the canonical pairing of $\mathcal{Y}$ vectors and $\mathcal{Y}^*$ covectors. Throughout, we will use the Frobenius product for these pairings, $\langle X, Y \rangle_F = \operatorname{tr}(XY^\top)$.
+and the $\langle \cdot, \cdot \rangle_{\mathcal{Y}}: \mathcal{Y} \times \mathcal{Y}^* \to \mathbb{R}$ operator here is the canonical pairing of $\mathcal{Y}$ vectors and $\mathcal{Y}^*$ covectors.
 
 The problem we then want to solve is,
 $$\begin{equation}
