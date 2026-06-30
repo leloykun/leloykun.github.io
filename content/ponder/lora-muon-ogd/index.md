@@ -294,7 +294,7 @@ $$
     \phi: \Theta \to \mathcal{W}, \qquad W = \phi(\theta),
 \end{equation}
 $$
-where $\Theta$ is some finite-dimensional vector space and $\theta \in \Theta$. E.g., the LoRA parametrization: $\Theta \in \mathbb{R}^{m \times r} \times \mathbb{R}^{n \times r}$, $\theta = (A, B)$, and $\phi(\theta) = \phi(A, B) = AB^\top$.
+where $\Theta$ is some finite-dimensional vector space and $\theta \in \Theta$. E.g., the LoRA parametrization: $\Theta \in \mathbb{R}^{m \times r} \times \mathbb{R}^{n \times r}$, $\theta = (A, B)$, and $\phi(\theta) = \phi(A, B) = AB^\top$. For optimization on Stiefel manifolds, it suffices to set $\Theta = \mathcal{W}$ and $\phi = \operatorname{Id}$.
 
 Let $D_{\phi_{\theta}}: T_{\theta} \Theta \to T_{W} \mathcal{W}$ be the differential of $\phi$ at $\theta$ and $D_{\phi_{\theta}}^*: T_{W}^* \mathcal{W} \to T_{\theta}^* \Theta$ be its adjoint such that,
 $$\begin{align}
@@ -306,13 +306,13 @@ $$\begin{align}
 \end{align}$$
 and the $\langle \cdot, \cdot \rangle_{\mathcal{W}}: T_{W}^* \mathcal{W} \times T_{W} \mathcal{W} \to \mathbb{R}$ and $\langle \cdot, \cdot \rangle_\Theta: T_{\theta}^* \Theta \times T_{\theta} \Theta \to \mathbb{R}$ operators here are the canonical pairing of cotangent and tangent vectors of $\mathcal{W}$ and $\Theta$ respectively. Throughout, we will use the Frobenius product for these pairings, $\langle X, Y \rangle_F = \operatorname{tr}(XY^\top)$. For LoRA we have, $D_{\phi_{(A, B)}}[\Delta A, \Delta B] = \Delta A B^\top + A \Delta B^\top$ and $D_{\phi_{(A, B)}}^*[H] = (HB, H^\top A)$.
 
-Now let $\mathcal{P}_W : T_{W} \mathcal{W} \to \mathcal{Y}$ be a linear constraint with adjoint $\mathcal{P}_W^*: \mathcal{Y}^* \to T_{W}^* \mathcal{W}$ such that,
+Now let $\mathcal{P}_W : T_{W} \mathcal{W} \to \mathcal{Y}$ be a (point-dependent) linear constraint with adjoint $\mathcal{P}_W^*: \mathcal{Y}^* \to T_{W}^* \mathcal{W}$ such that,
 $$\begin{equation}
     \langle \mathcal{P}_W(X), \Lambda \rangle_{\mathcal{Y}}
         = \langle X, \mathcal{P}_W^*(\Lambda) \rangle_{\mathcal{W}}
         \quad \text{for all} \quad X \in T_W \mathcal{W}, \Lambda \in \mathcal{Y}^*,
 \end{equation}$$
-and the $\langle \cdot, \cdot \rangle_{\mathcal{Y}}: \mathcal{Y} \times \mathcal{Y}^* \to \mathbb{R}$ operator here is the canonical pairing of $\mathcal{Y}$ vectors and $\mathcal{Y}^*$ covectors.
+and the $\langle \cdot, \cdot \rangle_{\mathcal{Y}}: \mathcal{Y} \times \mathcal{Y}^* \to \mathbb{R}$ operator here is the canonical pairing of $\mathcal{Y}$ vectors and $\mathcal{Y}^*$ covectors. For OGD earlier, we have, $\mathcal{P}(X) = U^\top X V$. And for Stiefel manifold optimization, we have, $\mathcal{P}_W(X) = W^\top X + X^\top W$ [(Bernstein, 2025)](https://thinkingmachines.ai/blog/modular-manifolds/).
 
 The problem we then want to solve is,
 $$\begin{equation}
@@ -330,7 +330,7 @@ $$\begin{equation}
             \quad \Delta \theta \in \mathcal{K}_{\theta},
             \quad \mathcal{P}_W(D_{\phi_{\theta}}[\Delta \theta]) = 0,
 \end{equation}$$
-where $G_W \in T_W^* \mathcal{W}$ and $\mathcal{K}_{\theta} \subseteq \{ \Delta \theta \in T_\theta \Theta : \| D_{\phi_{\theta}}[\Delta \theta] \|_W \leq \eta \}$ is some trust region constraint that satisfies the $\| \Delta W \|_W \leq \eta$ constraint. For Muon, set $\mathcal{K}_{\theta} = \mathbb{B}_{\eta}^{m \times n}$. And for LoRA-Muon, we use the split spectral constraint in [Section 2](#2-problem-setting).
+where $G_W \in T_W^* \mathcal{W}$ and $\mathcal{K}_{\theta} \subseteq \{ \Delta \theta \in T_\theta \Theta : \| D_{\phi_{\theta}}[\Delta \theta] \|_W \leq \eta \}$ is some (split) trust region constraint that satisfies the $\| \Delta W \|_W \leq \eta$ constraint. For Muon, set $\mathcal{K}_{\theta} = \mathbb{B}_{\eta}^{m \times n}$. And for LoRA-Muon, we use the split spectral constraint in [Section 2](#2-problem-setting).
 
 Let $\Lambda \in \mathcal{Y}^*$. The Lagrangian then is,
 $$\begin{align}
@@ -350,7 +350,54 @@ $$\begin{align}
 \end{align}$$
 minimization of which can be solved factor-wise. Note that we used the adjoint of $P_W$ in Equation $\eqref{eq:lagragian-p-adjoint}$, the adjoint differential in Equation $\eqref{eq:lagragian-diff-adjoint}$, and the lineary of the adjoint differential in Equation $\eqref{eq:final-lagragian}$.
 
-The 'commutation' we discussed rather loosely in [Section 2](#2-problem-setting) then directly follows from Equations $\eqref{eq:lagragian-diff-adjoint}$ and $\eqref{eq:final-lagragian}$. We can either (1) apply the duals shift first, $\xi \mapsto \xi + \mathcal{P}_W^*(\Lambda)$, then the factor split $D_{\phi_\theta}^*$ or (2) apply the factor split first then the pulled-back dual shift, $\zeta \mapsto \zeta + D_{\phi_\theta}^*[\mathcal{P}_W^*(\Lambda)]$, and end up with the same Lagrangian and thereby the same optimizer.
+The 'commutation' we discussed rather loosely in [Section 2](#2-problem-setting) then directly follows from Equations $\eqref{eq:lagragian-diff-adjoint}$ and $\eqref{eq:final-lagragian}$. We can either (1) apply the duals shift first, $\xi \mapsto \xi + \mathcal{P}_W^*(\Lambda)$, then the reparametrization, $\mathcal{W} \mapsto \Theta$, or (2) apply the reparametrization first then the pullback dual shift, $\zeta \mapsto \zeta + D_{\phi_\theta}^*[\mathcal{P}_W^*(\Lambda)]$, and end up with the same Lagrangian and thereby the same optimizer.
+
+$$\begin{array}{ccc}
+\begin{array}{c}
+    \langle G_W, \Delta W \rangle_{\mathcal{W}}
+        + \iota_{\mathbb{B}_{\eta}}(\Delta W)
+\end{array}
+&
+\xrightarrow{\quad \text{reparametrization} \quad}
+&
+\begin{array}{c}
+    \langle D_{\phi_{\theta}}^*[G_W], \Delta \theta \rangle_{\Theta}
+        + \iota_{\mathcal{K}_{\theta}}(\Delta \theta)
+\end{array}
+\\[1.5em]
+\Big\downarrow\ {\scriptstyle \text{dual shift} }
+&
+&
+\Big\downarrow\ {\scriptstyle \text{pullback dual shift} }
+\\[1.5em]
+\begin{array}{c}
+    \langle G_W + \mathcal{P}_W^*(\Lambda), \Delta W \rangle_{\mathcal{W}}
+        + \iota_{\mathbb{B}_{\eta}}(\Delta W)
+\end{array}
+&
+\xrightarrow{\quad \text{reparametrization} \quad}
+&
+\begin{array}{c}
+    \langle D_{\phi_{\theta}}^*[G_W] + D_{\phi_{\theta}}^*[\mathcal{P}_W^*(\Lambda)], \Delta \theta \rangle_{\Theta}
+        + \iota_{\mathcal{K}_{\theta}}(\Delta \theta)
+\end{array}
+\end{array}$$
+
+## 6. Optimizer zoo
+
+|                                                                                   | Norm                              | Parametrization |            Linear Constraint            |
+| --------------------------------------------------------------------------------- | --------------------------------- | :-------------: | :-------------------------------------: |
+| SGD                                                                               | $\| \cdot \|_{\text{vec},2}$      |        -        |                    -                    |
+| [SignSGD](https://arxiv.org/abs/1802.04434)                                       | $\| \cdot \|_{\text{vec},\infty}$ |        -        |                    -                    |
+| [Schatten-$p$ GD](https://leloykun.github.io/ponder/steepest-descent-schatten-p/) | $\| \cdot \|_{S_p}$               |        -        |                    -                    |
+| [Muon](https://kellerjordan.github.io/posts/muon/)                                | $\| \cdot \|_{2 \to 2}$           |        -        |                    -                    |
+| [Stiefel-Muon](https://thinkingmachines.ai/blog/modular-manifolds/)               | $\| \cdot \|_{2 \to 2}$           |        -        | $W^\top \Delta W + \Delta W^\top W = 0$ |
+| [Spectral-Sphere-Optimizer](https://arxiv.org/abs/2601.08393)                     | $\| \cdot \|_{2 \to 2}$           |        -        |      $ u_1^\top \Delta W v_1 = 0$       |
+| [Muon-OGD](https://arxiv.org/abs/2605.08949)                                      | $\| \cdot \|_{2 \to 2}$           |        -        |         $U^\top \Delta W V = 0$         |
+| [LoRA-Muon](https://arxiv.org/abs/2606.12921)                                     | $\| \cdot \|_{2 \to 2}$           | $W = A B^\top$  |                    _                    |
+| LoRA-Muon-OGD                                                                     | $\| \cdot \|_{2 \to 2}$           | $W = A B^\top$  |         $U^\top \Delta W V = 0$         |
+
+where $(u_1, v_1)$ are the principal left and right singular vectors of $W$ and $(U, V)$ are the singular vectors of the past-task directions.
 
 ## How to Cite
 
@@ -379,4 +426,8 @@ The 'commutation' we discussed rather loosely in [Section 2](#2-problem-setting)
 4. Binghang Lu, Zheyuan Deng, Runyu Zhang, Bing Hu, Yunhan Zhao, Yuan Tian, Changhong Mou, Guang Lin, Xiaomin Li (2026). Muon-OGD: Muon-based Spectral Orthogonal Gradient Projection for LLM Continual Learning. URL https://arxiv.org/abs/2605.08949
 5. Franz Louis Cesista (2025). Rethinking Maximal Update Parametrization: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent. URL https://leloykun.github.io/ponder/steepest-descent-finsler-dual-ascent/
 6. Franz Louis Cesista, Katherine Crowson, Cédric Simal, Stella Biderman (2026). LoRA-Muon: Spectral Steepest Descent on the Low-Rank Manifold. URL https://arxiv.org/abs/2606.12921
-7. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/.
+7. Franz Louis Cesista (2025). Steepest Descent Under Schatten-p Norms. URL https://leloykun.github.io/ponder/steepest-descent-schatten-p/
+8. Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, and Jeremy Bernstein (2024). Muon: An optimizer for hidden layers in neural networks. Available at: https://kellerjordan.github.io/posts/muon/.
+9. Jeremy Bernstein, "Modular Manifolds", Thinking Machines Lab: Connectionism, Sep 2025.
+10. Jeremy Bernstein, Yu-Xiang Wang, Kamyar Azizzadenesheli, Anima Anandkumar (2018). signSGD: Compressed Optimisation for Non-Convex Problems. URL https://arxiv.org/abs/1802.04434
+11. Tian Xie, Haoming Luo, Haoyu Tang, Yiwen Hu, Jason Klein Liu, Qingnan Ren, Yang Wang, Wayne Xin Zhao, Rui Yan, Bing Su, Chong Luo, Baining Guo (2026). Controlled LLM Training on Spectral Sphere. URL https://arxiv.org/abs/2601.08393
