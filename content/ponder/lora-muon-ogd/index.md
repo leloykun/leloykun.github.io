@@ -90,7 +90,7 @@ $$\begin{array}{ccc}
     \end{aligned}
 \end{array}
 \end{array}$$
-where $U \in \mathbb{R}^{m \times k}$ and $V \in \mathbb{R}^{n \times k}$ are the left- and right- singular basis vectors of the past-task directions, $C_i = C_{\alpha \beta} = U_{\alpha} V_{\beta}^\top$.
+where $U \in \mathbb{R}^{m \times k}$ and $V \in \mathbb{R}^{n \times k}$ are the left- and right- singular vectors of the span past-task directions, $C = \operatorname{span}\left(\{ C_i \}_{1 \leq i \leq k} \right)$.
 
 ## 3. Lagrangian formulation
 
@@ -354,6 +354,7 @@ The 'commutation' we discussed rather loosely in [Section 2](#2-problem-setting)
 
 $$\begin{array}{ccc}
 \begin{array}{c}
+    \text{LMO:} \\
     \langle G_W, \Delta W \rangle_{\mathcal{W}}
         + \iota_{\mathbb{B}_{\eta}}(\Delta W)
 \end{array}
@@ -361,6 +362,7 @@ $$\begin{array}{ccc}
 \xrightarrow{\quad \text{reparametrization} \quad}
 &
 \begin{array}{c}
+    \text{LMO + Smooth Parametrization:} \\
     \langle D_{\phi_{\theta}}^*[G_W], \Delta \theta \rangle_{\Theta}
         + \iota_{\mathcal{K}_{\theta}}(\Delta \theta)
 \end{array}
@@ -371,6 +373,7 @@ $$\begin{array}{ccc}
 \Big\downarrow\ {\scriptstyle \text{pullback dual shift} }
 \\[1.5em]
 \begin{array}{c}
+    \text{LMO + Linear Constraint:} \\
     \langle G_W + \mathcal{P}_W^*(\Lambda), \Delta W \rangle_{\mathcal{W}}
         + \iota_{\mathbb{B}_{\eta}}(\Delta W)
 \end{array}
@@ -378,6 +381,7 @@ $$\begin{array}{ccc}
 \xrightarrow{\quad \text{reparametrization} \quad}
 &
 \begin{array}{c}
+    \text{LMO + Linear Constraint + Smooth Parametrization:} \\
     \langle D_{\phi_{\theta}}^*[G_W] + D_{\phi_{\theta}}^*[\mathcal{P}_W^*(\Lambda)], \Delta \theta \rangle_{\Theta}
         + \iota_{\mathcal{K}_{\theta}}(\Delta \theta)
 \end{array}
@@ -397,7 +401,7 @@ $$\begin{array}{ccc}
 | [LoRA-Muon](https://arxiv.org/abs/2606.12921)                                     | $\| \cdot \|_{2 \to 2}$           | $W = A B^\top$  |                    _                    |
 | LoRA-Muon-OGD                                                                     | $\| \cdot \|_{2 \to 2}$           | $W = A B^\top$  |         $U^\top \Delta W V = 0$         |
 
-where $(u_1, v_1)$ are the principal left and right singular vectors of $W$ and $(U, V)$ are the singular vectors of the past-task directions.
+where $(u_1, v_1)$ are the principal left and right singular vectors of $W$.
 
 ## How to Cite
 
