@@ -19,15 +19,15 @@ $$
 $$
 I would argue this is somewhat hacky as we may want the LLM to *refine* previously learned skills as it chugs through problems, but it works and simple-enough to be bitter-lesson-pilled. [Lu et al., 2026](https://arxiv.org/abs/2605.08949) recently derived Muon-OGD which takes the maximal updates under the spectral-norm geometry in $\mathbb{R}^{m \times n}$ while satisfying the non-interference constraint in $\eqref{eq:non-interference}$. They report SOTA results on continual learning tasks, but the algorithm requires materializing the dense gradient matrix which makes it unsuitable for low-rank finetuning.
 
-In this work, we derive LoRA-Muon-OGD which takes the maximal updates under the spectral-norm, but on the low-rank manifold $\mathcal{M}_r = \{ W = A B^\top | A \in \mathbb{R}^{m \times r}, B \in \mathbb{R}^{n \times r}, \operatorname{rank}(A) = \operatorname{rank}(B) = r \}$ (with gauge redundancies, $(A, B) \sim (AR, BR^{-1}) \text{ for all } R \in \operatorname{GL}(r)$) while still satisfying the non-interference constraint in $\eqref{eq:non-interference}$. We also show that the derivation is natural and generalizes to steepest descent under arbitrary unitary-invariant norm.
+In this work, we derive LoRA-Muon-OGD which takes the maximal updates under the spectral-norm, but on the low-rank manifold $\mathcal{M}_r = \{ W = A B^\top | A \in \mathbb{R}^{m \times r}, B \in \mathbb{R}^{n \times r}, \operatorname{rank}(A) = \operatorname{rank}(B) = r \}$ (with gauge redundancies, $(A, B) \sim (AR, BR^{-\top}) \text{ for all } R \in \operatorname{GL}(r)$) while still satisfying the non-interference constraint in $\eqref{eq:non-interference}$. We also show that the derivation is natural and generalizes to steepest descent under arbitrary unitary-invariant norm.
 
-> Note: After publishing this artcile, I've realized that Muon-OGD is a special case of my work in [Ponder: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent](../steepest-descent-finsler-dual-ascent/). We just need to set $L(A) = U^T A V$, $b = 0$, and $K = \{ 0 \}$ in [Section 3.1](../steepest-descent-finsler-dual-ascent/#31-general-strategy). What is new in this article is the low-rank versions of these optimizers and generalization to arbitrary smooth parametrizations.
+> Note: After publishing this article, I've realized that Muon-OGD is a special case of my work in [Ponder: Steepest Descent on Finsler-Structured (Matrix) Geometries via Dual Ascent](../steepest-descent-finsler-dual-ascent/). We just need to set $L(A) = U^T A V$, $b = 0$, and $K = \{ 0 \}$ in [Section 3.1](../steepest-descent-finsler-dual-ascent/#31-general-strategy). What is new in this article is the low-rank versions of these optimizers and generalization to arbitrary smooth parametrizations.
 
 ## 2. Problem setting
 
 Let $f: \mathcal{W} \to \mathbb{R}$ be a differentiable and bounded below objective function defined on a finite-dimensional manifold $\mathcal{W}$ equipped with a norm $\| \cdot \|$.
 Let $G_W := \nabla_W f(W)$ be its "Euclidean gradient" at $W \in \mathcal{W}$. In the LoRA setting where $\mathcal{W} = \mathcal{M}_r$, let $G_A := G_W B$ and $G_B := G_W^\top A$ be the "Euclidean gradients" w.r.t. the $A$ and $B$ LoRA factors, respectively.
-In practice, when doing LoRA finetuning, backpropagation only gives us access to $G_A$ and $G_B$, not $G_W$, and constructing the full dense 'gradient' matrix is often compute and memory extensive.
+In practice, when doing LoRA finetuning, backpropagation only gives us access to $G_A$ and $G_B$, not $G_W$, and constructing the full dense 'gradient' matrix is often compute- and memory-intensive.
 
 Our derivations here are made a lot simpler by the observation that the low-rank constraint and OGD's non-interference constraint, intuitively speaking, commute as optimizer-producing actions.
 Starting from the Muon optimizer ([Keller et al., 2024](https://kellerjordan.github.io/posts/muon/)) and applying the low-rank constraint first yields LoRA-Muon ([Cesista et al., 2026](https://arxiv.org/abs/2606.12921))
@@ -90,7 +90,7 @@ $$\begin{array}{ccc}
     \end{aligned}
 \end{array}
 \end{array}$$
-where $U \in \mathbb{R}^{m \times k}$ and $V \in \mathbb{R}^{n \times k}$ are the left- and right- singular vectors of the span past-task directions, $C = \operatorname{span}\left(\{ C_i \}_{1 \leq i \leq k} \right)$.
+where $U \in \mathbb{R}^{m \times k}$ and $V \in \mathbb{R}^{n \times k}$ are the left- and right- singular vectors of the span of past-task directions, $C = \operatorname{span}\left(\{ C_i \}_{1 \leq i \leq k} \right)$.
 
 ## 3. Lagrangian formulation
 
@@ -191,7 +191,7 @@ $$\begin{aligned}
 
 ## 4. Deriving the update rules
 
-For Muon and LoRA-Muon, their respective trust-region problems in [Section 2](#2-trust-region-problems) are already equivalent to minimizing $\mathcal{L}_{\text{Muon}}$ and $\mathcal{L}_{\text{LoRA-Muon}}$ w.r.t. $\Delta W$ or $(\Delta A, \Delta B)$. Solving these problems then yields their update rules. For Muon-OGD and LoRA-Muon-OGD, one can then check that their respective trust-region problems are equivalent to the saddle point problems we construct by taking their Lagrangians in [Section 3](#3-lagrangian-formulation) and minimizing it w.r.t. the differentials $\Delta W$ or $(\Delta A, \Delta B)$ and maximizing w.r.t. $\Lambda$. From Sion's minimax theorem, we can swap the order of the $\min$ and $\max$ here. That is, we have:
+For Muon and LoRA-Muon, their respective trust-region problems in [Section 2](#2-problem-setting) are already equivalent to minimizing $\mathcal{L}_{\text{Muon}}$ and $\mathcal{L}_{\text{LoRA-Muon}}$ w.r.t. $\Delta W$ or $(\Delta A, \Delta B)$. Solving these problems then yields their update rules. For Muon-OGD and LoRA-Muon-OGD, one can then check that their respective trust-region problems are equivalent to the saddle point problems we construct by taking their Lagrangians in [Section 3](#3-lagrangian-formulation) and minimizing it w.r.t. the differentials $\Delta W$ or $(\Delta A, \Delta B)$ and maximizing w.r.t. $\Lambda$. From Sion's minimax theorem, we can swap the order of the $\min$ and $\max$ here. That is, we have:
 $$
 \begin{aligned}
     \min_{\Delta W} \max_{\Lambda} \mathcal{L}_{\text{Muon-OGD}}
@@ -248,7 +248,7 @@ $$\begin{array}{ccc}
         \Delta A^{(j)}
             &= -\frac{\eta}{2} \operatorname{msign} \left( G_A S_B^{-1/2}{\color{darkblue}{ + (U \Lambda^{(j-1)}) (V^\top B) S_B^{-1/2}}} \right) S_B^{-1/2} \\
         \Delta B^{(j)}
-            &= -\frac{\eta}{2} \operatorname{msign} \left( G_B S_B^{-1/2}{\color{darkblue}{ + (V (\Lambda^{(j-1)})^\top) (U^\top A) S_A^{-1/2}}} \right) S_A^{-1/2} \\
+            &= -\frac{\eta}{2} \operatorname{msign} \left( G_B S_A^{-1/2}{\color{darkblue}{ + (V (\Lambda^{(j-1)})^\top) (U^\top A) S_A^{-1/2}}} \right) S_A^{-1/2} \\
         \Delta \Lambda^{(j)}
             &= \sigma_{\Lambda} \left[ (U^\top \Delta A^{(j)}) (V^\top B)^\top + (U^\top A) (V^\top \Delta B^{(j)})^\top \right]
     \end{aligned}
@@ -294,7 +294,7 @@ $$
     \phi: \Theta \to \mathcal{W}, \qquad W = \phi(\theta),
 \end{equation}
 $$
-where $\Theta$ is some finite-dimensional vector space and $\theta \in \Theta$. E.g., the LoRA parametrization: $\Theta \in \mathbb{R}^{m \times r} \times \mathbb{R}^{n \times r}$, $\theta = (A, B)$, and $\phi(\theta) = \phi(A, B) = AB^\top$. For optimization on Stiefel manifolds, it suffices to set $\Theta = \mathcal{W}$ and $\phi = \operatorname{Id}$.
+where $\Theta$ is some finite-dimensional vector space and $\theta \in \Theta$. E.g., the LoRA parametrization: $\Theta = \mathbb{R}^{m \times r} \times \mathbb{R}^{n \times r}$, $\theta = (A, B)$, and $\phi(\theta) = \phi(A, B) = AB^\top$. For optimization on Stiefel manifolds, it suffices to set $\Theta = \mathcal{W}$ and $\phi = \operatorname{Id}$.
 
 Let $D_{\phi_{\theta}}: T_{\theta} \Theta \to T_{W} \mathcal{W}$ be the differential of $\phi$ at $\theta$ and $D_{\phi_{\theta}}^*: T_{W}^* \mathcal{W} \to T_{\theta}^* \Theta$ be its adjoint such that,
 $$\begin{align}
@@ -332,25 +332,26 @@ $$\begin{equation}
 \end{equation}$$
 where $G_W \in T_W^* \mathcal{W}$ and $\mathcal{K}_{\theta} \subseteq \{ \Delta \theta \in T_\theta \Theta : \| D_{\phi_{\theta}}[\Delta \theta] \|_W \leq \eta \}$ is some (split) trust region constraint that satisfies the $\| \Delta W \|_W \leq \eta$ constraint. For Muon, set $\mathcal{K}_{\theta} = \mathbb{B}_{\eta}^{m \times n}$. And for LoRA-Muon, we use the split spectral constraint in [Section 2](#2-problem-setting).
 
-Let $\Lambda \in \mathcal{Y}^*$. The Lagrangian then is,
+Let $\Lambda \in \mathcal{Y}^{*}$. The Lagrangian then is,
+
 $$\begin{align}
-    \mathcal{L}(\Delta \theta, \theta; G_W)
+    \mathcal{L}(\Delta \theta, \Lambda; G_W)
         &= \langle G_W, D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
             + \langle \mathcal{P}_W(D_{\phi_{\theta}}[\Delta \theta]), \Lambda \rangle_{\mathcal{Y}}
             + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \\
         &= \langle G_W, D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
             + \langle D_{\phi_{\theta}}[\Delta \theta], \mathcal{P}_W^*(\Lambda) \rangle_{\mathcal{W}}
-            + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \label{eq:lagragian-p-adjoint} \\
+            + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \label{eq:lagrangian-p-adjoint} \\
         &= \langle G_W + \mathcal{P}_W^*(\Lambda), D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
             + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \\
         &= \langle D_{\phi_{\theta}}^*[G_W + \mathcal{P}_W^*(\Lambda)], \Delta \theta \rangle_{\Theta}
-            + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \label{eq:lagragian-diff-adjoint} \\
+            + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \label{eq:lagrangian-diff-adjoint} \\
         &= \langle D_{\phi_{\theta}}^*[G_W] + D_{\phi_{\theta}}^*[\mathcal{P}_W^*(\Lambda)], \Delta \theta \rangle_{\Theta}
-            + \iota_{\mathcal{K}_{\theta}}(\Delta \theta), \label{eq:final-lagragian}
+            + \iota_{\mathcal{K}_{\theta}}(\Delta \theta), \label{eq:final-lagrangian}
 \end{align}$$
-minimization of which can be solved factor-wise. Note that we used the adjoint of $P_W$ in Equation $\eqref{eq:lagragian-p-adjoint}$, the adjoint differential in Equation $\eqref{eq:lagragian-diff-adjoint}$, and the lineary of the adjoint differential in Equation $\eqref{eq:final-lagragian}$.
+minimization of which can be solved factor-wise. Note that we used the adjoint of $P_W$ in Equation $\eqref{eq:lagrangian-p-adjoint}$, the adjoint differential in Equation $\eqref{eq:lagrangian-diff-adjoint}$, and the linearity of the adjoint differential in Equation $\eqref{eq:final-lagrangian}$.
 
-The 'commutation' we discussed rather loosely in [Section 2](#2-problem-setting) then directly follows from Equations $\eqref{eq:lagragian-diff-adjoint}$ and $\eqref{eq:final-lagragian}$. We can either (1) apply the duals shift first, $\xi \mapsto \xi + \mathcal{P}_W^*(\Lambda)$, then the reparametrization, $\mathcal{W} \mapsto \Theta$, or (2) apply the reparametrization first then the pullback dual shift, $\zeta \mapsto \zeta + D_{\phi_\theta}^*[\mathcal{P}_W^*(\Lambda)]$, and end up with the same Lagrangian and thereby the same optimizer.
+The 'commutation' we discussed rather loosely in [Section 2](#2-problem-setting) then directly follows from Equations $\eqref{eq:lagrangian-diff-adjoint}$ and $\eqref{eq:final-lagrangian}$. We can either (1) apply the duals shift first, $\xi \mapsto \xi + \mathcal{P}_W^*(\Lambda)$, then the reparametrization, $\mathcal{W} \mapsto \Theta$, or (2) apply the reparametrization first then the pullback dual shift, $\zeta \mapsto \zeta + D_{\phi_\theta}^*[\mathcal{P}_W^*(\Lambda)]$, and end up with the same Lagrangian and thereby the same optimizer.
 
 $$\begin{array}{ccc}
 \begin{array}{c}
