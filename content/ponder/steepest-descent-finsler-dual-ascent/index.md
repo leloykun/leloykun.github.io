@@ -89,7 +89,7 @@ $$\begin{equation}
 for some (possibly point-dependent) linear map $L_{W_t}: \mathbb{R}^{m \times n} \to \mathcal{Y}$, constant offset $b_{W_t} \in \mathcal{Y}$ (often $b_{W_t} = 0$), and a closed convex cone $K \subseteq \mathcal{Y}$. Equality constraints can be represented by setting $K = \{0\}$. For example, for the Stiefel manifold, we have $L_{W}(A) = W^\top A + A^\top W$ and $K = \{0\}$. To simplify notation, we shall drop the subscript $W_t$ from $L_{W_t}$, $b_{W_t}$, and $\|\cdot\|_{W_t}$ in the rest of this section, but keep in mind that they could be point-dependent.
 
 $\blacksquare$ Let $\mathcal{Y}^\dagger$ be the dual space of $\mathcal{Y}$, then the adjoint of $L$, $L^\dagger: \mathcal{Y}^\dagger \to \mathbb{R}^{m \times n}$, is defined as the unique linear map satisfying,
-$$\langle L(A), Y \rangle = \langle A, L^\dagger(Y) \rangle, \quad \forall A \in \mathbb{R}^{m \times n}, Y \in \mathcal{Y}^\dagger.$$
+$$\langle Y, L(A) \rangle = \langle L^\dagger(Y), A \rangle, \quad \forall A \in \mathbb{R}^{m \times n}, Y \in \mathcal{Y}^\dagger.$$
 
 Restricting $Y$ to the dual space $K^\dagger \subseteq \mathcal{Y}^\dagger$ then yields the Lagrangian of Equation $\eqref{eq:optimaldescent}$,
 $$\begin{align}
