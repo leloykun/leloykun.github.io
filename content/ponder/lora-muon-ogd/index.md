@@ -296,23 +296,23 @@ $$
 $$
 where $\Theta$ is some finite-dimensional vector space and $\theta \in \Theta$. E.g., the LoRA parametrization: $\Theta = \mathbb{R}^{m \times r} \times \mathbb{R}^{n \times r}$, $\theta = (A, B)$, and $\phi(\theta) = \phi(A, B) = AB^\top$. For optimization on Stiefel manifolds, it suffices to set $\Theta = \mathcal{W}$ and $\phi = \operatorname{Id}$.
 
-Let $D_{\phi_{\theta}}: T_{\theta} \Theta \to T_{W} \mathcal{W}$ be the differential of $\phi$ at $\theta$ and $D_{\phi_{\theta}}^*: T_{W}^* \mathcal{W} \to T_{\theta}^* \Theta$ be its adjoint such that,
+Let $J_{\phi_{\theta}}: T_{\theta} \Theta \to T_{W} \mathcal{W}$ be the Jacobian of $\phi$ at $\theta$ and $J_{\phi_{\theta}}^*: T_{W}^* \mathcal{W} \to T_{\theta}^* \Theta$ be its adjoint such that,
 $$\begin{align}
     \Delta W
-        &= D_{\phi_{\theta}}[\Delta \theta], \\
-    \langle H, D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
-        &= \langle D_{\phi_{\theta}}^*[H], \Delta \theta \rangle_{\Theta}
+        &= J_{\phi_{\theta}}[\Delta \theta], \\
+    \langle H, J_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
+        &= \langle J_{\phi_{\theta}}^*[H], \Delta \theta \rangle_{\Theta}
         \quad \text{for all} \quad H \in T_{W}^* \mathcal{W}, \Delta \theta \in T_{\theta} \Theta,
 \end{align}$$
-and the $\langle \cdot, \cdot \rangle_{\mathcal{W}}: T_{W}^* \mathcal{W} \times T_{W} \mathcal{W} \to \mathbb{R}$ and $\langle \cdot, \cdot \rangle_\Theta: T_{\theta}^* \Theta \times T_{\theta} \Theta \to \mathbb{R}$ operators here are the canonical pairing of cotangent and tangent vectors of $\mathcal{W}$ and $\Theta$ respectively. Throughout, we will use the Frobenius product for these pairings, $\langle X, Y \rangle_F = \operatorname{tr}(XY^\top)$. For LoRA we have, $D_{\phi_{(A, B)}}[\Delta A, \Delta B] = \Delta A B^\top + A \Delta B^\top$ and $D_{\phi_{(A, B)}}^*[H] = (HB, H^\top A)$.
+and the $\langle \cdot, \cdot \rangle_{\mathcal{W}}: T_{W}^* \mathcal{W} \times T_{W} \mathcal{W} \to \mathbb{R}$ and $\langle \cdot, \cdot \rangle_\Theta: T_{\theta}^* \Theta \times T_{\theta} \Theta \to \mathbb{R}$ operators here are the canonical pairing of cotangent and tangent vectors of $\mathcal{W}$ and $\Theta$ respectively. Throughout, we will use the Frobenius product for these pairings, $\langle X, Y \rangle_F = \operatorname{tr}(XY^\top)$. For LoRA we have, $J_{\phi_{(A, B)}}[\Delta A, \Delta B] = \Delta A B^\top + A \Delta B^\top$ and $J_{\phi_{(A, B)}}^*[H] = (HB, H^\top A)$.
 
-Now let $\mathcal{P}_W : T_{W} \mathcal{W} \to \mathcal{Y}$ be a (point-dependent) linear constraint with adjoint $\mathcal{P}_W^*: \mathcal{Y}^* \to T_{W}^* \mathcal{W}$ such that,
+Now let $\mathcal{P}_W : \mathbb{R}^{m \times n} \to \mathcal{Y}$ be a (point-dependent) linear constraint with adjoint $\mathcal{P}_W^*: \mathcal{Y}^* \to \mathbb{R}^{m \times n}$ such that,
 $$\begin{equation}
-    \langle \mathcal{P}_W(X), \Lambda \rangle_{\mathcal{Y}}
-        = \langle X, \mathcal{P}_W^*(\Lambda) \rangle_{\mathcal{W}}
-        \quad \text{for all} \quad X \in T_W \mathcal{W}, \Lambda \in \mathcal{Y}^*,
+    \langle \Lambda, \mathcal{P}_W(X) \rangle
+        = \langle \mathcal{P}_W^*(\Lambda), X \rangle_{\mathcal{W}}
+        \quad \text{for all} \quad X \in T_W \mathcal{W}, \Lambda \in \mathcal{Y}^*.
 \end{equation}$$
-and the $\langle \cdot, \cdot \rangle_{\mathcal{Y}}: \mathcal{Y} \times \mathcal{Y}^* \to \mathbb{R}$ operator here is the canonical pairing of $\mathcal{Y}$ vectors and $\mathcal{Y}^*$ covectors. For OGD earlier, we have, $\mathcal{P}(X) = U^\top X V$. And for Stiefel manifold optimization, we have, $\mathcal{P}_W(X) = W^\top X + X^\top W$ [(Bernstein, 2025)](https://thinkingmachines.ai/blog/modular-manifolds/).
+For OGD earlier, we have, $\mathcal{P}(X) = U^\top X V$. And for Stiefel manifold optimization, we have, $\mathcal{P}_W(X) = W^\top X + X^\top W$ [(Bernstein, 2025)](https://thinkingmachines.ai/blog/modular-manifolds/).
 
 The problem we then want to solve is,
 $$\begin{equation}
@@ -325,33 +325,32 @@ $$\begin{equation}
 or in terms of $\theta$,
 $$\begin{equation}
     \Delta \theta^*
-        = \arg\min_{\Delta \theta \in T_\theta \Theta} \langle G_W, D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
+        = \arg\min_{\Delta \theta \in T_\theta \Theta} \langle G_W, J_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
         \quad \text{s.t.}
             \quad \Delta \theta \in \mathcal{K}_{\theta},
-            \quad \mathcal{P}_W(D_{\phi_{\theta}}[\Delta \theta]) = 0,
+            \quad \mathcal{P}_W(J_{\phi_{\theta}}[\Delta \theta]) = 0,
 \end{equation}$$
-where $G_W \in T_W^* \mathcal{W}$ and $\mathcal{K}_{\theta} \subseteq \{ \Delta \theta \in T_\theta \Theta : \| D_{\phi_{\theta}}[\Delta \theta] \|_W \leq \eta \}$ is some (split) trust region constraint that satisfies the $\| \Delta W \|_W \leq \eta$ constraint. For Muon, set $\mathcal{K}_{\theta} = \mathbb{B}_{\eta}^{m \times n}$. And for LoRA-Muon, we use the split spectral constraint in [Section 2](#2-problem-setting).
+where $G_W \in T_W^* \mathcal{W}$ and $\mathcal{K}_{\theta} \subseteq \{ \Delta \theta \in T_\theta \Theta : \| J_{\phi_{\theta}}[\Delta \theta] \|_W \leq \eta \}$ is some (split) trust region constraint that satisfies the $\| \Delta W \|_W \leq \eta$ constraint. For Muon, set $\mathcal{K}_{\theta} = \mathbb{B}_{\eta}^{m \times n}$. And for LoRA-Muon, we use the split spectral constraint in [Section 2](#2-problem-setting).
 
-Let $\Lambda \in \mathcal{Y}^{*}$. The Lagrangian then is,
-
+Constrain $\Lambda \in \mathcal{Y}^{*}$ and $\mathcal{P}_W^*: \mathcal{Y}^* \to T_W^* \mathcal{W}$. The Lagrangian then is,
 $$\begin{align}
     \mathcal{L}(\Delta \theta, \Lambda; G_W)
-        &= \langle G_W, D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
-            + \langle \mathcal{P}_W(D_{\phi_{\theta}}[\Delta \theta]), \Lambda \rangle_{\mathcal{Y}}
+        &= \langle G_W, J_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
+            + \langle \Lambda, \mathcal{P}_W(J_{\phi_{\theta}}[\Delta \theta]) \rangle
             + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \\
-        &= \langle G_W, D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
-            + \langle D_{\phi_{\theta}}[\Delta \theta], \mathcal{P}_W^*(\Lambda) \rangle_{\mathcal{W}}
+        &= \langle G_W, J_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
+            + \langle \mathcal{P}_W^*(\Lambda), J_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
             + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \label{eq:lagrangian-p-adjoint} \\
-        &= \langle G_W + \mathcal{P}_W^*(\Lambda), D_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
+        &= \langle G_W + \mathcal{P}_W^*(\Lambda), J_{\phi_{\theta}}[\Delta \theta] \rangle_{\mathcal{W}}
             + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \\
-        &= \langle D_{\phi_{\theta}}^*[G_W + \mathcal{P}_W^*(\Lambda)], \Delta \theta \rangle_{\Theta}
+        &= \langle J_{\phi_{\theta}}^*[G_W + \mathcal{P}_W^*(\Lambda)], \Delta \theta \rangle_{\Theta}
             + \iota_{\mathcal{K}_{\theta}}(\Delta \theta) \label{eq:lagrangian-diff-adjoint} \\
-        &= \langle D_{\phi_{\theta}}^*[G_W] + D_{\phi_{\theta}}^*[\mathcal{P}_W^*(\Lambda)], \Delta \theta \rangle_{\Theta}
+        &= \langle J_{\phi_{\theta}}^*[G_W] + J_{\phi_{\theta}}^*[\mathcal{P}_W^*(\Lambda)], \Delta \theta \rangle_{\Theta}
             + \iota_{\mathcal{K}_{\theta}}(\Delta \theta), \label{eq:final-lagrangian}
 \end{align}$$
 minimization of which can be solved factor-wise. Note that we used the adjoint of $P_W$ in Equation $\eqref{eq:lagrangian-p-adjoint}$, the adjoint differential in Equation $\eqref{eq:lagrangian-diff-adjoint}$, and the linearity of the adjoint differential in Equation $\eqref{eq:final-lagrangian}$.
 
-The 'commutation' we discussed rather loosely in [Section 2](#2-problem-setting) then directly follows from Equations $\eqref{eq:lagrangian-diff-adjoint}$ and $\eqref{eq:final-lagrangian}$. We can either (1) apply the duals shift first, $\xi \mapsto \xi + \mathcal{P}_W^*(\Lambda)$, then the reparametrization, $\mathcal{W} \mapsto \Theta$, or (2) apply the reparametrization first then the pullback dual shift, $\zeta \mapsto \zeta + D_{\phi_\theta}^*[\mathcal{P}_W^*(\Lambda)]$, and end up with the same Lagrangian and thereby the same optimizer.
+The 'commutation' we discussed rather loosely in [Section 2](#2-problem-setting) then directly follows from Equations $\eqref{eq:lagrangian-diff-adjoint}$ and $\eqref{eq:final-lagrangian}$. We can either (1) apply the duals shift first, $\xi \mapsto \xi + \mathcal{P}_W^*(\Lambda)$, then the reparametrization, $\mathcal{W} \mapsto \Theta$, or (2) apply the reparametrization first then the pullback dual shift, $\zeta \mapsto \zeta + J_{\phi_\theta}^*[\mathcal{P}_W^*(\Lambda)]$, and end up with the same Lagrangian and thereby the same optimizer.
 
 $$\begin{array}{ccc}
 \begin{array}{c}
@@ -364,7 +363,7 @@ $$\begin{array}{ccc}
 &
 \begin{array}{c}
     \text{LMO + Smooth Parametrization:} \\
-    \langle D_{\phi_{\theta}}^*[G_W], \Delta \theta \rangle_{\Theta}
+    \langle J_{\phi_{\theta}}^*[G_W], \Delta \theta \rangle_{\Theta}
         + \iota_{\mathcal{K}_{\theta}}(\Delta \theta)
 \end{array}
 \\[1.5em]
@@ -383,7 +382,7 @@ $$\begin{array}{ccc}
 &
 \begin{array}{c}
     \text{LMO + Linear Constraint + Smooth Parametrization:} \\
-    \langle D_{\phi_{\theta}}^*[G_W] + D_{\phi_{\theta}}^*[\mathcal{P}_W^*(\Lambda)], \Delta \theta \rangle_{\Theta}
+    \langle J_{\phi_{\theta}}^*[G_W] + J_{\phi_{\theta}}^*[\mathcal{P}_W^*(\Lambda)], \Delta \theta \rangle_{\Theta}
         + \iota_{\mathcal{K}_{\theta}}(\Delta \theta)
 \end{array}
 \end{array}$$
