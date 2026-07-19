@@ -97,15 +97,15 @@ First, notice that the feasible sets for the constraints on $A$ above are convex
 There are many ways to solve this problem such as Alternating Direction Method of Multipliers (ADMM), Douglas-Rachford, and etc. In this blog post, we will focus on the Primal-Dual Hybrid Gradient (PDHG) method.
 
 First, replace the constraints with indicator functions,
-$$\begin{equation} A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \left\{ \langle G, A \rangle + \mathcal{i}_{\| \cdot \|_{W} \leq \eta}(A) + \mathcal{i}_{T_{W}\mathcal{M}}(A) \right\}, \end{equation}$$
+$$\begin{equation} A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \left\{ \langle G, A \rangle + \iota_{\| \cdot \|_{W} \leq \eta}(A) + \iota_{T_{W}\mathcal{M}}(A) \right\}, \end{equation}$$
 where,
-$$ \mathcal{i}_{\| \cdot \|_{W} \leq \eta}(A) =
+$$ \iota_{\| \cdot \|_{W} \leq \eta}(A) =
 \begin{cases}
     0 &\text{ if } \| A \|_{W} \leq \eta \\
     \infty &\text{ otherwise}
 \end{cases}
 \qquad \text{ and } \qquad
-\mathcal{i}_{T_{W}\mathcal{M}}(A) =
+\iota_{T_{W}\mathcal{M}}(A) =
 \begin{cases}
     0 &\text{ if } A \in T_{W}\mathcal{M} \\
     \infty &\text{ otherwise}
@@ -116,7 +116,7 @@ Equivalently,
 $$\begin{equation}
     A^* = \arg\min_{A \in \mathbb{R}^{m \times n}} \left\{ f_{\eta}(A) + g(A) \right\}, \label{eq:astarviaindicators}
 \end{equation}$$
-where $f_{\eta}(\cdot) := \mathcal{i}_{\| \cdot \|_{W} \leq \eta}(\cdot)$ and $g(\cdot) := \mathcal{i}_{T_{W}\mathcal{M}}(\cdot) + \langle G, \cdot \rangle$. Note that we can move the $\langle G, \cdot \rangle$ term to $f$ instead, but as we will see later, the proximal operator for $g$ is simpler so we keep it there for improved numerical stability.
+where $f_{\eta}(\cdot) := \iota_{\| \cdot \|_{W} \leq \eta}(\cdot)$ and $g(\cdot) := \iota_{T_{W}\mathcal{M}}(\cdot) + \langle G, \cdot \rangle$. Note that we can move the $\langle G, \cdot \rangle$ term to $f$ instead, but as we will see later, the proximal operator for $g$ is simpler so we keep it there for improved numerical stability.
 
 We can then split Equation $\eqref{eq:astarviaindicators}$ into two subproblems by 'copying' $A$,
 $$\begin{equation}
@@ -136,7 +136,7 @@ $$
     \end{bmatrix}\\
     L &:= \begin{bmatrix} I & -I \end{bmatrix} \\
     \mathcal{F}_{\eta}(X) &:= f_{\eta}(A) + g(B) \\
-    \mathcal{G}(Y) &:= \mathcal{i}_{\{0\}}(Y) = \begin{cases}
+    \mathcal{G}(Y) &:= \iota_{\{0\}}(Y) = \begin{cases}
         0 &\text{ if } Y = 0 \\
         \infty &\text{ otherwise}
     \end{cases}
@@ -395,7 +395,7 @@ For example, suppose we add another constraint $A \in S$ in Equation $\eqref{eq:
 $$\begin{equation} A^* = -\left[\arg\min_{A,B,C \in \mathbb{R}^{m \times n}} \{f(A) + g(B) + h(C)\} \quad \text{ s.t. } \quad A - B = A - C = 0\right]_{A} \end{equation}$$
 where,
 $$
-h(C) := \mathcal{i}_{S}(C) =
+h(C) := \iota_{S}(C) =
 \begin{cases}
     0 &\text{ if } C \in S \\
     \infty &\text{ otherwise}

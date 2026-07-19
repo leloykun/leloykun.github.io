@@ -296,12 +296,12 @@ In words,
 Intuitively, to construct the null space projector $P_0$, we can "select" from $Q$ the eigenvectors corresponding to the zero eigenvalues of $W_{t}$  as follows,
 $$\begin{align}
     P_0
-        &= Q (\mathcal{i}_{(\lambda_i = 0)}(\Lambda)) Q^\top && \text{where } \mathcal{i}_{(\lambda_i = 0)}(\lambda_i) = \begin{cases}
+        &= Q (\iota_{(\lambda_i = 0)}(\Lambda)) Q^\top && \text{where } \iota_{(\lambda_i = 0)}(\lambda_i) = \begin{cases}
             1 & \text{if } \lambda_i = 0 \\
             0 & \text{otherwise}
         \end{cases} \nonumber \\
-        &\approx Q (\mathcal{i}_{(-\epsilon < \lambda_i < \epsilon)}(\Lambda)) Q^\top && \text{for small } \epsilon > 0 \nonumber \\
-        &= Q (\mathcal{i}_{(\lambda_i < \epsilon)}(\Lambda)) Q^\top && \text{since } W \text{ is PSD}\nonumber \\
+        &\approx Q (\iota_{(-\epsilon < \lambda_i < \epsilon)}(\Lambda)) Q^\top && \text{for small } \epsilon > 0 \nonumber \\
+        &= Q (\iota_{(\lambda_i < \epsilon)}(\Lambda)) Q^\top && \text{since } W \text{ is PSD}\nonumber \\
         &= Q (1 - \operatorname{step}(\Lambda, \epsilon)) Q^\top \nonumber \\
         &= I - \operatorname{eig\_stepfun}(W, \epsilon)
 \end{align}$$
@@ -433,9 +433,9 @@ or in words,
 As in [Section 3.2.1](#321-numerically-stable-computation-of-the-null-space-projector), we can construct the eigenspace projectors $P_\alpha$ and $P_\beta$ as follows,
 $$\begin{align}
     P_\alpha
-        &= Q (\mathcal{i}_{(\lambda_i = \alpha)}(\Lambda)) Q^\top \nonumber \\
-        &\approx Q (\mathcal{i}_{(\alpha - \epsilon < \lambda_i < \alpha + \epsilon)}(\Lambda)) Q^\top && \text{for small } \epsilon > 0 \nonumber \\
-        &= Q (\mathcal{i}_{(\lambda_i < \alpha + \epsilon)}(\Lambda)) Q^\top && \text{since } \alpha I \preceq W \nonumber \\
+        &= Q (\iota_{(\lambda_i = \alpha)}(\Lambda)) Q^\top \nonumber \\
+        &\approx Q (\iota_{(\alpha - \epsilon < \lambda_i < \alpha + \epsilon)}(\Lambda)) Q^\top && \text{for small } \epsilon > 0 \nonumber \\
+        &= Q (\iota_{(\lambda_i < \alpha + \epsilon)}(\Lambda)) Q^\top && \text{since } \alpha I \preceq W \nonumber \\
         &= I - \operatorname{eig\_stepfun}(W, \alpha + \epsilon)
 \end{align}$$
 Likewise, $P_\beta \approx \operatorname{eig\_stepfun}(W, \beta - \epsilon)$ for small $\epsilon > 0$.
@@ -564,9 +564,9 @@ First, note that for $W = U \Sigma V^\top$, we have $W_t^\top W_t = V \Sigma^2 V
 $$\begin{align}
     P_{V_{R}}
         &= V_{R} V_{R}^\top \nonumber \\
-        &= V (\mathcal{i}_{(\lambda_i = R^2)}(\Sigma^2)) V^\top && \text{where } \lambda_i = [\Sigma^2]_i = \sigma_i^2 \nonumber \\
-        &\approx V (\mathcal{i}_{(R^2 - \epsilon < \lambda_i < R^2 + \epsilon)}(\Sigma^2)) V^\top && \text{for small } \epsilon > 0 \nonumber \\
-        &= V (\mathcal{i}_{(\lambda_i > R^2 - \epsilon)}(\Sigma^2)) V^\top && \text{since } \| W \|_{2 \to 2} \leq R \nonumber \\
+        &= V (\iota_{(\lambda_i = R^2)}(\Sigma^2)) V^\top && \text{where } \lambda_i = [\Sigma^2]_i = \sigma_i^2 \nonumber \\
+        &\approx V (\iota_{(R^2 - \epsilon < \lambda_i < R^2 + \epsilon)}(\Sigma^2)) V^\top && \text{for small } \epsilon > 0 \nonumber \\
+        &= V (\iota_{(\lambda_i > R^2 - \epsilon)}(\Sigma^2)) V^\top && \text{since } \| W \|_{2 \to 2} \leq R \nonumber \\
         &= \operatorname{eig\_stepfun}(V \Sigma^2 V^\top, R^2 - \epsilon) \nonumber \\
         &= \operatorname{eig\_stepfun}(W_t^\top W_t, R^2 - \epsilon).
 \end{align}$$
@@ -574,12 +574,12 @@ And,
 $$\begin{align}
     J_R
         &= U_R V_R^\top \nonumber \\
-        &= U (\mathcal{i}_{(\lambda_i = R)}(\Sigma)) V^\top \nonumber \\
+        &= U (\iota_{(\lambda_i = R)}(\Sigma)) V^\top \nonumber \\
         &= U \left( \begin{cases}
             \frac{\sigma_i}{R} 1 & \text{if } \sigma_i = R \\
             0 & \text{otherwise}
-        \end{cases} \right) V^\top && \text{i.e., } \mathcal{i}_{(\lambda_i = R)}(\Sigma) = \frac{\Sigma}{R}\cdot\mathcal{i}_{(\lambda_i = R)}(\Sigma)\nonumber \\
-        &= U \frac{1}{R}\Sigma(V^\top V) (\mathcal{i}_{(\lambda_i = R)}(\Sigma)) V^\top \nonumber \\
+        \end{cases} \right) V^\top && \text{i.e., } \iota_{(\lambda_i = R)}(\Sigma) = \frac{\Sigma}{R}\cdot\iota_{(\lambda_i = R)}(\Sigma)\nonumber \\
+        &= U \frac{1}{R}\Sigma(V^\top V) (\iota_{(\lambda_i = R)}(\Sigma)) V^\top \nonumber \\
         &= \frac{1}{R} W_t P_{V_{R}}
 \end{align}$$
 
@@ -827,8 +827,8 @@ such that $\langle L_{\alpha}(X), S_{\alpha} \rangle = \langle X, L_{\alpha}^*(S
 Restricting the dual states $S_{\alpha}$ to the negative semidefinite cone, $S_{\alpha} \in \mathbb{S}^{r_{\alpha}}_{-}$, and $S_{\beta}$ to the positive semidefinite cone, $S_{\beta} \in \mathbb{S}^{r_{\beta}}_{+}$, yields the Lagrangian,
 $$\begin{align}
     \mathcal{L}(A, S_{\alpha}, S_{\beta})
-        &= \langle G_t, A \rangle + \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle S_{\alpha}, L_{\alpha}(A) \rangle + \langle S_{\beta}, L_{\beta}(A) \rangle \nonumber \\
-        &= \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}), A \rangle.
+        &= \langle G_t, A \rangle + \iota_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle S_{\alpha}, L_{\alpha}(A) \rangle + \langle S_{\beta}, L_{\beta}(A) \rangle \nonumber \\
+        &= \iota_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}), A \rangle.
 \end{align}$$
 One can then check that,
 $$A^* = \arg\min_{\| A \|_{W_t} \leq \eta} \left[ \max_{S_{\alpha} \in \mathbb{S}^{r_{\alpha}}_{-}, S_{\beta} \in \mathbb{S}^{r_{\beta}}_{+}} \mathcal{L}(A, S_{\alpha}, S_{\beta}) \right]$$
@@ -839,7 +839,7 @@ First, let us consider the primal minimizer,
 $$\begin{align}
     A^*(S_{\alpha}, S_{\beta})
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, S_{\alpha}, S_{\beta}) \nonumber \\
-        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}), A \rangle \nonumber \\
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \iota_{\| \cdot \|_{W_t} \leq \eta}(A) + \langle G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}), A \rangle \nonumber \\
         &= \arg\min_{\| A \|_{W_t} \leq \eta} \langle G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta}), A \rangle \nonumber \\
         &= \eta \cdot \operatorname{LMO}_{\| \cdot \|_{W_t}}(G_t + L_{\alpha}^*(S_{\alpha}) + L_{\beta}^*(S_{\beta})) \nonumber
 \end{align}$$

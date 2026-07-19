@@ -288,9 +288,9 @@ In words,
 Intuitively, to construct the null space projector $P_0$, we can "select" from $Q$ the eigenvectors corresponding to the zero eigenvalues of $W_{t}$  as follows,
 $$\begin{align}
     P_0
-        &= Q (\mathcal{i}_{(\sigma_i = 0)}(\Sigma)) Q^T \nonumber \\
-        &\approx Q (\mathcal{i}_{(-\epsilon < \sigma_i < \epsilon)}(\Sigma)) Q^T && \text{for small } \epsilon > 0 \nonumber \\
-        &= Q (\mathcal{i}_{(\sigma_i < \epsilon)}(\Sigma)) Q^T && \text{since } W \text{ is PSD}\nonumber \\
+        &= Q (\iota_{(\sigma_i = 0)}(\Sigma)) Q^T \nonumber \\
+        &\approx Q (\iota_{(-\epsilon < \sigma_i < \epsilon)}(\Sigma)) Q^T && \text{for small } \epsilon > 0 \nonumber \\
+        &= Q (\iota_{(\sigma_i < \epsilon)}(\Sigma)) Q^T && \text{since } W \text{ is PSD}\nonumber \\
         &= Q (1 - \texttt{step}(\Sigma, \epsilon)) Q^T \nonumber \\
         &= I - \texttt{eig\_stepfun}(W, \epsilon)
 \end{align}$$
@@ -422,9 +422,9 @@ or in words,
 As in [Section 3.2.1](#321-numerically-stable-computation-of-the-null-space-projector), we can construct the eigenspace projectors $P_\alpha$ and $P_\beta$ as follows,
 $$\begin{align}
     P_\alpha
-        &= Q (\mathcal{i}_{(\sigma_i = \alpha)}(\Sigma)) Q^T \nonumber \\
-        &\approx Q (\mathcal{i}_{(\alpha - \epsilon < \sigma_i < \alpha + \epsilon)}(\Sigma)) Q^T && \text{for small } \epsilon > 0 \nonumber \\
-        &= Q (\mathcal{i}_{(\sigma_i < \alpha + \epsilon)}(\Sigma)) Q^T && \text{since } \alpha I \preceq W \nonumber \\
+        &= Q (\iota_{(\sigma_i = \alpha)}(\Sigma)) Q^T \nonumber \\
+        &\approx Q (\iota_{(\alpha - \epsilon < \sigma_i < \alpha + \epsilon)}(\Sigma)) Q^T && \text{for small } \epsilon > 0 \nonumber \\
+        &= Q (\iota_{(\sigma_i < \alpha + \epsilon)}(\Sigma)) Q^T && \text{since } \alpha I \preceq W \nonumber \\
         &= I - \texttt{eig\_stepfun}(W, \alpha + \epsilon)
 \end{align}$$
 Likewise, $P_\beta \approx \texttt{eig\_stepfun}(W, \beta - \epsilon)$ for small $\epsilon > 0$.
@@ -538,9 +538,9 @@ Thus,
 $$\begin{align}
     P_{U_{R}}
         &= U_{R} U_{R}^T \nonumber \\
-        &= U (\mathcal{i}_{(\lambda_i = R^2)}(\Lambda^2)) U^T \nonumber \\
-        &\approx U (\mathcal{i}_{(R^2 - \epsilon < \lambda_i < R^2 + \epsilon)}(\Lambda^2)) U^T && \text{for small } \epsilon > 0 \nonumber \\
-        &= U (\mathcal{i}_{(\lambda_i > R^2 - \epsilon)}(\Lambda^2)) U^T && \text{since } \lambda_\text{max}(W) \leq R \nonumber \\
+        &= U (\iota_{(\lambda_i = R^2)}(\Lambda^2)) U^T \nonumber \\
+        &\approx U (\iota_{(R^2 - \epsilon < \lambda_i < R^2 + \epsilon)}(\Lambda^2)) U^T && \text{for small } \epsilon > 0 \nonumber \\
+        &= U (\iota_{(\lambda_i > R^2 - \epsilon)}(\Lambda^2)) U^T && \text{since } \lambda_\text{max}(W) \leq R \nonumber \\
         &= \texttt{eig\_stepfun}(W_t W_t^T, R^2 - \epsilon). \nonumber
 \end{align}$$
 Likewise, $$P_{V_{R}} \approx \texttt{eig\_stepfun}(W_t^T W_t, R^2 - \epsilon) \qquad\text{for small } \epsilon > 0$$

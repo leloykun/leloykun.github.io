@@ -94,11 +94,11 @@ $$\langle L(A), Y \rangle = \langle A, L^\dagger(Y) \rangle, \quad \forall A \in
 
 Restricting $Y$ to the dual space $K^\dagger \subseteq \mathcal{Y}^\dagger$ then yields the Lagrangian of Equation $\eqref{eq:optimaldescent}$,
 $$\begin{align}
-    \mathcal{L}(A, Y) &= \langle G_t, A \rangle + \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle Y, L(W_t + A) + b \rangle \nonumber \\
-        &= \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^\dagger(Y), A \rangle + \langle Y, L(W_t) + b \rangle
+    \mathcal{L}(A, Y) &= \langle G_t, A \rangle + \iota_{\| \cdot \| \leq \eta}(A) + \langle Y, L(W_t + A) + b \rangle \nonumber \\
+        &= \iota_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^\dagger(Y), A \rangle + \langle Y, L(W_t) + b \rangle
 \end{align}$$
-where $\mathcal{i}_S$ is the indicator function of set $S$ defined as,
-$$\mathcal{i}_S(X) = \begin{cases}
+where $\iota_S$ is the indicator function of set $S$ defined as,
+$$\iota_S(X) = \begin{cases}
     0 & X \in S \\
     +\infty & X \notin S
 \end{cases}.$$
@@ -112,7 +112,7 @@ First, let us consider the primal minimizer,
 $$\begin{align}
     A^*(Y)
         &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{L}(A, Y) \nonumber \\
-        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \mathcal{i}_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^\dagger(Y), A \rangle + \cancel{\langle Y, L(W_t) + b \rangle} \nonumber \\
+        &= \arg\min_{A \in \mathbb{R}^{m \times n}} \iota_{\| \cdot \| \leq \eta}(A) + \langle G_t + L^\dagger(Y), A \rangle + \cancel{\langle Y, L(W_t) + b \rangle} \nonumber \\
         &= \arg\min_{\| A \| \leq \eta} \langle G_t + L^\dagger(Y), A \rangle \nonumber \\
         &= \eta\cdot\operatorname{LMO}_{\| \cdot \|}(G_t + L^\dagger(Y)),
 \end{align}$$
