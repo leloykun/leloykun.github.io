@@ -9,9 +9,9 @@ cover:
     image: lr_transfer_pdhg_spectral_ball_spectral.png
     alt: "Cover"
     relative: true
-_build:
-  list: false
-  render: true
+build:
+  list: never
+  render: always
   publishResources: true
 ---
 

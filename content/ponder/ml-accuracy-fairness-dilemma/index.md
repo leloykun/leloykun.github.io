@@ -12,9 +12,9 @@ cover:
 editPost:
     URL: "https://ponder.substack.com/p/the-accuracy-fairness-dilemma"
     Text: "Crossposted on Ponder"
-_build:
-  list: false
-  render: true
+build:
+  list: never
+  render: always
   publishResources: true
 ---
 

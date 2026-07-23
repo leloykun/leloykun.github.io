@@ -12,6 +12,10 @@ cover:
 editPost:
     URL: "https://ponder.substack.com/p/the-human-mind-may-be-universal"
     Text: "Crossposted on Ponder"
+build:
+  list: never
+  render: always
+  publishResources: true
 ---
 
 > What we consider today as characteristically "human" thought and consciousness may just be a valley in a large attractor basin of all possible minds.

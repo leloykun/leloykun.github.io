@@ -12,6 +12,10 @@ cover:
 editPost:
     URL: "https://ponder.substack.com/p/chatgpt-may-have-developed-seasonal-depression"
     Text: "Crossposted on Ponder"
+build:
+  list: never
+  render: always
+  publishResources: true
 ---
 
 If you've been chatting with ChatGPT for the past few months, like me, you may have noticed that it got lazier and gloomier.

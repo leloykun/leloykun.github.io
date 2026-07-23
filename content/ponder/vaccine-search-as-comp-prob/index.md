@@ -12,6 +12,10 @@ cover:
 editPost:
     URL: "https://ponder.substack.com/p/vaccine-search-as-comp-prob"
     Text: "Crossposted on Ponder"
+build:
+  list: never
+  render: always
+  publishResources: true
 ---
 
 ## Traditional vs. BioNTech’s mRNA vaccines
